@@ -54,6 +54,10 @@ function App() {
   // State สำหรับ Modal แจ้งเตือนที่ออกแบบใหม่ (Custom Alert)
   const [customAlert, setCustomAlert] = useState({ isOpen: false, title: '', message: '', type: 'error' });
 
+  // State สำหรับ Filter อุปกรณ์เสริม (Accessories)
+  const [accFilterType, setAccFilterType] = useState('ทั้งหมด');
+  const [accFilterStatus, setAccFilterStatus] = useState('ทั้งหมด');
+
   // ดึงข้อมูลจาก Firestore
   useEffect(() => {
     // ดึงข้อมูลทรัพย์สินหลัก
@@ -87,6 +91,8 @@ function App() {
   // อัปเดตค่าเริ่มต้นของ Type เมื่อเปลี่ยนเมนู
   useEffect(() => {
     setName('');
+    setAccFilterType('ทั้งหมด');
+    setAccFilterStatus('ทั้งหมด');
     if (activeMenu === 'assets') {
       setType('คอมพิวเตอร์');
     } else if (activeMenu === 'accessories') {
@@ -193,12 +199,20 @@ function App() {
 
   // ฟังก์ชันสำหรับ Export ข้อมูลอุปกรณ์เสริมเป็น CSV
   const handleExportAccessories = () => {
-    if (accessories.length === 0) {
-      setCustomAlert({ isOpen: true, title: 'ไม่พบข้อมูล!', message: 'ไม่มีข้อมูลอุปกรณ์เสริมในระบบสำหรับส่งออก', type: 'error' });
+    // กรองข้อมูลตามที่เลือกใน Filter ก่อนส่งออก
+    const filteredAccessories = accessories.filter(item => {
+      const itemStatus = item.status || 'พร้อมใช้งาน';
+      const matchType = accFilterType === 'ทั้งหมด' || item.type === accFilterType;
+      const matchStatus = accFilterStatus === 'ทั้งหมด' || itemStatus === accFilterStatus;
+      return matchType && matchStatus;
+    });
+
+    if (filteredAccessories.length === 0) {
+      setCustomAlert({ isOpen: true, title: 'ไม่พบข้อมูล!', message: 'ไม่มีข้อมูลอุปกรณ์เสริมตามเงื่อนไขที่เลือกสำหรับส่งออก', type: 'error' });
       return;
     }
     
-    const exportData = accessories.map(item => ({
+    const exportData = filteredAccessories.map(item => ({
       'ชื่ออุปกรณ์': item.name || '',
       'ประเภท': item.type || '',
       'สถานะ': item.status || '',
@@ -478,9 +492,21 @@ function App() {
   };
 
   // ตัวแปรสำหรับแสดงข้อมูลตามเมนูที่เลือก
-  const currentData = activeMenu === 'assets' ? assets : 
-                      activeMenu === 'licenses' ? licenses : 
-                      activeMenu === 'accessories' ? accessories : employees;
+  let currentData = [];
+  if (activeMenu === 'assets') {
+    currentData = assets;
+  } else if (activeMenu === 'licenses') {
+    currentData = licenses;
+  } else if (activeMenu === 'employees') {
+    currentData = employees;
+  } else if (activeMenu === 'accessories') {
+    currentData = accessories.filter(item => {
+      const itemStatus = item.status || 'พร้อมใช้งาน';
+      const matchType = accFilterType === 'ทั้งหมด' || item.type === accFilterType;
+      const matchStatus = accFilterStatus === 'ทั้งหมด' || itemStatus === accFilterStatus;
+      return matchType && matchStatus;
+    });
+  }
   
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวมระบบ (Dashboard)' :
                     activeMenu === 'assets' ? 'ทรัพย์สิน IT หลัก' : 
@@ -662,15 +688,39 @@ function App() {
                         </button>
                       </>
                     )}
-                    {/* แสดงปุ่ม Export เฉพาะในหน้าอุปกรณ์เสริม */}
+                    {/* แสดง Filter และปุ่ม Export เฉพาะในหน้าอุปกรณ์เสริม */}
                     {activeMenu === 'accessories' && (
-                      <button
-                        onClick={handleExportAccessories}
-                        className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        ส่งออก CSV
-                      </button>
+                      <>
+                        <select
+                          value={accFilterType}
+                          onChange={(e) => setAccFilterType(e.target.value)}
+                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                        >
+                          <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>
+                          <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
+                          <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option>
+                          <option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option>
+                          <option value="หูฟัง (Headset)">หูฟัง (Headset)</option>
+                          <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
+                          <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                        <select
+                          value={accFilterStatus}
+                          onChange={(e) => setAccFilterStatus(e.target.value)}
+                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                        >
+                          <option value="ทั้งหมด">สถานะ: ทั้งหมด</option>
+                          <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                          <option value="ถูกใช้งาน">ถูกใช้งาน</option>
+                        </select>
+                        <button
+                          onClick={handleExportAccessories}
+                          className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                          ส่งออก CSV
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={() => setIsAddModalOpen(true)}

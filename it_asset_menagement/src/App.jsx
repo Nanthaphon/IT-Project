@@ -16,6 +16,7 @@ function App() {
   // State ฟอร์มทรัพย์สิน/อุปกรณ์
   const [name, setName] = useState('');
   const [type, setType] = useState('คอมพิวเตอร์');
+  const [cost, setCost] = useState(''); // เพิ่ม State สำหรับเก็บราคา
 
   // State ฟอร์มพนักงาน
   const [empForm, setEmpForm] = useState({
@@ -99,6 +100,7 @@ function App() {
   // อัปเดตค่าเริ่มต้นของ Type เมื่อเปลี่ยนเมนู
   useEffect(() => {
     setName('');
+    setCost(''); // รีเซ็ตราคาเมื่อเปลี่ยนเมนู
     setAccFilterType('ทั้งหมด');
     setAccFilterStatus('ทั้งหมด');
     setSearchTerm(''); // รีเซ็ตคำค้นหาเมื่อเปลี่ยนเมนู
@@ -120,12 +122,14 @@ function App() {
       await addDoc(collection(db, collectionName), {
         name: name,
         type: type,
+        cost: cost, // บันทึกราคาลงฐานข้อมูล
         status: 'พร้อมใช้งาน',
         assignedTo: null,
         assignedName: null,
         createdAt: serverTimestamp()
       });
       setName('');
+      setCost(''); // เคลียร์ฟอร์มราคา
       setIsAddModalOpen(false); // ปิด Modal หลังจากบันทึกเสร็จ
     } catch (error) {
       console.error("Error adding document: ", error);
@@ -795,6 +799,9 @@ function App() {
                           <option value="ทั้งหมด">สถานะ: ทั้งหมด</option>
                           <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                           <option value="ถูกใช้งาน">ถูกใช้งาน</option>
+                          <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
+                          <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
+                          <option value="รอดำเนินการ">รอดำเนินการ</option>
                         </select>
                         <button
                           onClick={handleExportAccessories}
@@ -846,6 +853,7 @@ function App() {
                             <>
                               <th className="p-4 text-sm font-bold rounded-tl-lg border-b border-slate-200">ชื่ออุปกรณ์</th>
                               <th className="p-4 text-sm font-bold border-b border-slate-200">ประเภท</th>
+                              <th className="p-4 text-sm font-bold border-b border-slate-200">ราคา</th>
                               <th className="p-4 text-sm font-bold border-b border-slate-200">สถานะ</th>
                               <th className="p-4 text-sm font-bold text-center rounded-tr-lg border-b border-slate-200">จัดการ</th>
                             </>
@@ -927,7 +935,9 @@ function App() {
                                       <div className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-amber-200">
                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {item.status}
                                       </div>
-                                      <span className="text-xs text-slate-500 mt-0.5 ml-1 font-medium">👤 {item.assignedName}</span>
+                                      {item.assignedName && (
+                                        <span className="text-xs text-slate-500 mt-0.5 ml-1 font-medium">👤 {item.assignedName}</span>
+                                      )}
                                     </div>
                                   )}
                                 </td>
@@ -986,6 +996,9 @@ function App() {
                                     {item.type}
                                   </span>
                                 </td>
+                                <td className="p-4 text-sm font-bold text-emerald-600">
+                                  {item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}
+                                </td>
                                 <td className="p-4">
                                   {item.status === 'พร้อมใช้งาน' ? (
                                     <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-emerald-200">
@@ -996,7 +1009,9 @@ function App() {
                                       <div className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-amber-200">
                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {item.status}
                                       </div>
-                                      <span className="text-xs text-slate-500 mt-0.5 ml-1 font-medium">👤 {item.assignedName}</span>
+                                      {item.assignedName && (
+                                        <span className="text-xs text-slate-500 mt-0.5 ml-1 font-medium">👤 {item.assignedName}</span>
+                                      )}
                                     </div>
                                   )}
                                 </td>
@@ -1196,6 +1211,17 @@ function App() {
                         </>
                       )}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
+                    <input 
+                      type="number" 
+                      value={cost}
+                      onChange={(e) => setCost(e.target.value)}
+                      className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                      placeholder="ระบุราคา..."
+                    />
                   </div>
                   
                   <div className="pt-2">
@@ -1474,6 +1500,12 @@ function App() {
                         </span>
                       </span>
                     </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">ราคา:</span>
+                      <span className="col-span-2 font-bold text-emerald-600">
+                        {selectedAssetDetail.cost ? `฿${Number(selectedAssetDetail.cost).toLocaleString()}` : '-'}
+                      </span>
+                    </div>
                   </>
                 )}
                 
@@ -1638,6 +1670,32 @@ function App() {
                   )}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
+                <input 
+                  type="number" 
+                  name="cost"
+                  value={editAssetModal.data.cost || ''} 
+                  onChange={handleEditAssetChange} 
+                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" 
+                  placeholder="ระบุราคา..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
+                <select 
+                  name="status" 
+                  value={editAssetModal.data.status || 'พร้อมใช้งาน'} 
+                  onChange={handleEditAssetChange} 
+                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all"
+                >
+                  <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                  <option value="ถูกใช้งาน">ถูกใช้งาน</option>
+                  <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
+                  <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
+                  <option value="รอดำเนินการ">รอดำเนินการ</option>
+                </select>
+              </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors">
                   ยกเลิก
@@ -1693,6 +1751,21 @@ function App() {
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">ราคา (Purchase Cost)</label>
                 <input type="number" name="cost" value={editLicenseModal.data.cost} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">สถานะ</label>
+                <select 
+                  name="status" 
+                  value={editLicenseModal.data.status || 'พร้อมใช้งาน'} 
+                  onChange={handleEditLicenseChange} 
+                  className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all"
+                >
+                  <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                  <option value="ถูกใช้งาน">ถูกใช้งาน</option>
+                  <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
+                  <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
+                  <option value="รอดำเนินการ">รอดำเนินการ</option>
+                </select>
               </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors">

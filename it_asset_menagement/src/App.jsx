@@ -19,7 +19,7 @@ function App() {
 
   // State ฟอร์มพนักงาน
   const [empForm, setEmpForm] = useState({
-    fullName: '', empId: '', department: '', email: '',
+    fullName: '', fullNameEng: '', empId: '', department: '', email: '',
     company: '', position: '', nickname: '', manager: '', phone: ''
   });
 
@@ -31,6 +31,10 @@ function App() {
   // State สำหรับเก็บข้อมูลพนักงานที่ถูกคลิกเพื่อดูรายละเอียด (Modal)
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [empModalTab, setEmpModalTab] = useState('info'); // State สำหรับ Tab ใน Modal พนักงาน ('info' หรือ 'assets')
+
+  // State สำหรับ Modal แสดงรายละเอียดทรัพย์สิน/อุปกรณ์/License
+  const [selectedAssetDetail, setSelectedAssetDetail] = useState(null);
+  const [selectedAssetCategory, setSelectedAssetCategory] = useState('');
 
   // State สำหรับ Modal เพิ่มรายการใหม่
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -57,6 +61,10 @@ function App() {
   // State สำหรับ Filter อุปกรณ์เสริม (Accessories)
   const [accFilterType, setAccFilterType] = useState('ทั้งหมด');
   const [accFilterStatus, setAccFilterStatus] = useState('ทั้งหมด');
+
+  // State สำหรับช่องค้นหาข้อมูล (Search)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [checkoutSearchTerm, setCheckoutSearchTerm] = useState('');
 
   // ดึงข้อมูลจาก Firestore
   useEffect(() => {
@@ -93,6 +101,7 @@ function App() {
     setName('');
     setAccFilterType('ทั้งหมด');
     setAccFilterStatus('ทั้งหมด');
+    setSearchTerm(''); // รีเซ็ตคำค้นหาเมื่อเปลี่ยนเมนู
     if (activeMenu === 'assets') {
       setType('คอมพิวเตอร์');
     } else if (activeMenu === 'accessories') {
@@ -161,7 +170,7 @@ function App() {
       });
       // เคลียร์ฟอร์มและปิด Modal
       setEmpForm({
-        fullName: '', empId: '', department: '', email: '',
+        fullName: '', fullNameEng: '', empId: '', department: '', email: '',
         company: '', position: '', nickname: '', manager: '', phone: ''
       });
       setIsAddModalOpen(false);
@@ -182,6 +191,7 @@ function App() {
     const exportData = employees.map(emp => ({
       'รหัสพนักงาน': emp.empId || '',
       'ชื่อ-นามสกุล': emp.fullName || '',
+      'ชื่อ-นามสกุล (EN)': emp.fullNameEng || '',
       'ชื่อเล่น': emp.nickname || '',
       'เบอร์โทร': emp.phone || '',
       'Email': emp.email || '',
@@ -230,6 +240,7 @@ function App() {
     const templateData = [{
       'รหัสพนักงาน': '',
       'ชื่อ-นามสกุล': '',
+      'ชื่อ-นามสกุล (EN)': '',
       'ชื่อเล่น': '',
       'เบอร์โทร': '',
       'Email': '',
@@ -298,6 +309,7 @@ function App() {
             await addDoc(collection(db, 'employees'), {
               empId: String(row['รหัสพนักงาน'] || ''),
               fullName: String(row['ชื่อ-นามสกุล'] || ''),
+              fullNameEng: String(row['ชื่อ-นามสกุล (EN)'] || ''),
               nickname: String(row['ชื่อเล่น'] || ''),
               phone: String(row['เบอร์โทร'] || ''),
               email: String(row['Email'] || ''),
@@ -355,7 +367,43 @@ function App() {
   // ฟังก์ชันลบข้อมูล
   const handleDelete = async (id, collectionName) => {
     if(window.confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) {
-      await deleteDoc(doc(db, collectionName, id));
+      try {
+        await deleteDoc(doc(db, collectionName, id));
+
+        // หากสิ่งที่ลบคือ "พนักงาน" ให้คืนค่าสถานะอุปกรณ์ทั้งหมดที่พนักงานคนนั้นถือครองอยู่ให้กลับมา "พร้อมใช้งาน"
+        if (collectionName === 'employees') {
+          // 1. คืนค่า ทรัพย์สินหลัก
+          const userAssets = assets.filter(item => item.assignedTo === id);
+          for (const asset of userAssets) {
+            await updateDoc(doc(db, 'assets', asset.id), {
+              status: 'พร้อมใช้งาน',
+              assignedTo: null,
+              assignedName: null
+            });
+          }
+          // 2. คืนค่า อุปกรณ์เสริม
+          const userAccessories = accessories.filter(item => item.assignedTo === id);
+          for (const acc of userAccessories) {
+            await updateDoc(doc(db, 'accessories', acc.id), {
+              status: 'พร้อมใช้งาน',
+              assignedTo: null,
+              assignedName: null
+            });
+          }
+          // 3. คืนค่า โปรแกรม/License
+          const userLicenses = licenses.filter(item => item.assignedTo === id);
+          for (const lic of userLicenses) {
+            await updateDoc(doc(db, 'licenses', lic.id), {
+              status: 'พร้อมใช้งาน',
+              assignedTo: null,
+              assignedName: null
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+        setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: `ไม่สามารถลบข้อมูลได้: ${error.message}`, type: 'error' });
+      }
     }
   }
 
@@ -464,11 +512,13 @@ function App() {
       await updateDoc(doc(db, checkoutModal.collectionName, checkoutModal.assetId), {
         status: 'ถูกใช้งาน',
         assignedTo: emp.id,
+        // กำหนดให้แสดงชื่อไทยเป็นหลักในส่วนสถานะครอบครองตาม Request
         assignedName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
       });
       // ปิด Modal
       setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' });
       setCheckoutEmpId('');
+      setCheckoutSearchTerm(''); // เคลียร์คำค้นหาหลังจากเบิกจ่ายเสร็จ
     } catch (error) {
       console.error("Error checkout: ", error);
       alert("เกิดข้อผิดพลาดในการเบิกจ่าย: " + error.message);
@@ -491,20 +541,37 @@ function App() {
     }
   };
 
-  // ตัวแปรสำหรับแสดงข้อมูลตามเมนูที่เลือก
-  let currentData = [];
+  // ตัวแปรสำหรับแสดงข้อมูลตามเมนูที่เลือก (และใช้ค้นหา)
+  let baseData = [];
   if (activeMenu === 'assets') {
-    currentData = assets;
+    baseData = assets;
   } else if (activeMenu === 'licenses') {
-    currentData = licenses;
+    baseData = licenses;
   } else if (activeMenu === 'employees') {
-    currentData = employees;
+    baseData = employees;
   } else if (activeMenu === 'accessories') {
-    currentData = accessories.filter(item => {
+    baseData = accessories.filter(item => {
       const itemStatus = item.status || 'พร้อมใช้งาน';
       const matchType = accFilterType === 'ทั้งหมด' || item.type === accFilterType;
       const matchStatus = accFilterStatus === 'ทั้งหมด' || itemStatus === accFilterStatus;
       return matchType && matchStatus;
+    });
+  }
+
+  let currentData = baseData;
+  if (searchTerm.trim() !== '') {
+    const lowerCaseTerm = searchTerm.toLowerCase();
+    currentData = baseData.filter(item => {
+      if (activeMenu === 'employees') {
+        return (item.fullName?.toLowerCase().includes(lowerCaseTerm) || 
+                item.fullNameEng?.toLowerCase().includes(lowerCaseTerm) ||
+                item.empId?.toLowerCase().includes(lowerCaseTerm) ||
+                item.nickname?.toLowerCase().includes(lowerCaseTerm));
+      } else {
+        return (item.name?.toLowerCase().includes(lowerCaseTerm) ||
+                item.type?.toLowerCase().includes(lowerCaseTerm) ||
+                item.productKey?.toLowerCase().includes(lowerCaseTerm));
+      }
     });
   }
   
@@ -665,10 +732,26 @@ function App() {
               {/* กล่องตารางแสดงข้อมูล */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col flex-1">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-slate-100 pb-4 gap-4">
-                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 whitespace-nowrap">
                     <span className="text-indigo-500">📦</span> รายการ {menuTitle}
                   </h3>
-                  <div className="flex flex-wrap w-full sm:w-auto gap-2">
+                  <div className="flex flex-wrap w-full sm:w-auto gap-2 items-center">
+                    {/* ช่องค้นหา (แสดงทุกเมนู) */}
+                    <div className="relative w-full sm:w-auto flex-grow sm:flex-grow-0">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="ค้นหาชื่อ หรือ รหัส..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full sm:w-56 pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                      />
+                    </div>
+
                     {/* แสดงปุ่ม Import/Export เฉพาะในหน้าข้อมูลพนักงาน */}
                     {activeMenu === 'employees' && (
                       <>
@@ -694,7 +777,7 @@ function App() {
                         <select
                           value={accFilterType}
                           onChange={(e) => setAccFilterType(e.target.value)}
-                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
                         >
                           <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>
                           <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
@@ -707,7 +790,7 @@ function App() {
                         <select
                           value={accFilterStatus}
                           onChange={(e) => setAccFilterStatus(e.target.value)}
-                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
                         >
                           <option value="ทั้งหมด">สถานะ: ทั้งหมด</option>
                           <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
@@ -735,7 +818,7 @@ function App() {
                 {currentData.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50/50 rounded-xl border-2 border-dashed border-slate-200">
                     <span className="text-5xl mb-4 opacity-50">📂</span>
-                    <p className="font-medium">ยังไม่มีข้อมูลในหมวดหมู่นี้</p>
+                    <p className="font-medium">ไม่พบข้อมูลที่ค้นหา</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto flex-1 rounded-lg border border-slate-200">
@@ -798,21 +881,36 @@ function App() {
                                 <td className="p-4 text-center space-x-2">
                                   <button 
                                     onClick={() => openEditEmpModal(item)}
-                                    className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                    title="แก้ไข"
+                                    className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm"
                                   >
-                                    แก้ไข
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                   </button>
                                   <button 
                                     onClick={() => handleDelete(item.id, 'employees')}
-                                    className="text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                    title="ลบ"
+                                    className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm"
                                   >
-                                    ลบ
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                   </button>
                                 </td>
                               </>
                             ) : activeMenu === 'licenses' ? (
                               <>
-                                <td className="p-4 font-bold text-slate-800">{item.name}</td>
+                                <td className="p-4">
+                                  <button 
+                                    onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory(activeMenu); }}
+                                    className="text-left focus:outline-none flex items-center gap-2 group"
+                                    title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                                  >
+                                    <span className="font-bold text-slate-800 group-hover:underline group-hover:text-indigo-600 transition-colors">
+                                      {item.name}
+                                    </span> 
+                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                                      ดูรายละเอียด
+                                    </span>
+                                  </button>
+                                </td>
                                 <td className="p-4 text-slate-600">
                                   <div className="text-sm font-medium font-mono bg-slate-100 px-2 py-0.5 rounded w-fit">{item.productKey || '-'}</div>
                                   <div className="text-xs text-slate-400 mt-1">{item.keyCode || '-'}</div>
@@ -837,35 +935,52 @@ function App() {
                                   {!item.status || item.status === 'พร้อมใช้งาน' ? (
                                     <button 
                                       onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })}
-                                      className="text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                      title="เบิกจ่าย"
+                                      className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm"
                                     >
-                                      เบิกจ่าย
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                                     </button>
                                   ) : (
                                     <button 
                                       onClick={() => handleCheckin(item.id, activeMenu)}
-                                      className="text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                      title="รับคืน"
+                                      className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm"
                                     >
-                                      รับคืน
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                     </button>
                                   )}
                                   <button 
                                     onClick={() => openEditLicenseModal(item)}
-                                    className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                    title="แก้ไข"
+                                    className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm"
                                   >
-                                    แก้ไข
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                   </button>
                                   <button 
                                     onClick={() => handleDelete(item.id, 'licenses')}
-                                    className="text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                    title="ลบ"
+                                    className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm"
                                   >
-                                    ลบ
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                   </button>
                                 </td>
                               </>
                             ) : (
                               <>
-                                <td className="p-4 font-bold text-slate-800">{item.name}</td>
+                                <td className="p-4">
+                                  <button 
+                                    onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory(activeMenu); }}
+                                    className="text-left focus:outline-none flex items-center gap-2 group"
+                                    title="คลิกเพื่อดูรายละเอียดเพิ่มเติม"
+                                  >
+                                    <span className="font-bold text-slate-800 group-hover:underline group-hover:text-indigo-600 transition-colors">
+                                      {item.name}
+                                    </span> 
+                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                                      ดูรายละเอียด
+                                    </span>
+                                  </button>
+                                </td>
                                 <td className="p-4">
                                   <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full font-bold border border-slate-200">
                                     {item.type}
@@ -889,29 +1004,33 @@ function App() {
                                   {item.status === 'พร้อมใช้งาน' ? (
                                     <button 
                                       onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })}
-                                      className="text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                      title="เบิกจ่าย"
+                                      className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm"
                                     >
-                                      เบิกจ่าย
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                                     </button>
                                   ) : (
                                     <button 
                                       onClick={() => handleCheckin(item.id, activeMenu)}
-                                      className="text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                      title="รับคืน"
+                                      className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm"
                                     >
-                                      รับคืน
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                     </button>
                                   )}
                                   <button 
                                     onClick={() => openEditAssetModal(item, activeMenu)}
-                                    className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                    title="แก้ไข"
+                                    className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm"
                                   >
-                                    แก้ไข
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                   </button>
                                   <button 
                                     onClick={() => handleDelete(item.id, activeMenu)}
-                                    className="text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
+                                    title="ลบ"
+                                    className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm"
                                   >
-                                    ลบ
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                   </button>
                                 </td>
                               </>
@@ -949,9 +1068,15 @@ function App() {
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
                     <input type="text" name="empId" value={empForm.empId} onChange={handleEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="เช่น EMP001" />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล <span className="text-red-500">*</span></label>
-                    <input type="text" name="fullName" value={empForm.fullName} onChange={handleEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ชื่อ-นามสกุล" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
+                      <input type="text" name="fullName" value={empForm.fullName} onChange={handleEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ชื่อ-นามสกุล" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
+                      <input type="text" name="fullNameEng" value={empForm.fullNameEng} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="Firstname Lastname" />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -1097,19 +1222,40 @@ function App() {
                 <span className="bg-white/20 p-1 rounded-md">📤</span> ระบุพนักงานที่เบิกจ่าย
               </h3>
             </div>
-            <form onSubmit={handleCheckout} className="p-6 space-y-5">
+            <form onSubmit={handleCheckout} className="p-6 space-y-4">
               <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">ค้นหาพนักงาน</label>
+                <div className="relative mb-3">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
+                    value={checkoutSearchTerm}
+                    onChange={(e) => setCheckoutSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm transition-all"
+                  />
+                </div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">เลือกพนักงาน</label>
                 <select 
                   value={checkoutEmpId}
                   onChange={(e) => setCheckoutEmpId(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm text-slate-700"
+                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm text-slate-700 transition-all"
                   required
                 >
                   <option value="" disabled>-- เลือกพนักงาน --</option>
-                  {employees.map(emp => (
+                  {employees.filter(emp => {
+                    const term = checkoutSearchTerm.toLowerCase();
+                    return (emp.fullName?.toLowerCase().includes(term) || 
+                            emp.fullNameEng?.toLowerCase().includes(term) ||
+                            emp.empId?.toLowerCase().includes(term) ||
+                            emp.nickname?.toLowerCase().includes(term));
+                  }).map(emp => (
                     <option key={emp.id} value={emp.id}>
-                      {emp.empId} - {emp.fullName}
+                      {emp.empId} - {emp.fullName} {emp.nickname ? `(${emp.nickname})` : ''}
                     </option>
                   ))}
                 </select>
@@ -1117,7 +1263,7 @@ function App() {
               <div className="flex gap-3 pt-2">
                 <button 
                   type="button"
-                  onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); }}
+                  onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); }}
                   className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors"
                 >
                   ยกเลิก
@@ -1177,11 +1323,19 @@ function App() {
                     <span className="col-span-2 font-black text-indigo-700 text-base">{selectedEmployee.empId}</span>
                   </div>
                   <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">ชื่อ-นามสกุล:</span>
+                    <span className="text-slate-500 font-bold">ชื่อ-นามสกุล (TH):</span>
                     <span className="col-span-2 font-bold text-slate-800">
                       {selectedEmployee.fullName} {selectedEmployee.nickname ? <span className="text-slate-400 font-medium">({selectedEmployee.nickname})</span> : ''}
                     </span>
                   </div>
+                  {selectedEmployee.fullNameEng && (
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">ชื่อ-นามสกุล (EN):</span>
+                      <span className="col-span-2 font-medium text-slate-800">
+                        {selectedEmployee.fullNameEng}
+                      </span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                     <span className="text-slate-500 font-bold">ตำแหน่ง:</span>
                     <span className="col-span-2 font-medium">{selectedEmployee.position || '-'}</span>
@@ -1255,6 +1409,123 @@ function App() {
         </div>
       )}
 
+      {/* Modal หน้าต่างแสดงรายละเอียด ทรัพย์สิน / อุปกรณ์เสริม / License */}
+      {selectedAssetDetail && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+            <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <span className="bg-white/20 p-1 rounded-md text-sm">📋</span> รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
+              </h3>
+              <button 
+                onClick={() => { setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} 
+                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-lg"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-4 text-sm text-slate-800 flex-1">
+              <div className="bg-white rounded-xl">
+                {selectedAssetCategory === 'licenses' ? (
+                  <>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
+                      <span className="text-slate-500 font-bold">ชื่อโปรแกรม:</span>
+                      <span className="col-span-2 font-black text-indigo-700 text-base">{selectedAssetDetail.name}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">Product Key:</span>
+                      <span className="col-span-2 font-mono bg-slate-100 px-2 py-0.5 rounded w-fit text-slate-700">{selectedAssetDetail.productKey || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">รหัสอ้างอิง Key:</span>
+                      <span className="col-span-2 font-medium">{selectedAssetDetail.keyCode || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">Supplier ที่ซื้อ:</span>
+                      <span className="col-span-2 font-medium">{selectedAssetDetail.supplier || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">วันที่ซื้อ:</span>
+                      <span className="col-span-2 font-medium">{selectedAssetDetail.purchaseDate || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">วันที่หมดอายุ:</span>
+                      <span className="col-span-2 font-medium">{selectedAssetDetail.expirationDate || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">ราคา:</span>
+                      <span className="col-span-2 font-bold text-emerald-600">{selectedAssetDetail.cost ? `฿${Number(selectedAssetDetail.cost).toLocaleString()}` : '-'}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
+                      <span className="text-slate-500 font-bold">ชื่ออุปกรณ์:</span>
+                      <span className="col-span-2 font-black text-indigo-700 text-base">{selectedAssetDetail.name}</span>
+                    </div>
+                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                      <span className="text-slate-500 font-bold">ประเภท:</span>
+                      <span className="col-span-2 font-medium">
+                        <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full font-bold border border-slate-200">
+                          {selectedAssetDetail.type}
+                        </span>
+                      </span>
+                    </div>
+                  </>
+                )}
+                
+                <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                  <span className="text-slate-500 font-bold">สถานะ:</span>
+                  <span className="col-span-2">
+                    {(!selectedAssetDetail.status || selectedAssetDetail.status === 'พร้อมใช้งาน') ? (
+                      <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> พร้อมใช้งาน
+                      </span>
+                    ) : (
+                      <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {selectedAssetDetail.status}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 mt-3">
+                  <span className="text-slate-500 font-bold">ผู้ครอบครอง:</span>
+                  <span className="col-span-2 font-medium">
+                    {selectedAssetDetail.assignedName ? `👤 ${selectedAssetDetail.assignedName}` : '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-5 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
+               <button 
+                 onClick={() => {
+                   if (selectedAssetCategory === 'licenses') {
+                     openEditLicenseModal(selectedAssetDetail);
+                   } else {
+                     openEditAssetModal(selectedAssetDetail, selectedAssetCategory);
+                   }
+                   setSelectedAssetDetail(null);
+                   setSelectedAssetCategory('');
+                 }} 
+                 className="px-5 py-2.5 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200"
+               >
+                 แก้ไขข้อมูล
+               </button>
+               <button 
+                 onClick={() => { setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} 
+                 className="px-5 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md"
+               >
+                 ปิดหน้าต่าง
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal แก้ไขข้อมูลพนักงาน */}
       {editEmpModal.isOpen && editEmpModal.data && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
@@ -1272,9 +1543,15 @@ function App() {
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
                 <input type="text" name="empId" value={editEmpModal.data.empId} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล <span className="text-red-500">*</span></label>
-                <input type="text" name="fullName" value={editEmpModal.data.fullName} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
+                  <input type="text" name="fullName" value={editEmpModal.data.fullName} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
+                  <input type="text" name="fullNameEng" value={editEmpModal.data.fullNameEng || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" placeholder="Firstname Lastname" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

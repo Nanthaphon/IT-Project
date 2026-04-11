@@ -17,6 +17,7 @@ function App() {
   const [name, setName] = useState('');
   const [type, setType] = useState('คอมพิวเตอร์');
   const [cost, setCost] = useState(''); // เพิ่ม State สำหรับเก็บราคา
+  const [quantity, setQuantity] = useState(1); // เพิ่ม State สำหรับเก็บจำนวนอุปกรณ์
 
   // State ฟอร์มพนักงาน
   const [empForm, setEmpForm] = useState({
@@ -101,6 +102,7 @@ function App() {
   useEffect(() => {
     setName('');
     setCost(''); // รีเซ็ตราคาเมื่อเปลี่ยนเมนู
+    setQuantity(1); // รีเซ็ตจำนวนเมื่อเปลี่ยนเมนู
     setAccFilterType('ทั้งหมด');
     setAccFilterStatus('ทั้งหมด');
     setSearchTerm(''); // รีเซ็ตคำค้นหาเมื่อเปลี่ยนเมนู
@@ -119,17 +121,23 @@ function App() {
     const collectionName = activeMenu === 'assets' ? 'assets' : 'accessories';
 
     try {
+      // บันทึกข้อมูลเพียง 1 record และเก็บค่า quantity (จำนวน) ไว้ใน record นั้น
+      const qtyToSave = activeMenu === 'accessories' ? parseInt(quantity) || 1 : 1;
+
       await addDoc(collection(db, collectionName), {
         name: name,
         type: type,
-        cost: cost, // บันทึกราคาลงฐานข้อมูล
+        cost: cost,
+        quantity: qtyToSave, // บันทึกจำนวนลงฐานข้อมูล
         status: 'พร้อมใช้งาน',
         assignedTo: null,
         assignedName: null,
         createdAt: serverTimestamp()
       });
+
       setName('');
-      setCost(''); // เคลียร์ฟอร์มราคา
+      setCost(''); 
+      setQuantity(1); // รีเซ็ตจำนวนให้กลับมาเป็น 1
       setIsAddModalOpen(false); // ปิด Modal หลังจากบันทึกเสร็จ
     } catch (error) {
       console.error("Error adding document: ", error);
@@ -226,12 +234,21 @@ function App() {
       return;
     }
     
-    const exportData = filteredAccessories.map(item => ({
-      'ชื่ออุปกรณ์': item.name || '',
-      'ประเภท': item.type || '',
-      'สถานะ': item.status || '',
-      'ผู้ครอบครอง': item.assignedName || '-'
-    }));
+    const exportData = filteredAccessories.map(item => {
+      // ดึงรายชื่อผู้ครอบครองทั้งหมดมาโชว์ใน CSV
+      const assigneesStr = item.assignees && item.assignees.length > 0 
+        ? item.assignees.map(a => a.empName).join(', ') 
+        : (item.assignedName || '-');
+
+      return {
+        'ชื่ออุปกรณ์': item.name || '',
+        'ประเภท': item.type || '',
+        'จำนวน': item.quantity || 1, // เพิ่มคอลัมน์จำนวน
+        'ราคา': item.cost ? `฿${item.cost}` : '-',
+        // ลบคอลัมน์สถานะออกตาม Request
+        'ผู้ครอบครอง': assigneesStr
+      };
+    });
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
@@ -385,14 +402,24 @@ function App() {
               assignedName: null
             });
           }
-          // 2. คืนค่า อุปกรณ์เสริม
-          const userAccessories = accessories.filter(item => item.assignedTo === id);
+          // 2. คืนค่า อุปกรณ์เสริม (รองรับทั้งระบบเดิม และระบบกระจายหลายชิ้น)
+          const userAccessories = accessories.filter(item => 
+            item.assignedTo === id || (item.assignees && item.assignees.some(a => a.empId === id))
+          );
           for (const acc of userAccessories) {
-            await updateDoc(doc(db, 'accessories', acc.id), {
-              status: 'พร้อมใช้งาน',
-              assignedTo: null,
-              assignedName: null
-            });
+            if (acc.assignees) {
+              const remainingAssignees = acc.assignees.filter(a => a.empId !== id);
+              await updateDoc(doc(db, 'accessories', acc.id), {
+                // อัปเดตเฉพาะคนยืม ไม่ไปลด/เพิ่มจำนวนรวมตั้งต้น
+                assignees: remainingAssignees
+              });
+            } else {
+              await updateDoc(doc(db, 'accessories', acc.id), {
+                status: 'พร้อมใช้งาน',
+                assignedTo: null,
+                assignedName: null
+              });
+            }
           }
           // 3. คืนค่า โปรแกรม/License
           const userLicenses = licenses.filter(item => item.assignedTo === id);
@@ -513,12 +540,35 @@ function App() {
     if (!emp) return;
 
     try {
-      await updateDoc(doc(db, checkoutModal.collectionName, checkoutModal.assetId), {
-        status: 'ถูกใช้งาน',
-        assignedTo: emp.id,
-        // กำหนดให้แสดงชื่อไทยเป็นหลักในส่วนสถานะครอบครองตาม Request
-        assignedName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
-      });
+      if (checkoutModal.collectionName === 'accessories') {
+        const item = accessories.find(a => a.id === checkoutModal.assetId);
+        // คำนวณจำนวนที่เหลือจริงๆ ก่อนให้เบิก
+        const remainingQty = item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0));
+        
+        if (item && remainingQty > 0) {
+          const newAssignees = item.assignees ? [...item.assignees] : [];
+          newAssignees.push({
+            checkoutId: Date.now().toString(),
+            empId: emp.id,
+            empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
+          });
+          await updateDoc(doc(db, 'accessories', checkoutModal.assetId), {
+            // อัปเดตเฉพาะคนยืม ไม่ไปลดจำนวนรวมตั้งต้น
+            assignees: newAssignees
+          });
+        } else {
+          setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอสำหรับการเบิกจ่าย', type: 'error' });
+          return;
+        }
+      } else {
+        await updateDoc(doc(db, checkoutModal.collectionName, checkoutModal.assetId), {
+          status: 'ถูกใช้งาน',
+          assignedTo: emp.id,
+          // กำหนดให้แสดงชื่อไทยเป็นหลักในส่วนสถานะครอบครองตาม Request
+          assignedName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
+        });
+      }
+      
       // ปิด Modal
       setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' });
       setCheckoutEmpId('');
@@ -529,7 +579,26 @@ function App() {
     }
   };
 
-  // ฟังก์ชันรับคืน (Check-in)
+  // ฟังก์ชันรับคืนอุปกรณ์เสริมเฉพาะบางชิ้น (Check-in Accessory)
+  const handleAccessoryCheckin = async (assetId, checkoutId) => {
+    if(window.confirm("ต้องการรับคืนอุปกรณ์จากพนักงานคนนี้ใช่หรือไม่?")) {
+      try {
+        const item = accessories.find(a => a.id === assetId);
+        if (item && item.assignees) {
+          const newAssignees = item.assignees.filter(a => a.checkoutId !== checkoutId);
+          await updateDoc(doc(db, 'accessories', assetId), {
+             // อัปเดตเฉพาะคนยืม ไม่ไปเพิ่มจำนวนรวมตั้งต้น
+            assignees: newAssignees
+          });
+        }
+      } catch (error) {
+        console.error("Error checkin accessory: ", error);
+        alert("เกิดข้อผิดพลาดในการรับคืน: " + error.message);
+      }
+    }
+  };
+
+  // ฟังก์ชันรับคืน (Check-in) สำหรับ ทรัพย์สินและโปรแกรม
   const handleCheckin = async (id, collectionName) => {
     if(window.confirm("ต้องการรับคืนทรัพย์สินรายการนี้ใช่หรือไม่?")) {
       try {
@@ -853,8 +922,13 @@ function App() {
                             <>
                               <th className="p-4 text-sm font-bold rounded-tl-lg border-b border-slate-200">ชื่ออุปกรณ์</th>
                               <th className="p-4 text-sm font-bold border-b border-slate-200">ประเภท</th>
+                              {activeMenu === 'accessories' && (
+                                <th className="p-4 text-sm font-bold border-b border-slate-200">จำนวน</th>
+                              )}
                               <th className="p-4 text-sm font-bold border-b border-slate-200">ราคา</th>
-                              <th className="p-4 text-sm font-bold border-b border-slate-200">สถานะ</th>
+                              {activeMenu !== 'accessories' && (
+                                <th className="p-4 text-sm font-bold border-b border-slate-200">สถานะ</th>
+                              )}
                               <th className="p-4 text-sm font-bold text-center rounded-tr-lg border-b border-slate-200">จัดการ</th>
                             </>
                           )}
@@ -996,42 +1070,52 @@ function App() {
                                     {item.type}
                                   </span>
                                 </td>
+                                {activeMenu === 'accessories' && (
+                                  <td className="p-4 text-sm font-bold text-slate-700">
+                                    {/* คำนวณจำนวนคงเหลือ โดยเอาจำนวนทั้งหมด ลบด้วยจำนวนคนที่ยืมไป */}
+                                    {item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))}
+                                  </td>
+                                )}
                                 <td className="p-4 text-sm font-bold text-emerald-600">
                                   {item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}
                                 </td>
-                                <td className="p-4">
-                                  {item.status === 'พร้อมใช้งาน' ? (
-                                    <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-emerald-200">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {item.status}
-                                    </div>
-                                  ) : (
-                                    <div className="flex flex-col gap-1">
-                                      <div className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-amber-200">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {item.status}
+                                {activeMenu !== 'accessories' && (
+                                  <td className="p-4">
+                                    {item.status === 'พร้อมใช้งาน' ? (
+                                      <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-emerald-200">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {item.status}
                                       </div>
-                                      {item.assignedName && (
-                                        <span className="text-xs text-slate-500 mt-0.5 ml-1 font-medium">👤 {item.assignedName}</span>
-                                      )}
-                                    </div>
-                                  )}
-                                </td>
+                                    ) : (
+                                      <div className="flex flex-col gap-1">
+                                        <div className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center w-fit gap-1.5 border border-amber-200">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {item.status}
+                                        </div>
+                                        {item.assignedName && (
+                                          <span className="text-xs text-slate-500 mt-0.5 ml-1 font-medium">👤 {item.assignedName}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </td>
+                                )}
                                 <td className="p-4 text-center space-x-2">
-                                  {item.status === 'พร้อมใช้งาน' ? (
-                                    <button 
-                                      onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })}
-                                      title="เบิกจ่าย"
-                                      className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                                    </button>
-                                  ) : (
-                                    <button 
-                                      onClick={() => handleCheckin(item.id, activeMenu)}
-                                      title="รับคืน"
-                                      className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                                    </button>
+                                  {activeMenu !== 'accessories' && (
+                                    item.status === 'พร้อมใช้งาน' ? (
+                                      <button 
+                                        onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })}
+                                        title="เบิกจ่าย"
+                                        className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm"
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                      </button>
+                                    ) : (
+                                      <button 
+                                        onClick={() => handleCheckin(item.id, activeMenu)}
+                                        title="รับคืน"
+                                        className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm"
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                      </button>
+                                    )
                                   )}
                                   <button 
                                     onClick={() => openEditAssetModal(item, activeMenu)}
@@ -1223,6 +1307,22 @@ function App() {
                       placeholder="ระบุราคา..."
                     />
                   </div>
+
+                  {/* แสดงช่องกรอก "จำนวน" เฉพาะในเมนูอุปกรณ์เสริมเท่านั้น */}
+                  {activeMenu === 'accessories' && (
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน (ชิ้น) <span className="text-red-500">*</span></label>
+                      <input 
+                        type="number" 
+                        min="1"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                        placeholder="ระบุจำนวน..."
+                        required
+                      />
+                    </div>
+                  )}
                   
                   <div className="pt-2">
                     <button 
@@ -1241,7 +1341,7 @@ function App() {
 
       {/* Modal หน้าต่างเบิกจ่ายทรัพย์สิน (Checkout) */}
       {checkoutModal.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100">
             <div className="bg-indigo-600 text-white p-5">
               <h3 className="font-bold text-lg flex items-center gap-2">
@@ -1391,27 +1491,50 @@ function App() {
                 <>
                   {/* ทรัพย์สินที่ครอบครอง */}
                   <div className="space-y-3">
-                    {[...assets, ...accessories, ...licenses].filter(item => item.assignedTo === selectedEmployee.id).length === 0 ? (
-                      <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <span className="text-4xl block mb-3 opacity-50">📦</span>
-                        <p className="font-medium">ยังไม่มีทรัพย์สินที่ถือครองในระบบ</p>
-                      </div>
-                    ) : (
-                      <ul className="divide-y divide-slate-100 bg-white rounded-xl border border-slate-100">
-                        {[...assets, ...accessories, ...licenses].filter(item => item.assignedTo === selectedEmployee.id).map(item => (
-                          <li key={item.id} className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                            <div>
-                              <p className="font-bold text-slate-800 text-base">{item.name}</p>
-                              <p className="text-xs text-slate-500 mt-0.5">{item.type || 'License'}</p>
-                            </div>
-                            <span className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full border border-slate-200 font-bold">
-                              {assets.some(a => a.id === item.id) ? 'ทรัพย์สินหลัก' : 
-                               accessories.some(a => a.id === item.id) ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {(() => {
+                      const empAssets = assets.filter(item => item.assignedTo === selectedEmployee.id);
+                      const empLicenses = licenses.filter(item => item.assignedTo === selectedEmployee.id);
+                      
+                      // ดึงอุปกรณ์เสริมที่พนักงานคนนี้ยืมไปทั้งหมด
+                      const empAccessories = accessories.reduce((accList, acc) => {
+                        if (acc.assignees) {
+                          acc.assignees.filter(a => a.empId === selectedEmployee.id).forEach(checkout => {
+                            accList.push({ ...acc, uniqueKey: checkout.checkoutId });
+                          });
+                        } else if (acc.assignedTo === selectedEmployee.id) {
+                          accList.push({ ...acc, uniqueKey: acc.id }); // รองรับระบบเดิม
+                        }
+                        return accList;
+                      }, []);
+                      
+                      const allHeldItems = [...empAssets, ...empLicenses, ...empAccessories];
+                      
+                      if (allHeldItems.length === 0) {
+                        return (
+                          <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                            <span className="text-4xl block mb-3 opacity-50">📦</span>
+                            <p className="font-medium">ยังไม่มีทรัพย์สินที่ถือครองในระบบ</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <ul className="divide-y divide-slate-100 bg-white rounded-xl border border-slate-100">
+                          {allHeldItems.map(item => (
+                            <li key={item.uniqueKey || item.id} className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                              <div>
+                                <p className="font-bold text-slate-800 text-base">{item.name}</p>
+                                <p className="text-xs text-slate-500 mt-0.5">{item.type || 'License'}</p>
+                              </div>
+                              <span className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full border border-slate-200 font-bold">
+                                {assets.some(a => a.id === item.id) ? 'ทรัพย์สินหลัก' : 
+                                 accessories.some(a => a.id === item.id) ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    })()}
                   </div>
                 </>
               )}
@@ -1436,7 +1559,14 @@ function App() {
       )}
 
       {/* Modal หน้าต่างแสดงรายละเอียด ทรัพย์สิน / อุปกรณ์เสริม / License */}
-      {selectedAssetDetail && (
+      {selectedAssetDetail && (() => {
+        // หาข้อมูลล่าสุดจาก state เพื่อให้จำนวนและสถานะอัปเดตแบบเรียลไทม์ทันทีที่กดเบิกจ่าย/รับคืน
+        const currentAssetDetail = 
+          selectedAssetCategory === 'accessories' ? (accessories.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
+          selectedAssetCategory === 'assets' ? (assets.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
+          (licenses.find(l => l.id === selectedAssetDetail.id) || selectedAssetDetail);
+
+        return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
             <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
@@ -1459,86 +1589,163 @@ function App() {
                   <>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
                       <span className="text-slate-500 font-bold">ชื่อโปรแกรม:</span>
-                      <span className="col-span-2 font-black text-indigo-700 text-base">{selectedAssetDetail.name}</span>
+                      <span className="col-span-2 font-black text-indigo-700 text-base">{currentAssetDetail.name}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">Product Key:</span>
-                      <span className="col-span-2 font-mono bg-slate-100 px-2 py-0.5 rounded w-fit text-slate-700">{selectedAssetDetail.productKey || '-'}</span>
+                      <span className="col-span-2 font-mono bg-slate-100 px-2 py-0.5 rounded w-fit text-slate-700">{currentAssetDetail.productKey || '-'}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">รหัสอ้างอิง Key:</span>
-                      <span className="col-span-2 font-medium">{selectedAssetDetail.keyCode || '-'}</span>
+                      <span className="col-span-2 font-medium">{currentAssetDetail.keyCode || '-'}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">Supplier ที่ซื้อ:</span>
-                      <span className="col-span-2 font-medium">{selectedAssetDetail.supplier || '-'}</span>
+                      <span className="col-span-2 font-medium">{currentAssetDetail.supplier || '-'}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">วันที่ซื้อ:</span>
-                      <span className="col-span-2 font-medium">{selectedAssetDetail.purchaseDate || '-'}</span>
+                      <span className="col-span-2 font-medium">{currentAssetDetail.purchaseDate || '-'}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">วันที่หมดอายุ:</span>
-                      <span className="col-span-2 font-medium">{selectedAssetDetail.expirationDate || '-'}</span>
+                      <span className="col-span-2 font-medium">{currentAssetDetail.expirationDate || '-'}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">ราคา:</span>
-                      <span className="col-span-2 font-bold text-emerald-600">{selectedAssetDetail.cost ? `฿${Number(selectedAssetDetail.cost).toLocaleString()}` : '-'}</span>
+                      <span className="col-span-2 font-bold text-emerald-600">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
                       <span className="text-slate-500 font-bold">ชื่ออุปกรณ์:</span>
-                      <span className="col-span-2 font-black text-indigo-700 text-base">{selectedAssetDetail.name}</span>
+                      <span className="col-span-2 font-black text-indigo-700 text-base">{currentAssetDetail.name}</span>
                     </div>
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">ประเภท:</span>
                       <span className="col-span-2 font-medium">
                         <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full font-bold border border-slate-200">
-                          {selectedAssetDetail.type}
+                          {currentAssetDetail.type}
                         </span>
                       </span>
                     </div>
+                    {selectedAssetCategory === 'accessories' && (
+                      <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                        <span className="text-slate-500 font-bold">จำนวนคงเหลือ:</span>
+                        {/* คำนวณจำนวนคงเหลือในหน้ารายละเอียดด้วยเช่นกัน */}
+                        <span className="col-span-2 font-medium">
+                          {currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))} ชิ้น
+                        </span>
+                      </div>
+                    )}
                     <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
                       <span className="text-slate-500 font-bold">ราคา:</span>
                       <span className="col-span-2 font-bold text-emerald-600">
-                        {selectedAssetDetail.cost ? `฿${Number(selectedAssetDetail.cost).toLocaleString()}` : '-'}
+                        {currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}
                       </span>
                     </div>
                   </>
                 )}
                 
-                <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                  <span className="text-slate-500 font-bold">สถานะ:</span>
-                  <span className="col-span-2">
-                    {(!selectedAssetDetail.status || selectedAssetDetail.status === 'พร้อมใช้งาน') ? (
-                      <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> พร้อมใช้งาน
-                      </span>
-                    ) : (
-                      <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {selectedAssetDetail.status}
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 mt-3">
-                  <span className="text-slate-500 font-bold">ผู้ครอบครอง:</span>
-                  <span className="col-span-2 font-medium">
-                    {selectedAssetDetail.assignedName ? `👤 ${selectedAssetDetail.assignedName}` : '-'}
-                  </span>
-                </div>
+                {selectedAssetCategory !== 'accessories' && (
+                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
+                    <span className="text-slate-500 font-bold">สถานะ:</span>
+                    <span className="col-span-2">
+                      {(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
+                        <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> พร้อมใช้งาน
+                        </span>
+                      ) : (
+                        <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {currentAssetDetail.status}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                )}
+                
+                {selectedAssetCategory === 'accessories' ? (
+                  <div className="grid grid-cols-3 mt-3">
+                    <span className="text-slate-500 font-bold">ผู้ครอบครอง:</span>
+                    <span className="col-span-2 font-medium space-y-2">
+                      {currentAssetDetail.assignees && currentAssetDetail.assignees.length > 0 ? (
+                        currentAssetDetail.assignees.map((assignee) => (
+                          <div key={assignee.checkoutId} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                            <span className="text-sm text-slate-700 font-medium">👤 {assignee.empName}</span>
+                            <button 
+                              onClick={() => handleAccessoryCheckin(currentAssetDetail.id, assignee.checkoutId)}
+                              className="text-xs bg-teal-100 text-teal-700 hover:bg-teal-600 hover:text-white px-2.5 py-1 rounded-md font-bold transition-colors"
+                            >
+                              รับคืน
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-slate-400">- ไม่มีผู้ครอบครอง -</span>
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 mt-3">
+                    <span className="text-slate-500 font-bold">ผู้ครอบครอง:</span>
+                    <span className="col-span-2 font-medium">
+                      {currentAssetDetail.assignedName ? `👤 ${currentAssetDetail.assignedName}` : '-'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             
             <div className="p-5 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
+               {/* ปุ่มเบิกจ่าย-รับคืน เฉพาะของอุปกรณ์เสริม */}
+               {selectedAssetCategory === 'accessories' ? (
+                 // ตรวจสอบว่ายังมีจำนวนคงเหลือให้เบิกจ่ายหรือไม่
+                 ((currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))) > 0) && (
+                   <button 
+                     onClick={() => {
+                       setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory });
+                     }} 
+                     className="px-5 py-2.5 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-1.5"
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                     เบิกจ่าย ({(currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0)))})
+                   </button>
+                 )
+               ) : (
+                 (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
+                   <button 
+                     onClick={() => {
+                       setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory });
+                       setSelectedAssetDetail(null);
+                       setSelectedAssetCategory('');
+                     }} 
+                     className="px-5 py-2.5 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-1.5"
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                     เบิกจ่าย
+                   </button>
+                 ) : (
+                   <button 
+                     onClick={() => {
+                       handleCheckin(currentAssetDetail.id, selectedAssetCategory);
+                       setSelectedAssetDetail(null);
+                       setSelectedAssetCategory('');
+                     }} 
+                     className="px-5 py-2.5 bg-teal-100 text-teal-700 rounded-xl hover:bg-teal-200 font-bold transition-colors border border-teal-200 mr-auto flex items-center gap-1.5"
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                     รับคืน
+                   </button>
+                 )
+               )}
+               
                <button 
                  onClick={() => {
                    if (selectedAssetCategory === 'licenses') {
-                     openEditLicenseModal(selectedAssetDetail);
+                     openEditLicenseModal(currentAssetDetail);
                    } else {
-                     openEditAssetModal(selectedAssetDetail, selectedAssetCategory);
+                     openEditAssetModal(currentAssetDetail, selectedAssetCategory);
                    }
                    setSelectedAssetDetail(null);
                    setSelectedAssetCategory('');
@@ -1556,7 +1763,8 @@ function App() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Modal แก้ไขข้อมูลพนักงาน */}
       {editEmpModal.isOpen && editEmpModal.data && (
@@ -1681,21 +1889,38 @@ function App() {
                   placeholder="ระบุราคา..."
                 />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
-                <select 
-                  name="status" 
-                  value={editAssetModal.data.status || 'พร้อมใช้งาน'} 
-                  onChange={handleEditAssetChange} 
-                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all"
-                >
-                  <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-                  <option value="ถูกใช้งาน">ถูกใช้งาน</option>
-                  <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
-                  <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
-                  <option value="รอดำเนินการ">รอดำเนินการ</option>
-                </select>
-              </div>
+              {editAssetModal.collectionName === 'accessories' && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน (ชิ้น)</label>
+                  <input 
+                    type="number" 
+                    name="quantity"
+                    min="1"
+                    value={editAssetModal.data.quantity || 1} 
+                    onChange={handleEditAssetChange} 
+                    className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" 
+                    placeholder="ระบุจำนวน..."
+                  />
+                </div>
+              )}
+              {/* ซ่อนช่องสถานะหากเป็นเมนูอุปกรณ์เสริม */}
+              {editAssetModal.collectionName !== 'accessories' && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
+                  <select 
+                    name="status" 
+                    value={editAssetModal.data.status || 'พร้อมใช้งาน'} 
+                    onChange={handleEditAssetChange} 
+                    className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all"
+                  >
+                    <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                    <option value="ถูกใช้งาน">ถูกใช้งาน</option>
+                    <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
+                    <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
+                    <option value="รอดำเนินการ">รอดำเนินการ</option>
+                  </select>
+                </div>
+              )}
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors">
                   ยกเลิก

@@ -2,6 +2,19 @@ import { useState, useEffect } from 'react'
 import { db } from './firebase' 
 import { collection, addDoc, onSnapshot, serverTimestamp, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import * as XLSX from 'xlsx' // เพิ่ม Import สำหรับจัดการ Excel
+import CustomAlert from './components/CustomAlert'; // 👈 พิมพ์บรรทัดนี้เพิ่มเข้าไป
+import Sidebar from './components/Sidebar';
+import DashboardStats from './components/DashboardStats';
+import AddModal from './components/AddModal';
+import CheckoutModal from './components/CheckoutModal';
+import EmployeeDetailsModal from './components/EmployeeDetailsModal';
+import AssetDetailsModal from './components/AssetDetailsModal';
+import EditEmpModal from './components/EditEmpModal';
+import EditAssetModal from './components/EditAssetModal';
+import EditLicenseModal from './components/EditLicenseModal';
+import ImportModal from './components/ImportModal';
+import ReturnModal from './components/ReturnModal';
+import RepairModal from './components/RepairModal';
 
 function App() {
   // สร้าง State สำหรับเมนูที่เลือก (เพิ่ม 'dashboard' เป็นค่าเริ่มต้น)
@@ -767,79 +780,7 @@ function App() {
     <div className="flex flex-col md:flex-row h-screen bg-slate-50 font-sans">
       
       {/* แถบเมนูด้านซ้าย (Sidebar) */}
-      <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10 flex-shrink-0">
-        <div className="p-4 md:p-6 text-left md:text-center border-b border-slate-800 flex justify-between items-center md:block">
-          <div>
-            <h1 className="text-xl md:text-2xl font-black flex items-center gap-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-              💻 IT Admin
-            </h1>
-            <p className="text-slate-400 text-xs md:text-sm mt-1 hidden md:block font-medium">Asset Management</p>
-          </div>
-          <div className="md:hidden">
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-full font-medium shadow-sm flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ออนไลน์
-            </span>
-          </div>
-        </div>
-        
-        <nav className="flex flex-row md:flex-col md:flex-1 p-2 md:p-4 space-x-2 md:space-x-0 md:space-y-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-          <button 
-            onClick={() => setActiveMenu('dashboard')}
-            className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
-              activeMenu === 'dashboard' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <span className="mr-2 md:mr-3 text-lg md:text-xl">📊</span>
-            <span className="font-semibold text-sm md:text-base">หน้าหลักแดชบอร์ด</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveMenu('assets')}
-            className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
-              activeMenu === 'assets' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <span className="mr-2 md:mr-3 text-lg md:text-xl">🖥️</span>
-            <span className="font-semibold text-sm md:text-base">ทรัพย์สินหลัก</span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveMenu('licenses')}
-            className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
-              activeMenu === 'licenses' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <span className="mr-2 md:mr-3 text-lg md:text-xl">🔑</span>
-            <span className="font-semibold text-sm md:text-base">โปรแกรม/License</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveMenu('accessories')}
-            className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
-              activeMenu === 'accessories' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <span className="mr-2 md:mr-3 text-lg md:text-xl">🖱️</span>
-            <span className="font-semibold text-sm md:text-base">อุปกรณ์เสริม</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveMenu('employees')}
-            className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
-              activeMenu === 'employees' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <span className="mr-2 md:mr-3 text-lg md:text-xl">👥</span>
-            <span className="font-semibold text-sm md:text-base">ข้อมูลพนักงาน</span>
-          </button>
-        </nav>
-        
-        <div className="hidden md:block p-4 border-t border-slate-800 text-center">
-          <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-1.5 rounded-full font-medium shadow-sm flex items-center justify-center gap-2 mx-auto w-fit">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ระบบออนไลน์
-          </span>
-        </div>
-      </aside>
+  <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
 
       {/* พื้นที่เนื้อหาหลักด้านขวา */}
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -859,54 +800,12 @@ function App() {
           
           {activeMenu === 'dashboard' ? (
             // ================= โซนแดชบอร์ด =================
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                
-                {/* การ์ดสรุปทรัพย์สินหลัก */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md border border-slate-100 border-l-4 border-l-blue-500 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-1">
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium mb-1">ทรัพย์สินหลัก</p>
-                    <h4 className="text-3xl font-black text-slate-800">
-                      {assets.length} <span className="text-sm font-normal text-slate-400">เครื่อง</span>
-                    </h4>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-3xl shadow-inner">🖥️</div>
-                </div>
-
-                {/* การ์ดสรุปโปรแกรม/License */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md border border-slate-100 border-l-4 border-l-purple-500 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-1">
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium mb-1">โปรแกรม/License</p>
-                    <h4 className="text-3xl font-black text-slate-800">
-                      {licenses.length} <span className="text-sm font-normal text-slate-400">รายการ</span>
-                    </h4>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center text-3xl shadow-inner">🔑</div>
-                </div>
-
-                {/* การ์ดสรุปอุปกรณ์เสริม */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md border border-slate-100 border-l-4 border-l-orange-500 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-1">
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium mb-1">อุปกรณ์เสริม</p>
-                    <h4 className="text-3xl font-black text-slate-800">
-                      {accessories.length} <span className="text-sm font-normal text-slate-400">รายการ</span>
-                    </h4>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center text-3xl shadow-inner">🖱️</div>
-                </div>
-
-                {/* การ์ดสรุปพนักงาน */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md border border-slate-100 border-l-4 border-l-emerald-500 flex items-center justify-between transition-all duration-300 transform hover:-translate-y-1">
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium mb-1">พนักงานในระบบ</p>
-                    <h4 className="text-3xl font-black text-slate-800">
-                      {employees.length} <span className="text-sm font-normal text-slate-400">คน</span>
-                    </h4>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center text-3xl shadow-inner">👥</div>
-                </div>
-              </div>
-            </div>
+            <DashboardStats 
+              assets={assets} 
+              licenses={licenses} 
+              accessories={accessories} 
+              employees={employees} 
+            />
 
           ) : (
             // ================= โซนตาราง (เต็มจอ) =================
@@ -1271,1212 +1170,127 @@ function App() {
       </main>
 
       {/* Modal หน้าต่างเพิ่มรายการใหม่ (Add New Item) */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-indigo-600 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1.5 rounded-lg">➕</span> เพิ่มรายการใหม่
-              </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-indigo-200 hover:text-white transition-colors focus:outline-none bg-indigo-700/50 hover:bg-indigo-700 p-1.5 rounded-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-6 md:p-8 overflow-y-auto">
-              {activeMenu === 'employees' ? (
-                // ฟอร์มพนักงาน
-                <form onSubmit={handleAddEmployee} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
-                    <input type="text" name="empId" value={empForm.empId || ''} onChange={handleEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="เช่น EMP001" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
-                      <input type="text" name="fullName" value={empForm.fullName || ''} onChange={handleEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อ-นามสกุล" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
-                      <input type="text" name="fullNameEng" value={empForm.fullNameEng || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="Firstname Lastname" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
-                      <input type="text" name="nickname" value={empForm.nickname || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อเล่น" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
-                      <input type="tel" name="phone" value={empForm.phone || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="เบอร์โทรศัพท์" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Email</label>
-                    <input type="email" name="email" value={empForm.email || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="อีเมลบริษัท" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                    <input type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อบริษัท" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
-                      <input type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="แผนก" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-                      <input type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ตำแหน่งงาน" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-                    <input type="text" name="manager" value={empForm.manager || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="หัวหน้างาน" />
-                  </div>
-                  <div className="pt-2">
-                    <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98]">
-                      บันทึกข้อมูลพนักงาน
-                    </button>
-                  </div>
-                </form>
-              ) : activeMenu === 'licenses' ? (
-                // ฟอร์มโปรแกรม/License
-                <form onSubmit={handleAddLicense} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
-                    <input type="text" name="name" value={licenseForm.name || ''} onChange={handleLicenseChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ระบุชื่อโปรแกรม..." />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Product Key License</label>
-                    <input type="text" name="productKey" value={licenseForm.productKey || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all font-mono shadow-sm" placeholder="เช่น A1B2-C3D4-E5F6" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสของ Product Key</label>
-                    <input type="text" name="keyCode" value={licenseForm.keyCode || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="รหัสอ้างอิงของ Key" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
-                    <input type="text" name="supplier" value={licenseForm.supplier || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อร้านค้า/ตัวแทนจำหน่าย" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
-                      <input type="date" name="purchaseDate" value={licenseForm.purchaseDate || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมดอายุ</label>
-                      <input type="date" name="expirationDate" value={licenseForm.expirationDate || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                    <input type="number" name="cost" value={licenseForm.cost || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ระบุราคา..." />
-                  </div>
-                  <div className="pt-2">
-                    <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98]">
-                      บันทึกข้อมูล License
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                // ฟอร์มทรัพย์สิน / อุปกรณ์เสริม
-                <form onSubmit={handleAdd} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
-                      placeholder="ระบุชื่ออุปกรณ์..."
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ประเภท</label>
-                    <select 
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all text-sm text-slate-700 shadow-sm cursor-pointer"
-                    >
-                      {activeMenu === 'assets' ? (
-                        <>
-                          <option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option>
-                          <option value="หน้าจอ">หน้าจอ (Monitor)</option>
-                          <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
-                          <option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option>
-                          <option value="อื่นๆ">อื่นๆ</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
-                          <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option>
-                          <option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option>
-                          <option value="หูฟัง (Headset)">หูฟัง (Headset)</option>
-                          <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
-                          <option value="อื่นๆ">อื่นๆ</option>
-                        </>
-                      )}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                    <input 
-                      type="number" 
-                      value={cost}
-                      onChange={(e) => setCost(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
-                      placeholder="ระบุราคา..."
-                    />
-                  </div>
-
-                  {/* แสดงช่องกรอก "จำนวน" เฉพาะในเมนูอุปกรณ์เสริมเท่านั้น */}
-                  {activeMenu === 'accessories' && (
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน (ชิ้น) <span className="text-red-500">*</span></label>
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                        className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
-                        placeholder="ระบุจำนวน..."
-                        required
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="pt-2">
-                    <button 
-                      type="submit" 
-                      className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all active:scale-[0.98]"
-                    >
-                      บันทึกข้อมูล
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <AddModal 
+        isAddModalOpen={isAddModalOpen}
+        setIsAddModalOpen={setIsAddModalOpen}
+        activeMenu={activeMenu}
+        handleAddEmployee={handleAddEmployee}
+        empForm={empForm}
+        handleEmpChange={handleEmpChange}
+        handleAddLicense={handleAddLicense}
+        licenseForm={licenseForm}
+        handleLicenseChange={handleLicenseChange}
+        handleAdd={handleAdd}
+        name={name}
+        setName={setName}
+        type={type}
+        setType={setType}
+        cost={cost}
+        setCost={setCost}
+        quantity={quantity}
+        setQuantity={setQuantity}
+      />
 
       {/* Modal หน้าต่างเบิกจ่ายทรัพย์สิน (Checkout) */}
-      {checkoutModal.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-slate-100">
-            <div className="bg-indigo-600 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1.5 rounded-lg">📤</span> ระบุพนักงานที่เบิกจ่าย
-              </h3>
-              <button onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); }} className="text-indigo-200 hover:text-white transition-colors focus:outline-none bg-indigo-700/50 hover:bg-indigo-700 p-1.5 rounded-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleCheckout} className="p-6 md:p-8 space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">ค้นหาพนักงาน</label>
-                <div className="relative mb-4">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
-                    value={checkoutSearchTerm}
-                    onChange={(e) => setCheckoutSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white text-sm transition-all shadow-sm"
-                  />
-                </div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">เลือกพนักงาน</label>
-                <select 
-                  value={checkoutEmpId}
-                  onChange={(e) => setCheckoutEmpId(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
-                  required
-                >
-                  <option value="" disabled>-- เลือกพนักงาน --</option>
-                  {employees.filter(emp => {
-                    const term = checkoutSearchTerm.toLowerCase();
-                    return (emp.fullName?.toLowerCase().includes(term) || 
-                            emp.fullNameEng?.toLowerCase().includes(term) ||
-                            emp.empId?.toLowerCase().includes(term) ||
-                            emp.nickname?.toLowerCase().includes(term));
-                  }).map(emp => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.empId} - {emp.fullName} {emp.nickname ? `(${emp.nickname})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-3 pt-4 border-t border-slate-100">
-                <button 
-                  type="button"
-                  onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); }}
-                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
-                >
-                  ยกเลิก
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold transition-all shadow-lg shadow-indigo-600/30"
-                >
-                  ยืนยันเบิกจ่าย
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CheckoutModal 
+        checkoutModal={checkoutModal}
+        setCheckoutModal={setCheckoutModal}
+        handleCheckout={handleCheckout}
+        checkoutSearchTerm={checkoutSearchTerm}
+        setCheckoutSearchTerm={setCheckoutSearchTerm}
+        checkoutEmpId={checkoutEmpId}
+        setCheckoutEmpId={setCheckoutEmpId}
+        employees={employees}
+      />
 
       {/* Modal หน้าต่างแสดงรายละเอียดพนักงาน */}
-      {selectedEmployee && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1.5 rounded-lg text-sm">📋</span> ข้อมูลพนักงาน
-              </h3>
-              <button 
-                onClick={() => setSelectedEmployee(null)} 
-                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* แท็บเมนู (Tabs) */}
-            <div className="flex border-b border-slate-200 bg-slate-50">
-              <button
-                onClick={() => setEmpModalTab('info')}
-                className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'info' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
-              >
-                ข้อมูลทั่วไป
-              </button>
-              <button
-                onClick={() => setEmpModalTab('assets')}
-                className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'assets' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
-              >
-                ครอบครองปัจจุบัน
-              </button>
-              <button
-                onClick={() => setEmpModalTab('history')}
-                className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'history' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
-              >
-                ประวัติการเบิก-คืน
-              </button>
-            </div>
-            
-            <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
-              {empModalTab === 'info' ? (
-                <div className="bg-white rounded-xl">
-                  {/* ข้อมูลทั่วไป */}
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">รหัสพนักงาน:</span>
-                    <span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{selectedEmployee.empId}</span>
-                  </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">ชื่อ-นามสกุล (TH):</span>
-                    <span className="col-span-2 font-bold text-slate-800">
-                      {selectedEmployee.fullName} {selectedEmployee.nickname ? <span className="text-slate-400 font-medium">({selectedEmployee.nickname})</span> : ''}
-                    </span>
-                  </div>
-                  {selectedEmployee.fullNameEng && (
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">ชื่อ-นามสกุล (EN):</span>
-                      <span className="col-span-2 font-medium text-slate-800">
-                        {selectedEmployee.fullNameEng}
-                      </span>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">ตำแหน่ง:</span>
-                    <span className="col-span-2 font-medium">{selectedEmployee.position || '-'}</span>
-                  </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">แผนก:</span>
-                    <span className="col-span-2 font-medium">{selectedEmployee.department || '-'}</span>
-                  </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">บริษัท:</span>
-                    <span className="col-span-2 font-medium">{selectedEmployee.company || '-'}</span>
-                  </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">อีเมล (Email):</span>
-                    <span className="col-span-2 font-medium text-blue-600">{selectedEmployee.email || '-'}</span>
-                  </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">เบอร์โทรศัพท์:</span>
-                    <span className="col-span-2 font-medium">{selectedEmployee.phone || '-'}</span>
-                  </div>
-                  <div className="grid grid-cols-3 pt-3 md:pt-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">หัวหน้างาน:</span>
-                    <span className="col-span-2 font-medium">{selectedEmployee.manager || '-'}</span>
-                  </div>
-                </div>
-              ) : empModalTab === 'assets' ? (
-                <>
-                  {/* ทรัพย์สินที่ครอบครอง */}
-                  <div className="space-y-3">
-                    {(() => {
-                      const empAssets = assets.filter(item => item.assignedTo === selectedEmployee.id);
-                      const empLicenses = licenses.filter(item => item.assignedTo === selectedEmployee.id);
-                      
-                      // ดึงอุปกรณ์เสริมที่พนักงานคนนี้ยืมไปทั้งหมด
-                      const empAccessories = accessories.reduce((accList, acc) => {
-                        if (acc.assignees) {
-                          acc.assignees.filter(a => a.empId === selectedEmployee.id).forEach(checkout => {
-                            accList.push({ ...acc, uniqueKey: checkout.checkoutId });
-                          });
-                        } else if (acc.assignedTo === selectedEmployee.id) {
-                          accList.push({ ...acc, uniqueKey: acc.id }); // รองรับระบบเดิม
-                        }
-                        return accList;
-                      }, []);
-                      
-                      const allHeldItems = [...empAssets, ...empLicenses, ...empAccessories];
-                      
-                      if (allHeldItems.length === 0) {
-                        return (
-                          <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <span className="text-4xl block mb-3 opacity-50">📦</span>
-                            <p className="font-medium text-base">ยังไม่มีทรัพย์สินที่ถือครองในระบบ</p>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <ul className="divide-y divide-slate-100 bg-white rounded-xl border border-slate-100 shadow-sm">
-                          {allHeldItems.map(item => (
-                            <li key={item.uniqueKey || item.id} className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                              <div>
-                                <p className="font-bold text-slate-800 text-lg">{item.name}</p>
-                                <p className="text-sm text-slate-500 mt-1">{item.type || 'License'}</p>
-                              </div>
-                              <span className="text-xs uppercase tracking-wider bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full border border-slate-200 font-bold">
-                                {assets.some(a => a.id === item.id) ? 'ทรัพย์สินหลัก' : 
-                                 accessories.some(a => a.id === item.id) ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      );
-                    })()}
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* ประวัติการเบิก-คืน อุปกรณ์ */}
-                  <div className="space-y-3">
-                    {(() => {
-                      // กรองประวัติเฉพาะของพนักงานคนนี้ และเรียงจากใหม่ไปเก่า
-                      const empHistory = transactions
-                        .filter(t => t.empId === selectedEmployee.id)
-                        .sort((a, b) => b.timestamp - a.timestamp);
-
-                      if (empHistory.length === 0) {
-                        return (
-                          <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <span className="text-4xl block mb-3 opacity-50">🕒</span>
-                            <p className="font-medium text-base">ยังไม่มีประวัติการทำรายการ</p>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                          <table className="min-w-full text-left border-collapse w-full whitespace-nowrap text-sm">
-                            <thead className="bg-slate-100">
-                              <tr className="text-slate-600">
-                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">วันที่ทำรายการ</th>
-                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">รายการ/รุ่นอุปกรณ์</th>
-                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">ประเภททำรายการ</th>
-                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">สภาพ</th>
-                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">หมายเหตุ</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 bg-white">
-                              {empHistory.map(record => {
-                                const dateObj = new Date(record.timestamp);
-                                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
-                                
-                                return (
-                                  <tr key={record.id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="p-3 md:p-4 text-slate-500 font-medium">{formattedDate}</td>
-                                    <td className="p-3 md:p-4 text-slate-800 font-bold text-base">{record.assetName}</td>
-                                    <td className="p-3 md:p-4 text-slate-700 font-medium">{record.action}</td>
-                                    <td className="p-3 md:p-4">
-                                      {record.condition === 'ปกติ' ? (
-                                        <span className="text-emerald-600 font-bold flex items-center gap-1.5">
-                                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> ปกติ
-                                        </span>
-                                      ) : (
-                                        <span className="text-red-500 font-bold flex items-center gap-1.5">
-                                          <span className="w-2 h-2 rounded-full bg-red-500"></span> ชำรุด
-                                        </span>
-                                      )}
-                                    </td>
-                                    <td className="p-3 md:p-4 text-slate-500 max-w-[200px] truncate" title={record.remarks}>{record.remarks}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </>
-              )}
-            </div>
-            
-            <div className="p-5 md:p-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
-               <button 
-                 onClick={() => openEditEmpModal(selectedEmployee)} 
-                 className="px-6 py-3 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200 text-sm md:text-base"
-               >
-                 แก้ไขข้อมูล
-               </button>
-               <button 
-                 onClick={() => setSelectedEmployee(null)} 
-                 className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md text-sm md:text-base"
-               >
-                 ปิดหน้าต่าง
-               </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EmployeeDetailsModal
+        selectedEmployee={selectedEmployee}
+        setSelectedEmployee={setSelectedEmployee}
+        empModalTab={empModalTab}
+        setEmpModalTab={setEmpModalTab}
+        assets={assets}
+        licenses={licenses}
+        accessories={accessories}
+        transactions={transactions}
+        openEditEmpModal={openEditEmpModal}
+        handleCheckin={handleCheckin}
+        setReturnModal={setReturnModal}
+      />
 
       {/* Modal หน้าต่างแสดงรายละเอียด ทรัพย์สิน / อุปกรณ์เสริม / License */}
-      {selectedAssetDetail && (() => {
-        // หาข้อมูลล่าสุดจาก state เพื่อให้จำนวนและสถานะอัปเดตแบบเรียลไทม์ทันทีที่กดเบิกจ่าย/รับคืน
-        const currentAssetDetail = 
-          selectedAssetCategory === 'accessories' ? (accessories.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
-          selectedAssetCategory === 'assets' ? (assets.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
-          (licenses.find(l => l.id === selectedAssetDetail.id) || selectedAssetDetail);
-
-        return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1.5 rounded-lg text-sm">📋</span> รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
-              </h3>
-              <button 
-                onClick={() => { setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} 
-                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
-              <div className="bg-white rounded-xl">
-                {selectedAssetCategory === 'licenses' ? (
-                  <>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">ชื่อโปรแกรม:</span>
-                      <span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{currentAssetDetail.name}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">Product Key:</span>
-                      <span className="col-span-2 font-mono bg-slate-100 px-3 py-1 rounded-lg w-fit text-slate-700 text-base">{currentAssetDetail.productKey || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">รหัสอ้างอิง Key:</span>
-                      <span className="col-span-2 font-medium">{currentAssetDetail.keyCode || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">Supplier ที่ซื้อ:</span>
-                      <span className="col-span-2 font-medium">{currentAssetDetail.supplier || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">วันที่ซื้อ:</span>
-                      <span className="col-span-2 font-medium">{currentAssetDetail.purchaseDate || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">วันที่หมดอายุ:</span>
-                      <span className="col-span-2 font-medium">{currentAssetDetail.expirationDate || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">ราคา:</span>
-                      <span className="col-span-2 font-bold text-emerald-600 text-lg">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2 items-center">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">ชื่ออุปกรณ์:</span>
-                      <span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{currentAssetDetail.name}</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">ประเภท:</span>
-                      <span className="col-span-2 font-medium">
-                        <span className="bg-slate-100 text-slate-600 text-sm px-4 py-2 rounded-full font-bold border border-slate-200">
-                          {currentAssetDetail.type}
-                        </span>
-                      </span>
-                    </div>
-                    {selectedAssetCategory === 'accessories' && (
-                      <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
-                        <span className="text-slate-500 font-bold text-sm md:text-base">จำนวนคงเหลือ:</span>
-                        {/* คำนวณจำนวนคงเหลือในหน้ารายละเอียดด้วยเช่นกัน */}
-                        <span className="col-span-2 font-medium text-lg">
-                          {currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))} ชิ้น
-                        </span>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
-                      <span className="text-slate-500 font-bold text-sm md:text-base">ราคา:</span>
-                      <span className="col-span-2 font-bold text-emerald-600 text-lg">
-                        {currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}
-                      </span>
-                    </div>
-                  </>
-                )}
-                
-                {selectedAssetCategory !== 'accessories' && (
-                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">สถานะ:</span>
-                    <span className="col-span-2">
-                      {(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-                        <span className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-bold inline-flex items-center gap-1.5 border border-emerald-200">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> พร้อมใช้งาน
-                        </span>
-                      ) : (
-                        <span className="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-sm font-bold inline-flex items-center gap-1.5 border border-amber-200">
-                          <span className="w-2 h-2 rounded-full bg-amber-500"></span> {currentAssetDetail.status}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                )}
-                
-                {selectedAssetCategory === 'accessories' ? (
-                  <div className="grid grid-cols-3 pt-3 md:pt-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base pt-2">ผู้ครอบครอง:</span>
-                    <span className="col-span-2 font-medium space-y-3">
-                      {currentAssetDetail.assignees && currentAssetDetail.assignees.length > 0 ? (
-                        currentAssetDetail.assignees.map((assignee) => (
-                          <div key={assignee.checkoutId} className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <span className="text-base text-slate-800 font-bold">👤 {assignee.empName}</span>
-                            <button 
-                              onClick={() => {
-                                setReturnModal({
-                                  isOpen: true,
-                                  assetId: currentAssetDetail.id,
-                                  checkoutId: assignee.checkoutId,
-                                  empId: assignee.empId,
-                                  empName: assignee.empName,
-                                  assetName: currentAssetDetail.name
-                                });
-                              }}
-                              className="text-sm bg-teal-50 text-teal-700 hover:bg-teal-500 hover:text-white border border-teal-200 hover:border-teal-500 px-4 py-2 rounded-lg font-bold transition-all shadow-sm"
-                            >
-                              รับคืน
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-slate-400 block mt-2">- ไม่มีผู้ครอบครอง -</span>
-                      )}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 pt-3 md:pt-4">
-                    <span className="text-slate-500 font-bold text-sm md:text-base">ผู้ครอบครอง:</span>
-                    <span className="col-span-2 font-medium">
-                      {currentAssetDetail.assignedName ? `👤 ${currentAssetDetail.assignedName}` : '-'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="p-5 md:p-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
-               {/* ปุ่มเบิกจ่าย-รับคืน เฉพาะของอุปกรณ์เสริม */}
-               {selectedAssetCategory === 'accessories' ? (
-                 // ตรวจสอบว่ายังมีจำนวนคงเหลือให้เบิกจ่ายหรือไม่
-                 ((currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))) > 0) && (
-                   <button 
-                     onClick={() => {
-                       setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory });
-                     }} 
-                     className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base"
-                   >
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                     เบิกจ่าย ({(currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0)))})
-                   </button>
-                 )
-               ) : (
-                 (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-                   <button 
-                     onClick={() => {
-                       setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory });
-                       setSelectedAssetDetail(null);
-                       setSelectedAssetCategory('');
-                     }} 
-                     className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base"
-                   >
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                     เบิกจ่าย
-                   </button>
-                 ) : (
-                   <button 
-                     onClick={() => {
-                       handleCheckin(currentAssetDetail.id, selectedAssetCategory);
-                       setSelectedAssetDetail(null);
-                       setSelectedAssetCategory('');
-                     }} 
-                     className="px-6 py-3 bg-teal-100 text-teal-700 rounded-xl hover:bg-teal-200 font-bold transition-colors border border-teal-200 mr-auto flex items-center gap-2 text-sm md:text-base"
-                   >
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                     รับคืน
-                   </button>
-                 )
-               )}
-               
-               <button 
-                 onClick={() => {
-                   if (selectedAssetCategory === 'licenses') {
-                     openEditLicenseModal(currentAssetDetail);
-                   } else {
-                     openEditAssetModal(currentAssetDetail, selectedAssetCategory);
-                   }
-                   setSelectedAssetDetail(null);
-                   setSelectedAssetCategory('');
-                 }} 
-                 className="px-6 py-3 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200 text-sm md:text-base"
-               >
-                 แก้ไขข้อมูล
-               </button>
-               <button 
-                 onClick={() => { setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} 
-                 className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md text-sm md:text-base"
-               >
-                 ปิดหน้าต่าง
-               </button>
-            </div>
-          </div>
-        </div>
-        );
-      })()}
+      <AssetDetailsModal
+        selectedAssetDetail={selectedAssetDetail}
+        setSelectedAssetDetail={setSelectedAssetDetail}
+        selectedAssetCategory={selectedAssetCategory}
+        setSelectedAssetCategory={setSelectedAssetCategory}
+        accessories={accessories}
+        assets={assets}
+        licenses={licenses}
+        setCheckoutModal={setCheckoutModal}
+        setReturnModal={setReturnModal}
+        handleCheckin={handleCheckin}
+        openEditLicenseModal={openEditLicenseModal}
+        openEditAssetModal={openEditAssetModal}
+      />
 
       {/* Modal แก้ไขข้อมูลพนักงาน */}
-      {editEmpModal.isOpen && editEmpModal.data && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูลพนักงาน
-              </h3>
-              <button onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleUpdateEmployee} className="p-6 md:p-8 overflow-y-auto space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
-                <input type="text" name="empId" value={editEmpModal.data.empId || ''} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
-                  <input type="text" name="fullName" value={editEmpModal.data.fullName || ''} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
-                  <input type="text" name="fullNameEng" value={editEmpModal.data.fullNameEng || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" placeholder="Firstname Lastname" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
-                  <input type="text" name="nickname" value={editEmpModal.data.nickname || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
-                  <input type="tel" name="phone" value={editEmpModal.data.phone || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Email</label>
-                <input type="email" name="email" value={editEmpModal.data.email || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                <input type="text" name="company" value={editEmpModal.data.company || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
-                  <input type="text" name="department" value={editEmpModal.data.department || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-                  <input type="text" name="position" value={editEmpModal.data.position || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-                <input type="text" name="manager" value={editEmpModal.data.manager || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div className="flex gap-3 pt-5 border-t border-slate-100">
-                <button type="button" onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all">
-                  ยกเลิก
-                </button>
-                <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
-                  บันทึกการแก้ไข
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditEmpModal
+        editEmpModal={editEmpModal}
+        setEditEmpModal={setEditEmpModal}
+        handleUpdateEmployee={handleUpdateEmployee}
+        handleEditEmpChange={handleEditEmpChange}
+      />
 
       {/* Modal แก้ไขข้อมูลทรัพย์สิน/อุปกรณ์เสริม */}
-      {editAssetModal.isOpen && editAssetModal.data && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไข{editAssetModal.collectionName === 'assets' ? 'ทรัพย์สินหลัก' : 'อุปกรณ์เสริม'}
-              </h3>
-              <button onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleUpdateAsset} className="p-6 md:p-8 overflow-y-auto space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
-                <input type="text" name="name" value={editAssetModal.data.name || ''} onChange={handleEditAssetChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ประเภท</label>
-                <select name="type" value={editAssetModal.data.type || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer">
-                  {editAssetModal.collectionName === 'assets' ? (
-                    <>
-                      <option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option>
-                      <option value="หน้าจอ">หน้าจอ (Monitor)</option>
-                      <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
-                      <option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option>
-                      <option value="อื่นๆ">อื่นๆ</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
-                      <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option>
-                      <option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option>
-                      <option value="หูฟัง (Headset)">หูฟัง (Headset)</option>
-                      <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
-                      <option value="อื่นๆ">อื่นๆ</option>
-                    </>
-                  )}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                <input 
-                  type="number" 
-                  name="cost"
-                  value={editAssetModal.data.cost || ''} 
-                  onChange={handleEditAssetChange} 
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" 
-                  placeholder="ระบุราคา..."
-                />
-              </div>
-              {editAssetModal.collectionName === 'accessories' && (() => {
-                const checkedOutCount = editAssetModal.data.assignees?.length || 0;
-                const currentRemaining = Math.max(0, Number(editAssetModal.data.quantity || 1) - checkedOutCount);
-                // ดึงค่า remainingQuantity ถ้ามีการพิมพ์แก้ หรือใช้ currentRemaining เป็นค่าตั้งต้น
-                const displayValue = editAssetModal.data.remainingQuantity !== undefined ? editAssetModal.data.remainingQuantity : currentRemaining;
-                const totalQuantity = Number(displayValue) + checkedOutCount;
-
-                return (
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวนคงเหลือ (ชิ้น)</label>
-                    <input 
-                      type="number" 
-                      name="remainingQuantity"
-                      min="0"
-                      value={displayValue || ''} 
-                      onChange={handleEditAssetChange} 
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" 
-                      placeholder="ระบุจำนวนคงเหลือ..."
-                    />
-                    <p className="text-xs text-slate-500 mt-2 font-medium bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      * เบิกจ่ายไปแล้ว <span className="text-indigo-600 font-bold">{checkedOutCount}</span> ชิ้น (มีอุปกรณ์รวมทั้งหมด <span className="font-bold">{totalQuantity}</span> ชิ้น)
-                    </p>
-                  </div>
-                );
-              })()}
-              {/* ซ่อนช่องสถานะหากเป็นเมนูอุปกรณ์เสริม */}
-              {editAssetModal.collectionName !== 'accessories' && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
-                  <select 
-                    name="status" 
-                    value={editAssetModal.data.status || 'พร้อมใช้งาน'} 
-                    onChange={handleEditAssetChange} 
-                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
-                  >
-                    <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-                    <option value="ถูกใช้งาน">ถูกใช้งาน</option>
-                    <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
-                    <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
-                    <option value="รอดำเนินการ">รอดำเนินการ</option>
-                  </select>
-                </div>
-              )}
-              <div className="flex gap-3 pt-5 border-t border-slate-100">
-                <button type="button" onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all">
-                  ยกเลิก
-                </button>
-                <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
-                  บันทึกการแก้ไข
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditAssetModal
+        editAssetModal={editAssetModal}
+        setEditAssetModal={setEditAssetModal}
+        handleUpdateAsset={handleUpdateAsset}
+        handleEditAssetChange={handleEditAssetChange}
+      />
 
       {/* Modal แก้ไขข้อมูลโปรแกรม/License */}
-      {editLicenseModal.isOpen && editLicenseModal.data && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูลโปรแกรม/License
-              </h3>
-              <button onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleUpdateLicense} className="p-6 md:p-8 overflow-y-auto space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
-                <input type="text" name="name" value={editLicenseModal.data.name || ''} onChange={handleEditLicenseChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Product Key License</label>
-                <input type="text" name="productKey" value={editLicenseModal.data.productKey || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all font-mono shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสของ Product Key</label>
-                <input type="text" name="keyCode" value={editLicenseModal.data.keyCode || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
-                <input type="text" name="supplier" value={editLicenseModal.data.supplier || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
-                  <input type="date" name="purchaseDate" value={editLicenseModal.data.purchaseDate || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมดอายุ</label>
-                  <input type="date" name="expirationDate" value={editLicenseModal.data.expirationDate || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                <input type="number" name="cost" value={editLicenseModal.data.cost || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
-                <select 
-                  name="status" 
-                  value={editLicenseModal.data.status || 'พร้อมใช้งาน'} 
-                  onChange={handleEditLicenseChange} 
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
-                >
-                  <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-                  <option value="ถูกใช้งาน">ถูกใช้งาน</option>
-                  <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
-                  <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
-                  <option value="รอดำเนินการ">รอดำเนินการ</option>
-                </select>
-              </div>
-              <div className="flex gap-3 pt-5 border-t border-slate-100">
-                <button type="button" onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all">
-                  ยกเลิก
-                </button>
-                <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
-                  บันทึกการแก้ไข
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modal แก้ไขข้อมูลโปรแกรม/License */}
+      <EditLicenseModal
+        editLicenseModal={editLicenseModal}
+        setEditLicenseModal={setEditLicenseModal}
+        handleUpdateLicense={handleUpdateLicense}
+        handleEditLicenseChange={handleEditLicenseChange}
+      />
 
       {/* Modal หน้าต่างนำเข้าข้อมูล (Import CSV) */}
-      {isImportModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col border border-slate-100">
-            <div className="bg-emerald-600 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1.5 rounded-lg text-sm">⬇️</span> นำเข้าข้อมูลพนักงาน
-              </h3>
-              <button onClick={() => setIsImportModalOpen(false)} className="text-emerald-100 hover:text-white focus:outline-none bg-emerald-700/50 hover:bg-emerald-700 p-1.5 rounded-xl transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-6 md:p-8 space-y-6">
-              
-              {/* ขั้นตอนที่ 1: โหลด Template */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="bg-blue-100 text-blue-700 w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shadow-sm">1</span>
-                  <h4 className="font-bold text-slate-800 text-base">ดาวน์โหลดไฟล์ต้นแบบ</h4>
-                </div>
-                <p className="text-sm text-slate-500 mb-4 pl-10">โหลดไฟล์ CSV (.csv) ที่มีหัวคอลัมน์ถูกต้อง เพื่อนำไปกรอกข้อมูลพนักงาน</p>
-                <div className="pl-10">
-                  <button 
-                    onClick={handleDownloadTemplate}
-                    className="w-full bg-white border-2 border-blue-500 text-blue-600 px-4 py-3 rounded-xl text-sm font-bold hover:bg-blue-50 hover:border-blue-600 transition-all shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    โหลด Template.csv
-                  </button>
-                </div>
-              </div>
-
-              {/* ขั้นตอนที่ 2: อัปโหลดไฟล์ */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="bg-emerald-100 text-emerald-700 w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shadow-sm">2</span>
-                  <h4 className="font-bold text-slate-800 text-base">อัปโหลดไฟล์ข้อมูล</h4>
-                </div>
-                <p className="text-sm text-slate-500 mb-4 pl-10">เลือกไฟล์ CSV ที่กรอกข้อมูลเสร็จแล้ว ระบบจะนำเข้าข้อมูลทันที</p>
-                <div className="pl-10">
-                  <input 
-                    type="file" 
-                    accept=".csv" 
-                    className="hidden" 
-                    id="excel-upload-modal" 
-                    onChange={handleImportEmployees}
-                  />
-                  <label 
-                    htmlFor="excel-upload-modal"
-                    className="w-full bg-emerald-600 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30 cursor-pointer flex items-center justify-center gap-2 text-center"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                    เลือกไฟล์เพื่อนำเข้า
-                  </label>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
+      <ImportModal
+        isImportModalOpen={isImportModalOpen}
+        setIsImportModalOpen={setIsImportModalOpen}
+        handleDownloadTemplate={handleDownloadTemplate}
+        handleImportEmployees={handleImportEmployees}
+      />
 
       {/* Modal รับคืนระบุสภาพ (Return Modal) */}
-      {returnModal.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-slate-100">
-            <div className="bg-slate-800 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1.5 rounded-lg text-sm">📥</span> ยืนยันการรับคืนอุปกรณ์
-              </h3>
-              <button onClick={() => {
-                    setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
-                    setReturnCondition('good');
-                    setReturnRemarks('');
-                  }} className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleConfirmReturn} className="p-6 md:p-8 space-y-6">
-              
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-sm">
-                <p className="text-xs text-slate-500 font-medium mb-1">อุปกรณ์ที่รับคืน</p>
-                <p className="text-base font-bold text-slate-800">{returnModal.assetName}</p>
-                <div className="mt-3 pt-3 border-t border-slate-200">
-                  <p className="text-xs text-slate-500 font-medium mb-1">รับคืนจาก</p>
-                  <p className="text-sm font-bold text-indigo-700 flex items-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    {returnModal.empName}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-3">ระบุสภาพอุปกรณ์ที่รับคืน</label>
-                <div className="space-y-3">
-                  <label className={`flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all shadow-sm ${returnCondition === 'good' ? 'bg-emerald-50 border-emerald-500' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
-                    <input 
-                      type="radio" 
-                      name="condition" 
-                      value="good" 
-                      checked={returnCondition === 'good'} 
-                      onChange={() => setReturnCondition('good')}
-                      className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 border-gray-300"
-                    />
-                    <span className="ml-4 flex flex-col">
-                      <span className="text-base font-bold text-slate-800 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> สภาพปกติ (Good)</span>
-                      <span className="text-sm text-slate-500 mt-1">นำกลับเข้าคลังเพื่อพร้อมใช้งานต่อ</span>
-                    </span>
-                  </label>
-                  
-                  <label className={`flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all shadow-sm ${returnCondition === 'broken' ? 'bg-red-50 border-red-500' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
-                    <input 
-                      type="radio" 
-                      name="condition" 
-                      value="broken" 
-                      checked={returnCondition === 'broken'} 
-                      onChange={() => setReturnCondition('broken')}
-                      className="w-5 h-5 text-red-600 focus:ring-red-500 border-gray-300"
-                    />
-                    <span className="ml-4 flex flex-col">
-                      <span className="text-base font-bold text-slate-800 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> ชำรุด/ตัดจำหน่าย (Broken)</span>
-                      <span className="text-sm text-slate-500 mt-1">บันทึกเป็นของเสีย ไม่นำกลับเข้าคลัง</span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* ช่องกรอกหมายเหตุ (จำเป็นเมื่อเลือกชำรุด) */}
-              <div className={`transition-all duration-300 overflow-hidden ${returnCondition === 'broken' ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <label className="block text-sm font-bold text-slate-700 mb-2">หมายเหตุ <span className="text-red-500">*</span></label>
-                <textarea 
-                  value={returnRemarks}
-                  onChange={(e) => setReturnRemarks(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm transition-all resize-none shadow-sm"
-                  placeholder="เช่น สายขาด, ลูกกลิ้งเลื่อนไม่ได้, เปิดไม่ติด..."
-                  rows="2"
-                  required={returnCondition === 'broken'}
-                ></textarea>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-slate-100">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
-                    setReturnCondition('good');
-                    setReturnRemarks('');
-                  }}
-                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
-                >
-                  ยกเลิก
-                </button>
-                <button 
-                  type="submit"
-                  className={`flex-1 py-3 text-white rounded-xl font-bold transition-all shadow-lg ${returnCondition === 'good' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30' : 'bg-red-600 hover:bg-red-700 shadow-red-600/30'}`}
-                >
-                  ยืนยันการรับคืน
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ReturnModal
+        returnModal={returnModal}
+        setReturnModal={setReturnModal}
+        returnCondition={returnCondition}
+        setReturnCondition={setReturnCondition}
+        returnRemarks={returnRemarks}
+        setReturnRemarks={setReturnRemarks}
+        handleConfirmReturn={handleConfirmReturn}
+      />
 
       {/* Modal บันทึกการซ่อมแซม (Repair Modal) */}
-      {repairModal.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100">
-            <div className="bg-orange-500 text-white px-6 py-5 flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1.5 rounded-lg text-sm">🛠️</span> บันทึกการซ่อมแซมอุปกรณ์
-              </h3>
-              <button onClick={() => setRepairModal({ isOpen: false, assetId: null, assetName: null, maxRepair: 0 })} className="text-orange-100 hover:text-white focus:outline-none bg-orange-600/50 hover:bg-orange-600 p-1.5 rounded-xl transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={handleConfirmRepair} className="p-6 md:p-8 space-y-6">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <p className="text-xs text-slate-500 font-medium mb-1">อุปกรณ์ที่กำลังซ่อมแซม</p>
-                <p className="text-base font-bold text-slate-800">{repairModal.assetName}</p>
-              </div>
+      <RepairModal
+        repairModal={repairModal}
+        setRepairModal={setRepairModal}
+        repairQuantity={repairQuantity}
+        setRepairQuantity={setRepairQuantity}
+        repairRemarks={repairRemarks}
+        setRepairRemarks={setRepairRemarks}
+        handleConfirmRepair={handleConfirmRepair}
+      />
 
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">จำนวนที่ซ่อมเสร็จ (รายการ) <span className="text-red-500">*</span></label>
-                <input
-                  type="number"
-                  min="1"
-                  max={repairModal.maxRepair}
-                  value={repairQuantity}
-                  onChange={(e) => setRepairQuantity(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-base transition-all shadow-sm"
-                  required
-                />
-                <p className="text-sm text-slate-500 mt-2 font-medium bg-orange-50 p-2 rounded-lg border border-orange-100">
-                  * สามารถซ่อมได้สูงสุด <span className="text-orange-600 font-bold">{repairModal.maxRepair}</span> รายการ
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">หมายเหตุ</label>
-                <textarea
-                  value={repairRemarks}
-                  onChange={(e) => setRepairRemarks(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm transition-all resize-none shadow-sm"
-                  placeholder="เช่น เปลี่ยนสวิตช์เมาส์ใหม่..."
-                  rows="3"
-                ></textarea>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setRepairModal({ isOpen: false, assetId: null, assetName: null, maxRepair: 0 })}
-                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 font-bold transition-all shadow-lg shadow-orange-500/30"
-                >
-                  ยืนยันเข้าสต๊อก
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal แจ้งเตือน Custom Alert แทนการใช้ alert() ของเบราว์เซอร์ */}
-      {customAlert.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100 text-center p-8">
-            <div className={`mx-auto flex items-center justify-center h-20 w-20 rounded-full ${customAlert.type === 'error' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'} mb-6`}>
-              {customAlert.type === 'error' ? (
-                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-              ) : (
-                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-              )}
-            </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-3">{customAlert.title}</h3>
-            <p className="text-base text-slate-500 mb-8 whitespace-pre-line leading-relaxed">
-              {customAlert.message}
-            </p>
-            <button 
-              onClick={() => setCustomAlert({ ...customAlert, isOpen: false })}
-              className={`w-full py-3.5 rounded-xl font-bold text-white transition-all shadow-lg ${
-                customAlert.type === 'error' 
-                  ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30' 
-                  : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30'
-              }`}
-            >
-              ตกลง
-            </button>
-          </div>
-        </div>
-      )}
+ {/* เรียกใช้งาน Component แจ้งเตือนจากไฟล์ที่เราแยกไว้ */}
+      <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
 
     </div>
   )

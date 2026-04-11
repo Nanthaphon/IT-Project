@@ -32,7 +32,7 @@ function App() {
 
   // State สำหรับเก็บข้อมูลพนักงานที่ถูกคลิกเพื่อดูรายละเอียด (Modal)
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [empModalTab, setEmpModalTab] = useState('info'); // State สำหรับ Tab ใน Modal พนักงาน ('info' หรือ 'assets')
+  const [empModalTab, setEmpModalTab] = useState('info'); // State สำหรับ Tab ใน Modal พนักงาน ('info', 'assets', หรือ 'history')
 
   // State สำหรับ Modal แสดงรายละเอียดทรัพย์สิน/อุปกรณ์/License
   const [selectedAssetDetail, setSelectedAssetDetail] = useState(null);
@@ -68,6 +68,19 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [checkoutSearchTerm, setCheckoutSearchTerm] = useState('');
 
+  // State สำหรับประวัติการเบิกคืน
+  const [transactions, setTransactions] = useState([]);
+
+  // State สำหรับ Modal รับคืนระบุสภาพ (Return Modal)
+  const [returnModal, setReturnModal] = useState({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
+  const [returnCondition, setReturnCondition] = useState('good');
+  const [returnRemarks, setReturnRemarks] = useState('');
+
+  // State สำหรับ Modal ซ่อมแซมอุปกรณ์ (Repair Modal)
+  const [repairModal, setRepairModal] = useState({ isOpen: false, assetId: null, assetName: null, maxRepair: 0 });
+  const [repairQuantity, setRepairQuantity] = useState(1);
+  const [repairRemarks, setRepairRemarks] = useState('');
+
   // ดึงข้อมูลจาก Firestore
   useEffect(() => {
     // ดึงข้อมูลทรัพย์สินหลัก
@@ -90,11 +103,17 @@ function App() {
       setLicenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
+    // ดึงข้อมูลประวัติการเบิก-คืน (Transactions)
+    const unsubTransactions = onSnapshot(collection(db, 'accessories_transactions'), (snapshot) => {
+      setTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
     return () => {
       unsubAssets();
       unsubAccessories();
       unsubEmployees();
       unsubLicenses();
+      unsubTransactions();
     };
   }, []);
 
@@ -129,6 +148,7 @@ function App() {
         type: type,
         cost: cost,
         quantity: qtyToSave, // บันทึกจำนวนลงฐานข้อมูล
+        brokenQuantity: 0, // ค่าเริ่มต้นสำหรับของที่ชำรุด
         status: 'พร้อมใช้งาน',
         assignedTo: null,
         assignedName: null,
@@ -223,10 +243,8 @@ function App() {
   const handleExportAccessories = () => {
     // กรองข้อมูลตามที่เลือกใน Filter ก่อนส่งออก
     const filteredAccessories = accessories.filter(item => {
-      const itemStatus = item.status || 'พร้อมใช้งาน';
       const matchType = accFilterType === 'ทั้งหมด' || item.type === accFilterType;
-      const matchStatus = accFilterStatus === 'ทั้งหมด' || itemStatus === accFilterStatus;
-      return matchType && matchStatus;
+      return matchType;
     });
 
     if (filteredAccessories.length === 0) {
@@ -240,10 +258,15 @@ function App() {
         ? item.assignees.map(a => a.empName).join(', ') 
         : (item.assignedName || '-');
 
+      const remainingQty = item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0));
+      const usedQty = item.assignees?.length || 0;
+
       return {
         'ชื่ออุปกรณ์': item.name || '',
         'ประเภท': item.type || '',
-        'จำนวน': item.quantity || 1, // เพิ่มคอลัมน์จำนวน
+        'คงเหลือ': remainingQty, // เปลี่ยนชื่อคอลัมน์เป็น คงเหลือ
+        'ใช้งานไป': usedQty,     // เพิ่มคอลัมน์ ใช้งานไป
+        'ชำรุด/พัง': item.brokenQuantity || 0, // เพิ่มคอลัมน์ชำรุด
         'ราคา': item.cost ? `฿${item.cost}` : '-',
         // ลบคอลัมน์สถานะออกตาม Request
         'ผู้ครอบครอง': assigneesStr
@@ -410,8 +433,7 @@ function App() {
             if (acc.assignees) {
               const remainingAssignees = acc.assignees.filter(a => a.empId !== id);
               await updateDoc(doc(db, 'accessories', acc.id), {
-                // อัปเดตเฉพาะคนยืม ไม่ไปลด/เพิ่มจำนวนรวมตั้งต้น
-                assignees: remainingAssignees
+                assignees: remainingAssignees // อัปเดตแค่รายชื่อ ไม่ต้องไปบวกจำนวนกลับแล้ว
               });
             } else {
               await updateDoc(doc(db, 'accessories', acc.id), {
@@ -452,7 +474,8 @@ function App() {
   // ฟังก์ชันสำหรับบันทึกการแก้ไขข้อมูลพนักงาน
   const handleUpdateEmployee = async (e) => {
     e.preventDefault();
-    if (!editEmpModal.data.fullName.trim() || !editEmpModal.data.empId.trim()) return;
+    // เพิ่มการตรวจสอบค่าว่างเพื่อป้องกัน Error
+    if (!String(editEmpModal.data?.fullName || '').trim() || !String(editEmpModal.data?.empId || '').trim()) return;
 
     try {
       const empRef = doc(db, 'employees', editEmpModal.data.id);
@@ -487,12 +510,19 @@ function App() {
   // ฟังก์ชันสำหรับบันทึกการแก้ไขข้อมูลทรัพย์สิน
   const handleUpdateAsset = async (e) => {
     e.preventDefault();
-    if (!editAssetModal.data.name.trim()) return;
+    // เพิ่มการตรวจสอบค่าว่างเพื่อป้องกัน Error
+    if (!String(editAssetModal.data?.name || '').trim()) return;
 
     try {
       const assetRef = doc(db, editAssetModal.collectionName, editAssetModal.data.id);
       const updatedData = { ...editAssetModal.data };
       delete updatedData.id; 
+
+      // เพิ่มเงื่อนไขปรับจำนวนรวมตามจำนวนคงเหลือที่ผู้ใช้กรอก
+      if (editAssetModal.collectionName === 'accessories' && updatedData.remainingQuantity !== undefined) {
+        updatedData.quantity = Number(updatedData.remainingQuantity) + (updatedData.assignees?.length || 0);
+        delete updatedData.remainingQuantity; // ลบฟิลด์ชั่วคราวทิ้งก่อนบันทึกลงฐานข้อมูล
+      }
 
       await updateDoc(assetRef, updatedData);
       setEditAssetModal({ isOpen: false, data: null, collectionName: '' });
@@ -516,7 +546,8 @@ function App() {
   // ฟังก์ชันสำหรับบันทึกการแก้ไขข้อมูลโปรแกรม/License
   const handleUpdateLicense = async (e) => {
     e.preventDefault();
-    if (!editLicenseModal.data.name.trim()) return;
+    // เพิ่มการตรวจสอบค่าว่างเพื่อป้องกัน Error
+    if (!String(editLicenseModal.data?.name || '').trim()) return;
 
     try {
       const licenseRef = doc(db, 'licenses', editLicenseModal.data.id);
@@ -542,8 +573,9 @@ function App() {
     try {
       if (checkoutModal.collectionName === 'accessories') {
         const item = accessories.find(a => a.id === checkoutModal.assetId);
-        // คำนวณจำนวนที่เหลือจริงๆ ก่อนให้เบิก
-        const remainingQty = item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0));
+        
+        // คำนวณจำนวนคงเหลือปัจจุบัน
+        const remainingQty = item ? (item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))) : 0;
         
         if (item && remainingQty > 0) {
           const newAssignees = item.assignees ? [...item.assignees] : [];
@@ -553,9 +585,19 @@ function App() {
             empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
           });
           await updateDoc(doc(db, 'accessories', checkoutModal.assetId), {
-            // อัปเดตเฉพาะคนยืม ไม่ไปลดจำนวนรวมตั้งต้น
-            assignees: newAssignees
+            assignees: newAssignees // อัปเดตแค่คนยืม ไม่ต้องไปลบเลข quantity ในฐานข้อมูล
           });
+
+          // บันทึกประวัติการเบิกจ่าย
+          await addDoc(collection(db, 'accessories_transactions'), {
+            empId: emp.id,
+            assetName: item.name,
+            action: 'เบิกจ่าย',
+            condition: 'ปกติ',
+            remarks: '-',
+            timestamp: Date.now()
+          });
+
         } else {
           setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอสำหรับการเบิกจ่าย', type: 'error' });
           return;
@@ -579,22 +621,92 @@ function App() {
     }
   };
 
-  // ฟังก์ชันรับคืนอุปกรณ์เสริมเฉพาะบางชิ้น (Check-in Accessory)
-  const handleAccessoryCheckin = async (assetId, checkoutId) => {
-    if(window.confirm("ต้องการรับคืนอุปกรณ์จากพนักงานคนนี้ใช่หรือไม่?")) {
-      try {
-        const item = accessories.find(a => a.id === assetId);
-        if (item && item.assignees) {
-          const newAssignees = item.assignees.filter(a => a.checkoutId !== checkoutId);
-          await updateDoc(doc(db, 'accessories', assetId), {
-             // อัปเดตเฉพาะคนยืม ไม่ไปเพิ่มจำนวนรวมตั้งต้น
-            assignees: newAssignees
-          });
+  // ฟังก์ชันกดยืนยันในหน้าต่างรับคืนอุปกรณ์เสริมแบบระบุสภาพ
+  const handleConfirmReturn = async (e) => {
+    e.preventDefault();
+    if (returnCondition === 'broken' && !returnRemarks.trim()) {
+      setCustomAlert({ isOpen: true, title: 'แจ้งเตือน', message: 'กรุณากรอกหมายเหตุเมื่อระบุว่าอุปกรณ์ชำรุด/พัง', type: 'error' });
+      return;
+    }
+
+    try {
+      const item = accessories.find(a => a.id === returnModal.assetId);
+      if (item && item.assignees) {
+        const newAssignees = item.assignees.filter(a => a.checkoutId !== returnModal.checkoutId);
+        
+        const updateData = { assignees: newAssignees };
+        
+        // ถ้าแจ้งว่าชำรุด ให้ไปบวกที่ช่องชำรุดและตัดออกจากยอดคงเหลือ (โดยการลบยอดรวมตั้งต้น)
+        if (returnCondition === 'broken') {
+          updateData.brokenQuantity = Number(item.brokenQuantity || 0) + 1;
+          updateData.quantity = Number(item.quantity || 1) - 1; // ตัดสต๊อกทิ้ง
         }
-      } catch (error) {
-        console.error("Error checkin accessory: ", error);
-        alert("เกิดข้อผิดพลาดในการรับคืน: " + error.message);
+        // ถ้าสภาพปกติ ไม่ต้องแก้ไข quantity ปล่อยให้สูตรคงเหลือคำนวณกลับมาเองเมื่อ assignees หายไป
+
+        await updateDoc(doc(db, 'accessories', returnModal.assetId), updateData);
+
+        // บันทึกประวัติการรับคืน
+        await addDoc(collection(db, 'accessories_transactions'), {
+          empId: returnModal.empId,
+          assetName: returnModal.assetName,
+          action: 'รับคืน',
+          condition: returnCondition === 'good' ? 'ปกติ' : 'ชำรุด',
+          remarks: returnRemarks.trim() || '-',
+          timestamp: Date.now()
+        });
       }
+      
+      // ปิดหน้าต่างและล้างค่า
+      setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
+      setReturnCondition('good');
+      setReturnRemarks('');
+      setCustomAlert({ isOpen: true, title: 'สำเร็จ', message: 'รับคืนอุปกรณ์เรียบร้อยแล้ว', type: 'success' });
+    } catch (error) {
+      console.error("Error confirming return: ", error);
+      setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
+    }
+  };
+
+  // ฟังก์ชันกดยืนยันการซ่อมแซมอุปกรณ์
+  const handleConfirmRepair = async (e) => {
+    e.preventDefault();
+    const qtyToRepair = parseInt(repairQuantity, 10);
+
+    if (qtyToRepair < 1 || qtyToRepair > repairModal.maxRepair) {
+      setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนที่ซ่อมไม่ถูกต้อง', type: 'error' });
+      return;
+    }
+
+    try {
+      const item = accessories.find(a => a.id === repairModal.assetId);
+      if (item) {
+        // 1. อัปเดตตาราง accessories (ลดของเสีย เพิ่มของดีกลับเข้าคลัง)
+        const newBrokenQty = Number(item.brokenQuantity || 0) - qtyToRepair;
+        const newTotalQty = Number(item.quantity || 0) + qtyToRepair;
+
+        await updateDoc(doc(db, 'accessories', repairModal.assetId), {
+          brokenQuantity: newBrokenQty,
+          quantity: newTotalQty
+        });
+
+        // 2. บันทึกประวัติลง accessories_transactions (ไม่ต้องผูกกับพนักงาน)
+        await addDoc(collection(db, 'accessories_transactions'), {
+          empId: 'SYSTEM', // ใช้ SYSTEM เพราะเป็นการจัดการภายในสต๊อก
+          assetName: item.name,
+          action: 'ซ่อมแซม',
+          condition: 'ปกติ', // ซ่อมเสร็จแล้วกลับมาปกติ
+          remarks: repairRemarks.trim() || '-',
+          timestamp: Date.now()
+        });
+
+        setRepairModal({ isOpen: false, assetId: null, assetName: null, maxRepair: 0 });
+        setRepairQuantity(1);
+        setRepairRemarks('');
+        setCustomAlert({ isOpen: true, title: 'สำเร็จ', message: `บันทึกการซ่อมแซมและนำ ${item.name} กลับเข้าสต๊อก ${qtyToRepair} รายการเรียบร้อยแล้ว`, type: 'success' });
+      }
+    } catch (error) {
+      console.error("Error confirming repair: ", error);
+      setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
     }
   };
 
@@ -624,10 +736,8 @@ function App() {
     baseData = employees;
   } else if (activeMenu === 'accessories') {
     baseData = accessories.filter(item => {
-      const itemStatus = item.status || 'พร้อมใช้งาน';
       const matchType = accFilterType === 'ทั้งหมด' || item.type === accFilterType;
-      const matchStatus = accFilterStatus === 'ทั้งหมด' || itemStatus === accFilterStatus;
-      return matchType && matchStatus;
+      return matchType;
     });
   }
 
@@ -779,7 +889,7 @@ function App() {
                   <div>
                     <p className="text-sm text-slate-500 font-medium mb-1">อุปกรณ์เสริม</p>
                     <h4 className="text-3xl font-black text-slate-800">
-                      {accessories.length} <span className="text-sm font-normal text-slate-400">ชิ้น</span>
+                      {accessories.length} <span className="text-sm font-normal text-slate-400">รายการ</span>
                     </h4>
                   </div>
                   <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center text-3xl shadow-inner">🖱️</div>
@@ -860,18 +970,6 @@ function App() {
                           <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
                           <option value="อื่นๆ">อื่นๆ</option>
                         </select>
-                        <select
-                          value={accFilterStatus}
-                          onChange={(e) => setAccFilterStatus(e.target.value)}
-                          className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
-                        >
-                          <option value="ทั้งหมด">สถานะ: ทั้งหมด</option>
-                          <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-                          <option value="ถูกใช้งาน">ถูกใช้งาน</option>
-                          <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
-                          <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
-                          <option value="รอดำเนินการ">รอดำเนินการ</option>
-                        </select>
                         <button
                           onClick={handleExportAccessories}
                           className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
@@ -883,7 +981,7 @@ function App() {
                     )}
                     <button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="flex-1 sm:flex-none w-full sm:w-auto bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 hover:shadow-lg transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-none w-full sm:w-auto bg-indigo-600 text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-indigo-700 hover:shadow-lg transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
                       เพิ่มรายการใหม่
@@ -923,7 +1021,11 @@ function App() {
                               <th className="p-4 text-sm font-bold rounded-tl-lg border-b border-slate-200">ชื่ออุปกรณ์</th>
                               <th className="p-4 text-sm font-bold border-b border-slate-200">ประเภท</th>
                               {activeMenu === 'accessories' && (
-                                <th className="p-4 text-sm font-bold border-b border-slate-200">จำนวน</th>
+                                <>
+                                  <th className="p-4 text-sm font-bold border-b border-slate-200 text-center">คงเหลือ</th>
+                                  <th className="p-4 text-sm font-bold border-b border-slate-200 text-center">ใช้งานไป</th>
+                                  <th className="p-4 text-sm font-bold border-b border-slate-200 text-center text-red-500">ชำรุด/พัง</th>
+                                </>
                               )}
                               <th className="p-4 text-sm font-bold border-b border-slate-200">ราคา</th>
                               {activeMenu !== 'accessories' && (
@@ -1071,10 +1173,18 @@ function App() {
                                   </span>
                                 </td>
                                 {activeMenu === 'accessories' && (
-                                  <td className="p-4 text-sm font-bold text-slate-700">
-                                    {/* คำนวณจำนวนคงเหลือ โดยเอาจำนวนทั้งหมด ลบด้วยจำนวนคนที่ยืมไป */}
-                                    {item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))}
-                                  </td>
+                                  <>
+                                    <td className="p-4 text-sm font-bold text-slate-700 text-center">
+                                      {/* คำนวณจำนวนคงเหลือ โดยเอาจำนวนทั้งหมด ลบด้วยจำนวนคนที่ยืมไป */}
+                                      {item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))}
+                                    </td>
+                                    <td className="p-4 text-sm font-bold text-slate-700 text-center">
+                                      {item.assignees?.length || 0}
+                                    </td>
+                                    <td className="p-4 text-sm font-bold text-red-500 text-center">
+                                      {item.brokenQuantity || 0}
+                                    </td>
+                                  </>
                                 )}
                                 <td className="p-4 text-sm font-bold text-emerald-600">
                                   {item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}
@@ -1117,6 +1227,19 @@ function App() {
                                       </button>
                                     )
                                   )}
+                                  {activeMenu === 'accessories' && Number(item.brokenQuantity || 0) > 0 && (
+                                    <button 
+                                      onClick={() => {
+                                        setRepairModal({ isOpen: true, assetId: item.id, assetName: item.name, maxRepair: item.brokenQuantity });
+                                        setRepairQuantity(1);
+                                        setRepairRemarks('');
+                                      }}
+                                      title="ซ่อมแซม"
+                                      className="inline-flex items-center justify-center w-9 h-9 text-orange-600 bg-orange-50 hover:bg-orange-500 hover:text-white border border-orange-200 hover:border-orange-500 rounded-xl transition-all shadow-sm"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" /></svg>
+                                    </button>
+                                  )}
                                   <button 
                                     onClick={() => openEditAssetModal(item, activeMenu)}
                                     title="แก้ไข"
@@ -1150,64 +1273,64 @@ function App() {
       {/* Modal หน้าต่างเพิ่มรายการใหม่ (Add New Item) */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-indigo-600 text-white p-5 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+            <div className="bg-indigo-600 text-white px-6 py-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1 rounded-md">➕</span> เพิ่มรายการใหม่
+                <span className="bg-white/20 p-1.5 rounded-lg">➕</span> เพิ่มรายการใหม่
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-indigo-200 hover:text-white transition-colors focus:outline-none bg-indigo-700/50 hover:bg-indigo-700 p-1.5 rounded-lg">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-indigo-200 hover:text-white transition-colors focus:outline-none bg-indigo-700/50 hover:bg-indigo-700 p-1.5 rounded-xl">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-6 overflow-y-auto">
+            <div className="p-6 md:p-8 overflow-y-auto">
               {activeMenu === 'employees' ? (
                 // ฟอร์มพนักงาน
-                <form onSubmit={handleAddEmployee} className="space-y-4">
+                <form onSubmit={handleAddEmployee} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
-                    <input type="text" name="empId" value={empForm.empId} onChange={handleEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="เช่น EMP001" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
+                    <input type="text" name="empId" value={empForm.empId || ''} onChange={handleEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="เช่น EMP001" />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
-                      <input type="text" name="fullName" value={empForm.fullName} onChange={handleEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ชื่อ-นามสกุล" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
+                      <input type="text" name="fullName" value={empForm.fullName || ''} onChange={handleEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อ-นามสกุล" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
-                      <input type="text" name="fullNameEng" value={empForm.fullNameEng} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="Firstname Lastname" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
+                      <input type="text" name="fullNameEng" value={empForm.fullNameEng || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="Firstname Lastname" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
-                      <input type="text" name="nickname" value={empForm.nickname} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ชื่อเล่น" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
+                      <input type="text" name="nickname" value={empForm.nickname || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อเล่น" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
-                      <input type="tel" name="phone" value={empForm.phone} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="เบอร์โทรศัพท์" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Email</label>
-                    <input type="email" name="email" value={empForm.email} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="อีเมลบริษัท" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">บริษัท</label>
-                    <input type="text" name="company" value={empForm.company} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ชื่อบริษัท" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">แผนก</label>
-                      <input type="text" name="department" value={empForm.department} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="แผนก" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-                      <input type="text" name="position" value={empForm.position} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ตำแหน่งงาน" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
+                      <input type="tel" name="phone" value={empForm.phone || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="เบอร์โทรศัพท์" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-                    <input type="text" name="manager" value={empForm.manager} onChange={handleEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="หัวหน้างาน" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Email</label>
+                    <input type="email" name="email" value={empForm.email || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="อีเมลบริษัท" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
+                    <input type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อบริษัท" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
+                      <input type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="แผนก" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
+                      <input type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ตำแหน่งงาน" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
+                    <input type="text" name="manager" value={empForm.manager || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="หัวหน้างาน" />
                   </div>
                   <div className="pt-2">
                     <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98]">
@@ -1217,36 +1340,36 @@ function App() {
                 </form>
               ) : activeMenu === 'licenses' ? (
                 // ฟอร์มโปรแกรม/License
-                <form onSubmit={handleAddLicense} className="space-y-4">
+                <form onSubmit={handleAddLicense} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
-                    <input type="text" name="name" value={licenseForm.name} onChange={handleLicenseChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ระบุชื่อโปรแกรม..." />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
+                    <input type="text" name="name" value={licenseForm.name || ''} onChange={handleLicenseChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ระบุชื่อโปรแกรม..." />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Product Key License</label>
-                    <input type="text" name="productKey" value={licenseForm.productKey} onChange={handleLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all font-mono" placeholder="เช่น A1B2-C3D4-E5F6" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Product Key License</label>
+                    <input type="text" name="productKey" value={licenseForm.productKey || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all font-mono shadow-sm" placeholder="เช่น A1B2-C3D4-E5F6" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">รหัสของ Product Key</label>
-                    <input type="text" name="keyCode" value={licenseForm.keyCode} onChange={handleLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="รหัสอ้างอิงของ Key" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสของ Product Key</label>
+                    <input type="text" name="keyCode" value={licenseForm.keyCode || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="รหัสอ้างอิงของ Key" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
-                    <input type="text" name="supplier" value={licenseForm.supplier} onChange={handleLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ชื่อร้านค้า/ตัวแทนจำหน่าย" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
+                    <input type="text" name="supplier" value={licenseForm.supplier || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ชื่อร้านค้า/ตัวแทนจำหน่าย" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
-                      <input type="date" name="purchaseDate" value={licenseForm.purchaseDate} onChange={handleLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all text-slate-600" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
+                      <input type="date" name="purchaseDate" value={licenseForm.purchaseDate || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">วันที่หมดอายุ</label>
-                      <input type="date" name="expirationDate" value={licenseForm.expirationDate} onChange={handleLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all text-slate-600" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมดอายุ</label>
+                      <input type="date" name="expirationDate" value={licenseForm.expirationDate || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                    <input type="number" name="cost" value={licenseForm.cost} onChange={handleLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" placeholder="ระบุราคา..." />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
+                    <input type="number" name="cost" value={licenseForm.cost || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm" placeholder="ระบุราคา..." />
                   </div>
                   <div className="pt-2">
                     <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98]">
@@ -1256,14 +1379,14 @@ function App() {
                 </form>
               ) : (
                 // ฟอร์มทรัพย์สิน / อุปกรณ์เสริม
-                <form onSubmit={handleAdd} className="space-y-4">
+                <form onSubmit={handleAdd} className="space-y-5">
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
                       placeholder="ระบุชื่ออุปกรณ์..."
                       required
                     />
@@ -1274,7 +1397,7 @@ function App() {
                     <select 
                       value={type}
                       onChange={(e) => setType(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all text-sm text-slate-700"
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition-all text-sm text-slate-700 shadow-sm cursor-pointer"
                     >
                       {activeMenu === 'assets' ? (
                         <>
@@ -1303,7 +1426,7 @@ function App() {
                       type="number" 
                       value={cost}
                       onChange={(e) => setCost(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
                       placeholder="ระบุราคา..."
                     />
                   </div>
@@ -1317,7 +1440,7 @@ function App() {
                         min="1"
                         value={quantity}
                         onChange={(e) => setQuantity(e.target.value)}
-                        className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+                        className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
                         placeholder="ระบุจำนวน..."
                         required
                       />
@@ -1327,7 +1450,7 @@ function App() {
                   <div className="pt-2">
                     <button 
                       type="submit" 
-                      className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98]"
+                      className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all active:scale-[0.98]"
                     >
                       บันทึกข้อมูล
                     </button>
@@ -1342,17 +1465,20 @@ function App() {
       {/* Modal หน้าต่างเบิกจ่ายทรัพย์สิน (Checkout) */}
       {checkoutModal.isOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100">
-            <div className="bg-indigo-600 text-white p-5">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-slate-100">
+            <div className="bg-indigo-600 text-white px-6 py-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1 rounded-md">📤</span> ระบุพนักงานที่เบิกจ่าย
+                <span className="bg-white/20 p-1.5 rounded-lg">📤</span> ระบุพนักงานที่เบิกจ่าย
               </h3>
+              <button onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); }} className="text-indigo-200 hover:text-white transition-colors focus:outline-none bg-indigo-700/50 hover:bg-indigo-700 p-1.5 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
-            <form onSubmit={handleCheckout} className="p-6 space-y-4">
+            <form onSubmit={handleCheckout} className="p-6 md:p-8 space-y-5">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">ค้นหาพนักงาน</label>
-                <div className="relative mb-3">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="relative mb-4">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -1362,14 +1488,14 @@ function App() {
                     placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
                     value={checkoutSearchTerm}
                     onChange={(e) => setCheckoutSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white text-sm transition-all shadow-sm"
                   />
                 </div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">เลือกพนักงาน</label>
                 <select 
                   value={checkoutEmpId}
                   onChange={(e) => setCheckoutEmpId(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm text-slate-700 transition-all"
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
                   required
                 >
                   <option value="" disabled>-- เลือกพนักงาน --</option>
@@ -1386,17 +1512,17 @@ function App() {
                   ))}
                 </select>
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button 
                   type="button"
                   onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); }}
-                  className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors"
+                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
                 >
                   ยกเลิก
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold transition-colors shadow-md shadow-indigo-600/20"
+                  className="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold transition-all shadow-lg shadow-indigo-600/30"
                 >
                   ยืนยันเบิกจ่าย
                 </button>
@@ -1409,14 +1535,14 @@ function App() {
       {/* Modal หน้าต่างแสดงรายละเอียดพนักงาน */}
       {selectedEmployee && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
             <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1 rounded-md text-sm">📋</span> ข้อมูลพนักงาน
+                <span className="bg-white/20 p-1.5 rounded-lg text-sm">📋</span> ข้อมูลพนักงาน
               </h3>
               <button 
                 onClick={() => setSelectedEmployee(null)} 
-                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-lg"
+                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1428,66 +1554,72 @@ function App() {
             <div className="flex border-b border-slate-200 bg-slate-50">
               <button
                 onClick={() => setEmpModalTab('info')}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'info' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
+                className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'info' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
               >
                 ข้อมูลทั่วไป
               </button>
               <button
                 onClick={() => setEmpModalTab('assets')}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'assets' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
+                className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'assets' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
               >
-                ทรัพย์สินที่ครอบครอง
+                ครอบครองปัจจุบัน
+              </button>
+              <button
+                onClick={() => setEmpModalTab('history')}
+                className={`flex-1 py-4 text-sm font-bold border-b-2 transition-colors ${empModalTab === 'history' ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
+              >
+                ประวัติการเบิก-คืน
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto space-y-4 text-sm text-slate-800 flex-1">
+            <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
               {empModalTab === 'info' ? (
                 <div className="bg-white rounded-xl">
                   {/* ข้อมูลทั่วไป */}
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
-                    <span className="text-slate-500 font-bold">รหัสพนักงาน:</span>
-                    <span className="col-span-2 font-black text-indigo-700 text-base">{selectedEmployee.empId}</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">รหัสพนักงาน:</span>
+                    <span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{selectedEmployee.empId}</span>
                   </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">ชื่อ-นามสกุล (TH):</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">ชื่อ-นามสกุล (TH):</span>
                     <span className="col-span-2 font-bold text-slate-800">
                       {selectedEmployee.fullName} {selectedEmployee.nickname ? <span className="text-slate-400 font-medium">({selectedEmployee.nickname})</span> : ''}
                     </span>
                   </div>
                   {selectedEmployee.fullNameEng && (
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">ชื่อ-นามสกุล (EN):</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">ชื่อ-นามสกุล (EN):</span>
                       <span className="col-span-2 font-medium text-slate-800">
                         {selectedEmployee.fullNameEng}
                       </span>
                     </div>
                   )}
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">ตำแหน่ง:</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">ตำแหน่ง:</span>
                     <span className="col-span-2 font-medium">{selectedEmployee.position || '-'}</span>
                   </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">แผนก:</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">แผนก:</span>
                     <span className="col-span-2 font-medium">{selectedEmployee.department || '-'}</span>
                   </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">บริษัท:</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">บริษัท:</span>
                     <span className="col-span-2 font-medium">{selectedEmployee.company || '-'}</span>
                   </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">อีเมล (Email):</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">อีเมล (Email):</span>
                     <span className="col-span-2 font-medium text-blue-600">{selectedEmployee.email || '-'}</span>
                   </div>
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">เบอร์โทรศัพท์:</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">เบอร์โทรศัพท์:</span>
                     <span className="col-span-2 font-medium">{selectedEmployee.phone || '-'}</span>
                   </div>
-                  <div className="grid grid-cols-3 mt-3">
-                    <span className="text-slate-500 font-bold">หัวหน้างาน:</span>
+                  <div className="grid grid-cols-3 pt-3 md:pt-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">หัวหน้างาน:</span>
                     <span className="col-span-2 font-medium">{selectedEmployee.manager || '-'}</span>
                   </div>
                 </div>
-              ) : (
+              ) : empModalTab === 'assets' ? (
                 <>
                   {/* ทรัพย์สินที่ครอบครอง */}
                   <div className="space-y-3">
@@ -1513,20 +1645,20 @@ function App() {
                         return (
                           <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                             <span className="text-4xl block mb-3 opacity-50">📦</span>
-                            <p className="font-medium">ยังไม่มีทรัพย์สินที่ถือครองในระบบ</p>
+                            <p className="font-medium text-base">ยังไม่มีทรัพย์สินที่ถือครองในระบบ</p>
                           </div>
                         );
                       }
 
                       return (
-                        <ul className="divide-y divide-slate-100 bg-white rounded-xl border border-slate-100">
+                        <ul className="divide-y divide-slate-100 bg-white rounded-xl border border-slate-100 shadow-sm">
                           {allHeldItems.map(item => (
-                            <li key={item.uniqueKey || item.id} className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                            <li key={item.uniqueKey || item.id} className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors">
                               <div>
-                                <p className="font-bold text-slate-800 text-base">{item.name}</p>
-                                <p className="text-xs text-slate-500 mt-0.5">{item.type || 'License'}</p>
+                                <p className="font-bold text-slate-800 text-lg">{item.name}</p>
+                                <p className="text-sm text-slate-500 mt-1">{item.type || 'License'}</p>
                               </div>
-                              <span className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full border border-slate-200 font-bold">
+                              <span className="text-xs uppercase tracking-wider bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full border border-slate-200 font-bold">
                                 {assets.some(a => a.id === item.id) ? 'ทรัพย์สินหลัก' : 
                                  accessories.some(a => a.id === item.id) ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
                               </span>
@@ -1537,19 +1669,82 @@ function App() {
                     })()}
                   </div>
                 </>
+              ) : (
+                <>
+                  {/* ประวัติการเบิก-คืน อุปกรณ์ */}
+                  <div className="space-y-3">
+                    {(() => {
+                      // กรองประวัติเฉพาะของพนักงานคนนี้ และเรียงจากใหม่ไปเก่า
+                      const empHistory = transactions
+                        .filter(t => t.empId === selectedEmployee.id)
+                        .sort((a, b) => b.timestamp - a.timestamp);
+
+                      if (empHistory.length === 0) {
+                        return (
+                          <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                            <span className="text-4xl block mb-3 opacity-50">🕒</span>
+                            <p className="font-medium text-base">ยังไม่มีประวัติการทำรายการ</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                          <table className="min-w-full text-left border-collapse w-full whitespace-nowrap text-sm">
+                            <thead className="bg-slate-100">
+                              <tr className="text-slate-600">
+                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">วันที่ทำรายการ</th>
+                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">รายการ/รุ่นอุปกรณ์</th>
+                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">ประเภททำรายการ</th>
+                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">สภาพ</th>
+                                <th className="p-3 md:p-4 font-bold border-b border-slate-200">หมายเหตุ</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 bg-white">
+                              {empHistory.map(record => {
+                                const dateObj = new Date(record.timestamp);
+                                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+                                
+                                return (
+                                  <tr key={record.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="p-3 md:p-4 text-slate-500 font-medium">{formattedDate}</td>
+                                    <td className="p-3 md:p-4 text-slate-800 font-bold text-base">{record.assetName}</td>
+                                    <td className="p-3 md:p-4 text-slate-700 font-medium">{record.action}</td>
+                                    <td className="p-3 md:p-4">
+                                      {record.condition === 'ปกติ' ? (
+                                        <span className="text-emerald-600 font-bold flex items-center gap-1.5">
+                                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> ปกติ
+                                        </span>
+                                      ) : (
+                                        <span className="text-red-500 font-bold flex items-center gap-1.5">
+                                          <span className="w-2 h-2 rounded-full bg-red-500"></span> ชำรุด
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="p-3 md:p-4 text-slate-500 max-w-[200px] truncate" title={record.remarks}>{record.remarks}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </>
               )}
             </div>
             
-            <div className="p-5 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
+            <div className="p-5 md:p-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
                <button 
                  onClick={() => openEditEmpModal(selectedEmployee)} 
-                 className="px-5 py-2.5 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200"
+                 className="px-6 py-3 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200 text-sm md:text-base"
                >
                  แก้ไขข้อมูล
                </button>
                <button 
                  onClick={() => setSelectedEmployee(null)} 
-                 className="px-5 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md"
+                 className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md text-sm md:text-base"
                >
                  ปิดหน้าต่าง
                </button>
@@ -1568,14 +1763,14 @@ function App() {
 
         return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
             <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1 rounded-md text-sm">📋</span> รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
+                <span className="bg-white/20 p-1.5 rounded-lg text-sm">📋</span> รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
               </h3>
               <button 
                 onClick={() => { setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} 
-                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-lg"
+                className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1583,65 +1778,65 @@ function App() {
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto space-y-4 text-sm text-slate-800 flex-1">
+            <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
               <div className="bg-white rounded-xl">
                 {selectedAssetCategory === 'licenses' ? (
                   <>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
-                      <span className="text-slate-500 font-bold">ชื่อโปรแกรม:</span>
-                      <span className="col-span-2 font-black text-indigo-700 text-base">{currentAssetDetail.name}</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">ชื่อโปรแกรม:</span>
+                      <span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{currentAssetDetail.name}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">Product Key:</span>
-                      <span className="col-span-2 font-mono bg-slate-100 px-2 py-0.5 rounded w-fit text-slate-700">{currentAssetDetail.productKey || '-'}</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">Product Key:</span>
+                      <span className="col-span-2 font-mono bg-slate-100 px-3 py-1 rounded-lg w-fit text-slate-700 text-base">{currentAssetDetail.productKey || '-'}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">รหัสอ้างอิง Key:</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">รหัสอ้างอิง Key:</span>
                       <span className="col-span-2 font-medium">{currentAssetDetail.keyCode || '-'}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">Supplier ที่ซื้อ:</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">Supplier ที่ซื้อ:</span>
                       <span className="col-span-2 font-medium">{currentAssetDetail.supplier || '-'}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">วันที่ซื้อ:</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">วันที่ซื้อ:</span>
                       <span className="col-span-2 font-medium">{currentAssetDetail.purchaseDate || '-'}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">วันที่หมดอายุ:</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">วันที่หมดอายุ:</span>
                       <span className="col-span-2 font-medium">{currentAssetDetail.expirationDate || '-'}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">ราคา:</span>
-                      <span className="col-span-2 font-bold text-emerald-600">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">ราคา:</span>
+                      <span className="col-span-2 font-bold text-emerald-600 text-lg">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</span>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-2">
-                      <span className="text-slate-500 font-bold">ชื่ออุปกรณ์:</span>
-                      <span className="col-span-2 font-black text-indigo-700 text-base">{currentAssetDetail.name}</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2 items-center">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">ชื่ออุปกรณ์:</span>
+                      <span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{currentAssetDetail.name}</span>
                     </div>
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">ประเภท:</span>
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">ประเภท:</span>
                       <span className="col-span-2 font-medium">
-                        <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full font-bold border border-slate-200">
+                        <span className="bg-slate-100 text-slate-600 text-sm px-4 py-2 rounded-full font-bold border border-slate-200">
                           {currentAssetDetail.type}
                         </span>
                       </span>
                     </div>
                     {selectedAssetCategory === 'accessories' && (
-                      <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                        <span className="text-slate-500 font-bold">จำนวนคงเหลือ:</span>
+                      <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
+                        <span className="text-slate-500 font-bold text-sm md:text-base">จำนวนคงเหลือ:</span>
                         {/* คำนวณจำนวนคงเหลือในหน้ารายละเอียดด้วยเช่นกัน */}
-                        <span className="col-span-2 font-medium">
+                        <span className="col-span-2 font-medium text-lg">
                           {currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))} ชิ้น
                         </span>
                       </div>
                     )}
-                    <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                      <span className="text-slate-500 font-bold">ราคา:</span>
-                      <span className="col-span-2 font-bold text-emerald-600">
+                    <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
+                      <span className="text-slate-500 font-bold text-sm md:text-base">ราคา:</span>
+                      <span className="col-span-2 font-bold text-emerald-600 text-lg">
                         {currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}
                       </span>
                     </div>
@@ -1649,16 +1844,16 @@ function App() {
                 )}
                 
                 {selectedAssetCategory !== 'accessories' && (
-                  <div className="grid grid-cols-3 border-b border-slate-100 pb-3 mt-3">
-                    <span className="text-slate-500 font-bold">สถานะ:</span>
+                  <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">สถานะ:</span>
                     <span className="col-span-2">
                       {(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-                        <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> พร้อมใช้งาน
+                        <span className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-bold inline-flex items-center gap-1.5 border border-emerald-200">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> พร้อมใช้งาน
                         </span>
                       ) : (
-                        <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border border-amber-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {currentAssetDetail.status}
+                        <span className="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-sm font-bold inline-flex items-center gap-1.5 border border-amber-200">
+                          <span className="w-2 h-2 rounded-full bg-amber-500"></span> {currentAssetDetail.status}
                         </span>
                       )}
                     </span>
@@ -1666,29 +1861,38 @@ function App() {
                 )}
                 
                 {selectedAssetCategory === 'accessories' ? (
-                  <div className="grid grid-cols-3 mt-3">
-                    <span className="text-slate-500 font-bold">ผู้ครอบครอง:</span>
-                    <span className="col-span-2 font-medium space-y-2">
+                  <div className="grid grid-cols-3 pt-3 md:pt-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base pt-2">ผู้ครอบครอง:</span>
+                    <span className="col-span-2 font-medium space-y-3">
                       {currentAssetDetail.assignees && currentAssetDetail.assignees.length > 0 ? (
                         currentAssetDetail.assignees.map((assignee) => (
-                          <div key={assignee.checkoutId} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                            <span className="text-sm text-slate-700 font-medium">👤 {assignee.empName}</span>
+                          <div key={assignee.checkoutId} className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <span className="text-base text-slate-800 font-bold">👤 {assignee.empName}</span>
                             <button 
-                              onClick={() => handleAccessoryCheckin(currentAssetDetail.id, assignee.checkoutId)}
-                              className="text-xs bg-teal-100 text-teal-700 hover:bg-teal-600 hover:text-white px-2.5 py-1 rounded-md font-bold transition-colors"
+                              onClick={() => {
+                                setReturnModal({
+                                  isOpen: true,
+                                  assetId: currentAssetDetail.id,
+                                  checkoutId: assignee.checkoutId,
+                                  empId: assignee.empId,
+                                  empName: assignee.empName,
+                                  assetName: currentAssetDetail.name
+                                });
+                              }}
+                              className="text-sm bg-teal-50 text-teal-700 hover:bg-teal-500 hover:text-white border border-teal-200 hover:border-teal-500 px-4 py-2 rounded-lg font-bold transition-all shadow-sm"
                             >
                               รับคืน
                             </button>
                           </div>
                         ))
                       ) : (
-                        <span className="text-slate-400">- ไม่มีผู้ครอบครอง -</span>
+                        <span className="text-slate-400 block mt-2">- ไม่มีผู้ครอบครอง -</span>
                       )}
                     </span>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 mt-3">
-                    <span className="text-slate-500 font-bold">ผู้ครอบครอง:</span>
+                  <div className="grid grid-cols-3 pt-3 md:pt-4">
+                    <span className="text-slate-500 font-bold text-sm md:text-base">ผู้ครอบครอง:</span>
                     <span className="col-span-2 font-medium">
                       {currentAssetDetail.assignedName ? `👤 ${currentAssetDetail.assignedName}` : '-'}
                     </span>
@@ -1697,7 +1901,7 @@ function App() {
               </div>
             </div>
             
-            <div className="p-5 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
+            <div className="p-5 md:p-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
                {/* ปุ่มเบิกจ่าย-รับคืน เฉพาะของอุปกรณ์เสริม */}
                {selectedAssetCategory === 'accessories' ? (
                  // ตรวจสอบว่ายังมีจำนวนคงเหลือให้เบิกจ่ายหรือไม่
@@ -1706,9 +1910,9 @@ function App() {
                      onClick={() => {
                        setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory });
                      }} 
-                     className="px-5 py-2.5 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-1.5"
+                     className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base"
                    >
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                      เบิกจ่าย ({(currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0)))})
                    </button>
                  )
@@ -1720,9 +1924,9 @@ function App() {
                        setSelectedAssetDetail(null);
                        setSelectedAssetCategory('');
                      }} 
-                     className="px-5 py-2.5 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-1.5"
+                     className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base"
                    >
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                      เบิกจ่าย
                    </button>
                  ) : (
@@ -1732,9 +1936,9 @@ function App() {
                        setSelectedAssetDetail(null);
                        setSelectedAssetCategory('');
                      }} 
-                     className="px-5 py-2.5 bg-teal-100 text-teal-700 rounded-xl hover:bg-teal-200 font-bold transition-colors border border-teal-200 mr-auto flex items-center gap-1.5"
+                     className="px-6 py-3 bg-teal-100 text-teal-700 rounded-xl hover:bg-teal-200 font-bold transition-colors border border-teal-200 mr-auto flex items-center gap-2 text-sm md:text-base"
                    >
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                      รับคืน
                    </button>
                  )
@@ -1750,13 +1954,13 @@ function App() {
                    setSelectedAssetDetail(null);
                    setSelectedAssetCategory('');
                  }} 
-                 className="px-5 py-2.5 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200"
+                 className="px-6 py-3 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-bold transition-colors border border-amber-200 text-sm md:text-base"
                >
                  แก้ไขข้อมูล
                </button>
                <button 
                  onClick={() => { setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} 
-                 className="px-5 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md"
+                 className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-colors shadow-md text-sm md:text-base"
                >
                  ปิดหน้าต่าง
                </button>
@@ -1769,67 +1973,67 @@ function App() {
       {/* Modal แก้ไขข้อมูลพนักงาน */}
       {editEmpModal.isOpen && editEmpModal.data && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-amber-500 text-white p-5 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+            <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1 rounded-md text-sm">✏️</span> แก้ไขข้อมูลพนักงาน
+                <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูลพนักงาน
               </h3>
-              <button onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-lg transition-colors">
+              <button onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleUpdateEmployee} className="p-6 overflow-y-auto space-y-4">
+            <form onSubmit={handleUpdateEmployee} className="p-6 md:p-8 overflow-y-auto space-y-5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
-                <input type="text" name="empId" value={editEmpModal.data.empId} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
+                <input type="text" name="empId" value={editEmpModal.data.empId || ''} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
-                  <input type="text" name="fullName" value={editEmpModal.data.fullName} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
+                  <input type="text" name="fullName" value={editEmpModal.data.fullName || ''} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
-                  <input type="text" name="fullNameEng" value={editEmpModal.data.fullNameEng || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" placeholder="Firstname Lastname" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
+                  <input type="text" name="fullNameEng" value={editEmpModal.data.fullNameEng || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" placeholder="Firstname Lastname" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
-                  <input type="text" name="nickname" value={editEmpModal.data.nickname} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
+                  <input type="text" name="nickname" value={editEmpModal.data.nickname || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
-                  <input type="tel" name="phone" value={editEmpModal.data.phone} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Email</label>
-                <input type="email" name="email" value={editEmpModal.data.email} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">บริษัท</label>
-                <input type="text" name="company" value={editEmpModal.data.company} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">แผนก</label>
-                  <input type="text" name="department" value={editEmpModal.data.department} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-                  <input type="text" name="position" value={editEmpModal.data.position} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
+                  <input type="tel" name="phone" value={editEmpModal.data.phone || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-                <input type="text" name="manager" value={editEmpModal.data.manager} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Email</label>
+                <input type="email" name="email" value={editEmpModal.data.email || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
-              <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
+                <input type="text" name="company" value={editEmpModal.data.company || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
+                  <input type="text" name="department" value={editEmpModal.data.department || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
+                  <input type="text" name="position" value={editEmpModal.data.position || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
+                <input type="text" name="manager" value={editEmpModal.data.manager || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+              </div>
+              <div className="flex gap-3 pt-5 border-t border-slate-100">
+                <button type="button" onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all">
                   ยกเลิก
                 </button>
-                <button type="submit" className="flex-1 py-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-colors shadow-md shadow-amber-500/30">
+                <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
                   บันทึกการแก้ไข
                 </button>
               </div>
@@ -1841,23 +2045,23 @@ function App() {
       {/* Modal แก้ไขข้อมูลทรัพย์สิน/อุปกรณ์เสริม */}
       {editAssetModal.isOpen && editAssetModal.data && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-amber-500 text-white p-5 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+            <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1 rounded-md text-sm">✏️</span> แก้ไข{editAssetModal.collectionName === 'assets' ? 'ทรัพย์สินหลัก' : 'อุปกรณ์เสริม'}
+                <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไข{editAssetModal.collectionName === 'assets' ? 'ทรัพย์สินหลัก' : 'อุปกรณ์เสริม'}
               </h3>
-              <button onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-lg transition-colors">
+              <button onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleUpdateAsset} className="p-6 overflow-y-auto space-y-4">
+            <form onSubmit={handleUpdateAsset} className="p-6 md:p-8 overflow-y-auto space-y-5">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
-                <input type="text" name="name" value={editAssetModal.data.name} onChange={handleEditAssetChange} required className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <input type="text" name="name" value={editAssetModal.data.name || ''} onChange={handleEditAssetChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">ประเภท</label>
-                <select name="type" value={editAssetModal.data.type} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all">
+                <select name="type" value={editAssetModal.data.type || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer">
                   {editAssetModal.collectionName === 'assets' ? (
                     <>
                       <option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option>
@@ -1885,24 +2089,35 @@ function App() {
                   name="cost"
                   value={editAssetModal.data.cost || ''} 
                   onChange={handleEditAssetChange} 
-                  className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" 
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" 
                   placeholder="ระบุราคา..."
                 />
               </div>
-              {editAssetModal.collectionName === 'accessories' && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน (ชิ้น)</label>
-                  <input 
-                    type="number" 
-                    name="quantity"
-                    min="1"
-                    value={editAssetModal.data.quantity || 1} 
-                    onChange={handleEditAssetChange} 
-                    className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" 
-                    placeholder="ระบุจำนวน..."
-                  />
-                </div>
-              )}
+              {editAssetModal.collectionName === 'accessories' && (() => {
+                const checkedOutCount = editAssetModal.data.assignees?.length || 0;
+                const currentRemaining = Math.max(0, Number(editAssetModal.data.quantity || 1) - checkedOutCount);
+                // ดึงค่า remainingQuantity ถ้ามีการพิมพ์แก้ หรือใช้ currentRemaining เป็นค่าตั้งต้น
+                const displayValue = editAssetModal.data.remainingQuantity !== undefined ? editAssetModal.data.remainingQuantity : currentRemaining;
+                const totalQuantity = Number(displayValue) + checkedOutCount;
+
+                return (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวนคงเหลือ (ชิ้น)</label>
+                    <input 
+                      type="number" 
+                      name="remainingQuantity"
+                      min="0"
+                      value={displayValue || ''} 
+                      onChange={handleEditAssetChange} 
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" 
+                      placeholder="ระบุจำนวนคงเหลือ..."
+                    />
+                    <p className="text-xs text-slate-500 mt-2 font-medium bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      * เบิกจ่ายไปแล้ว <span className="text-indigo-600 font-bold">{checkedOutCount}</span> ชิ้น (มีอุปกรณ์รวมทั้งหมด <span className="font-bold">{totalQuantity}</span> ชิ้น)
+                    </p>
+                  </div>
+                );
+              })()}
               {/* ซ่อนช่องสถานะหากเป็นเมนูอุปกรณ์เสริม */}
               {editAssetModal.collectionName !== 'accessories' && (
                 <div>
@@ -1911,7 +2126,7 @@ function App() {
                     name="status" 
                     value={editAssetModal.data.status || 'พร้อมใช้งาน'} 
                     onChange={handleEditAssetChange} 
-                    className="w-full border border-slate-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all"
+                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
                   >
                     <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                     <option value="ถูกใช้งาน">ถูกใช้งาน</option>
@@ -1921,11 +2136,11 @@ function App() {
                   </select>
                 </div>
               )}
-              <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors">
+              <div className="flex gap-3 pt-5 border-t border-slate-100">
+                <button type="button" onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all">
                   ยกเลิก
                 </button>
-                <button type="submit" className="flex-1 py-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-colors shadow-md shadow-amber-500/30">
+                <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
                   บันทึกการแก้ไข
                 </button>
               </div>
@@ -1937,53 +2152,53 @@ function App() {
       {/* Modal แก้ไขข้อมูลโปรแกรม/License */}
       {editLicenseModal.isOpen && editLicenseModal.data && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-            <div className="bg-amber-500 text-white p-5 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
+            <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-black/10 p-1 rounded-md text-sm">✏️</span> แก้ไขข้อมูลโปรแกรม/License
+                <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูลโปรแกรม/License
               </h3>
-              <button onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-lg transition-colors">
+              <button onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleUpdateLicense} className="p-6 overflow-y-auto space-y-4">
+            <form onSubmit={handleUpdateLicense} className="p-6 md:p-8 overflow-y-auto space-y-5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
-                <input type="text" name="name" value={editLicenseModal.data.name} onChange={handleEditLicenseChange} required className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
+                <input type="text" name="name" value={editLicenseModal.data.name || ''} onChange={handleEditLicenseChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Product Key License</label>
-                <input type="text" name="productKey" value={editLicenseModal.data.productKey} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all font-mono" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Product Key License</label>
+                <input type="text" name="productKey" value={editLicenseModal.data.productKey || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all font-mono shadow-sm" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">รหัสของ Product Key</label>
-                <input type="text" name="keyCode" value={editLicenseModal.data.keyCode} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสของ Product Key</label>
+                <input type="text" name="keyCode" value={editLicenseModal.data.keyCode || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
-                <input type="text" name="supplier" value={editLicenseModal.data.supplier} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
+                <input type="text" name="supplier" value={editLicenseModal.data.supplier || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">วันที่ซื้อ (Purchase Date)</label>
-                  <input type="date" name="purchaseDate" value={editLicenseModal.data.purchaseDate} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
+                  <input type="date" name="purchaseDate" value={editLicenseModal.data.purchaseDate || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">วันที่หมดอายุ (Exp. Date)</label>
-                  <input type="date" name="expirationDate" value={editLicenseModal.data.expirationDate} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมดอายุ</label>
+                  <input type="date" name="expirationDate" value={editLicenseModal.data.expirationDate || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">ราคา (Purchase Cost)</label>
-                <input type="number" name="cost" value={editLicenseModal.data.cost} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
+                <input type="number" name="cost" value={editLicenseModal.data.cost || ''} onChange={handleEditLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">สถานะ</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
                 <select 
                   name="status" 
                   value={editLicenseModal.data.status || 'พร้อมใช้งาน'} 
                   onChange={handleEditLicenseChange} 
-                  className="w-full border border-slate-300 p-2.5 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all"
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
                 >
                   <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                   <option value="ถูกใช้งาน">ถูกใช้งาน</option>
@@ -1992,11 +2207,11 @@ function App() {
                   <option value="รอดำเนินการ">รอดำเนินการ</option>
                 </select>
               </div>
-              <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-colors">
+              <div className="flex gap-3 pt-5 border-t border-slate-100">
+                <button type="button" onClick={() => setEditLicenseModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all">
                   ยกเลิก
                 </button>
-                <button type="submit" className="flex-1 py-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-colors shadow-md shadow-amber-500/30">
+                <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
                   บันทึกการแก้ไข
                 </button>
               </div>
@@ -2008,16 +2223,16 @@ function App() {
       {/* Modal หน้าต่างนำเข้าข้อมูล (Import CSV) */}
       {isImportModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col border border-slate-100">
-            <div className="bg-emerald-600 text-white p-5 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col border border-slate-100">
+            <div className="bg-emerald-600 text-white px-6 py-5 flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="bg-white/20 p-1 rounded-md text-sm">⬇️</span> นำเข้าข้อมูลพนักงาน
+                <span className="bg-white/20 p-1.5 rounded-lg text-sm">⬇️</span> นำเข้าข้อมูลพนักงาน
               </h3>
-              <button onClick={() => setIsImportModalOpen(false)} className="text-emerald-100 hover:text-white focus:outline-none bg-emerald-700/50 hover:bg-emerald-700 p-1.5 rounded-lg transition-colors">
+              <button onClick={() => setIsImportModalOpen(false)} className="text-emerald-100 hover:text-white focus:outline-none bg-emerald-700/50 hover:bg-emerald-700 p-1.5 rounded-xl transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-6 md:p-8 space-y-6">
               
               {/* ขั้นตอนที่ 1: โหลด Template */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -2029,7 +2244,7 @@ function App() {
                 <div className="pl-10">
                   <button 
                     onClick={handleDownloadTemplate}
-                    className="w-full bg-white border-2 border-blue-500 text-blue-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 hover:border-blue-600 transition-all shadow-sm flex items-center justify-center gap-2"
+                    className="w-full bg-white border-2 border-blue-500 text-blue-600 px-4 py-3 rounded-xl text-sm font-bold hover:bg-blue-50 hover:border-blue-600 transition-all shadow-sm flex items-center justify-center gap-2"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     โหลด Template.csv
@@ -2054,7 +2269,7 @@ function App() {
                   />
                   <label 
                     htmlFor="excel-upload-modal"
-                    className="w-full bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-2 text-center"
+                    className="w-full bg-emerald-600 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30 cursor-pointer flex items-center justify-center gap-2 text-center"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                     เลือกไฟล์เพื่อนำเข้า
@@ -2067,27 +2282,194 @@ function App() {
         </div>
       )}
 
+      {/* Modal รับคืนระบุสภาพ (Return Modal) */}
+      {returnModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-slate-100">
+            <div className="bg-slate-800 text-white px-6 py-5 flex justify-between items-center">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <span className="bg-white/20 p-1.5 rounded-lg text-sm">📥</span> ยืนยันการรับคืนอุปกรณ์
+              </h3>
+              <button onClick={() => {
+                    setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
+                    setReturnCondition('good');
+                    setReturnRemarks('');
+                  }} className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleConfirmReturn} className="p-6 md:p-8 space-y-6">
+              
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <p className="text-xs text-slate-500 font-medium mb-1">อุปกรณ์ที่รับคืน</p>
+                <p className="text-base font-bold text-slate-800">{returnModal.assetName}</p>
+                <div className="mt-3 pt-3 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 font-medium mb-1">รับคืนจาก</p>
+                  <p className="text-sm font-bold text-indigo-700 flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    {returnModal.empName}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-3">ระบุสภาพอุปกรณ์ที่รับคืน</label>
+                <div className="space-y-3">
+                  <label className={`flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all shadow-sm ${returnCondition === 'good' ? 'bg-emerald-50 border-emerald-500' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
+                    <input 
+                      type="radio" 
+                      name="condition" 
+                      value="good" 
+                      checked={returnCondition === 'good'} 
+                      onChange={() => setReturnCondition('good')}
+                      className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 border-gray-300"
+                    />
+                    <span className="ml-4 flex flex-col">
+                      <span className="text-base font-bold text-slate-800 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> สภาพปกติ (Good)</span>
+                      <span className="text-sm text-slate-500 mt-1">นำกลับเข้าคลังเพื่อพร้อมใช้งานต่อ</span>
+                    </span>
+                  </label>
+                  
+                  <label className={`flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all shadow-sm ${returnCondition === 'broken' ? 'bg-red-50 border-red-500' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
+                    <input 
+                      type="radio" 
+                      name="condition" 
+                      value="broken" 
+                      checked={returnCondition === 'broken'} 
+                      onChange={() => setReturnCondition('broken')}
+                      className="w-5 h-5 text-red-600 focus:ring-red-500 border-gray-300"
+                    />
+                    <span className="ml-4 flex flex-col">
+                      <span className="text-base font-bold text-slate-800 flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> ชำรุด/ตัดจำหน่าย (Broken)</span>
+                      <span className="text-sm text-slate-500 mt-1">บันทึกเป็นของเสีย ไม่นำกลับเข้าคลัง</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* ช่องกรอกหมายเหตุ (จำเป็นเมื่อเลือกชำรุด) */}
+              <div className={`transition-all duration-300 overflow-hidden ${returnCondition === 'broken' ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <label className="block text-sm font-bold text-slate-700 mb-2">หมายเหตุ <span className="text-red-500">*</span></label>
+                <textarea 
+                  value={returnRemarks}
+                  onChange={(e) => setReturnRemarks(e.target.value)}
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm transition-all resize-none shadow-sm"
+                  placeholder="เช่น สายขาด, ลูกกลิ้งเลื่อนไม่ได้, เปิดไม่ติด..."
+                  rows="2"
+                  required={returnCondition === 'broken'}
+                ></textarea>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
+                    setReturnCondition('good');
+                    setReturnRemarks('');
+                  }}
+                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
+                >
+                  ยกเลิก
+                </button>
+                <button 
+                  type="submit"
+                  className={`flex-1 py-3 text-white rounded-xl font-bold transition-all shadow-lg ${returnCondition === 'good' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30' : 'bg-red-600 hover:bg-red-700 shadow-red-600/30'}`}
+                >
+                  ยืนยันการรับคืน
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal บันทึกการซ่อมแซม (Repair Modal) */}
+      {repairModal.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100">
+            <div className="bg-orange-500 text-white px-6 py-5 flex justify-between items-center">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <span className="bg-black/10 p-1.5 rounded-lg text-sm">🛠️</span> บันทึกการซ่อมแซมอุปกรณ์
+              </h3>
+              <button onClick={() => setRepairModal({ isOpen: false, assetId: null, assetName: null, maxRepair: 0 })} className="text-orange-100 hover:text-white focus:outline-none bg-orange-600/50 hover:bg-orange-600 p-1.5 rounded-xl transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleConfirmRepair} className="p-6 md:p-8 space-y-6">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <p className="text-xs text-slate-500 font-medium mb-1">อุปกรณ์ที่กำลังซ่อมแซม</p>
+                <p className="text-base font-bold text-slate-800">{repairModal.assetName}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">จำนวนที่ซ่อมเสร็จ (รายการ) <span className="text-red-500">*</span></label>
+                <input
+                  type="number"
+                  min="1"
+                  max={repairModal.maxRepair}
+                  value={repairQuantity}
+                  onChange={(e) => setRepairQuantity(e.target.value)}
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-base transition-all shadow-sm"
+                  required
+                />
+                <p className="text-sm text-slate-500 mt-2 font-medium bg-orange-50 p-2 rounded-lg border border-orange-100">
+                  * สามารถซ่อมได้สูงสุด <span className="text-orange-600 font-bold">{repairModal.maxRepair}</span> รายการ
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">หมายเหตุ</label>
+                <textarea
+                  value={repairRemarks}
+                  onChange={(e) => setRepairRemarks(e.target.value)}
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm transition-all resize-none shadow-sm"
+                  placeholder="เช่น เปลี่ยนสวิตช์เมาส์ใหม่..."
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setRepairModal({ isOpen: false, assetId: null, assetName: null, maxRepair: 0 })}
+                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 font-bold transition-all shadow-lg shadow-orange-500/30"
+                >
+                  ยืนยันเข้าสต๊อก
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Modal แจ้งเตือน Custom Alert แทนการใช้ alert() ของเบราว์เซอร์ */}
       {customAlert.isOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100 text-center p-6">
-            <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${customAlert.type === 'error' ? 'bg-red-100 text-red-500' : 'bg-emerald-100 text-emerald-500'} mb-4`}>
+          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100 text-center p-8">
+            <div className={`mx-auto flex items-center justify-center h-20 w-20 rounded-full ${customAlert.type === 'error' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'} mb-6`}>
               {customAlert.type === 'error' ? (
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               ) : (
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               )}
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">{customAlert.title}</h3>
-            <p className="text-sm text-slate-500 mb-6 whitespace-pre-line leading-relaxed">
+            <h3 className="text-2xl font-bold text-slate-800 mb-3">{customAlert.title}</h3>
+            <p className="text-base text-slate-500 mb-8 whitespace-pre-line leading-relaxed">
               {customAlert.message}
             </p>
             <button 
               onClick={() => setCustomAlert({ ...customAlert, isOpen: false })}
-              className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-md ${
+              className={`w-full py-3.5 rounded-xl font-bold text-white transition-all shadow-lg ${
                 customAlert.type === 'error' 
-                  ? 'bg-red-600 hover:bg-red-700 shadow-red-600/20' 
-                  : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                  ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30' 
+                  : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30'
               }`}
             >
               ตกลง

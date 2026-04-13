@@ -74,19 +74,21 @@ export default function ReturnModal({
                 </span>
               </label>
             </div>
-          </div>
 
-          {/* ช่องกรอกหมายเหตุ (จำเป็นเมื่อเลือกชำรุด) */}
-          <div className={`transition-all duration-300 overflow-hidden ${returnCondition === 'broken' ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <label className="block text-sm font-bold text-slate-700 mb-2">หมายเหตุ <span className="text-red-500">*</span></label>
-            <textarea 
-              value={returnRemarks}
-              onChange={(e) => setReturnRemarks(e.target.value)}
-              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm transition-all resize-none shadow-sm"
-              placeholder="เช่น สายขาด, ลูกกลิ้งเลื่อนไม่ได้, เปิดไม่ติด..."
-              rows="2"
-              required={returnCondition === 'broken'}
-            ></textarea>
+            {/* ย้ายช่องกรอกหมายเหตุมาไว้ในกลุ่มเดียวกัน เพื่อให้แสดงผลได้สวยงาม ไม่โดนตัดขอบ */}
+            <div className={`transition-all duration-300 overflow-hidden -mx-2 px-2 ${returnCondition === 'broken' ? 'max-h-[200px] opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}>
+              <div className="pt-2 pb-3">
+                <label className="block text-sm font-bold text-slate-700 mb-2 pl-1">หมายเหตุ <span className="text-red-500">*</span></label>
+                <textarea 
+                  value={returnRemarks}
+                  onChange={(e) => setReturnRemarks(e.target.value)}
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm transition-all resize-none shadow-sm block"
+                  placeholder="เช่น สายขาด, ลูกกลิ้งเลื่อนไม่ได้, เปิดไม่ติด..."
+                  rows="2"
+                  required={returnCondition === 'broken'}
+                ></textarea>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100">
@@ -97,7 +99,7 @@ export default function ReturnModal({
                 setReturnCondition('good');
                 setReturnRemarks('');
               }}
-              className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all"
+              className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all shadow-sm"
             >
               ยกเลิก
             </button>

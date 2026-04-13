@@ -17,7 +17,7 @@ export default function AssetDetailsModal({
   // ถ้าไม่มีการเลือกดูรายละเอียด (เป็น null) จะไม่แสดง Modal
   if (!selectedAssetDetail) return null;
 
-  // หาข้อมูลล่าสุดจาก state เพื่อให้จำนวนและสถานะอัปเดตแบบเรียลไทม์ทันทีที่กดเบิกจ่าย/รับคืน
+  // หาข้อมูลล่าสุดจาก state เพื่อให้จำนวนและสถานะอัปเดตแบบเรียลไทม์
   const currentAssetDetail = 
     selectedAssetCategory === 'accessories' ? (accessories.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
     selectedAssetCategory === 'assets' ? (assets.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
@@ -42,6 +42,18 @@ export default function AssetDetailsModal({
         
         <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
           <div className="bg-white rounded-xl">
+            
+            {/* ✅ แสดงรูปภาพเด่นชัดที่ด้านบน (ถ้ามี) */}
+            {currentAssetDetail.image && selectedAssetCategory !== 'licenses' && (
+              <div className="mb-6 flex justify-center border-b border-slate-100 pb-6">
+                <img 
+                  src={currentAssetDetail.image} 
+                  alt="Asset Preview" 
+                  className="max-h-48 md:max-h-56 rounded-xl object-contain shadow-sm border border-slate-200" 
+                />
+              </div>
+            )}
+
             {selectedAssetCategory === 'licenses' ? (
               <>
                 <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2">
@@ -163,9 +175,7 @@ export default function AssetDetailsModal({
         </div>
         
         <div className="p-5 md:p-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-200">
-           {/* ปุ่มเบิกจ่าย-รับคืน เฉพาะของอุปกรณ์เสริม */}
            {selectedAssetCategory === 'accessories' ? (
-             // ตรวจสอบว่ายังมีจำนวนคงเหลือให้เบิกจ่ายหรือไม่
              ((currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))) > 0) && (
                <button 
                  onClick={() => {

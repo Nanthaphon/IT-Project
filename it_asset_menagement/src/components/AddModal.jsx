@@ -7,11 +7,24 @@ export default function AddModal({
   // Props สำหรับ License
   handleAddLicense, licenseForm, handleLicenseChange,
   // Props สำหรับ ทรัพย์สินและอุปกรณ์
-  handleAdd, name, setName, type, setType, cost, setCost, quantity, setQuantity
+  handleAdd, name, setName, type, setType, cost, setCost, quantity, setQuantity,
+  assetImage, setAssetImage // ✅ รับค่าเกี่ยวกับรูปภาพเข้ามา
 }) {
   
   // ถ้า State เป็น false ไม่ต้องแสดง Modal
   if (!isAddModalOpen) return null;
+
+  // ✅ ฟังก์ชันอัปโหลดและแปลงรูปเป็น Base64
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAssetImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
@@ -122,6 +135,27 @@ export default function AddModal({
           ) : (
             // ฟอร์มทรัพย์สิน / อุปกรณ์เสริม
             <form onSubmit={handleAdd} className="space-y-5">
+              
+              {/* ✅ เพิ่มกล่องอัปโหลดรูปภาพ */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">รูปภาพอ้างอิง</label>
+                <div className="flex items-center gap-4">
+                  {assetImage ? (
+                    <img src={assetImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 border-dashed">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
                 <input 
@@ -173,7 +207,6 @@ export default function AddModal({
                 />
               </div>
 
-              {/* แสดงช่องกรอก "จำนวน" เฉพาะในเมนูอุปกรณ์เสริมเท่านั้น */}
               {activeMenu === 'accessories' && (
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน (ชิ้น) <span className="text-red-500">*</span></label>

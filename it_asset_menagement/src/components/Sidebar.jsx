@@ -68,6 +68,17 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
           <span className="mr-2 md:mr-3 text-lg md:text-xl">👥</span>
           <span className="font-semibold text-sm md:text-base">ข้อมูลพนักงาน</span>
         </button>
+
+        <button 
+          onClick={() => setActiveMenu('repairs')}
+          className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
+            activeMenu === 'repairs' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+          }`}
+        >
+          <span className="mr-2 md:mr-3 text-lg md:text-xl">🔧</span>
+          <span className="font-semibold text-sm md:text-base">แจ้งซ่อม</span>
+        </button>
+
       </nav>
       
       <div className="hidden md:block p-4 border-t border-slate-800 text-center">

@@ -147,7 +147,6 @@ function App() {
         createdAt: serverTimestamp()
       });
       setName(''); setCost(''); setQuantity(1); setAssetImage(null); setIsAddModalOpen(false);
-      // ✅ เพิ่มการแจ้งเตือนสำเร็จ
       setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
@@ -398,7 +397,6 @@ function App() {
       await updateDoc(doc(db, 'employees', editEmpModal.data.id), updatedData);
       if (selectedEmployee && selectedEmployee.id === editEmpModal.data.id) setSelectedEmployee({ ...selectedEmployee, ...updatedData, id: editEmpModal.data.id });
       setEditEmpModal({ isOpen: false, data: null });
-      // ✅ เพิ่มการแจ้งเตือนสำเร็จ
       setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขข้อมูลพนักงานเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
@@ -418,7 +416,6 @@ function App() {
       }
       await updateDoc(doc(db, editAssetModal.collectionName, editAssetModal.data.id), updatedData);
       setEditAssetModal({ isOpen: false, data: null, collectionName: '' });
-      // ✅ เพิ่มการแจ้งเตือนสำเร็จ
       setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขข้อมูลอุปกรณ์เรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
@@ -434,7 +431,6 @@ function App() {
       const updatedData = { ...editLicenseModal.data }; delete updatedData.id; 
       await updateDoc(doc(db, 'licenses', editLicenseModal.data.id), updatedData);
       setEditLicenseModal({ isOpen: false, data: null });
-      // ✅ เพิ่มการแจ้งเตือนสำเร็จ
       setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขข้อมูลเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
@@ -588,7 +584,8 @@ function App() {
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวมระบบ (Dashboard)' :
                     activeMenu === 'assets' ? 'ทรัพย์สิน IT หลัก' : 
                     activeMenu === 'licenses' ? 'โปรแกรม/License' : 
-                    activeMenu === 'accessories' ? 'อุปกรณ์เสริม (Accessories)' : 'ข้อมูลพนักงาน';
+                    activeMenu === 'accessories' ? 'อุปกรณ์เสริม (Accessories)' : 
+                    activeMenu === 'repairs' ? 'แจ้งซ่อม' : 'ข้อมูลพนักงาน';
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-800" style={{ fontFamily: "'Prompt', sans-serif" }}>
@@ -614,6 +611,10 @@ function App() {
         <div className="flex-1 overflow-auto p-4 md:p-8">
           {activeMenu === 'dashboard' ? (
             <DashboardStats assets={assets} licenses={licenses} accessories={accessories} employees={employees} />
+          ) : activeMenu === 'repairs' ? (
+            <div className="h-full flex flex-col bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+              
+            </div>
           ) : (
             <div className="h-full flex flex-col">
               <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col flex-1">
@@ -784,9 +785,13 @@ function App() {
                                 </td>
                                 <td className="px-5 py-4 text-center space-x-2">
                                   {!item.status || item.status === 'พร้อมใช้งาน' ? (
-                                    <button onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })} className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm" title="เบิกจ่าย">📤</button>
+                                    <button onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })} className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm" title="เบิกจ่าย">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                    </button>
                                   ) : (
-                                    <button onClick={() => handleCheckin(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm" title="รับคืน">📥</button>
+                                    <button onClick={() => handleCheckin(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm" title="รับคืน">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                    </button>
                                   )}
                                   <button onClick={() => openEditLicenseModal(item)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
                                   <button onClick={() => handleDelete(item.id, 'licenses')} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
@@ -836,9 +841,13 @@ function App() {
                                 <td className="px-5 py-4 text-center space-x-2">
                                   {activeMenu !== 'accessories' && (
                                     item.status === 'พร้อมใช้งาน' ? (
-                                      <button onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })} className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm" title="เบิกจ่าย">📤</button>
+                                      <button onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })} className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm" title="เบิกจ่าย">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                      </button>
                                     ) : (
-                                      <button onClick={() => handleCheckin(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm" title="รับคืน">📥</button>
+                                      <button onClick={() => handleCheckin(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm" title="รับคืน">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                      </button>
                                     )
                                   )}
                                   {activeMenu === 'accessories' && Number(item.brokenQuantity || 0) > 0 && (

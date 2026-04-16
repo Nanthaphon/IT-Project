@@ -170,9 +170,18 @@ export default function EmployeeDetailsModal({
                       return (
                         <div key={item.uniqueKey || item.id} className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${isAsset ? 'bg-blue-50 text-blue-500' : isAccessory ? 'bg-orange-50 text-orange-500' : 'bg-purple-50 text-purple-500'}`}>
-                              {isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑'}
-                            </div>
+                            {/* ✅ ส่วนการแสดงรูปภาพอุปกรณ์ในหน้ารายละเอียดพนักงาน */}
+                            {item.image ? (
+                              <img 
+                                src={item.image} 
+                                alt={item.name} 
+                                className="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0" 
+                              />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${isAsset ? 'bg-blue-50 text-blue-500' : isAccessory ? 'bg-orange-50 text-orange-500' : 'bg-purple-50 text-purple-500'}`}>
+                                {isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑'}
+                              </div>
+                            )}
                             <div>
                               <p className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">{item.name}</p>
                               <div className="flex items-center gap-2 mt-1">

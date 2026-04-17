@@ -721,6 +721,7 @@ function App() {
       <ConfirmDeleteModal confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </div>
+    
   )
 }
 

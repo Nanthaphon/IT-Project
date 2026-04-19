@@ -87,6 +87,17 @@ export default function EditAssetModal({
             <input type="number" name="cost" value={editAssetModal.data.cost || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
           </div>
           
+          <div className="grid grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
+              <input type="date" name="purchaseDate" value={editAssetModal.data.purchaseDate || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมด Warranty</label>
+              <input type="date" name="warrantyDate" value={editAssetModal.data.warrantyDate || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
+            </div>
+          </div>
+          
           {editAssetModal.collectionName === 'accessories' && (
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวนคงเหลือปัจจุบัน (แก้ไขได้)</label>

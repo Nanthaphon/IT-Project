@@ -165,6 +165,8 @@ export default function AssetDetailsModal({
                   </div>
                 )}
                 <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center"><span className="text-slate-500 font-bold text-sm md:text-base">{selectedAssetCategory === 'accessories' ? 'ราคาเฉลี่ยต่อหน่วย:' : 'ราคา:'}</span><span className="col-span-2 font-bold text-emerald-600 text-lg">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</span></div>
+                <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center"><span className="text-slate-500 font-bold text-sm md:text-base">วันที่ซื้อ:</span><span className="col-span-2 font-medium">{currentAssetDetail.purchaseDate || '-'}</span></div>
+                <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center"><span className="text-slate-500 font-bold text-sm md:text-base">วันที่หมด Warranty:</span><span className="col-span-2 font-medium">{currentAssetDetail.warrantyDate || '-'}</span></div>
               </>
             )}
 
@@ -181,7 +183,35 @@ export default function AssetDetailsModal({
               </div>
             )}
             
-            {selectedAssetCategory !== 'accessories' && (
+            {selectedAssetCategory === 'accessories' ? (
+              <div className="grid grid-cols-3 pt-3 md:pt-4">
+                <span className="text-slate-500 font-bold text-sm md:text-base pt-2">ผู้ครอบครอง:</span>
+                <span className="col-span-2 font-medium space-y-3">
+                  {currentAssetDetail.assignees && currentAssetDetail.assignees.length > 0 ? (
+                    currentAssetDetail.assignees.map((assignee) => (
+                      <div key={assignee.checkoutId} className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <span className="text-base text-slate-800 font-bold flex flex-col sm:flex-row sm:items-center gap-2">
+                          <span>👤 {assignee.empName}</span>
+                        </span>
+                        <button 
+                          onClick={() => {
+                            setReturnModal({
+                              isOpen: true, assetId: currentAssetDetail.id, checkoutId: assignee.checkoutId,
+                              empId: assignee.empId, empName: assignee.empName, assetName: currentAssetDetail.name
+                            });
+                          }}
+                          className="text-sm bg-teal-50 text-teal-700 hover:bg-teal-500 hover:text-white border border-teal-200 hover:border-teal-500 px-4 py-2 rounded-lg font-bold transition-all shadow-sm shrink-0"
+                        >
+                          รับคืน
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-slate-400 block mt-2">- ไม่มีผู้ครอบครอง -</span>
+                  )}
+                </span>
+              </div>
+            ) : (
               <div className="grid grid-cols-3 pt-3 md:pt-4"><span className="text-slate-500 font-bold text-sm md:text-base">ผู้ครอบครอง:</span><span className="col-span-2 font-medium">{currentAssetDetail.assignedName ? `👤 ${currentAssetDetail.assignedName}` : '-'}</span></div>
             )}
 

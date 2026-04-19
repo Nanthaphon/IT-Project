@@ -4,7 +4,7 @@ export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
   handleAddEmployee, empForm, handleEmpChange,
   handleAddLicense, licenseForm, handleLicenseChange,
-  handleAdd, name, setName, type, setType, cost, setCost, quantity, setQuantity,
+  handleAdd, name, setName, type, setType, cost, setCost, purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate, quantity, setQuantity,
   assetImage, setAssetImage, assetDepartment, setAssetDepartment
 }) {
   if (!isAddModalOpen) return null;
@@ -26,7 +26,7 @@ export default function AddModal({
             <span className="bg-white/20 p-1.5 rounded-lg">➕</span> เพิ่มรายการใหม่
           </h3>
           <button onClick={() => setIsAddModalOpen(false)} className="text-indigo-200 hover:text-white transition-colors focus:outline-none bg-indigo-700/50 hover:bg-indigo-700 p-1.5 rounded-xl">
-            <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <div className="p-6 md:p-8 overflow-y-auto flex-1">
@@ -131,7 +131,7 @@ export default function AddModal({
                     <img src={assetImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
                   ) : (
                     <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 border-dashed">
-                      <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     </div>
                   )}
                   <input 
@@ -181,6 +181,17 @@ export default function AddModal({
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
                 <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm" placeholder="ระบุราคา..." />
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
+                  <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm text-slate-600 shadow-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมด Warranty</label>
+                  <input type="date" value={warrantyDate} onChange={(e) => setWarrantyDate(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm text-slate-600 shadow-sm" />
+                </div>
               </div>
 
               {activeMenu === 'accessories' && (

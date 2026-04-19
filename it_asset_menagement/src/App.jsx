@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { db } from './firebase' 
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore'
 
-// นำเข้า Components
+// นำเข้า Components ทั้งหมด
 import Sidebar from './components/Sidebar'
 import DashboardStats from './components/DashboardStats'
 import CustomAlert from './components/CustomAlert'
@@ -45,9 +45,11 @@ function App() {
   const [name, setName] = useState('');
   const [type, setType] = useState('คอมพิวเตอร์');
   const [cost, setCost] = useState(''); 
+  const [purchaseDate, setPurchaseDate] = useState('');
+  const [warrantyDate, setWarrantyDate] = useState('');
   const [quantity, setQuantity] = useState(1); 
   const [assetImage, setAssetImage] = useState(null); 
-  const [assetDepartment, setAssetDepartment] = useState('DX'); // แผนกสำหรับทรัพย์สินหลัก
+  const [assetDepartment, setAssetDepartment] = useState('DX');
 
   const [empForm, setEmpForm] = useState({
     fullName: '', fullNameEng: '', empId: '', department: '', email: '',
@@ -72,6 +74,7 @@ function App() {
   const [editLicenseModal, setEditLicenseModal] = useState({ isOpen: false, data: null });
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
+  const [checkoutSearchTerm, setCheckoutSearchTerm] = useState('');
   const [checkoutRemarks, setCheckoutRemarks] = useState('');
   const [customAlert, setCustomAlert] = useState({ isOpen: false, title: '', message: '', type: 'error' });
   const [returnModal, setReturnModal] = useState({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
@@ -88,7 +91,6 @@ function App() {
   const [assetFilterDepartment, setAssetFilterDepartment] = useState('ทั้งหมด');
   const [repairFilterStatus, setRepairFilterStatus] = useState('ทั้งหมด'); 
   const [searchTerm, setSearchTerm] = useState('');
-  const [checkoutSearchTerm, setCheckoutSearchTerm] = useState('');
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
@@ -113,7 +115,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    setName(''); setCost(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX');
+    setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX');
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด');
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); 
@@ -185,12 +187,12 @@ function App() {
       const qtyToSave = activeMenu === 'accessories' ? parseInt(quantity) || 1 : 1;
 
       await addDoc(collection(db, collectionName), {
-        name, type, cost, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', 
+        name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', 
         assignedTo: null, assignedName: null, image: assetImage || null,
         department: activeMenu === 'assets' ? assetDepartment : null,
         createdAt: serverTimestamp()
       });
-      setName(''); setCost(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX'); setIsAddModalOpen(false);
+      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX'); setIsAddModalOpen(false);
       setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
@@ -747,7 +749,7 @@ function App() {
       </main>
 
       {/* ส่ง State ให้ Modals ต่างๆ */}
-      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} quantity={quantity} setQuantity={setQuantity} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} />
+      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} />
       <CheckoutModal checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} />
       <EmployeeDetailsModal selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal} />
       <AssetDetailsModal selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} accessories={accessories} assets={assets} licenses={licenses} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} handleCheckin={handleCheckin} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} />

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { db } from './firebase' 
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore'
-import * as XLSX from 'xlsx'
 
 // นำเข้า Components
 import Sidebar from './components/Sidebar'
@@ -48,7 +47,7 @@ function App() {
   const [cost, setCost] = useState(''); 
   const [quantity, setQuantity] = useState(1); 
   const [assetImage, setAssetImage] = useState(null); 
-  const [assetDepartment, setAssetDepartment] = useState('DX'); // ✅ แผนกสำหรับทรัพย์สินหลัก
+  const [assetDepartment, setAssetDepartment] = useState('DX'); // แผนกสำหรับทรัพย์สินหลัก
 
   const [empForm, setEmpForm] = useState({
     fullName: '', fullNameEng: '', empId: '', department: '', email: '',
@@ -60,14 +59,18 @@ function App() {
 
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [empModalTab, setEmpModalTab] = useState('info');
+
+  // Modal States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [checkoutModal, setCheckoutModal] = useState({ 
+    isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '' 
+  });
   const [selectedAssetDetail, setSelectedAssetDetail] = useState(null);
   const [selectedAssetCategory, setSelectedAssetCategory] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editEmpModal, setEditEmpModal] = useState({ isOpen: false, data: null });
   const [editAssetModal, setEditAssetModal] = useState({ isOpen: false, data: null, collectionName: '' });
   const [editLicenseModal, setEditLicenseModal] = useState({ isOpen: false, data: null });
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [checkoutModal, setCheckoutModal] = useState({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined });
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
   const [checkoutRemarks, setCheckoutRemarks] = useState('');
   const [customAlert, setCustomAlert] = useState({ isOpen: false, title: '', message: '', type: 'error' });
@@ -147,7 +150,7 @@ function App() {
   };
 
   const handleStaffDeleteRepair = async (id) => {
-    if (window.confirm('คุณต้องการยกเลิกและลบรายการแจ้งปัญนี้ใช่หรือไม่?')) {
+    if (window.confirm('คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?')) {
       try { await deleteDoc(doc(db, 'repair_requests', id)); setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบรายการแจ้งปัญหาของคุณเรียบร้อยแล้ว', type: 'success' }); } 
       catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
     }
@@ -184,7 +187,7 @@ function App() {
       await addDoc(collection(db, collectionName), {
         name, type, cost, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', 
         assignedTo: null, assignedName: null, image: assetImage || null,
-        department: activeMenu === 'assets' ? assetDepartment : null, // บันทึกแผนก
+        department: activeMenu === 'assets' ? assetDepartment : null,
         createdAt: serverTimestamp()
       });
       setName(''); setCost(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX'); setIsAddModalOpen(false);
@@ -295,24 +298,32 @@ function App() {
     try {
       if (checkoutModal.collectionName === 'accessories') {
         const item = accessories.find(a => a.id === checkoutModal.assetId);
-        
         const remainingQty = item ? (item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))) : 0;
         
         if (item && remainingQty > 0) {
           const newAssignees = item.assignees ? [...item.assignees] : [];
+          
           newAssignees.push({ 
             checkoutId: Date.now().toString(), 
             empId: emp.id, 
             empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`,
-            serialNumber: checkoutModal.sn || ''
+            serialNumber: checkoutModal.sn || '',
+            customCost: checkoutModal.itemCost || '' 
           });
 
           const updateData = { assignees: newAssignees };
 
+          // ลบราคา/SN เฉพาะชิ้นออกจากคลังเครื่องว่าง
           if (checkoutModal.snIndex !== undefined && item.availableSNs) {
             const newAvailableSNs = [...item.availableSNs];
             newAvailableSNs.splice(checkoutModal.snIndex, 1);
             updateData.availableSNs = newAvailableSNs;
+
+            if (item.availableCosts) {
+              const newAvailableCosts = [...item.availableCosts];
+              newAvailableCosts.splice(checkoutModal.snIndex, 1);
+              updateData.availableCosts = newAvailableCosts;
+            }
           }
 
           await updateDoc(doc(db, 'accessories', checkoutModal.assetId), updateData);
@@ -320,7 +331,9 @@ function App() {
           await addDoc(collection(db, 'accessories_transactions'), {
             empId: emp.id, 
             assetName: item.name, 
-            category: 'accessories', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: `SN: ${checkoutModal.sn || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now()
+            category: 'accessories', action: 'เบิกจ่าย', condition: 'ปกติ', 
+            remarks: `SN: ${checkoutModal.sn || '-'} | ${checkoutRemarks.trim() || '-'}`, 
+            timestamp: Date.now()
           });
         } else {
           return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอ', type: 'error' });
@@ -337,8 +350,9 @@ function App() {
           empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: checkoutModal.collectionName, action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       }
-      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined }); 
+      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '' }); 
       setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks('');
+      setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
     }
@@ -370,6 +384,7 @@ function App() {
       if (item && item.assignees) {
         const assigneeToReturn = item.assignees.find(a => a.checkoutId === returnModal.checkoutId);
         const returnedSN = assigneeToReturn?.serialNumber || '';
+        const returnedCost = assigneeToReturn?.customCost || ''; 
 
         const newAssignees = item.assignees.filter(a => a.checkoutId !== returnModal.checkoutId);
         const updateData = { assignees: newAssignees };
@@ -377,20 +392,31 @@ function App() {
         if (returnCondition === 'broken') {
           updateData.brokenQuantity = Number(item.brokenQuantity || 0) + 1;
           updateData.quantity = Number(item.quantity || 1) - 1; 
+          
           const newBrokenSNs = [...(item.brokenSNs || [])];
           newBrokenSNs.push(returnedSN);
           updateData.brokenSNs = newBrokenSNs;
+
+          const newBrokenCosts = [...(item.brokenCosts || [])];
+          newBrokenCosts.push(returnedCost);
+          updateData.brokenCosts = newBrokenCosts;
         } else {
           const newAvailableSNs = [...(item.availableSNs || [])];
           newAvailableSNs.push(returnedSN);
           updateData.availableSNs = newAvailableSNs;
+
+          const newAvailableCosts = [...(item.availableCosts || [])];
+          newAvailableCosts.push(returnedCost);
+          updateData.availableCosts = newAvailableCosts;
         }
         await updateDoc(doc(db, 'accessories', returnModal.assetId), updateData);
         
         await addDoc(collection(db, 'accessories_transactions'), {
           empId: returnModal.empId, 
           assetName: returnModal.assetName, 
-          category: 'accessories', action: 'รับคืน', condition: returnCondition === 'good' ? 'ปกติ' : 'ชำรุด', remarks: `SN: ${returnedSN || '-'} | ${returnRemarks.trim() || '-'}`, timestamp: Date.now()
+          category: 'accessories', action: 'รับคืน', condition: returnCondition === 'good' ? 'ปกติ' : 'ชำรุด', 
+          remarks: `SN: ${returnedSN || '-'} | ${returnRemarks.trim() || '-'}`, 
+          timestamp: Date.now()
         });
       }
       setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
@@ -411,15 +437,19 @@ function App() {
         
         const currentBrokenSNs = [...(item.brokenSNs || [])];
         const newAvailableSNs = [...(item.availableSNs || [])];
+
+        const currentBrokenCosts = [...(item.brokenCosts || [])]; 
+        const newAvailableCosts = [...(item.availableCosts || [])]; 
+
         for (let i = 0; i < qtyToRepair; i++) {
-          if (currentBrokenSNs.length > 0) {
-            newAvailableSNs.push(currentBrokenSNs.shift());
-          }
+          if (currentBrokenSNs.length > 0) newAvailableSNs.push(currentBrokenSNs.shift());
+          if (currentBrokenCosts.length > 0) newAvailableCosts.push(currentBrokenCosts.shift()); 
         }
 
         await updateDoc(doc(db, 'accessories', repairModal.assetId), { 
           brokenQuantity: newBrokenQty, quantity: newTotalQty,
-          brokenSNs: currentBrokenSNs, availableSNs: newAvailableSNs
+          brokenSNs: currentBrokenSNs, availableSNs: newAvailableSNs,
+          brokenCosts: currentBrokenCosts, availableCosts: newAvailableCosts  
         });
         
         await addDoc(collection(db, 'accessories_transactions'), {
@@ -671,7 +701,16 @@ function App() {
                                 )}
                                 <td className="px-5 py-4 text-sm font-bold text-emerald-600">{item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}</td>
                                 {activeMenu !== 'accessories' && (
-                                  <td className="px-5 py-4 text-center">{item.status === 'พร้อมใช้งาน' ? <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-emerald-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> พร้อมใช้งาน</div> : <div className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-amber-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> {item.status}</div>}</td>
+                                  <td className="px-5 py-4 text-center">
+                                    {item.status === 'พร้อมใช้งาน' ? (
+                                      <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-emerald-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> พร้อมใช้งาน</div>
+                                    ) : (
+                                      <div className="flex flex-col items-center gap-1">
+                                        <div className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-amber-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> {item.status}</div>
+                                        {item.assignedName && <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">👤 {item.assignedName}</span>}
+                                      </div>
+                                    )}
+                                  </td>
                                 )}
                                 <td className="px-5 py-4 text-center space-x-2">
                                   {activeMenu !== 'accessories' && (
@@ -721,7 +760,6 @@ function App() {
       <ConfirmDeleteModal confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </div>
-    
   )
 }
 

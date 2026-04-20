@@ -51,6 +51,14 @@ function App() {
   const [assetImage, setAssetImage] = useState(null); 
   const [assetDepartment, setAssetDepartment] = useState('DX');
 
+  // State สำหรับฟิลด์ทรัพย์สินหลัก
+  const [sn, setSn] = useState('');
+  const [company, setCompany] = useState('');
+  const [assetTag, setAssetTag] = useState('');
+  const [model, setModel] = useState('');
+  const [vendor, setVendor] = useState('');
+  const [assetDocument, setAssetDocument] = useState(null);
+
   const [empForm, setEmpForm] = useState({
     fullName: '', fullNameEng: '', empId: '', department: '', email: '',
     company: '', position: '', nickname: '', manager: '', phone: ''
@@ -65,7 +73,7 @@ function App() {
   // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [checkoutModal, setCheckoutModal] = useState({ 
-    isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '' 
+    isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '', itemPurchaseDate: '', itemWarrantyDate: ''
   });
   const [selectedAssetDetail, setSelectedAssetDetail] = useState(null);
   const [selectedAssetCategory, setSelectedAssetCategory] = useState('');
@@ -116,6 +124,7 @@ function App() {
 
   useEffect(() => {
     setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX');
+    setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด');
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); 
@@ -190,9 +199,17 @@ function App() {
         name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', 
         assignedTo: null, assignedName: null, image: assetImage || null,
         department: activeMenu === 'assets' ? assetDepartment : null,
+        sn: activeMenu === 'assets' ? sn : null,
+        company: activeMenu === 'assets' ? company : null,
+        assetTag: activeMenu === 'assets' ? assetTag : null,
+        model: activeMenu === 'assets' ? model : null,
+        vendor: activeMenu === 'assets' ? vendor : null,
+        document: activeMenu === 'assets' ? assetDocument : null,
         createdAt: serverTimestamp()
       });
-      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX'); setIsAddModalOpen(false);
+      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX');
+      setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
+      setIsAddModalOpen(false);
       setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
@@ -229,7 +246,16 @@ function App() {
     if (!id || !collectionName) return;
     try {
       const idsToDelete = Array.isArray(id) ? id : [id];
+
+      // ดึงรหัสพนักงาน (empId แบบ String) เตรียมไว้ก่อนที่จะลบเอกสาร
+      let deletedEmpStringIds = [];
+      if (collectionName === 'employees') {
+        const deletedEmps = employees.filter(emp => idsToDelete.includes(emp.id));
+        deletedEmpStringIds = deletedEmps.map(emp => String(emp.empId).toLowerCase());
+      }
+
       for (const targetId of idsToDelete) { await deleteDoc(doc(db, collectionName, targetId)); }
+      
       if (collectionName === 'employees') {
         const userAssets = assets.filter(item => idsToDelete.includes(item.assignedTo));
         for (const asset of userAssets) { await updateDoc(doc(db, 'assets', asset.id), { status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null }); }
@@ -242,6 +268,12 @@ function App() {
         }
         const userLicenses = licenses.filter(item => idsToDelete.includes(item.assignedTo));
         for (const lic of userLicenses) { await updateDoc(doc(db, 'licenses', lic.id), { status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null }); }
+
+        // ลบประวัติการแจ้งซ่อมของพนักงานคนนี้ออกไปจากระบบด้วย
+        const reqsToDelete = repairRequests.filter(req => deletedEmpStringIds.includes(String(req.empId).toLowerCase()));
+        for (const req of reqsToDelete) {
+          await deleteDoc(doc(db, 'repair_requests', req.id));
+        }
       }
       setConfirmDeleteModal({ isOpen: false, id: null, collectionName: null });
       setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); 
@@ -310,12 +342,13 @@ function App() {
             empId: emp.id, 
             empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`,
             serialNumber: checkoutModal.sn || '',
-            customCost: checkoutModal.itemCost || '' 
+            customCost: checkoutModal.itemCost || '',
+            purchaseDate: checkoutModal.itemPurchaseDate || '',
+            warrantyDate: checkoutModal.itemWarrantyDate || ''
           });
 
           const updateData = { assignees: newAssignees };
 
-          // ลบราคา/SN เฉพาะชิ้นออกจากคลังเครื่องว่าง
           if (checkoutModal.snIndex !== undefined && item.availableSNs) {
             const newAvailableSNs = [...item.availableSNs];
             newAvailableSNs.splice(checkoutModal.snIndex, 1);
@@ -325,6 +358,16 @@ function App() {
               const newAvailableCosts = [...item.availableCosts];
               newAvailableCosts.splice(checkoutModal.snIndex, 1);
               updateData.availableCosts = newAvailableCosts;
+            }
+            if (item.availablePurchaseDates) {
+              const newAvailablePurchaseDates = [...item.availablePurchaseDates];
+              newAvailablePurchaseDates.splice(checkoutModal.snIndex, 1);
+              updateData.availablePurchaseDates = newAvailablePurchaseDates;
+            }
+            if (item.availableWarrantyDates) {
+              const newAvailableWarrantyDates = [...item.availableWarrantyDates];
+              newAvailableWarrantyDates.splice(checkoutModal.snIndex, 1);
+              updateData.availableWarrantyDates = newAvailableWarrantyDates;
             }
           }
 
@@ -352,7 +395,7 @@ function App() {
           empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: checkoutModal.collectionName, action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       }
-      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '' }); 
+      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '', itemPurchaseDate: '', itemWarrantyDate: '' }); 
       setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks('');
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
@@ -387,6 +430,8 @@ function App() {
         const assigneeToReturn = item.assignees.find(a => a.checkoutId === returnModal.checkoutId);
         const returnedSN = assigneeToReturn?.serialNumber || '';
         const returnedCost = assigneeToReturn?.customCost || ''; 
+        const returnedPurchaseDate = assigneeToReturn?.purchaseDate || '';
+        const returnedWarrantyDate = assigneeToReturn?.warrantyDate || '';
 
         const newAssignees = item.assignees.filter(a => a.checkoutId !== returnModal.checkoutId);
         const updateData = { assignees: newAssignees };
@@ -402,6 +447,14 @@ function App() {
           const newBrokenCosts = [...(item.brokenCosts || [])];
           newBrokenCosts.push(returnedCost);
           updateData.brokenCosts = newBrokenCosts;
+
+          const newBrokenPurchaseDates = [...(item.brokenPurchaseDates || [])];
+          newBrokenPurchaseDates.push(returnedPurchaseDate);
+          updateData.brokenPurchaseDates = newBrokenPurchaseDates;
+
+          const newBrokenWarrantyDates = [...(item.brokenWarrantyDates || [])];
+          newBrokenWarrantyDates.push(returnedWarrantyDate);
+          updateData.brokenWarrantyDates = newBrokenWarrantyDates;
         } else {
           const newAvailableSNs = [...(item.availableSNs || [])];
           newAvailableSNs.push(returnedSN);
@@ -410,6 +463,14 @@ function App() {
           const newAvailableCosts = [...(item.availableCosts || [])];
           newAvailableCosts.push(returnedCost);
           updateData.availableCosts = newAvailableCosts;
+
+          const newAvailablePurchaseDates = [...(item.availablePurchaseDates || [])];
+          newAvailablePurchaseDates.push(returnedPurchaseDate);
+          updateData.availablePurchaseDates = newAvailablePurchaseDates;
+
+          const newAvailableWarrantyDates = [...(item.availableWarrantyDates || [])];
+          newAvailableWarrantyDates.push(returnedWarrantyDate);
+          updateData.availableWarrantyDates = newAvailableWarrantyDates;
         }
         await updateDoc(doc(db, 'accessories', returnModal.assetId), updateData);
         
@@ -443,15 +504,25 @@ function App() {
         const currentBrokenCosts = [...(item.brokenCosts || [])]; 
         const newAvailableCosts = [...(item.availableCosts || [])]; 
 
+        const currentBrokenPurchaseDates = [...(item.brokenPurchaseDates || [])];
+        const newAvailablePurchaseDates = [...(item.availablePurchaseDates || [])];
+
+        const currentBrokenWarrantyDates = [...(item.brokenWarrantyDates || [])];
+        const newAvailableWarrantyDates = [...(item.availableWarrantyDates || [])];
+
         for (let i = 0; i < qtyToRepair; i++) {
           if (currentBrokenSNs.length > 0) newAvailableSNs.push(currentBrokenSNs.shift());
           if (currentBrokenCosts.length > 0) newAvailableCosts.push(currentBrokenCosts.shift()); 
+          if (currentBrokenPurchaseDates.length > 0) newAvailablePurchaseDates.push(currentBrokenPurchaseDates.shift()); 
+          if (currentBrokenWarrantyDates.length > 0) newAvailableWarrantyDates.push(currentBrokenWarrantyDates.shift()); 
         }
 
         await updateDoc(doc(db, 'accessories', repairModal.assetId), { 
           brokenQuantity: newBrokenQty, quantity: newTotalQty,
           brokenSNs: currentBrokenSNs, availableSNs: newAvailableSNs,
-          brokenCosts: currentBrokenCosts, availableCosts: newAvailableCosts  
+          brokenCosts: currentBrokenCosts, availableCosts: newAvailableCosts,
+          brokenPurchaseDates: currentBrokenPurchaseDates, availablePurchaseDates: newAvailablePurchaseDates,
+          brokenWarrantyDates: currentBrokenWarrantyDates, availableWarrantyDates: newAvailableWarrantyDates
         });
         
         await addDoc(collection(db, 'accessories_transactions'), {
@@ -633,7 +704,7 @@ function App() {
                               {activeMenu === 'accessories' && (<th className="px-4 py-4 text-center"><input type="checkbox" className="w-4 h-4" checked={currentData.length > 0 && selectedAccessoryIds?.length === currentData.length} onChange={handleSelectAllAccessories} /></th>)}
                               <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่ออุปกรณ์</th><th className="px-5 py-4 font-bold text-slate-500 text-xs">ประเภท</th>
                               {activeMenu === 'assets' && (<th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">แผนก</th>)}
-                              {activeMenu === 'accessories' && (<><th className="px-5 py-4 font-bold text-slate-800 text-xs text-center bg-slate-100/50">รวมทั้งหมด</th><th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">คงเหลือ</th><th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">ใช้งานไป</th><th className="px-5 py-4 font-bold text-red-500 text-xs text-center">ชำรุด/พัง</th></>)}
+                              {activeMenu === 'accessories' && (<><th className="px-5 py-4 font-bold text-slate-800 text-xs text-center bg-slate-100/50">รวมทั้งหมดในระบบ</th><th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">คงเหลือ</th><th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">ใช้งานไป</th><th className="px-5 py-4 font-bold text-red-500 text-xs text-center">ชำรุด/พัง</th></>)}
                               <th className="px-5 py-4 font-bold text-slate-500 text-xs">ราคา</th>{activeMenu !== 'accessories' && (<th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">สถานะ</th>)}<th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
                             </>
                           )}
@@ -695,8 +766,8 @@ function App() {
                                 {activeMenu === 'assets' && (<td className="px-5 py-4 text-center text-sm font-bold text-indigo-700">{item.department || '-'}</td>)}
                                 {activeMenu === 'accessories' && (
                                   <>
-                                    <td className="px-5 py-4 text-sm font-black text-slate-800 text-center bg-slate-100/50">{(item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))) + (item.assignees?.length || 0) + Number(item.brokenQuantity || 0)}</td>
-                                    <td className="px-5 py-4 text-sm font-bold text-slate-700 text-center bg-slate-50/50">{item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))}</td>
+                                    <td className="px-5 py-4 text-sm font-black text-slate-800 text-center bg-slate-100/50">{item.quantity || 0}</td>
+                                    <td className="px-5 py-4 text-sm font-bold text-slate-700 text-center bg-slate-50/50">{item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0) - Number(item.brokenQuantity || 0)) : 0}</td>
                                     <td className="px-5 py-4 text-sm font-bold text-indigo-600 text-center">{item.assignees?.length || 0}</td>
                                     <td className="px-5 py-4 text-sm font-bold text-red-500 text-center">{item.brokenQuantity || 0}</td>
                                   </>
@@ -748,8 +819,7 @@ function App() {
         </div>
       </main>
 
-      {/* ส่ง State ให้ Modals ต่างๆ */}
-      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} />
+      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} />
       <CheckoutModal checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} />
       <EmployeeDetailsModal selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal} />
       <AssetDetailsModal selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} accessories={accessories} assets={assets} licenses={licenses} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} handleCheckin={handleCheckin} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} />

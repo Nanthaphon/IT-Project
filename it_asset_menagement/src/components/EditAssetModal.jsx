@@ -8,18 +8,6 @@ export default function EditAssetModal({
 }) {
   if (!editAssetModal.isOpen || !editAssetModal.data) return null;
 
-  // ✅ เพิ่มฟังก์ชันสำหรับอัปโหลดและแปลงไฟล์รูปภาพ
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleEditAssetChange({ target: { name: 'image', value: reader.result } });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
@@ -32,25 +20,6 @@ export default function EditAssetModal({
           </button>
         </div>
         <form onSubmit={handleUpdateAsset} className="p-6 md:p-8 overflow-y-auto space-y-5 flex-1">
-          
-          {/* ✅ เพิ่มช่องอัปโหลดรูปภาพ */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">รูปภาพอ้างอิง</label>
-            <div className="flex items-center gap-4">
-              {editAssetModal.data.image ? (
-                <img src={editAssetModal.data.image} alt="Preview" className="w-16 h-16 rounded-xl object-cover shadow-sm border border-slate-200" />
-              ) : (
-                <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 border-dashed shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </div>
-              )}
-              <input 
-                type="file" accept="image/*" onChange={handleImageUpload} 
-                className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer"
-              />
-            </div>
-          </div>
-
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
             <input type="text" name="name" value={editAssetModal.data.name || ''} onChange={handleEditAssetChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
@@ -66,19 +35,42 @@ export default function EditAssetModal({
             </select>
           </div>
 
+          {/* ฟิลด์ข้อมูลเพิ่มเติมสำหรับทรัพย์สินหลัก */}
           {editAssetModal.collectionName === 'assets' && (
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก <span className="text-red-500">*</span></label>
-              <select 
-                name="department" 
-                value={editAssetModal.data.department || 'DX'} 
-                onChange={handleEditAssetChange} 
-                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
-              >
-                <option value="DX">DX</option>
-                <option value="BD">BD</option>
-                <option value="General">General</option>
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสทรัพย์สิน</label>
+                <input type="text" name="assetTag" value={editAssetModal.data.assetTag || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm font-mono" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Serial Number</label>
+                <input type="text" name="sn" value={editAssetModal.data.sn || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm font-mono" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
+                <input type="text" name="company" value={editAssetModal.data.company || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก <span className="text-red-500">*</span></label>
+                <select 
+                  name="department" 
+                  value={editAssetModal.data.department || 'DX'} 
+                  onChange={handleEditAssetChange} 
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
+                >
+                  <option value="DX">DX</option>
+                  <option value="BD">BD</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ยี่ห้อ / โมเดล</label>
+                <input type="text" name="model" value={editAssetModal.data.model || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
+                <input type="text" name="vendor" value={editAssetModal.data.vendor || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+              </div>
             </div>
           )}
 
@@ -86,7 +78,7 @@ export default function EditAssetModal({
             <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
             <input type="number" name="cost" value={editAssetModal.data.cost || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>

@@ -4,20 +4,26 @@ import { doc, updateDoc } from 'firebase/firestore';
 
 export default function AssetDetailsModal({
   selectedAssetDetail, setSelectedAssetDetail, selectedAssetCategory, setSelectedAssetCategory,
-  accessories, assets, licenses, setCheckoutModal, setReturnModal, handleCheckin, openEditLicenseModal, openEditAssetModal
+  accessories, assets, licenses, setCheckoutModal, setReturnModal, handleCheckin, openEditLicenseModal, openEditAssetModal,
+  setRepairModal, setRepairQuantity, setRepairRemarks
 }) {
   const [expandedItem, setExpandedItem] = useState(null); 
   const [editingItemId, setEditingItemId] = useState(null); 
   const [tempSNValue, setTempSNValue] = useState(''); 
+  const [tempModelValue, setTempModelValue] = useState(''); 
   const [tempCostValue, setTempCostValue] = useState(''); 
   const [tempPurchaseDateValue, setTempPurchaseDateValue] = useState(''); 
   const [tempWarrantyDateValue, setTempWarrantyDateValue] = useState(''); 
   const [isSavingItem, setIsSavingItem] = useState(false); 
 
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [newItemData, setNewItemData] = useState({ sn: '', cost: '', purchaseDate: '', warrantyDate: '' });
+  const [newItemData, setNewItemData] = useState({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1 });
 
   const [showLabelPreview, setShowLabelPreview] = useState(false);
+
+  const [selectedItemsForDelete, setSelectedItemsForDelete] = useState([]);
+  
+  const [isImportingCSV, setIsImportingCSV] = useState(false);
 
   if (!selectedAssetDetail) return null;
 
@@ -32,8 +38,10 @@ export default function AssetDetailsModal({
     try {
       const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
       const currentQty = Number(currentAssetDetail.quantity || 0);
+      const addQty = Number(newItemData.quantity) || 1;
 
       const newAvailableSNs = [...(currentAssetDetail.availableSNs || [])];
+      const newAvailableModels = [...(currentAssetDetail.availableModels || [])];
       const newAvailableCosts = [...(currentAssetDetail.availableCosts || [])];
       const newAvailablePurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
       const newAvailableWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
@@ -41,25 +49,30 @@ export default function AssetDetailsModal({
       const availableCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
 
       while (newAvailableSNs.length < availableCount) newAvailableSNs.push('');
+      while (newAvailableModels.length < availableCount) newAvailableModels.push('');
       while (newAvailableCosts.length < availableCount) newAvailableCosts.push('');
       while (newAvailablePurchaseDates.length < availableCount) newAvailablePurchaseDates.push('');
       while (newAvailableWarrantyDates.length < availableCount) newAvailableWarrantyDates.push('');
 
-      newAvailableSNs.push(newItemData.sn.trim());
-      newAvailableCosts.push(newItemData.cost.trim());
-      newAvailablePurchaseDates.push(newItemData.purchaseDate);
-      newAvailableWarrantyDates.push(newItemData.warrantyDate);
+      for (let i = 0; i < addQty; i++) {
+        newAvailableSNs.push(newItemData.sn.trim());
+        newAvailableModels.push(newItemData.model.trim());
+        newAvailableCosts.push(newItemData.cost.trim());
+        newAvailablePurchaseDates.push(newItemData.purchaseDate);
+        newAvailableWarrantyDates.push(newItemData.warrantyDate);
+      }
 
       await updateDoc(docRef, {
-        quantity: currentQty + 1,
+        quantity: currentQty + addQty,
         availableSNs: newAvailableSNs,
+        availableModels: newAvailableModels,
         availableCosts: newAvailableCosts,
         availablePurchaseDates: newAvailablePurchaseDates,
         availableWarrantyDates: newAvailableWarrantyDates
       });
 
       setIsAddingNew(false);
-      setNewItemData({ sn: '', cost: '', purchaseDate: '', warrantyDate: '' });
+      setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1 });
     } catch (error) {
       console.error(error);
     } finally {
@@ -75,22 +88,25 @@ export default function AssetDetailsModal({
       
       if (item.type === 'available') {
         const newSNs = [...(currentAssetDetail.availableSNs || [])];
+        const newModels = [...(currentAssetDetail.availableModels || [])];
         const newCosts = [...(currentAssetDetail.availableCosts || [])];
         const newPurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
         const newWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
 
         while (newSNs.length <= item.originalIndex) newSNs.push('');
+        while (newModels.length <= item.originalIndex) newModels.push('');
         while (newCosts.length <= item.originalIndex) newCosts.push('');
         while (newPurchaseDates.length <= item.originalIndex) newPurchaseDates.push('');
         while (newWarrantyDates.length <= item.originalIndex) newWarrantyDates.push('');
 
         newSNs[item.originalIndex] = tempSNValue.trim();
+        newModels[item.originalIndex] = tempModelValue.trim();
         newCosts[item.originalIndex] = tempCostValue.trim();
         newPurchaseDates[item.originalIndex] = tempPurchaseDateValue;
         newWarrantyDates[item.originalIndex] = tempWarrantyDateValue;
 
         await updateDoc(docRef, { 
-          availableSNs: newSNs, availableCosts: newCosts, availablePurchaseDates: newPurchaseDates, availableWarrantyDates: newWarrantyDates 
+          availableSNs: newSNs, availableModels: newModels, availableCosts: newCosts, availablePurchaseDates: newPurchaseDates, availableWarrantyDates: newWarrantyDates 
         });
       } 
       else if (item.type === 'assigned') {
@@ -98,6 +114,7 @@ export default function AssetDetailsModal({
         const idx = newAssignees.findIndex(a => a.checkoutId === item.assignee.checkoutId);
         if (idx !== -1) {
           newAssignees[idx].serialNumber = tempSNValue.trim();
+          newAssignees[idx].model = tempModelValue.trim();
           newAssignees[idx].customCost = tempCostValue.trim();
           newAssignees[idx].purchaseDate = tempPurchaseDateValue;
           newAssignees[idx].warrantyDate = tempWarrantyDateValue;
@@ -106,22 +123,25 @@ export default function AssetDetailsModal({
       } 
       else if (item.type === 'broken') {
         const newSNs = [...(currentAssetDetail.brokenSNs || [])];
+        const newModels = [...(currentAssetDetail.brokenModels || [])];
         const newCosts = [...(currentAssetDetail.brokenCosts || [])];
         const newPurchaseDates = [...(currentAssetDetail.brokenPurchaseDates || [])];
         const newWarrantyDates = [...(currentAssetDetail.brokenWarrantyDates || [])];
 
         while (newSNs.length <= item.originalIndex) newSNs.push('');
+        while (newModels.length <= item.originalIndex) newModels.push('');
         while (newCosts.length <= item.originalIndex) newCosts.push('');
         while (newPurchaseDates.length <= item.originalIndex) newPurchaseDates.push('');
         while (newWarrantyDates.length <= item.originalIndex) newWarrantyDates.push('');
 
         newSNs[item.originalIndex] = tempSNValue.trim();
+        newModels[item.originalIndex] = tempModelValue.trim();
         newCosts[item.originalIndex] = tempCostValue.trim();
         newPurchaseDates[item.originalIndex] = tempPurchaseDateValue;
         newWarrantyDates[item.originalIndex] = tempWarrantyDateValue;
 
         await updateDoc(docRef, { 
-          brokenSNs: newSNs, brokenCosts: newCosts, brokenPurchaseDates: newPurchaseDates, brokenWarrantyDates: newWarrantyDates 
+          brokenSNs: newSNs, brokenModels: newModels, brokenCosts: newCosts, brokenPurchaseDates: newPurchaseDates, brokenWarrantyDates: newWarrantyDates 
         });
       }
       setEditingItemId(null);
@@ -143,6 +163,7 @@ export default function AssetDetailsModal({
       individualItems.push({ 
         type: 'available', status: 'พร้อมใช้งาน', 
         sn: currentAssetDetail.availableSNs?.[i] || '', 
+        model: currentAssetDetail.availableModels?.[i] || '',
         itemCost: currentAssetDetail.availableCosts?.[i] || '',
         purchaseDate: currentAssetDetail.availablePurchaseDates?.[i] || '',
         warrantyDate: currentAssetDetail.availableWarrantyDates?.[i] || '',
@@ -154,6 +175,7 @@ export default function AssetDetailsModal({
         individualItems.push({ 
           type: 'assigned', status: 'ถูกใช้งาน', 
           assignee: a, sn: a.serialNumber || '', 
+          model: a.model || '',
           itemCost: a.customCost || '',
           purchaseDate: a.purchaseDate || '',
           warrantyDate: a.warrantyDate || '',
@@ -165,6 +187,7 @@ export default function AssetDetailsModal({
       individualItems.push({ 
         type: 'broken', status: 'ชำรุดเสียหาย', 
         sn: currentAssetDetail.brokenSNs?.[i] || '', 
+        model: currentAssetDetail.brokenModels?.[i] || '',
         itemCost: currentAssetDetail.brokenCosts?.[i] || '',
         purchaseDate: currentAssetDetail.brokenPurchaseDates?.[i] || '',
         warrantyDate: currentAssetDetail.brokenWarrantyDates?.[i] || '',
@@ -173,6 +196,167 @@ export default function AssetDetailsModal({
     }
   }
 
+  const handleSelectItem = (itemId) => {
+    setSelectedItemsForDelete(prev => 
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
+    );
+  };
+
+  const handleSelectAllItems = () => {
+    if (selectedItemsForDelete.length === individualItems.length) {
+      setSelectedItemsForDelete([]); 
+    } else {
+      setSelectedItemsForDelete(individualItems.map(item => item.id)); 
+    }
+  };
+
+  const handleDeleteSelectedItems = async () => {
+    if (!window.confirm(`คุณต้องการลบรายการย่อยที่เลือกจำนวน ${selectedItemsForDelete.length} รายการออกจากระบบใช่หรือไม่?`)) return;
+
+    if (isSavingItem) return;
+    setIsSavingItem(true);
+
+    try {
+      const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
+
+      const availIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('avail-')).map(id => parseInt(id.replace('avail-', '')));
+      const brokenIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('broken-')).map(id => parseInt(id.replace('broken-', '')));
+      const assignIdsToDelete = selectedItemsForDelete.filter(id => id.startsWith('assign-')).map(id => id.replace('assign-', ''));
+
+      const newAvailableSNs = (currentAssetDetail.availableSNs || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+      const newAvailableModels = (currentAssetDetail.availableModels || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+      const newAvailableCosts = (currentAssetDetail.availableCosts || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+      const newAvailablePurchaseDates = (currentAssetDetail.availablePurchaseDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+      const newAvailableWarrantyDates = (currentAssetDetail.availableWarrantyDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+
+      const newBrokenSNs = (currentAssetDetail.brokenSNs || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+      const newBrokenModels = (currentAssetDetail.brokenModels || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+      const newBrokenCosts = (currentAssetDetail.brokenCosts || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+      const newBrokenPurchaseDates = (currentAssetDetail.brokenPurchaseDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+      const newBrokenWarrantyDates = (currentAssetDetail.brokenWarrantyDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+
+      const newAssignees = (currentAssetDetail.assignees || []).filter(a => !assignIdsToDelete.includes(a.checkoutId));
+
+      const totalDeleted = selectedItemsForDelete.length;
+      const newQuantity = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - totalDeleted);
+      const newBrokenQuantity = Math.max(0, (Number(currentAssetDetail.brokenQuantity) || 0) - brokenIndicesToDelete.length);
+
+      await updateDoc(docRef, {
+        quantity: newQuantity,
+        brokenQuantity: newBrokenQuantity,
+        availableSNs: newAvailableSNs,
+        availableModels: newAvailableModels,
+        availableCosts: newAvailableCosts,
+        availablePurchaseDates: newAvailablePurchaseDates,
+        availableWarrantyDates: newAvailableWarrantyDates,
+        brokenSNs: newBrokenSNs,
+        brokenModels: newBrokenModels,
+        brokenCosts: newBrokenCosts,
+        brokenPurchaseDates: newBrokenPurchaseDates,
+        brokenWarrantyDates: newBrokenWarrantyDates,
+        assignees: newAssignees
+      });
+
+      setSelectedItemsForDelete([]); 
+      setExpandedItem(null); 
+      setEditingItemId(null);
+    } catch (error) {
+      console.error("Error deleting items:", error);
+      alert("เกิดข้อผิดพลาดในการลบรายการ: " + error.message);
+    } finally {
+      setIsSavingItem(false);
+    }
+  };
+
+  const handleDownloadPieceTemplate = () => {
+    const csvContent = "Serial Number,รุ่น/โมเดล,ราคา (บาท),วันที่ซื้อ (YYYY-MM-DD),วันที่หมด Warranty (YYYY-MM-DD)\nSN001,Logitech M90,150,2024-01-01,2025-01-01";
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "template_accessories.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleUploadPieceCSV = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target.result;
+      const rows = text.split('\n').filter(row => row.trim() !== '');
+      if (rows.length <= 1) {
+        alert('ไม่พบข้อมูลในไฟล์ CSV (กรุณาใส่ข้อมูลใต้หัวข้อ)');
+        e.target.value = null;
+        return;
+      }
+      
+      const dataRows = rows.slice(1);
+      const newSNs = [];
+      const newModels = [];
+      const newCosts = [];
+      const newPurchaseDates = [];
+      const newWarrantyDates = [];
+
+      dataRows.forEach(row => {
+        const cols = row.split(',').map(col => col.replace(/^"|"$/g, '').trim());
+        newSNs.push(cols[0] || '');
+        newModels.push(cols[1] || '');
+        newCosts.push(cols[2] || '');
+        newPurchaseDates.push(cols[3] || '');
+        newWarrantyDates.push(cols[4] || '');
+      });
+
+      if(window.confirm(`พบข้อมูลจำนวน ${dataRows.length} รายการ ต้องการนำเข้าใช่หรือไม่?`)) {
+         setIsSavingItem(true);
+         try {
+            const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
+            const currentQty = Number(currentAssetDetail.quantity || 0);
+            
+            const availableCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
+            const updatedAvailableSNs = [...(currentAssetDetail.availableSNs || [])];
+            const updatedAvailableModels = [...(currentAssetDetail.availableModels || [])];
+            const updatedAvailableCosts = [...(currentAssetDetail.availableCosts || [])];
+            const updatedAvailablePurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
+            const updatedAvailableWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
+
+            while (updatedAvailableSNs.length < availableCount) updatedAvailableSNs.push('');
+            while (updatedAvailableModels.length < availableCount) updatedAvailableModels.push('');
+            while (updatedAvailableCosts.length < availableCount) updatedAvailableCosts.push('');
+            while (updatedAvailablePurchaseDates.length < availableCount) updatedAvailablePurchaseDates.push('');
+            while (updatedAvailableWarrantyDates.length < availableCount) updatedAvailableWarrantyDates.push('');
+
+            updatedAvailableSNs.push(...newSNs);
+            updatedAvailableModels.push(...newModels);
+            updatedAvailableCosts.push(...newCosts);
+            updatedAvailablePurchaseDates.push(...newPurchaseDates);
+            updatedAvailableWarrantyDates.push(...newWarrantyDates);
+
+            await updateDoc(docRef, {
+              quantity: currentQty + dataRows.length,
+              availableSNs: updatedAvailableSNs,
+              availableModels: updatedAvailableModels,
+              availableCosts: updatedAvailableCosts,
+              availablePurchaseDates: updatedAvailablePurchaseDates,
+              availableWarrantyDates: updatedAvailableWarrantyDates
+            });
+            
+            setIsImportingCSV(false);
+            alert('นำเข้าข้อมูลสำเร็จ!');
+         } catch (err) {
+            console.error(err);
+            alert('เกิดข้อผิดพลาดในการนำเข้า: ' + err.message);
+         } finally {
+            setIsSavingItem(false);
+         }
+      }
+      e.target.value = null;
+    };
+    reader.readAsText(file);
+  };
+
   const closeAll = () => {
     setSelectedAssetDetail(null);
     setSelectedAssetCategory('');
@@ -180,13 +364,14 @@ export default function AssetDetailsModal({
     setEditingItemId(null);
     setIsAddingNew(false);
     setShowLabelPreview(false);
+    setSelectedItemsForDelete([]); 
+    setIsImportingCSV(false);
   };
 
   if (showLabelPreview) {
     const rawTag = currentAssetDetail.assetTag || currentAssetDetail.sn || currentAssetDetail.name || "0";
     const barcodeDataString = rawTag.replace(/[^a-zA-Z0-9-]/g, "");
     
-    // ✅ จัดรูปแบบ QR Code ใหม่โดยใช้รหัสย่อที่สั้นที่สุดเพื่อลด Density ของจุด
     const qrDataString = `ASSET
 N:${currentAssetDetail.name || '-'}
 T:${currentAssetDetail.assetTag || '-'}
@@ -226,15 +411,12 @@ Own:${currentAssetDetail.assignedName || '-'}`;
           </div>
           
           <div className="p-10 flex justify-center items-center bg-slate-100 overflow-x-auto print:p-0 print:bg-transparent">
-            {/* 🏷️ ขนาดป้ายเล็กลง (กว้าง ~4.8cm สูง ~2.1cm) และเว้นระยะขอบดำหนาขึ้น */}
             <div id="printable-label-container" className="bg-white border-[3px] border-black p-1 flex flex-col w-[180px] h-[80px] text-black shrink-0 relative box-border overflow-hidden">
               <div className="flex gap-1.5 h-full mb-0.5 overflow-hidden">
-                {/* QR Code เพิ่มความละเอียดรูปภาพ (size=250) และใช้ Error Correction ต่ำ (ecc=L) เพื่อให้จุดมีขนาดใหญ่ สแกนง่าย */}
                 <div className="w-[42px] h-[42px] shrink-0 border border-gray-100 p-0.5 bg-white flex items-center justify-center self-start">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
                 
-                {/* ข้อมูลตัวอักษรขนาดจิ๋ว 7.5px เพื่อประหยัดพื้นที่ */}
                 <div className="flex flex-col text-[7.5px] leading-[1.05] font-bold w-full overflow-hidden justify-start pt-0.5">
                   <div className="truncate">C: {currentAssetDetail.company || '-'}</div>
                   <div className="truncate whitespace-normal line-clamp-2 mt-[0.5px]">N: {currentAssetDetail.name} {currentAssetDetail.model ? ` ${currentAssetDetail.model}` : ''}</div>
@@ -301,6 +483,7 @@ Own:${currentAssetDetail.assignedName || '-'}`;
               <>
                 <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 mt-2 items-center"><span className="text-slate-500 font-bold text-sm md:text-base">{selectedAssetCategory === 'accessories' ? 'ชื่อรายการ:' : 'ชื่ออุปกรณ์:'}</span><span className="col-span-2 font-black text-indigo-700 text-lg md:text-xl">{currentAssetDetail.name}</span></div>
                 
+                {/* ข้อมูลเฉพาะของทรัพย์สินหลัก */}
                 {selectedAssetCategory === 'assets' && (
                   <>
                     <div className="grid grid-cols-3 border-b border-slate-100 py-3 md:py-4 items-center"><span className="text-slate-500 font-bold text-sm md:text-base">รหัสทรัพย์สิน:</span><span className="col-span-2 font-bold text-slate-800">{currentAssetDetail.assetTag || '-'}</span></div>
@@ -359,19 +542,82 @@ Own:${currentAssetDetail.assignedName || '-'}`;
             {selectedAssetCategory === 'accessories' && (
               <div className="pt-6 mt-4 border-t border-slate-100">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
-                  <h4 className="text-slate-800 font-bold text-base flex items-center gap-2"><span className="text-xl">📦</span> รายการอุปกรณ์แต่ละชิ้น ({individualItems.length} รายการ)</h4>
-                  <button onClick={() => setIsAddingNew(!isAddingNew)} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors flex items-center gap-2 shadow-sm border border-indigo-200 w-full sm:w-auto justify-center">
-                    ➕ เพิ่มรายการ
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <h4 className="text-slate-800 font-bold text-base flex items-center gap-2"><span className="text-xl">📦</span> รายการอุปกรณ์แต่ละชิ้น ({individualItems.length} รายการ)</h4>
+                    {individualItems.length > 0 && (
+                      <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedItemsForDelete.length === individualItems.length && individualItems.length > 0}
+                          onChange={handleSelectAllItems}
+                          className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
+                        />
+                        เลือกทั้งหมด
+                      </label>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {selectedItemsForDelete.length > 0 && (
+                      <button 
+                        onClick={handleDeleteSelectedItems} 
+                        disabled={isSavingItem}
+                        className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center gap-2 shadow-sm border border-red-200 w-full sm:w-auto justify-center disabled:opacity-50"
+                      >
+                        🗑️ ลบที่เลือก ({selectedItemsForDelete.length})
+                      </button>
+                    )}
+                    <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-100 transition-colors flex items-center gap-2 shadow-sm border border-emerald-200 w-full sm:w-auto justify-center">
+                      📄 นำเข้า CSV
+                    </button>
+                    <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors flex items-center gap-2 shadow-sm border border-indigo-200 w-full sm:w-auto justify-center">
+                      ➕ เพิ่มรายการ
+                    </button>
+                  </div>
                 </div>
+
+                {isImportingCSV && (
+                  <div className="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-100 mb-5 animate-in fade-in slide-in-from-top-2">
+                    <h5 className="font-bold text-emerald-800 mb-4 flex items-center gap-2">✨ นำเข้าข้อมูลอุปกรณ์ชิ้นใหม่จากไฟล์ CSV</h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-slate-700 mb-1">1. ดาวน์โหลดไฟล์ต้นแบบ</p>
+                          <p className="text-xs text-slate-500 mb-3">โหลดไฟล์ CSV ที่มีหัวคอลัมน์ถูกต้อง</p>
+                        </div>
+                        <button onClick={handleDownloadPieceTemplate} className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors border border-slate-300 flex items-center justify-center gap-2">
+                          ⬇️ โหลด Template.csv
+                        </button>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-slate-700 mb-1">2. อัปโหลดไฟล์ข้อมูล</p>
+                          <p className="text-xs text-slate-500 mb-3">เลือกไฟล์ CSV ที่กรอกข้อมูลเสร็จแล้ว</p>
+                        </div>
+                        <input 
+                          type="file" 
+                          accept=".csv" 
+                          onChange={handleUploadPieceCSV} 
+                          className="block w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 cursor-pointer" 
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-2 border-t border-emerald-100">
+                      <button onClick={() => setIsImportingCSV(false)} className="px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm">ปิดหน้าต่าง</button>
+                    </div>
+                  </div>
+                )}
 
                 {isAddingNew && (
                   <div className="bg-indigo-50/60 p-5 rounded-2xl border border-indigo-100 mb-5 animate-in fade-in slide-in-from-top-2">
                     <h5 className="font-bold text-indigo-800 mb-4 flex items-center gap-2">✨ ลงทะเบียนอุปกรณ์ชิ้นใหม่เข้าสต็อก</h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Serial Number</label>
-                        <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="w-full border border-slate-200 p-2.5 rounded-xl text-sm outline-none focus:border-indigo-400 bg-white shadow-sm font-mono" placeholder="ระบุ SN..." />
+                        <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="w-full border border-slate-200 p-2.5 rounded-xl text-sm outline-none focus:border-indigo-400 bg-white shadow-sm font-mono" placeholder="ระบุ SN (ถ้ามี)..." />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">รุ่น / โมเดล</label>
+                        <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className="w-full border border-slate-200 p-2.5 rounded-xl text-sm outline-none focus:border-indigo-400 bg-white shadow-sm" placeholder="ระบุรุ่น..." />
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">ราคา (บาท)</label>
@@ -385,10 +631,14 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">วันที่หมด Warranty</label>
                         <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="w-full border border-slate-200 p-2.5 rounded-xl text-sm outline-none focus:border-indigo-400 bg-white shadow-sm text-slate-600" />
                       </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">จำนวน (ชิ้น)</label>
+                        <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="w-full border border-slate-200 p-2.5 rounded-xl text-sm outline-none focus:border-indigo-400 bg-white shadow-sm" placeholder="1" />
+                      </div>
                     </div>
                     <div className="flex justify-end gap-2 pt-2 border-t border-indigo-100">
                       <button onClick={() => setIsAddingNew(false)} className="px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm">ยกเลิก</button>
-                      <button onClick={handleAddNewPiece} disabled={isSavingItem} className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-md disabled:opacity-50">
+                      <button onClick={handleAddNewPiece} disabled={isSavingItem} className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-md disabled:opacity-50 flex items-center gap-2">
                         {isSavingItem ? 'กำลังบันทึก...' : 'บันทึกเข้าสต็อก'}
                       </button>
                     </div>
@@ -403,6 +653,13 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                         className="p-4 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors gap-3"
                       >
                         <div className="flex items-center gap-3">
+                          <input 
+                            type="checkbox"
+                            checked={selectedItemsForDelete.includes(item.id)}
+                            onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
+                          />
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm shrink-0 ${item.type === 'available' ? 'bg-emerald-100 text-emerald-600' : item.type === 'assigned' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>{index + 1}</div>
                           <div>
                             <p className="font-bold text-slate-800 text-sm">
@@ -416,7 +673,23 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                             <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="px-4 py-1.5 rounded-lg text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-600 hover:text-white transition-colors">เบิกจ่าย</button>
                           ) : item.type === 'assigned' ? (
                             <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name }); }} className="px-4 py-1.5 rounded-lg text-xs font-bold border bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-600 hover:text-white transition-colors">รับคืน</button>
-                          ) : <span className="px-3 py-1 rounded-lg text-xs font-bold border bg-red-50 text-red-600 border-red-200">{item.status}</span>}
+                          ) : (
+                            <button onClick={(e) => { 
+                              e.stopPropagation(); 
+                              setRepairModal({ 
+                                isOpen: true, 
+                                assetId: currentAssetDetail.id, 
+                                assetName: `${currentAssetDetail.name} (SN: ${item.sn || 'ไม่ระบุ'})`, 
+                                maxRepair: 1, 
+                                brokenIndex: item.originalIndex 
+                              }); 
+                              setRepairQuantity(1); 
+                              setRepairRemarks(''); 
+                            }} className="px-4 py-1.5 rounded-lg text-xs font-bold border bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-600 hover:text-white transition-colors flex items-center gap-1.5">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                              นำกลับเข้าคลัง
+                            </button>
+                          )}
                           <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-slate-400 transition-transform ${expandedItem === index ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         </div>
                       </div>
@@ -425,7 +698,7 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                         <div className="p-5 bg-slate-50 border-t border-slate-200 animate-in fade-in slide-in-from-top-2">
                           {editingItemId === item.id ? (
                             <div className="flex flex-col gap-3">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">ชื่ออุปกรณ์</label>
                                   <div className="w-full border border-slate-200 bg-slate-200/50 p-2.5 rounded-xl text-sm font-semibold text-slate-500 cursor-not-allowed">
@@ -433,11 +706,27 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                                   </div>
                                 </div>
                                 <div>
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">รุ่น / โมเดล</label>
+                                  <input 
+                                    type="text" value={tempModelValue} onChange={(e) => setTempModelValue(e.target.value)}
+                                    className="w-full border border-indigo-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner bg-white"
+                                    placeholder="ระบุรุ่น..."
+                                  />
+                                </div>
+                                <div>
                                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">ราคา/ชิ้น</label>
                                   <input 
                                     type="number" value={tempCostValue} onChange={(e) => setTempCostValue(e.target.value)}
                                     className="w-full border border-indigo-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner bg-white"
                                     placeholder={item.itemCost || '0'}
+                                  />
+                                </div>
+                                <div className="sm:col-span-1">
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Serial Number อุปกรณ์</label>
+                                  <input 
+                                    type="text" value={tempSNValue} onChange={(e) => setTempSNValue(e.target.value)}
+                                    className="w-full border border-indigo-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-mono shadow-inner bg-white"
+                                    placeholder="กรอก Serial Number..." autoFocus
                                   />
                                 </div>
                                 <div>
@@ -454,14 +743,6 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                                     className="w-full border border-indigo-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner bg-white text-slate-600"
                                   />
                                 </div>
-                                <div className="sm:col-span-2">
-                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Serial Number อุปกรณ์</label>
-                                  <input 
-                                    type="text" value={tempSNValue} onChange={(e) => setTempSNValue(e.target.value)}
-                                    className="w-full border border-indigo-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-mono shadow-inner bg-white"
-                                    placeholder="กรอก Serial Number..." autoFocus
-                                  />
-                                </div>
                               </div>
                               <div className="flex items-center gap-2 justify-end mt-2 border-t border-slate-200 pt-3">
                                 <button onClick={() => setEditingItemId(null)} className="bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors">ยกเลิก</button>
@@ -471,17 +752,19 @@ Own:${currentAssetDetail.assignedName || '-'}`;
                               </div>
                             </div>
                           ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              <div><span className="block text-xs font-bold text-slate-500 mb-1">รุ่น / โมเดล</span><span className="text-sm font-medium text-slate-700">{item.model || '-'}</span></div>
                               <div><span className="block text-xs font-bold text-slate-500 mb-1">ราคา/ชิ้น</span><span className="text-sm font-semibold text-emerald-600">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
                               <div><span className="block text-xs font-bold text-slate-500 mb-1">Serial Number</span><span className="text-sm font-mono text-slate-800 bg-white border border-slate-200 px-2.5 py-1 rounded shadow-sm">{item.sn || 'ยังไม่ระบุ'}</span></div>
                               <div><span className="block text-xs font-bold text-slate-500 mb-1">วันที่ซื้อ</span><span className="text-sm font-medium text-slate-700">{item.purchaseDate || '-'}</span></div>
-                              <div><span className="block text-xs font-bold text-slate-500 mb-1">วันที่หมด Warranty</span><span className="text-sm font-medium text-slate-700">{item.warrantyDate || '-'}</span></div>
+                              <div className="sm:col-span-2"><span className="block text-xs font-bold text-slate-500 mb-1">วันที่หมด Warranty</span><span className="text-sm font-medium text-slate-700">{item.warrantyDate || '-'}</span></div>
                               
-                              <div className="col-span-1 sm:col-span-2 mt-2 pt-3 border-t border-slate-200 flex justify-end">
+                              <div className="col-span-1 sm:col-span-3 mt-2 pt-3 border-t border-slate-200 flex justify-end">
                                 <button 
                                   onClick={() => { 
                                     setEditingItemId(item.id); 
                                     setTempSNValue(item.sn); 
+                                    setTempModelValue(item.model);
                                     setTempCostValue(item.itemCost);
                                     setTempPurchaseDateValue(item.purchaseDate);
                                     setTempWarrantyDateValue(item.warrantyDate);
@@ -505,9 +788,6 @@ Own:${currentAssetDetail.assignedName || '-'}`;
         </div>
         
         <div className="p-5 md:p-6 bg-slate-50 flex flex-wrap justify-end gap-3 border-t border-slate-200 shrink-0">
-           {selectedAssetCategory === 'accessories' && (currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))) > 0 && (
-              <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> เบิกจ่าย (ไม่มี SN)</button>
-           )}
            {selectedAssetCategory === 'assets' && (
              (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
                <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> เบิกจ่าย</button>

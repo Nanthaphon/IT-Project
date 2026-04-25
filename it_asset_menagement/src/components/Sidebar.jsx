@@ -1,7 +1,7 @@
 import React from 'react';
 
 // รับค่า activeMenu และ setActiveMenu ผ่าน props มาจาก App.jsx
-export default function Sidebar({ activeMenu, setActiveMenu }) {
+export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword }) {
   return (
     <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-10 flex-shrink-0">
       <div className="p-4 md:p-6 text-left md:text-center border-b border-slate-800 flex justify-between items-center md:block">
@@ -69,7 +69,7 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
           <span className="font-semibold text-sm md:text-base">ข้อมูลพนักงาน</span>
         </button>
 
-        <button 
+        <button
           onClick={() => setActiveMenu('repairs')}
           className={`w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 ${
             activeMenu === 'repairs' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
@@ -77,6 +77,14 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
         >
           <span className="mr-2 md:mr-3 text-lg md:text-xl">🔧</span>
           <span className="font-semibold text-sm md:text-base">แจ้งซ่อม</span>
+        </button>
+
+        <button
+          onClick={onResetPassword}
+          className="w-auto md:w-full flex items-center p-2 md:p-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-amber-500/10 hover:text-amber-400"
+        >
+          <span className="mr-2 md:mr-3 text-lg md:text-xl">🔒</span>
+          <span className="font-semibold text-sm md:text-base">เปลี่ยนรหัสผ่าน</span>
         </button>
 
       </nav>

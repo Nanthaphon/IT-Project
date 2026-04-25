@@ -5,7 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 export default function AssetDetailsModal({
   selectedAssetDetail, setSelectedAssetDetail, selectedAssetCategory, setSelectedAssetCategory,
   accessories, assets, licenses, setCheckoutModal, setReturnModal, handleCheckin, openEditLicenseModal, openEditAssetModal,
-  setRepairModal, setRepairQuantity, setRepairRemarks
+  setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert
 }) {
   const [expandedItem, setExpandedItem] = useState(null); 
   const [editingItemId, setEditingItemId] = useState(null); 
@@ -22,7 +22,8 @@ export default function AssetDetailsModal({
   const [showLabelPreview, setShowLabelPreview] = useState(false);
 
   const [selectedItemsForDelete, setSelectedItemsForDelete] = useState([]);
-  
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const [isImportingCSV, setIsImportingCSV] = useState(false);
 
   if (!selectedAssetDetail) return null;
@@ -210,62 +211,51 @@ export default function AssetDetailsModal({
     }
   };
 
-  const handleDeleteSelectedItems = async () => {
-    if (!window.confirm(`คุณต้องการลบรายการย่อยที่เลือกจำนวน ${selectedItemsForDelete.length} รายการออกจากระบบใช่หรือไม่?`)) return;
-
-    if (isSavingItem) return;
-    setIsSavingItem(true);
-
-    try {
-      const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
-
-      const availIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('avail-')).map(id => parseInt(id.replace('avail-', '')));
-      const brokenIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('broken-')).map(id => parseInt(id.replace('broken-', '')));
-      const assignIdsToDelete = selectedItemsForDelete.filter(id => id.startsWith('assign-')).map(id => id.replace('assign-', ''));
-
-      const newAvailableSNs = (currentAssetDetail.availableSNs || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-      const newAvailableModels = (currentAssetDetail.availableModels || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-      const newAvailableCosts = (currentAssetDetail.availableCosts || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-      const newAvailablePurchaseDates = (currentAssetDetail.availablePurchaseDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-      const newAvailableWarrantyDates = (currentAssetDetail.availableWarrantyDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-
-      const newBrokenSNs = (currentAssetDetail.brokenSNs || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-      const newBrokenModels = (currentAssetDetail.brokenModels || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-      const newBrokenCosts = (currentAssetDetail.brokenCosts || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-      const newBrokenPurchaseDates = (currentAssetDetail.brokenPurchaseDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-      const newBrokenWarrantyDates = (currentAssetDetail.brokenWarrantyDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-
-      const newAssignees = (currentAssetDetail.assignees || []).filter(a => !assignIdsToDelete.includes(a.checkoutId));
-
-      const totalDeleted = selectedItemsForDelete.length;
-      const newQuantity = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - totalDeleted);
-      const newBrokenQuantity = Math.max(0, (Number(currentAssetDetail.brokenQuantity) || 0) - brokenIndicesToDelete.length);
-
-      await updateDoc(docRef, {
-        quantity: newQuantity,
-        brokenQuantity: newBrokenQuantity,
-        availableSNs: newAvailableSNs,
-        availableModels: newAvailableModels,
-        availableCosts: newAvailableCosts,
-        availablePurchaseDates: newAvailablePurchaseDates,
-        availableWarrantyDates: newAvailableWarrantyDates,
-        brokenSNs: newBrokenSNs,
-        brokenModels: newBrokenModels,
-        brokenCosts: newBrokenCosts,
-        brokenPurchaseDates: newBrokenPurchaseDates,
-        brokenWarrantyDates: newBrokenWarrantyDates,
-        assignees: newAssignees
-      });
-
-      setSelectedItemsForDelete([]); 
-      setExpandedItem(null); 
-      setEditingItemId(null);
-    } catch (error) {
-      console.error("Error deleting items:", error);
-      alert("เกิดข้อผิดพลาดในการลบรายการ: " + error.message);
-    } finally {
-      setIsSavingItem(false);
-    }
+  const handleDeleteSelectedItems = () => {
+    showConfirm(
+      'ยืนยันการลบรายการย่อย',
+      `คุณต้องการลบรายการย่อยที่เลือกจำนวน ${selectedItemsForDelete.length} รายการออกจากระบบใช่หรือไม่?`,
+      async () => {
+        if (isSavingItem) return;
+        setIsSavingItem(true);
+        try {
+          const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
+          const availIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('avail-')).map(id => parseInt(id.replace('avail-', '')));
+          const brokenIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('broken-')).map(id => parseInt(id.replace('broken-', '')));
+          const assignIdsToDelete = selectedItemsForDelete.filter(id => id.startsWith('assign-')).map(id => id.replace('assign-', ''));
+          const newAvailableSNs = (currentAssetDetail.availableSNs || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+          const newAvailableModels = (currentAssetDetail.availableModels || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+          const newAvailableCosts = (currentAssetDetail.availableCosts || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+          const newAvailablePurchaseDates = (currentAssetDetail.availablePurchaseDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+          const newAvailableWarrantyDates = (currentAssetDetail.availableWarrantyDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+          const newBrokenSNs = (currentAssetDetail.brokenSNs || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+          const newBrokenModels = (currentAssetDetail.brokenModels || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+          const newBrokenCosts = (currentAssetDetail.brokenCosts || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+          const newBrokenPurchaseDates = (currentAssetDetail.brokenPurchaseDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+          const newBrokenWarrantyDates = (currentAssetDetail.brokenWarrantyDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+          const newAssignees = (currentAssetDetail.assignees || []).filter(a => !assignIdsToDelete.includes(a.checkoutId));
+          const totalDeleted = selectedItemsForDelete.length;
+          const newQuantity = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - totalDeleted);
+          const newBrokenQuantity = Math.max(0, (Number(currentAssetDetail.brokenQuantity) || 0) - brokenIndicesToDelete.length);
+          await updateDoc(docRef, {
+            quantity: newQuantity, brokenQuantity: newBrokenQuantity,
+            availableSNs: newAvailableSNs, availableModels: newAvailableModels, availableCosts: newAvailableCosts,
+            availablePurchaseDates: newAvailablePurchaseDates, availableWarrantyDates: newAvailableWarrantyDates,
+            brokenSNs: newBrokenSNs, brokenModels: newBrokenModels, brokenCosts: newBrokenCosts,
+            brokenPurchaseDates: newBrokenPurchaseDates, brokenWarrantyDates: newBrokenWarrantyDates,
+            assignees: newAssignees
+          });
+          setSelectedItemsForDelete([]);
+          setExpandedItem(null);
+          setEditingItemId(null);
+        } catch (error) {
+          setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: 'เกิดข้อผิดพลาดในการลบรายการ: ' + error.message, type: 'error' });
+        } finally {
+          setIsSavingItem(false);
+        }
+      },
+      { confirmText: 'ยืนยันลบ', icon: 'trash' }
+    );
   };
 
   const handleDownloadPieceTemplate = () => {
@@ -288,7 +278,7 @@ export default function AssetDetailsModal({
       const text = event.target.result;
       const rows = text.split('\n').filter(row => row.trim() !== '');
       if (rows.length <= 1) {
-        alert('ไม่พบข้อมูลในไฟล์ CSV (กรุณาใส่ข้อมูลใต้หัวข้อ)');
+        setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: 'ไม่พบข้อมูลในไฟล์ CSV (กรุณาใส่ข้อมูลใต้หัวข้อ)', type: 'error' });
         e.target.value = null;
         return;
       }
@@ -309,49 +299,45 @@ export default function AssetDetailsModal({
         newWarrantyDates.push(cols[4] || '');
       });
 
-      if(window.confirm(`พบข้อมูลจำนวน ${dataRows.length} รายการ ต้องการนำเข้าใช่หรือไม่?`)) {
-         setIsSavingItem(true);
-         try {
+      showConfirm(
+        'ยืนยันการนำเข้าข้อมูล',
+        `พบข้อมูลจำนวน ${dataRows.length} รายการ ต้องการนำเข้าใช่หรือไม่?`,
+        async () => {
+          setIsSavingItem(true);
+          try {
             const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
             const currentQty = Number(currentAssetDetail.quantity || 0);
-            
             const availableCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
             const updatedAvailableSNs = [...(currentAssetDetail.availableSNs || [])];
             const updatedAvailableModels = [...(currentAssetDetail.availableModels || [])];
             const updatedAvailableCosts = [...(currentAssetDetail.availableCosts || [])];
             const updatedAvailablePurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
             const updatedAvailableWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
-
             while (updatedAvailableSNs.length < availableCount) updatedAvailableSNs.push('');
             while (updatedAvailableModels.length < availableCount) updatedAvailableModels.push('');
             while (updatedAvailableCosts.length < availableCount) updatedAvailableCosts.push('');
             while (updatedAvailablePurchaseDates.length < availableCount) updatedAvailablePurchaseDates.push('');
             while (updatedAvailableWarrantyDates.length < availableCount) updatedAvailableWarrantyDates.push('');
-
             updatedAvailableSNs.push(...newSNs);
             updatedAvailableModels.push(...newModels);
             updatedAvailableCosts.push(...newCosts);
             updatedAvailablePurchaseDates.push(...newPurchaseDates);
             updatedAvailableWarrantyDates.push(...newWarrantyDates);
-
             await updateDoc(docRef, {
               quantity: currentQty + dataRows.length,
-              availableSNs: updatedAvailableSNs,
-              availableModels: updatedAvailableModels,
-              availableCosts: updatedAvailableCosts,
-              availablePurchaseDates: updatedAvailablePurchaseDates,
-              availableWarrantyDates: updatedAvailableWarrantyDates
+              availableSNs: updatedAvailableSNs, availableModels: updatedAvailableModels, availableCosts: updatedAvailableCosts,
+              availablePurchaseDates: updatedAvailablePurchaseDates, availableWarrantyDates: updatedAvailableWarrantyDates
             });
-            
             setIsImportingCSV(false);
-            alert('นำเข้าข้อมูลสำเร็จ!');
-         } catch (err) {
-            console.error(err);
-            alert('เกิดข้อผิดพลาดในการนำเข้า: ' + err.message);
-         } finally {
+            setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: 'นำเข้าข้อมูลรายการย่อยเรียบร้อยแล้ว', type: 'success' });
+          } catch (err) {
+            setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: 'เกิดข้อผิดพลาดในการนำเข้า: ' + err.message, type: 'error' });
+          } finally {
             setIsSavingItem(false);
-         }
-      }
+          }
+        },
+        { confirmText: 'นำเข้า', icon: 'import' }
+      );
       e.target.value = null;
     };
     reader.readAsText(file);

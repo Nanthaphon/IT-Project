@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from './firebase'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import ResetPasswordModal from './components/ResetPasswordModal';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import Sidebar from './components/Sidebar';
 import DashboardStats from './components/DashboardStats';
@@ -16,6 +17,7 @@ import ImportModal from './components/ImportModal';
 import ReturnModal from './components/ReturnModal';
 import RepairModal from './components/RepairModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
+import ConfirmModal from './components/ConfirmModal';
 import LoginView from './components/LoginView';
 import StaffView from './components/StaffView';
 
@@ -91,6 +93,14 @@ function App() {
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairRemarks, setRepairRemarks] = useState('');
   const [confirmDeleteModal, setConfirmDeleteModal] = useState({ isOpen: false, id: null, collectionName: null });
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: 'ยืนยัน', cancelText: 'ยกเลิก', icon: 'warning' });
+  const [resetPasswordModal, setResetPasswordModal] = useState(false);
+
+  const showConfirm = (title, message, onConfirm, opts = {}) => {
+    setConfirmModal({ isOpen: true, title, message, onConfirm, confirmText: opts.confirmText || 'ยืนยัน', cancelText: opts.cancelText || 'ยกเลิก', icon: opts.icon || 'warning' });
+  };
+  const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false, onConfirm: null }));
+  const handleConfirmModalOk = async () => { const fn = confirmModal.onConfirm; closeConfirmModal(); if (fn) await fn(); };
 
   const [accFilterType, setAccFilterType] = useState('ทั้งหมด');
   const [assetFilterType, setAssetFilterType] = useState('ทั้งหมด'); 
@@ -198,11 +208,16 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
-  const handleStaffDeleteRepair = async (id) => {
-    if (window.confirm('คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?')) {
-      try { await deleteDoc(doc(db, 'repair_requests', id)); setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบรายการแจ้งปัญหาของคุณเรียบร้อยแล้ว', type: 'success' }); } 
-      catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
-    }
+  const handleStaffDeleteRepair = (id) => {
+    showConfirm(
+      'ยืนยันการยกเลิก',
+      'คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?',
+      async () => {
+        try { await deleteDoc(doc(db, 'repair_requests', id)); setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบรายการแจ้งปัญหาของคุณเรียบร้อยแล้ว', type: 'success' }); }
+        catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+      },
+      { confirmText: 'ยืนยันลบ', icon: 'trash' }
+    );
   };
 
   const handleStaffUpdateRepair = async (e) => {
@@ -219,11 +234,16 @@ function App() {
     catch (error) { setCustomAlert({ isOpen: true, title: 'อัปเดตผิดพลาด', message: error.message, type: 'error' }); }
   };
 
-  const handleDeleteRepairRequest = async (id) => {
-    if (window.confirm('คุณต้องการลบรายการนี้ออกจากระบบใช่หรือไม่?')) {
-      try { await deleteDoc(doc(db, 'repair_requests', id)); } 
-      catch (error) { setCustomAlert({ isOpen: true, title: 'ลบผิดพลาด', message: error.message, type: 'error' }); }
-    }
+  const handleDeleteRepairRequest = (id) => {
+    showConfirm(
+      'ยืนยันการลบ',
+      'คุณต้องการลบรายการนี้ออกจากระบบใช่หรือไม่?',
+      async () => {
+        try { await deleteDoc(doc(db, 'repair_requests', id)); }
+        catch (error) { setCustomAlert({ isOpen: true, title: 'ลบผิดพลาด', message: error.message, type: 'error' }); }
+      },
+      { confirmText: 'ยืนยันลบ', icon: 'trash' }
+    );
   };
 
   const handleAdd = async (e) => {
@@ -390,26 +410,31 @@ function App() {
         e.target.value = null; return;
       }
       const dataRows = rows.slice(1);
-      if (window.confirm(`พบข้อมูลจำนวน ${dataRows.length} รายการ ต้องการนำเข้าใช่หรือไม่?`)) {
-        try {
-          for (let i = 0; i < dataRows.length; i++) {
-            const cols = dataRows[i].split(',').map(col => col.replace(/^"|"$/g, '').trim());
-            if (activeMenu === 'employees') {
-              await addDoc(collection(db, 'employees'), { empId: cols[0]||'', fullName: cols[1]||'', fullNameEng: cols[2]||'', nickname: cols[3]||'', phone: cols[4]||'', email: cols[5]||'', company: cols[6]||'', department: cols[7]||'', position: cols[8]||'', manager: cols[9]||'', createdAt: serverTimestamp() });
-            } else if (activeMenu === 'assets') {
-              await addDoc(collection(db, 'assets'), { name: cols[0]||'', type: cols[1]||'คอมพิวเตอร์', assetTag: cols[2]||'', sn: cols[3]||'', model: cols[4]||'', company: cols[5]||'', department: cols[6]||'DX', vendor: cols[7]||'', cost: cols[8]||'', purchaseDate: cols[9]||'', warrantyDate: cols[10]||'', status: 'พร้อมใช้งาน', createdAt: serverTimestamp() });
-            } else if (activeMenu === 'licenses') {
-              await addDoc(collection(db, 'licenses'), { name: cols[0]||'', productKey: cols[1]||'', keyCode: cols[2]||'', supplier: cols[3]||'', cost: cols[4]||'', purchaseDate: cols[5]||'', expirationDate: cols[6]||'', status: 'พร้อมใช้งาน', createdAt: serverTimestamp() });
-            } else if (activeMenu === 'accessories') {
-              await addDoc(collection(db, 'accessories'), { name: cols[0]||'', type: cols[1]||'อื่นๆ', quantity: Number(cols[2]||0), brokenQuantity: 0, status: 'พร้อมใช้งาน', createdAt: serverTimestamp() });
+      showConfirm(
+        'ยืนยันการนำเข้าข้อมูล',
+        `พบข้อมูลจำนวน ${dataRows.length} รายการ ต้องการนำเข้าใช่หรือไม่?`,
+        async () => {
+          try {
+            for (let i = 0; i < dataRows.length; i++) {
+              const cols = dataRows[i].split(',').map(col => col.replace(/^"|"$/g, '').trim());
+              if (activeMenu === 'employees') {
+                await addDoc(collection(db, 'employees'), { empId: cols[0]||'', fullName: cols[1]||'', fullNameEng: cols[2]||'', nickname: cols[3]||'', phone: cols[4]||'', email: cols[5]||'', company: cols[6]||'', department: cols[7]||'', position: cols[8]||'', manager: cols[9]||'', createdAt: serverTimestamp() });
+              } else if (activeMenu === 'assets') {
+                await addDoc(collection(db, 'assets'), { name: cols[0]||'', type: cols[1]||'คอมพิวเตอร์', assetTag: cols[2]||'', sn: cols[3]||'', model: cols[4]||'', company: cols[5]||'', department: cols[6]||'DX', vendor: cols[7]||'', cost: cols[8]||'', purchaseDate: cols[9]||'', warrantyDate: cols[10]||'', status: 'พร้อมใช้งาน', createdAt: serverTimestamp() });
+              } else if (activeMenu === 'licenses') {
+                await addDoc(collection(db, 'licenses'), { name: cols[0]||'', productKey: cols[1]||'', keyCode: cols[2]||'', supplier: cols[3]||'', cost: cols[4]||'', purchaseDate: cols[5]||'', expirationDate: cols[6]||'', status: 'พร้อมใช้งาน', createdAt: serverTimestamp() });
+              } else if (activeMenu === 'accessories') {
+                await addDoc(collection(db, 'accessories'), { name: cols[0]||'', type: cols[1]||'อื่นๆ', quantity: Number(cols[2]||0), brokenQuantity: 0, status: 'พร้อมใช้งาน', createdAt: serverTimestamp() });
+              }
             }
+            setIsImportModalOpen(false);
+            setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: 'เพิ่มข้อมูลเข้าระบบเรียบร้อยแล้ว', type: 'success' });
+          } catch (err) {
+            setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: err.message, type: 'error' });
           }
-          setIsImportModalOpen(false);
-          setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: 'เพิ่มข้อมูลเข้าระบบเรียบร้อยแล้ว', type: 'success' });
-        } catch (err) {
-          setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: err.message, type: 'error' });
-        }
-      }
+        },
+        { confirmText: 'นำเข้า', icon: 'import' }
+      );
       e.target.value = null;
     };
     reader.readAsText(file);
@@ -538,22 +563,26 @@ function App() {
     }
   };
 
-  const handleCheckin = async (id, collectionName) => {
-    if(window.confirm("ต้องการรับคืนรายการนี้ใช่หรือไม่?")) {
-      try {
-        const itemArray = collectionName === 'assets' ? assets : licenses;
-        const itemToReturn = itemArray.find(a => a.id === id);
-        const empId = itemToReturn?.assignedTo;
-
-        await updateDoc(doc(db, collectionName, id), { status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null });
-        if (empId) {
-          const txCollection = collectionName === 'assets' ? 'assets_transactions' : 'licenses_transactions';
-          await addDoc(collection(db, txCollection), {
-            empId: empId, assetName: itemToReturn ? itemToReturn.name : '-', category: collectionName, action: 'รับคืน', condition: 'ปกติ', remarks: '-', timestamp: Date.now()
-          });
-        }
-      } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
-    }
+  const handleCheckin = (id, collectionName) => {
+    showConfirm(
+      'ยืนยันการรับคืน',
+      'ต้องการรับคืนรายการนี้ใช่หรือไม่?',
+      async () => {
+        try {
+          const itemArray = collectionName === 'assets' ? assets : licenses;
+          const itemToReturn = itemArray.find(a => a.id === id);
+          const empId = itemToReturn?.assignedTo;
+          await updateDoc(doc(db, collectionName, id), { status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null });
+          if (empId) {
+            const txCollection = collectionName === 'assets' ? 'assets_transactions' : 'licenses_transactions';
+            await addDoc(collection(db, txCollection), {
+              empId: empId, assetName: itemToReturn ? itemToReturn.name : '-', category: collectionName, action: 'รับคืน', condition: 'ปกติ', remarks: '-', timestamp: Date.now()
+            });
+          }
+        } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+      },
+      { confirmText: 'รับคืน', icon: 'return' }
+    );
   };
 
   const handleConfirmReturn = async (e) => {
@@ -772,7 +801,7 @@ function App() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-800" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
-      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
+      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} />
       <main className="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
         
         <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 px-6 md:px-10 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 sticky top-0 shrink-0">
@@ -1043,7 +1072,7 @@ function App() {
       <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} />
       <CheckoutModal checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} />
       <EmployeeDetailsModal selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal} />
-      <AssetDetailsModal selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} accessories={accessories} assets={assets} licenses={licenses} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} handleCheckin={handleCheckin} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks} />
+      <AssetDetailsModal selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} accessories={accessories} assets={assets} licenses={licenses} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} handleCheckin={handleCheckin} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks} showConfirm={showConfirm} setCustomAlert={setCustomAlert} />
       <EditEmpModal editEmpModal={editEmpModal} setEditEmpModal={setEditEmpModal} handleUpdateEmployee={handleUpdateEmployee} handleEditEmpChange={handleEditEmpChange} />
       <EditAssetModal editAssetModal={editAssetModal} setEditAssetModal={setEditAssetModal} handleUpdateAsset={handleUpdateAsset} handleEditAssetChange={handleEditAssetChange} />
       <EditLicenseModal editLicenseModal={editLicenseModal} setEditLicenseModal={setEditLicenseModal} handleUpdateLicense={handleUpdateLicense} handleEditLicenseChange={handleEditLicenseChange} />
@@ -1051,6 +1080,13 @@ function App() {
       <ReturnModal returnModal={returnModal} setReturnModal={setReturnModal} returnCondition={returnCondition} setReturnCondition={setReturnCondition} returnRemarks={returnRemarks} setReturnRemarks={setReturnRemarks} handleConfirmReturn={handleConfirmReturn} />
       <RepairModal repairModal={repairModal} setRepairModal={setRepairModal} repairQuantity={repairQuantity} setRepairQuantity={setRepairQuantity} repairRemarks={repairRemarks} setRepairRemarks={setRepairRemarks} handleConfirmRepair={handleConfirmRepair} />
       <ConfirmDeleteModal confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete} />
+      <ConfirmModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} confirmText={confirmModal.confirmText} cancelText={confirmModal.cancelText} icon={confirmModal.icon} onConfirm={handleConfirmModalOk} onCancel={closeConfirmModal} />
+      <ResetPasswordModal
+        isOpen={resetPasswordModal}
+        onClose={() => setResetPasswordModal(false)}
+        onSuccess={(msg) => setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })}
+        onError={(msg) => setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })}
+      />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </div>
   );

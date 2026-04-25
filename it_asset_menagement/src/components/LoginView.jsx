@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { auth } from '../firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 export default function LoginView({
   showAdminLogin,
@@ -10,6 +12,31 @@ export default function LoginView({
   loginError,
   setLoginError,
 }) {
+  const [resetStatus, setResetStatus] = useState(null); // { type: 'success'|'error', message: '' }
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleForgotPassword = async () => {
+    const email = loginForm.username.trim();
+    if (!email) {
+      setResetStatus({ type: 'error', message: 'กรุณากรอก Email ในช่องด้านบนก่อน' });
+      return;
+    }
+    setResetLoading(true);
+    setResetStatus(null);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetStatus({ type: 'success', message: `ส่งลิงก์รีเซ็ตรหัสผ่านไปยัง ${email} แล้ว กรุณาตรวจสอบอีเมลของคุณ` });
+    } catch (error) {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+        setResetStatus({ type: 'error', message: 'ไม่พบบัญชีที่ใช้ Email นี้ กรุณาตรวจสอบอีกครั้ง' });
+      } else {
+        setResetStatus({ type: 'error', message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+      }
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
@@ -102,6 +129,26 @@ export default function LoginView({
               >
                 เข้าสู่ระบบ
               </button>
+
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={resetLoading}
+                className="w-full text-sm text-slate-400 hover:text-indigo-400 disabled:opacity-50 transition-colors text-center py-1"
+              >
+                {resetLoading ? 'กำลังส่งอีเมล...' : 'ลืมรหัสผ่าน?'}
+              </button>
+
+              {resetStatus && (
+                <div className={`flex items-start gap-2 text-sm font-medium px-4 py-3 rounded-xl ${
+                  resetStatus.type === 'success'
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                }`}>
+                  <span className="mt-0.5 shrink-0">{resetStatus.type === 'success' ? '✅' : '⚠️'}</span>
+                  <span>{resetStatus.message}</span>
+                </div>
+              )}
             </form>
           </div>
         )}

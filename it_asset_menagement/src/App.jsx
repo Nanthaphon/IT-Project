@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import ResetPasswordModal from './components/ResetPasswordModal';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import emailjs from '@emailjs/browser'; // นำเข้า EmailJS สำหรับส่งการแจ้งเตือน
+
+// Components
 import Sidebar from './components/Sidebar';
 import DashboardStats from './components/DashboardStats';
 import CustomAlert from './components/CustomAlert';
@@ -18,17 +20,17 @@ import ReturnModal from './components/ReturnModal';
 import RepairModal from './components/RepairModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import ConfirmModal from './components/ConfirmModal';
+import ResetPasswordModal from './components/ResetPasswordModal';
 import LoginView from './components/LoginView';
 import StaffView from './components/StaffView';
 
 function App() {
   const [authRole, setAuthRole] = useState(null);
-  // 'loading' = กำลังเช็ค auth state, null = ยังไม่ login
   const [authLoading, setAuthLoading] = useState(true);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
-
+  const [loginLoading, setLoginLoading] = useState(false);
   const [staffEmpIdInput, setStaffEmpIdInput] = useState('');
   const [currentStaff, setCurrentStaff] = useState(null);
   const [staffRepairForm, setStaffRepairForm] = useState({ assetName: '', issue: '' });
@@ -42,8 +44,12 @@ function App() {
   const [licenses, setLicenses] = useState([]); 
   const [repairRequests, setRepairRequests] = useState([]); 
 
+  const [officeSupplies, setOfficeSupplies] = useState([]);
+  const [supplyRequests, setSupplyRequests] = useState([]);
+
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]); 
+  const [selectedOfficeSupplyIds, setSelectedOfficeSupplyIds] = useState([]);
 
   const [name, setName] = useState('');
   const [type, setType] = useState('คอมพิวเตอร์');
@@ -51,6 +57,7 @@ function App() {
   const [purchaseDate, setPurchaseDate] = useState('');
   const [warrantyDate, setWarrantyDate] = useState('');
   const [quantity, setQuantity] = useState(1); 
+  const [unit, setUnit] = useState('ชิ้น'); 
   const [assetImage, setAssetImage] = useState(null); 
   const [assetDepartment, setAssetDepartment] = useState('DX');
 
@@ -96,6 +103,18 @@ function App() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: 'ยืนยัน', cancelText: 'ยกเลิก', icon: 'warning' });
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
 
+  // ✅ State สำหรับระบบ Dropdown แจ้งเตือน
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notifRef.current && !notifRef.current.contains(event.target)) setIsNotifOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [notifRef]);
+
   const showConfirm = (title, message, onConfirm, opts = {}) => {
     setConfirmModal({ isOpen: true, title, message, onConfirm, confirmText: opts.confirmText || 'ยืนยัน', cancelText: opts.cancelText || 'ยกเลิก', icon: opts.icon || 'warning' });
   };
@@ -107,20 +126,17 @@ function App() {
   const [assetFilterStatus, setAssetFilterStatus] = useState('ทั้งหมด'); 
   const [assetFilterDepartment, setAssetFilterDepartment] = useState('ทั้งหมด');
   const [repairFilterStatus, setRepairFilterStatus] = useState('ทั้งหมด'); 
+  const [supplyFilterStatus, setSupplyFilterStatus] = useState('ทั้งหมด');
+  const [repairFilterMonth, setRepairFilterMonth] = useState('ทั้งหมด'); 
+  const [supplyFilterMonth, setSupplyFilterMonth] = useState('ทั้งหมด');
   const [searchTerm, setSearchTerm] = useState('');
   const [transactions, setTransactions] = useState([]);
 
-  // ========================================================
-  // Firebase Auth State Listener
-  // ตรวจสอบว่า user ยัง login อยู่ไหมแม้จะ refresh หน้า
-  // ========================================================
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // มี user อยู่ใน session → set role เป็น admin
         setAuthRole('admin');
       } else {
-        // ไม่มี user → ถ้าเป็น staff ให้คงสถานะไว้, ถ้าเป็น admin ให้ reset
         setAuthRole(prev => prev === 'staff' ? prev : null);
       }
       setAuthLoading(false);
@@ -134,6 +150,8 @@ function App() {
     const unsubEmployees = onSnapshot(collection(db, 'employees'), (snapshot) => setEmployees(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubLicenses = onSnapshot(collection(db, 'licenses'), (snapshot) => setLicenses(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubRepairReqs = onSnapshot(collection(db, 'repair_requests'), (snapshot) => setRepairRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
+    const unsubOfficeSupplies = onSnapshot(collection(db, 'office_supplies'), (snapshot) => setOfficeSupplies(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
+    const unsubSupplyReqs = onSnapshot(collection(db, 'supply_requests'), (snapshot) => setSupplyRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
 
     let accData = []; let assetData = []; let licData = [];
     const updateTransactionsState = () => {
@@ -146,43 +164,39 @@ function App() {
     const unsubAssetTx = onSnapshot(collection(db, 'assets_transactions'), (snapshot) => { assetData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'assets', ...doc.data() })) || []; updateTransactionsState(); });
     const unsubLicTx = onSnapshot(collection(db, 'licenses_transactions'), (snapshot) => { licData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'licenses', ...doc.data() })) || []; updateTransactionsState(); });
 
-    return () => { unsubAssets(); unsubAccessories(); unsubEmployees(); unsubLicenses(); unsubRepairReqs(); unsubAccTx(); unsubAssetTx(); unsubLicTx(); };
+    return () => { unsubAssets(); unsubAccessories(); unsubEmployees(); unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); unsubAccTx(); unsubAssetTx(); unsubLicTx(); };
   }, []);
 
   useEffect(() => {
-    setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX');
+    setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX');
     setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
-    setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด');
-    setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); 
+    setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
+    setRepairFilterMonth('ทั้งหมด'); setSupplyFilterMonth('ทั้งหมด');
+    setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]);
+    
     if (activeMenu === 'assets') setType('คอมพิวเตอร์');
     else if (activeMenu === 'accessories') setType('เมาส์ (Mouse)');
+    else if (activeMenu === 'office_supplies') setType('เครื่องเขียน');
   }, [activeMenu]);
 
-  // ========================================================
-  // handleAdminLogin — ใช้ Firebase Auth แทน hardcode
-  // ========================================================
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
+    setLoginLoading(true);
     try {
       await signInWithEmailAndPassword(auth, loginForm.username, loginForm.password);
-      // onAuthStateChanged จะ set authRole('admin') ให้อัตโนมัติ
       setShowAdminLogin(false);
       setLoginForm({ username: '', password: '' });
     } catch (error) {
-      // แสดง error ผ่าน state แทน alert()
       setLoginError('Email หรือ Password ไม่ถูกต้อง');
+    } finally {
+      setLoginLoading(false);
     }
   };
 
-  // ========================================================
-  // handleLogout — sign out จาก Firebase Auth ด้วย
-  // ========================================================
   const handleLogout = async () => {
-    if (authRole === 'admin') {
-      await signOut(auth);
-    }
+    if (authRole === 'admin') await signOut(auth);
     setAuthRole(null);
     setCurrentStaff(null);
   };
@@ -203,15 +217,70 @@ function App() {
         empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department,
         assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp()
       });
+
+      try {
+        await emailjs.send(
+          'service_ri3q4ss',
+          'template_qzzmkqo',
+          {
+            request_type: 'แจ้งปัญหา IT',
+            emp_name: currentStaff.fullName,
+            emp_id: currentStaff.empId,
+            department: currentStaff.department || '-',
+            item_name: staffRepairForm.assetName,
+            details: staffRepairForm.issue,
+          },
+          'Y8fj0JAEUhLQcq9ig'
+        );
+      } catch (emailError) {
+        console.error("ส่งอีเมลไม่สำเร็จ:", emailError);
+      }
+
       setStaffRepairForm({ assetName: '', issue: '' });
       setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหาของคุณแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
+  const handleStaffSubmitSupplyRequest = async (supplyId, supplyName, reqQty, note) => {
+    try {
+      await addDoc(collection(db, 'supply_requests'), {
+        empId: currentStaff.empId, 
+        empName: currentStaff.fullName, 
+        department: currentStaff.department,
+        supplyId: supplyId,
+        supplyName: supplyName, 
+        requestedQty: Number(reqQty),
+        note: note, 
+        status: 'รอดำเนินการ', 
+        timestamp: Date.now(), 
+        createdAt: serverTimestamp()
+      });
+
+      try {
+        await emailjs.send(
+          'service_ri3q4ss',
+          'template_qzzmkqo',
+          {
+            request_type: 'ขอเบิกอุปกรณ์สำนักงาน',
+            emp_name: currentStaff.fullName,
+            emp_id: currentStaff.empId,
+            department: currentStaff.department || '-',
+            item_name: supplyName,
+            details: `จำนวน: ${reqQty} \nหมายเหตุ: ${note || '-'}`,
+          },
+          'Y8fj0JAEUhLQcq9ig'
+        );
+      } catch (emailError) {
+        console.error("ส่งอีเมลไม่สำเร็จ:", emailError);
+      }
+
+      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์สำนักงานเรียบร้อยแล้ว', type: 'success' });
+    } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+  };
+
   const handleStaffDeleteRepair = (id) => {
     showConfirm(
-      'ยืนยันการยกเลิก',
-      'คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?',
+      'ยืนยันการยกเลิก', 'คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?',
       async () => {
         try { await deleteDoc(doc(db, 'repair_requests', id)); setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบรายการแจ้งปัญหาของคุณเรียบร้อยแล้ว', type: 'success' }); }
         catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
@@ -236,8 +305,7 @@ function App() {
 
   const handleDeleteRepairRequest = (id) => {
     showConfirm(
-      'ยืนยันการลบ',
-      'คุณต้องการลบรายการนี้ออกจากระบบใช่หรือไม่?',
+      'ยืนยันการลบ', 'คุณต้องการลบรายการนี้ออกจากระบบใช่หรือไม่?',
       async () => {
         try { await deleteDoc(doc(db, 'repair_requests', id)); }
         catch (error) { setCustomAlert({ isOpen: true, title: 'ลบผิดพลาด', message: error.message, type: 'error' }); }
@@ -246,26 +314,57 @@ function App() {
     );
   };
 
+  const handleUpdateSupplyRequestStatus = async (req, newStatus) => {
+    try {
+      if (newStatus === 'อนุมัติแล้ว' && req.status !== 'อนุมัติแล้ว') {
+        const supplyItem = officeSupplies.find(s => s.id === req.supplyId);
+        if (!supplyItem || Number(supplyItem.quantity) < Number(req.requestedQty)) {
+          setCustomAlert({ isOpen: true, title: 'สต็อกไม่พอ!', message: 'อุปกรณ์ในคลังมีไม่พอให้เบิก กรุณาตรวจสอบสต็อก', type: 'error' });
+          return;
+        }
+        await updateDoc(doc(db, 'office_supplies', req.supplyId), {
+          quantity: Number(supplyItem.quantity) - Number(req.requestedQty)
+        });
+      } else if (req.status === 'อนุมัติแล้ว' && newStatus !== 'อนุมัติแล้ว') {
+         const supplyItem = officeSupplies.find(s => s.id === req.supplyId);
+         if (supplyItem) {
+           await updateDoc(doc(db, 'office_supplies', req.supplyId), {
+             quantity: Number(supplyItem.quantity) + Number(req.requestedQty)
+           });
+         }
+      }
+      await updateDoc(doc(db, 'supply_requests', req.id), { status: newStatus });
+    } catch (error) {
+      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
+    }
+  };
+
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    const collectionName = activeMenu === 'assets' ? 'assets' : 'accessories';
+    const collectionName = activeMenu === 'assets' ? 'assets' : activeMenu === 'office_supplies' ? 'office_supplies' : 'accessories';
     try {
-      const qtyToSave = activeMenu === 'accessories' ? 0 : 1;
+      const qtyToSave = activeMenu === 'accessories' ? 0 : Number(quantity);
 
-      await addDoc(collection(db, collectionName), {
-        name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', 
-        assignedTo: null, assignedName: null, image: assetImage || null,
-        department: activeMenu === 'assets' ? assetDepartment : null,
-        sn: activeMenu === 'assets' ? sn : null,
-        company: activeMenu === 'assets' ? company : null,
-        assetTag: activeMenu === 'assets' ? assetTag : null,
-        model: activeMenu === 'assets' ? model : null,
-        vendor: activeMenu === 'assets' ? vendor : null,
-        document: activeMenu === 'assets' ? assetDocument : null,
-        createdAt: serverTimestamp()
-      });
-      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setAssetImage(null); setAssetDepartment('DX');
+      if (activeMenu === 'office_supplies') {
+        await addDoc(collection(db, 'office_supplies'), {
+          name, type, quantity: qtyToSave, unit, status: 'พร้อมใช้งาน', image: assetImage || null, createdAt: serverTimestamp()
+        });
+      } else {
+        await addDoc(collection(db, collectionName), {
+          name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', 
+          assignedTo: null, assignedName: null, image: assetImage || null,
+          department: activeMenu === 'assets' ? assetDepartment : null,
+          sn: activeMenu === 'assets' ? sn : null,
+          company: activeMenu === 'assets' ? company : null,
+          assetTag: activeMenu === 'assets' ? assetTag : null,
+          model: activeMenu === 'assets' ? model : null,
+          vendor: activeMenu === 'assets' ? vendor : null,
+          document: activeMenu === 'assets' ? assetDocument : null,
+          createdAt: serverTimestamp()
+        });
+      }
+      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX');
       setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
       setIsAddModalOpen(false);
       setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
@@ -304,13 +403,11 @@ function App() {
     if (!id || !collectionName) return;
     try {
       const idsToDelete = Array.isArray(id) ? id : [id];
-
       let deletedEmpStringIds = [];
       if (collectionName === 'employees') {
         const deletedEmps = employees.filter(emp => idsToDelete.includes(emp.id));
         deletedEmpStringIds = deletedEmps.map(emp => String(emp.empId).toLowerCase());
       }
-
       for (const targetId of idsToDelete) { await deleteDoc(doc(db, collectionName, targetId)); }
       
       if (collectionName === 'employees') {
@@ -332,7 +429,7 @@ function App() {
         }
       }
       setConfirmDeleteModal({ isOpen: false, id: null, collectionName: null });
-      setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); 
+      setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]);
       setCustomAlert({ isOpen: true, title: 'ลบสำเร็จ!', message: 'ลบรายการออกจากระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
@@ -565,8 +662,7 @@ function App() {
 
   const handleCheckin = (id, collectionName) => {
     showConfirm(
-      'ยืนยันการรับคืน',
-      'ต้องการรับคืนรายการนี้ใช่หรือไม่?',
+      'ยืนยันการรับคืน', 'ต้องการรับคืนรายการนี้ใช่หรือไม่?',
       async () => {
         try {
           const itemArray = collectionName === 'assets' ? assets : licenses;
@@ -622,44 +718,28 @@ function App() {
         await updateDoc(doc(db, 'accessories', returnModal.assetId), updateData);
 
         await addDoc(collection(db, 'accessories_transactions'), {
-          empId: returnModal.empId,
-          empName: returnModal.empName,
-          assetName: returnModal.assetName,
-          category: 'accessories',
-          action: 'รับคืน',
-          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
-          remarks: returnRemarks.trim() || '-',
-          timestamp: Date.now()
+          empId: returnModal.empId, empName: returnModal.empName, assetName: returnModal.assetName,
+          category: 'accessories', action: 'รับคืน', condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+          remarks: returnRemarks.trim() || '-', timestamp: Date.now()
         });
 
       } else {
         await updateDoc(doc(db, 'assets', returnModal.assetId), {
           status: returnCondition === 'broken' ? 'ชำรุดเสียหาย' : 'พร้อมใช้งาน',
-          assignedTo: null,
-          assignedName: null
+          assignedTo: null, assignedName: null
         });
 
         await addDoc(collection(db, 'assets_transactions'), {
-          empId: returnModal.empId,
-          empName: returnModal.empName,
-          assetName: returnModal.assetName,
-          category: 'assets',
-          action: 'รับคืน',
-          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
-          remarks: returnRemarks.trim() || '-',
-          timestamp: Date.now()
+          empId: returnModal.empId, empName: returnModal.empName, assetName: returnModal.assetName,
+          category: 'assets', action: 'รับคืน', condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+          remarks: returnRemarks.trim() || '-', timestamp: Date.now()
         });
       }
 
       setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
-      setReturnCondition('good');
-      setReturnRemarks('');
+      setReturnCondition('good'); setReturnRemarks('');
       setCustomAlert({ isOpen: true, title: 'รับคืนสำเร็จ', message: 'รับคืนอุปกรณ์เข้าคลังเรียบร้อยแล้ว', type: 'success' });
-
-    } catch (error) {
-      console.error(error);
-      setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
-    }
+    } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' }); }
   };
 
   const handleConfirmRepair = async (e) => {
@@ -717,9 +797,7 @@ function App() {
         setRepairQuantity(1); setRepairRemarks('');
         setCustomAlert({ isOpen: true, title: 'นำกลับเข้าคลังสำเร็จ', message: `นำอุปกรณ์กลับเข้าคลังเรียบร้อยแล้ว`, type: 'success' });
       }
-    } catch (error) { 
-      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
-    }
+    } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
   };
 
   let baseData = [];
@@ -733,6 +811,7 @@ function App() {
   else if (activeMenu === 'licenses') baseData = licenses;
   else if (activeMenu === 'employees') baseData = employees;
   else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
+  else if (activeMenu === 'office_supplies') baseData = officeSupplies;
 
   let currentData = baseData;
   if (searchTerm.trim() !== '') {
@@ -743,23 +822,68 @@ function App() {
     });
   }
 
-  let currentRepairRequests = repairRequests;
-  if (repairFilterStatus !== 'ทั้งหมด') currentRepairRequests = repairRequests.filter(req => req.status === repairFilterStatus);
+  // ดึงรายชื่อเดือนที่มีการทำรายการออกมา
+  const getUniqueMonths = (data) => {
+    const months = new Set();
+    data.forEach(item => {
+      if (item.timestamp) {
+        const date = new Date(item.timestamp);
+        const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        months.add(monthStr);
+      }
+    });
+    return Array.from(months).sort().reverse(); // เรียงจากเดือนล่าสุดไปเก่าสุด
+  };
+
+  const formatMonthLabel = (monthStr) => {
+    if (!monthStr || monthStr === 'ทั้งหมด') return 'ทั้งหมด';
+    const [year, month] = monthStr.split('-');
+    const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+    return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(year, 10) + 543}`;
+  };
+
+  let currentRepairRequests = repairRequests.filter(req => {
+    const matchStatus = repairFilterStatus === 'ทั้งหมด' || req.status === repairFilterStatus;
+    let matchMonth = true;
+    if (repairFilterMonth !== 'ทั้งหมด') {
+      const date = new Date(req.timestamp);
+      const reqMonthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      matchMonth = reqMonthStr === repairFilterMonth;
+    }
+    return matchStatus && matchMonth;
+  });
+
+  let currentSupplyRequests = supplyRequests.filter(req => {
+    const matchStatus = supplyFilterStatus === 'ทั้งหมด' || req.status === supplyFilterStatus;
+    let matchMonth = true;
+    if (supplyFilterMonth !== 'ทั้งหมด') {
+      const date = new Date(req.timestamp);
+      const reqMonthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      matchMonth = reqMonthStr === supplyFilterMonth;
+    }
+    return matchStatus && matchMonth;
+  });
 
   const handleSelectEmployee = (e, id) => e.target.checked ? setSelectedEmployeeIds(prev => [...prev, id]) : setSelectedEmployeeIds(prev => prev.filter(empId => empId !== id));
   const handleSelectAllEmployees = (e) => e.target.checked ? setSelectedEmployeeIds(currentData.map(emp => emp.id)) : setSelectedEmployeeIds([]);
   const handleSelectAccessory = (e, id) => e.target.checked ? setSelectedAccessoryIds(prev => [...prev, id]) : setSelectedAccessoryIds(prev => prev.filter(itemId => itemId !== id));
   const handleSelectAllAccessories = (e) => e.target.checked ? setSelectedAccessoryIds(currentData.map(item => item.id)) : setSelectedAccessoryIds([]);
+  const handleSelectOfficeSupply = (e, id) => e.target.checked ? setSelectedOfficeSupplyIds(prev => [...prev, id]) : setSelectedOfficeSupplyIds(prev => prev.filter(itemId => itemId !== id));
+  const handleSelectAllOfficeSupplies = (e) => e.target.checked ? setSelectedOfficeSupplyIds(currentData.map(item => item.id)) : setSelectedOfficeSupplyIds([]);
 
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวมระบบ (Dashboard)' :
                     activeMenu === 'assets' ? 'ทรัพย์สิน IT หลัก' : 
                     activeMenu === 'licenses' ? 'โปรแกรม/License' : 
                     activeMenu === 'accessories' ? 'อุปกรณ์เสริม (Accessories)' : 
-                    activeMenu === 'repairs' ? 'แจ้งปัญหา IT' : 'ข้อมูลพนักงาน';
+                    activeMenu === 'repairs' ? 'แจ้งปัญหา IT' : 
+                    activeMenu === 'office_supplies' ? 'คลังอุปกรณ์สำนักงาน' : 
+                    activeMenu === 'supply_requests' ? 'คำขอเบิกอุปกรณ์' : 'ข้อมูลพนักงาน';
 
-  // ========================================================
-  // Loading screen — รอ Firebase เช็ค auth state ก่อน
-  // ========================================================
+  // ✅ คำนวณจำนวนการแจ้งเตือนที่รอดำเนินการ
+  const pendingRepairsCount = repairRequests.filter(req => req.status === 'รอดำเนินการ').length;
+  const pendingSuppliesCount = supplyRequests.filter(req => req.status === 'รอดำเนินการ').length;
+  const totalPendingCount = pendingRepairsCount + pendingSuppliesCount;
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -783,6 +907,7 @@ function App() {
           handleAdminLogin={handleAdminLogin}
           loginError={loginError}
           setLoginError={setLoginError}
+          loginLoading={loginLoading} 
         />
         <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       </>
@@ -792,7 +917,15 @@ function App() {
   if (authRole === 'staff') {
     return (
       <>
-        <StaffView setAuthRole={setAuthRole} currentStaff={currentStaff} setCurrentStaff={setCurrentStaff} staffEmpIdInput={staffEmpIdInput} setStaffEmpIdInput={setStaffEmpIdInput} handleStaffLogin={handleStaffLogin} staffRepairForm={staffRepairForm} setStaffRepairForm={setStaffRepairForm} handleSubmitRepairRequest={handleSubmitRepairRequest} repairRequests={repairRequests} editStaffRepairModal={editStaffRepairModal} setEditStaffRepairModal={setEditStaffRepairModal} handleStaffUpdateRepair={handleStaffUpdateRepair} handleStaffDeleteRepair={handleStaffDeleteRepair} />
+        <StaffView 
+          setAuthRole={setAuthRole} currentStaff={currentStaff} setCurrentStaff={setCurrentStaff} 
+          staffEmpIdInput={staffEmpIdInput} setStaffEmpIdInput={setStaffEmpIdInput} handleStaffLogin={handleStaffLogin} 
+          staffRepairForm={staffRepairForm} setStaffRepairForm={setStaffRepairForm} handleSubmitRepairRequest={handleSubmitRepairRequest} 
+          repairRequests={repairRequests} editStaffRepairModal={editStaffRepairModal} setEditStaffRepairModal={setEditStaffRepairModal} 
+          handleStaffUpdateRepair={handleStaffUpdateRepair} handleStaffDeleteRepair={handleStaffDeleteRepair}
+          officeSupplies={officeSupplies} supplyRequests={supplyRequests} handleStaffSubmitSupplyRequest={handleStaffSubmitSupplyRequest}
+          assets={assets} accessories={accessories} licenses={licenses} 
+        />
         <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       </>
     );
@@ -801,17 +934,79 @@ function App() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-800" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
-      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} />
+      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} authRole={authRole} />
+      
       <main className="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
-        
         <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 px-6 md:px-10 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 sticky top-0 shrink-0">
           <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">{menuTitle}</h2>
           <div className="flex items-center gap-3">
-            <div className="text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
+            
+            {/* ✅ ไอคอนแจ้งเตือนรูปกระดิ่ง พร้อม Dropdown */}
+            <div className="relative" ref={notifRef}>
+              <div 
+                className="cursor-pointer flex items-center justify-center p-2.5 bg-white border border-slate-200 rounded-full hover:bg-slate-100 transition-colors shadow-sm"
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                title={totalPendingCount > 0 ? `มีรายการรอดำเนินการ ${totalPendingCount} รายการ` : 'ไม่มีการแจ้งเตือนใหม่'}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${totalPendingCount > 0 ? 'text-amber-500' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {totalPendingCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm border-2 border-white animate-bounce">
+                    {totalPendingCount}
+                  </span>
+                )}
+              </div>
+
+              {/* Dropdown แจ้งเตือน */}
+              {isNotifOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                    <h4 className="text-sm font-bold text-slate-800">รายการรอดำเนินการ</h4>
+                    <span className="text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">{totalPendingCount}</span>
+                  </div>
+                  <div className="flex flex-col max-h-[300px] overflow-y-auto">
+                    {totalPendingCount === 0 ? (
+                      <div className="px-4 py-6 text-center text-slate-400 text-sm font-medium">
+                        ไม่มีรายการใหม่ 🎉
+                      </div>
+                    ) : (
+                      <>
+                        {pendingRepairsCount > 0 && (
+                          <button 
+                            onClick={() => { setActiveMenu('repairs'); setIsNotifOpen(false); }}
+                            className="px-4 py-3 text-left hover:bg-indigo-50 transition-colors border-b border-slate-50 flex items-start gap-3"
+                          >
+                            <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">🔧</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">แจ้งปัญหา IT</p>
+                              <p className="text-xs text-indigo-600 font-medium mt-0.5">{pendingRepairsCount} คิวใหม่</p>
+                            </div>
+                          </button>
+                        )}
+                        {pendingSuppliesCount > 0 && (
+                          <button 
+                            onClick={() => { setActiveMenu('supply_requests'); setIsNotifOpen(false); }}
+                            className="px-4 py-3 text-left hover:bg-emerald-50 transition-colors flex items-start gap-3"
+                          >
+                            <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">📝</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">ขอเบิกอุปกรณ์สำนักงาน</p>
+                              <p className="text-xs text-emerald-600 font-medium mt-0.5">{pendingSuppliesCount} คิวใหม่</p>
+                            </div>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-full shadow-sm flex items-center gap-2 hidden sm:flex">
               <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
               {activeMenu === 'dashboard' ? `ข้อมูลในระบบทั้งหมด ${assets.length + licenses.length + accessories.length + employees.length} รายการ` : `มีรายการทั้งหมด ${currentData.length} รายการ`}
             </div>
-            {/* ใช้ handleLogout แทน setAuthRole(null) โดยตรง */}
             <button onClick={handleLogout} className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow-sm whitespace-nowrap">ออกจากระบบ</button>
           </div>
         </header>
@@ -824,6 +1019,12 @@ function App() {
               <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-100 pb-6 shrink-0">
                 <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 whitespace-nowrap"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shadow-inner">🔧</span> คิวงานแจ้งปัญหาจากพนักงาน</h3>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <select value={repairFilterMonth} onChange={(e) => setRepairFilterMonth(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer">
+                    <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
+                    {getUniqueMonths(repairRequests).map(m => (
+                      <option key={m} value={m}>{formatMonthLabel(m)}</option>
+                    ))}
+                  </select>
                   <select value={repairFilterStatus} onChange={(e) => setRepairFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer">
                     <option value="ทั้งหมด">สถานะ: ทั้งหมด</option><option value="รอดำเนินการ">รอดำเนินการ</option><option value="กำลังดำเนินการ">กำลังดำเนินการ</option><option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option><option value="ยกเลิก">ยกเลิก</option>
                   </select>
@@ -859,6 +1060,53 @@ function App() {
                 </div>
               )}
             </div>
+          ) : activeMenu === 'supply_requests' ? (
+            <div className="h-full flex flex-col bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
+              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-100 pb-6 shrink-0">
+                <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 whitespace-nowrap"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">📝</span> คิวขอเบิกอุปกรณ์สำนักงาน</h3>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <select value={supplyFilterMonth} onChange={(e) => setSupplyFilterMonth(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
+                    <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
+                    {getUniqueMonths(supplyRequests).map(m => (
+                      <option key={m} value={m}>{formatMonthLabel(m)}</option>
+                    ))}
+                  </select>
+                  <select value={supplyFilterStatus} onChange={(e) => setSupplyFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
+                    <option value="ทั้งหมด">สถานะ: ทั้งหมด</option><option value="รอดำเนินการ">รอดำเนินการ</option><option value="อนุมัติแล้ว">อนุมัติแล้ว</option><option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
+                  </select>
+                </div>
+              </div>
+              {currentSupplyRequests.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                  <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">✅</span>
+                  <p className="font-bold text-lg text-slate-500">ไม่มีคำขอในสถานะนี้</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <table className="min-w-full text-left whitespace-nowrap text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr><th className="px-5 py-4 font-bold text-slate-500">วันที่ขอ</th><th className="px-5 py-4 font-bold text-slate-500">ผู้ขอ (รหัสพนักงาน)</th><th className="px-5 py-4 font-bold text-slate-500">อุปกรณ์ที่ต้องการ</th><th className="px-5 py-4 font-bold text-slate-500 text-center">จำนวน</th><th className="px-5 py-4 font-bold text-slate-500 text-center">สถานะ</th><th className="px-5 py-4 font-bold text-slate-500 text-center">การจัดการ</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {currentSupplyRequests.map((req) => (
+                        <tr key={req.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-5 py-4 text-slate-600 font-medium">{new Date(req.timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                          <td className="px-5 py-4"><div className="font-bold text-indigo-700">{req.empName}</div><div className="text-xs text-slate-500 mt-0.5">{req.empId} • {req.department || '-'}</div></td>
+                          <td className="px-5 py-4"><div className="font-bold text-slate-800">{req.supplyName}</div><div className="text-xs text-slate-500 mt-0.5 truncate max-w-[200px]">{req.note}</div></td>
+                          <td className="px-5 py-4 text-center font-bold text-emerald-600 text-lg">{req.requestedQty}</td>
+                          <td className="px-5 py-4 text-center">
+                            <select value={req.status} onChange={(e) => handleUpdateSupplyRequestStatus(req, e.target.value)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border outline-none cursor-pointer shadow-sm ${req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'อนุมัติแล้ว' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                              <option value="รอดำเนินการ">รอดำเนินการ</option><option value="อนุมัติแล้ว">อนุมัติแล้ว</option><option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
+                            </select>
+                          </td>
+                          <td className="px-5 py-4 text-center"><button onClick={() => handleDelete(req.id, 'supply_requests')} className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-lg transition-all shadow-sm">🗑️</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="h-full flex flex-col">
               <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col flex-1">
@@ -869,6 +1117,7 @@ function App() {
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></div>
                       <input type="text" placeholder="ค้นหาชื่อ หรือ รหัส..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-sm" />
                     </div>
+                    
                     {activeMenu === 'employees' && (
                       <>
                         <button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>
@@ -876,6 +1125,7 @@ function App() {
                         {selectedEmployeeIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedEmployeeIds.length})</button>)}
                       </>
                     )}
+                    
                     {activeMenu === 'assets' && (
                       <>
                         <select value={assetFilterDepartment} onChange={(e) => setAssetFilterDepartment(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">แผนก: ทั้งหมด</option><option value="DX">DX</option><option value="BD">BD</option><option value="General">General</option></select>
@@ -883,6 +1133,7 @@ function App() {
                         <select value={assetFilterStatus} onChange={(e) => setAssetFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">สถานะ: ทั้งหมด</option><option value="พร้อมใช้งาน">พร้อมใช้งาน</option><option value="ถูกใช้งาน">ถูกใช้งาน</option><option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option><option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option><option value="รอดำเนินการ">รอดำเนินการ</option></select>
                       </>
                     )}
+                    
                     {activeMenu === 'accessories' && (
                       <>
                         <select value={accFilterType} onChange={(e) => setAccFilterType(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">ประเภท: ทั้งหมด</option><option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option><option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option><option value="อุปกรณ์เสริมโน๊ตบุ๊ค">อุปกรณ์เสริมโน๊ตบุ๊ค</option><option value="หูฟัง (Headset)">หูฟัง (Headset)</option><option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option><option value="อื่นๆ">อื่นๆ</option></select>
@@ -891,7 +1142,15 @@ function App() {
                         {selectedAccessoryIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedAccessoryIds, collectionName: 'accessories' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedAccessoryIds.length})</button>)}
                       </>
                     )}
+
+                    {activeMenu === 'office_supplies' && (
+                      <>
+                        {selectedOfficeSupplyIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedOfficeSupplyIds.length})</button>)}
+                      </>
+                    )}
+
                     {(activeMenu === 'assets' || activeMenu === 'licenses') && (<button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>)}
+                    
                     <button onClick={() => setIsAddModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/30">➕ เพิ่มรายการใหม่</button>
                   </div>
                 </div>
@@ -922,6 +1181,14 @@ function App() {
                               <th className="px-5 py-4 font-bold text-slate-500 text-xs">วันหมดอายุ</th>
                               <th className="px-5 py-4 font-bold text-slate-500 text-xs">ราคา</th>
                               <th className="px-5 py-4 font-bold text-slate-500 text-xs">สถานะ</th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
+                            </>
+                          ) : activeMenu === 'office_supplies' ? (
+                            <>
+                              <th className="px-4 py-4 text-center"><input type="checkbox" className="w-4 h-4" checked={currentData.length > 0 && selectedOfficeSupplyIds?.length === currentData.length} onChange={handleSelectAllOfficeSupplies} /></th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่ออุปกรณ์</th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ประเภท</th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">สต็อกคงเหลือ</th>
                               <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
                             </>
                           ) : (
@@ -1004,6 +1271,22 @@ function App() {
                                   <button onClick={() => handleDelete(item.id, 'licenses')} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
                                 </td>
                               </>
+                            ) : activeMenu === 'office_supplies' ? (
+                              <>
+                                <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}><input type="checkbox" className="w-4 h-4" checked={selectedOfficeSupplyIds?.includes(item.id) || false} onChange={(e) => handleSelectOfficeSupply(e, item.id)} /></td>
+                                <td className="px-5 py-4">
+                                  <div className="flex items-center gap-3">
+                                    {item.image ? <img src={item.image} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm" /> : <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0 shadow-inner border border-slate-200">📎</div>}
+                                    <div className="font-bold text-slate-800">{item.name}</div>
+                                  </div>
+                                </td>
+                                <td className="px-5 py-4"><span className="bg-slate-100 text-slate-600 text-[11px] px-3 py-1.5 rounded-lg font-bold border border-slate-200">{item.type}</span></td>
+                                <td className="px-5 py-4 text-center font-black text-emerald-600 text-lg">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></td>
+                                <td className="px-5 py-4 text-center space-x-2">
+                                  <button onClick={() => openEditAssetModal(item, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
+                                  <button onClick={() => handleDelete(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
+                                </td>
+                              </>
                             ) : (
                               <>
                                 {activeMenu === 'accessories' && (
@@ -1069,7 +1352,7 @@ function App() {
         </div>
       </main>
 
-      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} />
+      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} />
       <CheckoutModal checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} />
       <EmployeeDetailsModal selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal} />
       <AssetDetailsModal selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} accessories={accessories} assets={assets} licenses={licenses} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} handleCheckin={handleCheckin} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks} showConfirm={showConfirm} setCustomAlert={setCustomAlert} />

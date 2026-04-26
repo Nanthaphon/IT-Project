@@ -11,8 +11,9 @@ export default function LoginView({
   handleAdminLogin,
   loginError,
   setLoginError,
+  loginLoading, // ← prop ใหม่จาก App.jsx
 }) {
-  const [resetStatus, setResetStatus] = useState(null); // { type: 'success'|'error', message: '' }
+  const [resetStatus, setResetStatus] = useState(null);
   const [resetLoading, setResetLoading] = useState(false);
 
   const handleForgotPassword = async () => {
@@ -71,7 +72,8 @@ export default function LoginView({
             <div className="flex items-center gap-4 mb-8">
               <button
                 onClick={() => { setShowAdminLogin(false); setLoginError && setLoginError(''); }}
-                className="text-slate-400 hover:text-white p-2 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors"
+                disabled={loginLoading}
+                className="text-slate-400 hover:text-white p-2 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors disabled:opacity-50"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -81,7 +83,6 @@ export default function LoginView({
             </div>
 
             <form onSubmit={handleAdminLogin} className="space-y-5">
-              {/* แสดง error message แทน alert() */}
               {loginError && (
                 <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium px-4 py-3 rounded-xl flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -93,7 +94,6 @@ export default function LoginView({
 
               <div>
                 <label className="block text-sm font-bold text-slate-400 mb-2">Email</label>
-                {/* เปลี่ยนจาก type="text" เป็น type="email" เพื่อใช้กับ Firebase Auth */}
                 <input
                   type="email"
                   value={loginForm.username}
@@ -101,7 +101,8 @@ export default function LoginView({
                     setLoginForm({ ...loginForm, username: e.target.value });
                     if (loginError && setLoginError) setLoginError('');
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  disabled={loginLoading}
+                  className="w-full bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50"
                   placeholder="admin@yourdomain.com"
                   required
                 />
@@ -116,24 +117,37 @@ export default function LoginView({
                     setLoginForm({ ...loginForm, password: e.target.value });
                     if (loginError && setLoginError) setLoginError('');
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  disabled={loginLoading}
+                  className="w-full bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50"
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
                 />
               </div>
 
+              {/* ปุ่ม Login + Spinner */}
               <button
                 type="submit"
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30 mt-4"
+                disabled={loginLoading}
+                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30 mt-4 flex items-center justify-center gap-2"
               >
-                เข้าสู่ระบบ
+                {loginLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>กำลังเข้าสู่ระบบ...</span>
+                  </>
+                ) : (
+                  <span>เข้าสู่ระบบ</span>
+                )}
               </button>
 
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                disabled={resetLoading}
+                disabled={resetLoading || loginLoading}
                 className="w-full text-sm text-slate-400 hover:text-indigo-400 disabled:opacity-50 transition-colors text-center py-1"
               >
                 {resetLoading ? 'กำลังส่งอีเมล...' : 'ลืมรหัสผ่าน?'}

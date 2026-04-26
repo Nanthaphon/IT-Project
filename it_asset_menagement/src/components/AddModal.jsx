@@ -6,7 +6,7 @@ export default function AddModal({
   handleAddLicense, licenseForm, handleLicenseChange,
   handleAdd, name, setName, type, setType, cost, setCost,
   purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate,
-  quantity, setQuantity, assetImage, setAssetImage,
+  quantity, setQuantity, unit, setUnit, assetImage, setAssetImage,
   assetDepartment, setAssetDepartment, sn, setSn,
   company, setCompany, assetTag, setAssetTag,
   model, setModel, vendor, setVendor, assetDocument, setAssetDocument
@@ -166,7 +166,7 @@ export default function AddModal({
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">{activeMenu === 'office_supplies' ? 'ชื่ออุปกรณ์สำนักงาน' : 'ชื่ออุปกรณ์ / รุ่น'} <span className="text-red-500">*</span></label>
                 <input 
                   type="text" value={name} onChange={(e) => setName(e.target.value)}
                   className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
@@ -182,6 +182,8 @@ export default function AddModal({
                 >
                   {activeMenu === 'assets' ? (
                     <><option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option><option value="หน้าจอ">หน้าจอ (Monitor)</option><option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option><option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option><option value="อื่นๆ">อื่นๆ</option></>
+                  ) : activeMenu === 'office_supplies' ? (
+                    <><option value="เครื่องเขียน">เครื่องเขียน</option><option value="กระดาษ">กระดาษ</option><option value="แฟ้มและอุปกรณ์จัดเก็บ">แฟ้มและอุปกรณ์จัดเก็บ</option><option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option></>
                   ) : (
                     <><option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option><option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option><option value="อุปกรณ์เสริมโน๊ตบุ๊ค">อุปกรณ์เสริมโน๊ตบุ๊ค</option><option value="หูฟัง (Headset)">หูฟัง (Headset)</option><option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option><option value="อื่นๆ">อื่นๆ</option></>
                   )}
@@ -243,6 +245,29 @@ export default function AddModal({
                     </div>
                   </div>
                 </>
+              )}
+
+              {activeMenu === 'office_supplies' && (
+                <div className="grid grid-cols-2 gap-5 mt-5">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน <span className="text-red-500">*</span></label>
+                    <input 
+                      type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)}
+                      onWheel={(e) => e.target.blur()} 
+                      onKeyDown={(e) => (e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.preventDefault()}
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="ระบุจำนวน..." required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">หน่วยนับ <span className="text-red-500">*</span></label>
+                    <input 
+                      type="text" value={unit || ''} onChange={(e) => setUnit(e.target.value)}
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm shadow-sm"
+                      placeholder="เช่น ชิ้น, กล่อง, แพ็ค..." required
+                    />
+                  </div>
+                </div>
               )}
 
               {activeMenu === 'accessories' && (

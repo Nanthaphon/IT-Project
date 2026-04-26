@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
-import emailjs from '@emailjs/browser'; // นำเข้า EmailJS สำหรับส่งการแจ้งเตือน
+import emailjs from '@emailjs/browser'; 
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -128,7 +128,9 @@ function App() {
   const [repairFilterStatus, setRepairFilterStatus] = useState('ทั้งหมด'); 
   const [supplyFilterStatus, setSupplyFilterStatus] = useState('ทั้งหมด');
   const [repairFilterMonth, setRepairFilterMonth] = useState('ทั้งหมด'); 
-  const [supplyFilterMonth, setSupplyFilterMonth] = useState('ทั้งหมด');
+  // ✅ เปลี่ยน State จาก Filter เดือน เป็น Filter วันที่
+  const [supplyFilterDate, setSupplyFilterDate] = useState('ทั้งหมด');
+  const [officeSupplyStockFilter, setOfficeSupplyStockFilter] = useState('ทั้งหมด');
   const [searchTerm, setSearchTerm] = useState('');
   const [transactions, setTransactions] = useState([]);
 
@@ -172,7 +174,10 @@ function App() {
     setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
-    setRepairFilterMonth('ทั้งหมด'); setSupplyFilterMonth('ทั้งหมด');
+    setRepairFilterMonth('ทั้งหมด'); 
+    // ✅ รีเซ็ต State Filter วันที่
+    setSupplyFilterDate('ทั้งหมด'); 
+    setOfficeSupplyStockFilter('ทั้งหมด');
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]);
     
     if (activeMenu === 'assets') setType('คอมพิวเตอร์');
@@ -811,7 +816,16 @@ function App() {
   else if (activeMenu === 'licenses') baseData = licenses;
   else if (activeMenu === 'employees') baseData = employees;
   else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
-  else if (activeMenu === 'office_supplies') baseData = officeSupplies;
+  else if (activeMenu === 'office_supplies') {
+    baseData = officeSupplies.filter(item => {
+      if (officeSupplyStockFilter === 'ทั้งหมด') return true;
+      const qty = Number(item.quantity) || 0;
+      if (officeSupplyStockFilter === 'หมดสต็อก') return qty <= 0;
+      if (officeSupplyStockFilter === 'ใกล้หมด') return qty > 0 && qty <= 5;
+      if (officeSupplyStockFilter === 'ปกติ') return qty > 5;
+      return true;
+    });
+  }
 
   let currentData = baseData;
   if (searchTerm.trim() !== '') {
@@ -842,6 +856,26 @@ function App() {
     return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(year, 10) + 543}`;
   };
 
+  // ✅ เพิ่มฟังก์ชันดึง "วันที่" แบบไม่ซ้ำกันออกมาทำตัวกรอง
+  const getUniqueDates = (data) => {
+    const dates = new Set();
+    data.forEach(item => {
+      if (item.timestamp) {
+        const dateObj = new Date(item.timestamp);
+        const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        dates.add(dateStr);
+      }
+    });
+    return Array.from(dates).sort().reverse(); // เรียงจากใหม่ไปเก่า
+  };
+
+  // ✅ ฟังก์ชันแปลงรูปแบบวันที่ให้แสดงผลสวยงาม (เช่น 27/4/2569)
+  const formatDateLabel = (dateStr) => {
+    if (!dateStr || dateStr === 'ทั้งหมด') return 'ทั้งหมด';
+    const [year, month, day] = dateStr.split('-');
+    return `${parseInt(day, 10)}/${parseInt(month, 10)}/${parseInt(year, 10) + 543}`;
+  };
+
   let currentRepairRequests = repairRequests.filter(req => {
     const matchStatus = repairFilterStatus === 'ทั้งหมด' || req.status === repairFilterStatus;
     let matchMonth = true;
@@ -853,15 +887,16 @@ function App() {
     return matchStatus && matchMonth;
   });
 
+  // ✅ อัปเดตตรรกะการกรองของหน้าเบิกอุปกรณ์ ให้กรองตาม "วันที่"
   let currentSupplyRequests = supplyRequests.filter(req => {
     const matchStatus = supplyFilterStatus === 'ทั้งหมด' || req.status === supplyFilterStatus;
-    let matchMonth = true;
-    if (supplyFilterMonth !== 'ทั้งหมด') {
-      const date = new Date(req.timestamp);
-      const reqMonthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      matchMonth = reqMonthStr === supplyFilterMonth;
+    let matchDate = true;
+    if (supplyFilterDate !== 'ทั้งหมด') {
+      const dateObj = new Date(req.timestamp);
+      const reqDateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+      matchDate = reqDateStr === supplyFilterDate;
     }
-    return matchStatus && matchMonth;
+    return matchStatus && matchDate;
   });
 
   const handleSelectEmployee = (e, id) => e.target.checked ? setSelectedEmployeeIds(prev => [...prev, id]) : setSelectedEmployeeIds(prev => prev.filter(empId => empId !== id));
@@ -879,10 +914,29 @@ function App() {
                     activeMenu === 'office_supplies' ? 'คลังอุปกรณ์สำนักงาน' : 
                     activeMenu === 'supply_requests' ? 'คำขอเบิกอุปกรณ์' : 'ข้อมูลพนักงาน';
 
-  // ✅ คำนวณจำนวนการแจ้งเตือนที่รอดำเนินการ
+  // ✅ ฟังก์ชันตรวจสอบวันหมดอายุ License (ภายใน 30 วันถือว่าใกล้หมด)
+  const checkLicenseExpiration = (expirationDate) => {
+    if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expDate = new Date(expirationDate);
+    const diffTime = expDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { isExpiring: true, statusText: 'หมดอายุแล้ว', colorClass: 'text-red-600 bg-red-50 border-red-200' };
+    } else if (diffDays <= 30) {
+      return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-amber-600 bg-amber-50 border-amber-200' };
+    }
+    return { isExpiring: false, statusText: '', colorClass: '' };
+  };
+
+  // ✅ คำนวณจำนวนการแจ้งเตือนที่รอดำเนินการ (รวม License ที่ใกล้หมดอายุด้วย)
   const pendingRepairsCount = repairRequests.filter(req => req.status === 'รอดำเนินการ').length;
   const pendingSuppliesCount = supplyRequests.filter(req => req.status === 'รอดำเนินการ').length;
-  const totalPendingCount = pendingRepairsCount + pendingSuppliesCount;
+  const expiringLicensesCount = licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length;
+  
+  const totalPendingCount = pendingRepairsCount + pendingSuppliesCount + expiringLicensesCount;
 
   if (authLoading) {
     return (
@@ -996,6 +1050,19 @@ function App() {
                             </div>
                           </button>
                         )}
+                        {/* ✅ เพิ่มส่วนแจ้งเตือน License ลงในกระดิ่ง */}
+                        {expiringLicensesCount > 0 && (
+                          <button 
+                            onClick={() => { setActiveMenu('licenses'); setIsNotifOpen(false); }}
+                            className="px-4 py-3 text-left hover:bg-purple-50 transition-colors border-t border-slate-50 flex items-start gap-3"
+                          >
+                            <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">🔑</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">โปรแกรม/License</p>
+                              <p className="text-xs text-purple-600 font-medium mt-0.5">{expiringLicensesCount} รายการใกล้/หมดอายุ</p>
+                            </div>
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -1065,10 +1132,11 @@ function App() {
               <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-100 pb-6 shrink-0">
                 <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 whitespace-nowrap"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">📝</span> คิวขอเบิกอุปกรณ์สำนักงาน</h3>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <select value={supplyFilterMonth} onChange={(e) => setSupplyFilterMonth(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
-                    <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
-                    {getUniqueMonths(supplyRequests).map(m => (
-                      <option key={m} value={m}>{formatMonthLabel(m)}</option>
+                  {/* ✅ เปลี่ยน Dropdown ตรงนี้ให้เป็นเลือก วันที่ */}
+                  <select value={supplyFilterDate} onChange={(e) => setSupplyFilterDate(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
+                    <option value="ทั้งหมด">วันที่: ทั้งหมด</option>
+                    {getUniqueDates(supplyRequests).map(d => (
+                      <option key={d} value={d}>{formatDateLabel(d)}</option>
                     ))}
                   </select>
                   <select value={supplyFilterStatus} onChange={(e) => setSupplyFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
@@ -1145,6 +1213,12 @@ function App() {
 
                     {activeMenu === 'office_supplies' && (
                       <>
+                        <select value={officeSupplyStockFilter} onChange={(e) => setOfficeSupplyStockFilter(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
+                          <option value="ทั้งหมด">สถานะสต็อก: ทั้งหมด</option>
+                          <option value="ปกติ">🟢 ปกติ (&gt; 5)</option>
+                          <option value="ใกล้หมด">🟡 ใกล้หมด (1-5)</option>
+                          <option value="หมดสต็อก">🔴 หมดสต็อก (0)</option>
+                        </select>
                         {selectedOfficeSupplyIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedOfficeSupplyIds.length})</button>)}
                       </>
                     )}
@@ -1254,7 +1328,20 @@ function App() {
                               <>
                                 <td className="px-5 py-4"><button onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory(activeMenu); }} className="text-left font-bold text-slate-800 group-hover:text-indigo-600">{item.name}</button></td>
                                 <td className="px-5 py-4 text-slate-600"><div className="text-sm font-bold font-mono bg-slate-100 px-3 py-1.5 rounded-lg w-fit border border-slate-200">{item.productKey || '-'}</div><div className="text-xs text-slate-400 ml-1 mt-1">{item.keyCode || '-'}</div></td>
-                                <td className="px-5 py-4 text-sm text-slate-600">{item.expirationDate || '-'}</td>
+                                <td className="px-5 py-4 text-sm text-slate-600">
+                                  {/* ✅ เปลี่ยนการแสดงผลวันหมดอายุ เพื่อเพิ่มป้ายเตือนหากใกล้หมด */}
+                                  <div className="flex flex-col gap-1 items-start">
+                                    <span className="font-medium">{item.expirationDate || '-'}</span>
+                                    {(() => {
+                                      const expStatus = checkLicenseExpiration(item.expirationDate);
+                                      return expStatus.isExpiring ? (
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${expStatus.colorClass}`}>
+                                          ⚠️ {expStatus.statusText}
+                                        </span>
+                                      ) : null;
+                                    })()}
+                                  </div>
+                                </td>
                                 <td className="px-5 py-4 text-sm font-bold text-emerald-600">{item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}</td>
                                 <td className="px-5 py-4">{!item.status || item.status === 'พร้อมใช้งาน' ? <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-emerald-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> พร้อมใช้งาน</div> : <div className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-amber-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> {item.status}</div>}</td>
                                 <td className="px-5 py-4 text-center space-x-2">
@@ -1281,7 +1368,24 @@ function App() {
                                   </div>
                                 </td>
                                 <td className="px-5 py-4"><span className="bg-slate-100 text-slate-600 text-[11px] px-3 py-1.5 rounded-lg font-bold border border-slate-200">{item.type}</span></td>
-                                <td className="px-5 py-4 text-center font-black text-emerald-600 text-lg">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></td>
+                                <td className="px-5 py-4 text-center">
+                                  {Number(item.quantity) <= 0 ? (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="font-black text-red-600 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
+                                      <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">หมดสต็อก 🚨</span>
+                                    </div>
+                                  ) : Number(item.quantity) <= 5 ? (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="font-black text-amber-500 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
+                                      <span className="text-[10px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">ใกล้หมด ⚠️</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="font-black text-emerald-600 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
+                                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">ปกติ</span>
+                                    </div>
+                                  )}
+                                </td>
                                 <td className="px-5 py-4 text-center space-x-2">
                                   <button onClick={() => openEditAssetModal(item, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
                                   <button onClick={() => handleDelete(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>

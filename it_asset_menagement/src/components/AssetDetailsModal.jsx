@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { db } from '../firebase'; 
+import { db } from '../firebase.js'; 
 import { doc, updateDoc } from 'firebase/firestore';
 
 export default function AssetDetailsModal({
@@ -938,11 +938,8 @@ export default function AssetDetailsModal({
         
         {/* Footer Buttons */}
         <div className="p-5 md:p-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-200 shrink-0">
-           {selectedAssetCategory === 'accessories' ? (
-             ((currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0))) > 0) && (
-               <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); }} className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> เบิกจ่าย ({(currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : (1 - (currentAssetDetail.assignees?.length || 0)))})</button>
-             )
-           ) : (
+           {/* ✅ ซ่อนปุ่มเบิกจ่ายด้านล่างสุดสำหรับหมวด accessories (อุปกรณ์เสริม) เพื่อให้ไปกดเบิกจ่ายที่รายการย่อยแทน */}
+           {selectedAssetCategory !== 'accessories' && (
              (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
                <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} className="px-6 py-3 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 font-bold transition-colors border border-indigo-200 mr-auto flex items-center gap-2 text-sm md:text-base shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg> เบิกจ่าย</button>
              ) : currentAssetDetail.status === 'ถูกใช้งาน' ? (

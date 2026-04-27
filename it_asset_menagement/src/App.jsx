@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from './firebase'; 
+import { db, auth } from './firebase.js'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser'; 
 
 // Components
-import Sidebar from './components/Sidebar';
-import DashboardStats from './components/DashboardStats';
-import CustomAlert from './components/CustomAlert';
-import AddModal from './components/AddModal';
-import CheckoutModal from './components/CheckoutModal';
-import EmployeeDetailsModal from './components/EmployeeDetailsModal';
-import AssetDetailsModal from './components/AssetDetailsModal';
-import EditEmpModal from './components/EditEmpModal';
-import EditAssetModal from './components/EditAssetModal';
-import EditLicenseModal from './components/EditLicenseModal';
-import ImportModal from './components/ImportModal';
-import ReturnModal from './components/ReturnModal';
-import RepairModal from './components/RepairModal';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal';
-import ConfirmModal from './components/ConfirmModal';
-import ResetPasswordModal from './components/ResetPasswordModal';
-import LoginView from './components/LoginView';
-import StaffView from './components/StaffView';
+import Sidebar from './components/Sidebar.jsx';
+import DashboardStats from './components/DashboardStats.jsx';
+import CustomAlert from './components/CustomAlert.jsx';
+import AddModal from './components/AddModal.jsx';
+import CheckoutModal from './components/CheckoutModal.jsx';
+import EmployeeDetailsModal from './components/EmployeeDetailsModal.jsx';
+import AssetDetailsModal from './components/AssetDetailsModal.jsx';
+import EditEmpModal from './components/EditEmpModal.jsx';
+import EditAssetModal from './components/EditAssetModal.jsx';
+import EditLicenseModal from './components/EditLicenseModal.jsx';
+import ImportModal from './components/ImportModal.jsx';
+import ReturnModal from './components/ReturnModal.jsx';
+import RepairModal from './components/RepairModal.jsx';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal.jsx';
+import ConfirmModal from './components/ConfirmModal.jsx';
+import ResetPasswordModal from './components/ResetPasswordModal.jsx';
+import LoginView from './components/LoginView.jsx';
+import StaffView from './components/StaffView.jsx';
 
 function App() {
   const [authRole, setAuthRole] = useState(null);
@@ -41,6 +41,7 @@ function App() {
   const [assets, setAssets] = useState([]);
   const [accessories, setAccessories] = useState([]);
   const [employees, setEmployees] = useState([]); 
+  const [deletedEmployees, setDeletedEmployees] = useState([]); // ✅ 1. State สำหรับพนักงานที่ลบ
   const [licenses, setLicenses] = useState([]); 
   const [repairRequests, setRepairRequests] = useState([]); 
 
@@ -128,9 +129,9 @@ function App() {
   const [repairFilterStatus, setRepairFilterStatus] = useState('ทั้งหมด'); 
   const [supplyFilterStatus, setSupplyFilterStatus] = useState('ทั้งหมด');
   const [repairFilterMonth, setRepairFilterMonth] = useState('ทั้งหมด'); 
-  // ✅ เปลี่ยน State จาก Filter เดือน เป็น Filter วันที่
   const [supplyFilterDate, setSupplyFilterDate] = useState('ทั้งหมด');
   const [officeSupplyStockFilter, setOfficeSupplyStockFilter] = useState('ทั้งหมด');
+  const [showDeletedEmployees, setShowDeletedEmployees] = useState(false); // ✅ 2. State สลับหน้าต่าง
   const [searchTerm, setSearchTerm] = useState('');
   const [transactions, setTransactions] = useState([]);
 
@@ -150,6 +151,7 @@ function App() {
     const unsubAssets = onSnapshot(collection(db, 'assets'), (snapshot) => setAssets(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubAccessories = onSnapshot(collection(db, 'accessories'), (snapshot) => setAccessories(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubEmployees = onSnapshot(collection(db, 'employees'), (snapshot) => setEmployees(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
+    const unsubDeletedEmployees = onSnapshot(collection(db, 'deleted_employees'), (snapshot) => setDeletedEmployees(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || [])); // ✅ 3. ดึงข้อมูลคนถูกลบ
     const unsubLicenses = onSnapshot(collection(db, 'licenses'), (snapshot) => setLicenses(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubRepairReqs = onSnapshot(collection(db, 'repair_requests'), (snapshot) => setRepairRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
     const unsubOfficeSupplies = onSnapshot(collection(db, 'office_supplies'), (snapshot) => setOfficeSupplies(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
@@ -166,7 +168,7 @@ function App() {
     const unsubAssetTx = onSnapshot(collection(db, 'assets_transactions'), (snapshot) => { assetData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'assets', ...doc.data() })) || []; updateTransactionsState(); });
     const unsubLicTx = onSnapshot(collection(db, 'licenses_transactions'), (snapshot) => { licData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'licenses', ...doc.data() })) || []; updateTransactionsState(); });
 
-    return () => { unsubAssets(); unsubAccessories(); unsubEmployees(); unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); unsubAccTx(); unsubAssetTx(); unsubLicTx(); };
+    return () => { unsubAssets(); unsubAccessories(); unsubEmployees(); unsubDeletedEmployees(); unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); unsubAccTx(); unsubAssetTx(); unsubLicTx(); }; // ✅ 4. คืนค่า cleanup
   }, []);
 
   useEffect(() => {
@@ -175,9 +177,9 @@ function App() {
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
     setRepairFilterMonth('ทั้งหมด'); 
-    // ✅ รีเซ็ต State Filter วันที่
     setSupplyFilterDate('ทั้งหมด'); 
     setOfficeSupplyStockFilter('ทั้งหมด');
+    setShowDeletedEmployees(false); // ✅ 5. รีเซ็ตเมื่อเปลี่ยนหน้า
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]);
     
     if (activeMenu === 'assets') setType('คอมพิวเตอร์');
@@ -412,6 +414,12 @@ function App() {
       if (collectionName === 'employees') {
         const deletedEmps = employees.filter(emp => idsToDelete.includes(emp.id));
         deletedEmpStringIds = deletedEmps.map(emp => String(emp.empId).toLowerCase());
+        // ✅ 6. ย้ายข้อมูลพนักงานที่ลบไปไว้ใน deleted_employees
+        for (const emp of deletedEmps) {
+          const empData = { ...emp };
+          delete empData.id;
+          await setDoc(doc(db, 'deleted_employees', emp.id), { ...empData, deletedAt: serverTimestamp() });
+        }
       }
       for (const targetId of idsToDelete) { await deleteDoc(doc(db, collectionName, targetId)); }
       
@@ -437,6 +445,20 @@ function App() {
       setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]);
       setCustomAlert({ isOpen: true, title: 'ลบสำเร็จ!', message: 'ลบรายการออกจากระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+  };
+
+  // ✅ 7. ฟังก์ชันกู้คืนพนักงานที่ถูกลบ
+  const handleRestoreEmployee = async (emp) => {
+    try {
+      const empData = { ...emp };
+      delete empData.id;
+      delete empData.deletedAt;
+      await setDoc(doc(db, 'employees', emp.id), { ...empData, createdAt: serverTimestamp() });
+      await deleteDoc(doc(db, 'deleted_employees', emp.id));
+      setCustomAlert({ isOpen: true, title: 'กู้คืนสำเร็จ!', message: 'กู้คืนข้อมูลพนักงานกลับสู่ระบบเรียบร้อยแล้ว', type: 'success' });
+    } catch (error) {
+      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
+    }
   };
 
   const handleExportEmployees = () => {
@@ -814,7 +836,7 @@ function App() {
     });
   }
   else if (activeMenu === 'licenses') baseData = licenses;
-  else if (activeMenu === 'employees') baseData = employees;
+  else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees; // ✅ 8. ดึงข้อมูลพนักงานตามสถานะที่เลือกดู
   else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
   else if (activeMenu === 'office_supplies') {
     baseData = officeSupplies.filter(item => {
@@ -1188,9 +1210,17 @@ function App() {
                     
                     {activeMenu === 'employees' && (
                       <>
-                        <button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>
-                        <button onClick={handleExportEmployees} className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm">ส่งออก CSV</button>
-                        {selectedEmployeeIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedEmployeeIds.length})</button>)}
+                        {/* ✅ 9. ปุ่มสลับดูพนักงานปัจจุบัน / ถูกลบ */}
+                        <button onClick={() => setShowDeletedEmployees(!showDeletedEmployees)} className={`flex-1 sm:flex-none w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm ${showDeletedEmployees ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100' : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'}`}>
+                          {showDeletedEmployees ? 'ดูพนักงานปัจจุบัน' : 'ดูพนักงานที่ถูกลบ'}
+                        </button>
+                        {!showDeletedEmployees && (
+                          <>
+                            <button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>
+                            <button onClick={handleExportEmployees} className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm">ส่งออก CSV</button>
+                            {selectedEmployeeIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedEmployeeIds.length})</button>)}
+                          </>
+                        )}
                       </>
                     )}
                     
@@ -1225,7 +1255,10 @@ function App() {
 
                     {(activeMenu === 'assets' || activeMenu === 'licenses') && (<button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>)}
                     
-                    <button onClick={() => setIsAddModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/30">➕ เพิ่มรายการใหม่</button>
+                    {/* ✅ 10. ซ่อนปุ่มเพิ่ม หากดูพนักงานที่ถูกลบ */}
+                    {!showDeletedEmployees && (
+                      <button onClick={() => setIsAddModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/30">➕ เพิ่มรายการใหม่</button>
+                    )}
                   </div>
                 </div>
                 
@@ -1320,8 +1353,15 @@ function App() {
                                 <td className="px-5 py-4 text-slate-600"><div className="text-sm font-bold text-slate-700">{item.department}</div><div className="text-xs text-slate-400">{item.company}</div></td>
                                 <td className="px-5 py-4 text-slate-600 text-sm">{item.position}</td>
                                 <td className="px-5 py-4 text-center space-x-2">
-                                  <button onClick={() => openEditEmpModal(item)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
-                                  <button onClick={() => handleDelete(item.id, 'employees')} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
+                                  {/* ✅ 11. เปลี่ยนปุ่ม ลบ/แก้ไข เป็นปุ่มกู้คืน หากอยู่ในโหมดถูกลบ */}
+                                  {showDeletedEmployees ? (
+                                    <button onClick={() => handleRestoreEmployee(item)} className="inline-flex items-center justify-center px-4 py-1.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-500 hover:text-white border border-emerald-200 hover:border-emerald-500 rounded-xl transition-all shadow-sm text-xs font-bold" title="กู้คืนข้อมูล">🔄 กู้คืน</button>
+                                  ) : (
+                                    <>
+                                      <button onClick={() => openEditEmpModal(item)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
+                                      <button onClick={() => handleDelete(item.id, 'employees')} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
+                                    </>
+                                  )}
                                 </td>
                               </>
                             ) : activeMenu === 'licenses' ? (

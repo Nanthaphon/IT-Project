@@ -88,11 +88,11 @@ export default function EmployeeDetailsModal({
                               <p className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors flex items-center gap-2">
                                 {item.name}
                               </p>
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 <span className={`text-[10px] uppercase tracking-wide px-2.5 py-1 rounded-lg font-bold border shadow-sm ${isAsset ? 'bg-blue-50 border-blue-200 text-blue-700' : isAccessory ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-purple-50 border-purple-200 text-purple-700'}`}>{isAsset ? 'ทรัพย์สินหลัก' : isAccessory ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}</span>
                                 <span className="text-xs font-medium text-slate-500">{item.type || 'License'}</span>
                                 {item.sn && (
-                                  <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm">
+                                  <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm ml-1">
                                     SN: {item.sn}
                                   </span>
                                 )}
@@ -171,7 +171,9 @@ export default function EmployeeDetailsModal({
         </div>
         
         <div className="p-6 bg-white flex justify-end gap-3 border-t border-slate-200 rounded-b-3xl shrink-0">
-           <button onClick={() => openEditEmpModal(selectedEmployee)} className="px-6 py-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl hover:bg-amber-500 hover:text-white hover:border-amber-500 font-bold transition-all shadow-sm text-sm md:text-base flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg> แก้ไขข้อมูลพนักงาน</button>
+           {!selectedEmployee.deletedAt && (
+             <button onClick={() => openEditEmpModal(selectedEmployee)} className="px-6 py-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl hover:bg-amber-500 hover:text-white hover:border-amber-500 font-bold transition-all shadow-sm text-sm md:text-base flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg> แก้ไขข้อมูลพนักงาน</button>
+           )}
            <button onClick={() => setSelectedEmployee(null)} className="px-8 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-all shadow-lg shadow-slate-800/30 text-sm md:text-base">ปิดหน้าต่าง</button>
         </div>
       </div>

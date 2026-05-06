@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from './firebase'; 
+import { db, auth } from './firebase.js'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser'; 
 
 // Components
-import Sidebar from './components/Sidebar';
-import DashboardStats from './components/DashboardStats';
-import CustomAlert from './components/CustomAlert';
-import AddModal from './components/AddModal';
-import CheckoutModal from './components/CheckoutModal';
-import EmployeeDetailsModal from './components/EmployeeDetailsModal';
-import AssetDetailsModal from './components/AssetDetailsModal';
-import EditEmpModal from './components/EditEmpModal';
-import EditAssetModal from './components/EditAssetModal';
-import EditLicenseModal from './components/EditLicenseModal';
-import ImportModal from './components/ImportModal';
-import ReturnModal from './components/ReturnModal';
-import RepairModal from './components/RepairModal';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal';
-import ConfirmModal from './components/ConfirmModal';
-import ResetPasswordModal from './components/ResetPasswordModal';
-import LoginView from './components/LoginView';
-import StaffView from './components/StaffView';
+import Sidebar from './components/Sidebar.jsx';
+import DashboardStats from './components/DashboardStats.jsx';
+import CustomAlert from './components/CustomAlert.jsx';
+import AddModal from './components/AddModal.jsx';
+import CheckoutModal from './components/CheckoutModal.jsx';
+import EmployeeDetailsModal from './components/EmployeeDetailsModal.jsx';
+import AssetDetailsModal from './components/AssetDetailsModal.jsx';
+import EditEmpModal from './components/EditEmpModal.jsx';
+import EditAssetModal from './components/EditAssetModal.jsx';
+import EditLicenseModal from './components/EditLicenseModal.jsx';
+import ImportModal from './components/ImportModal.jsx';
+import ReturnModal from './components/ReturnModal.jsx';
+import RepairModal from './components/RepairModal.jsx';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal.jsx';
+import ConfirmModal from './components/ConfirmModal.jsx';
+import ResetPasswordModal from './components/ResetPasswordModal.jsx';
+import LoginView from './components/LoginView.jsx';
+import StaffView from './components/StaffView.jsx';
 
 function App() {
   const [authRole, setAuthRole] = useState(null);

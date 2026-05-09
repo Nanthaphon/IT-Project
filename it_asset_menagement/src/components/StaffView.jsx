@@ -23,25 +23,18 @@ export default function StaffView({
   licenses = []
 }) {
   const [activeTab, setActiveTab] = useState('it_repair'); // 'it_repair' | 'office_supplies' | 'my_assets'
-  
-  // ✅ เปลี่ยน State สำหรับฟอร์มเบิกของ จากของชิ้นเดียว ให้เป็น Array (ตะกร้าสินค้า)
   const [supplyCart, setSupplyCart] = useState([]);
-  
-  // State สำหรับระบบค้นหาอุปกรณ์
   const [supplySearchTerm, setSupplySearchTerm] = useState('');
   const [isSupplyDropdownOpen, setIsSupplyDropdownOpen] = useState(false);
   const supplyDropdownRef = useRef(null);
 
-  // ✅ State สำหรับระบบ Loading ตอนส่งข้อมูล
   const [isSubmittingRepair, setIsSubmittingRepair] = useState(false);
   const [isSubmittingSupply, setIsSubmittingSupply] = useState(false);
 
-  // ✅ State สำหรับแบ่งหน้า (Pagination)
   const [repairPage, setRepairPage] = useState(1);
   const [supplyPage, setSupplyPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
-  // ปิด Dropdown ค้นหาอุปกรณ์เมื่อคลิกที่อื่น
   useEffect(() => {
     function handleClickOutside(event) {
       if (supplyDropdownRef.current && !supplyDropdownRef.current.contains(event.target)) {
@@ -52,54 +45,46 @@ export default function StaffView({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [supplyDropdownRef]);
 
-  // เมื่อสลับแท็บ ให้รีเซ็ตหน้ากลับไปเป็นหน้าที่ 1 เสมอ (เพื่อ UX ที่ดีขึ้น)
   useEffect(() => {
     setRepairPage(1);
     setSupplyPage(1);
   }, [activeTab]);
 
-  // กรองรายการอุปกรณ์ตามคำค้นหา
   const filteredSupplies = officeSupplies.filter(supply =>
     supply.name?.toLowerCase().includes(supplySearchTerm.toLowerCase())
   );
 
-  // ✅ ฟังก์ชันแจ้งซ่อม (หุ้มด้วย Loading)
   const onRepairSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmittingRepair(true); // เปิด Loading
+    setIsSubmittingRepair(true);
     try {
       await handleSubmitRepairRequest(e);
-      setRepairPage(1); // หลังจากส่งซ่อม กลับไปหน้าที่ 1 เพื่อให้เห็นข้อมูลล่าสุด
+      setRepairPage(1);
     } finally {
-      setIsSubmittingRepair(false); // ปิด Loading เมื่อทำงานเสร็จ
+      setIsSubmittingRepair(false);
     }
   };
-  // ✅ ฟังก์ชันเบิกของ (หุ้มด้วย Loading และรองรับหลายรายการ)
+
   const onSupplySubmit = async (e) => {
     e.preventDefault();
     if (supplyCart.length === 0) return alert('กรุณาเลือกอุปกรณ์ที่ต้องการเบิกอย่างน้อย 1 รายการ');
-
-    setIsSubmittingSupply(true); // เปิด Loading
+    setIsSubmittingSupply(true);
     try {
-      // วนลูปส่งคำขอตามจำนวนอุปกรณ์ที่อยู่ในตะกร้า
       for (const item of supplyCart) {
         await handleStaffSubmitSupplyRequest(item.supplyId, item.name, item.quantity, item.note);
       }
-      setSupplyCart([]); // ล้างตะกร้าเมื่อส่งเสร็จ
+      setSupplyCart([]); 
       setSupplySearchTerm(''); 
-      setSupplyPage(1); // หลังจากขอเบิก กลับไปหน้าที่ 1 เพื่อให้เห็นข้อมูลล่าสุด
+      setSupplyPage(1);
     } finally {
-      setIsSubmittingSupply(false); // ปิด Loading เมื่อทำงานเสร็จ
+      setIsSubmittingSupply(false);
     }
   };
 
-  // ดึงข้อมูลทรัพย์สินที่พนักงานคนนี้ครอบครอง
   const getMyAssets = () => {
     if (!currentStaff) return [];
-    
     const empAssets = assets.filter(item => item.assignedTo === currentStaff.id);
     const empLicenses = licenses.filter(item => item.assignedTo === currentStaff.id);
-    
     const empAccessories = accessories.reduce((accList, acc) => {
       if (acc.assignees) {
         acc.assignees.filter(a => a.empId === currentStaff.id).forEach(checkout => {
@@ -110,13 +95,10 @@ export default function StaffView({
       }
       return accList;
     }, []);
-    
     return [...empAssets, ...empLicenses, ...empAccessories];
   };
 
   const myAssetsList = getMyAssets();
-
-  // ✅ คำนวณข้อมูลสำหรับการแบ่งหน้า (Pagination)
   const myRequests = repairRequests.filter(req => req.empId === currentStaff?.empId);
   const totalRepairPages = Math.ceil(myRequests.length / ITEMS_PER_PAGE);
   const currentRepairRequests = myRequests.slice((repairPage - 1) * ITEMS_PER_PAGE, repairPage * ITEMS_PER_PAGE);
@@ -129,18 +111,17 @@ export default function StaffView({
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap');`}</style>
       
-      {/* 🟢 Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+      <header className="bg-black shadow-md border-b border-slate-900 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#174873] rounded-xl flex items-center justify-center text-white shadow-lg shadow-[#174873]/30">
+          <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-black shadow-lg shadow-teal-500/20">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
           </div>
-          <h1 className="text-xl font-black text-slate-800 tracking-tight hidden sm:block">Staff Portal</h1>
+          <h1 className="text-xl font-black text-white tracking-tight hidden sm:block">Staff Portal</h1>
         </div>
         {currentStaff && (
           <button 
             onClick={() => { setAuthRole(null); setCurrentStaff(null); }} 
-            className="text-sm font-bold text-slate-600 bg-slate-100 hover:bg-red-50 hover:text-red-600 border border-slate-200 hover:border-red-200 px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2"
+            className="text-sm font-bold text-slate-400 bg-slate-900 hover:bg-red-500 hover:text-white border border-slate-800 hover:border-red-500 px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             ออกจากระบบ
@@ -149,11 +130,9 @@ export default function StaffView({
       </header>
 
       <main className="flex-1 p-4 md:p-8 flex flex-col items-center">
-         
-         {/* 🟢 หน้า Login (เมื่อยังไม่ระบุรหัส) */}
          {!currentStaff ? (
-           <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 max-w-md w-full mt-10 md:mt-20 transform transition-all hover:scale-[1.01]">
-             <div className="w-20 h-20 bg-[#174873]/10 text-[#174873] rounded-2xl flex items-center justify-center text-4xl mb-6 mx-auto shadow-inner border border-[#174873]/20">
+           <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-xl border border-slate-200 max-w-md w-full mt-10 md:mt-20">
+             <div className="w-20 h-20 bg-black text-teal-400 rounded-2xl flex items-center justify-center text-4xl mb-6 mx-auto shadow-md">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
              </div>
              <h2 className="text-2xl font-black text-slate-800 mb-2 text-center tracking-tight">ยืนยันตัวตนพนักงาน</h2>
@@ -165,108 +144,95 @@ export default function StaffView({
                    type="text" 
                    value={staffEmpIdInput} 
                    onChange={e => setStaffEmpIdInput(e.target.value)} 
-                   className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#174873] focus:border-[#174873] outline-none transition-all shadow-sm text-center font-bold text-lg tracking-widest placeholder:text-sm placeholder:font-medium placeholder:tracking-normal" 
+                   className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:bg-white focus:ring-2 focus:ring-black focus:border-black outline-none transition-all shadow-sm text-center font-bold text-lg tracking-widest placeholder:text-sm placeholder:font-medium placeholder:tracking-normal" 
                    placeholder="ระบุรหัสพนักงาน (เช่น EMP001)" 
                    required 
                  />
                </div>
-               <button type="submit" className="w-full py-4 bg-[#174873] hover:bg-[#103352] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#174873]/30 flex items-center justify-center gap-2 active:scale-[0.98]">
+               <button type="submit" className="w-full py-4 bg-black hover:bg-slate-800 text-teal-400 font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-[0.98]">
                  ตรวจสอบข้อมูล <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                </button>
              </form>
            </div>
          ) : (
-           
-           /* 🟢 หน้า Dashboard พนักงาน (เข้าระบบแล้ว) - เอา Animation ออก */
            <div className="w-full max-w-screen-2xl space-y-6 md:space-y-8">
               
-              {/* Profile Card (โลโก้บริษัท) */}
-              <div className="bg-gradient-to-r from-[#174873] to-[#0f2d4a] rounded-[2rem] p-6 md:p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full mix-blend-overlay filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                <div className="absolute bottom-0 left-10 w-48 h-48 bg-black/20 rounded-full mix-blend-overlay filter blur-3xl"></div>
-
+              <div className="bg-black rounded-[2rem] p-6 md:p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden border border-slate-800">
                 <div className="flex items-center gap-5 relative z-10 w-full md:w-auto">
-                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl border border-white/20 backdrop-blur-md shadow-inner shrink-0">
+                  <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-3xl border border-slate-800 shadow-inner shrink-0">
                     {currentStaff.fullName?.charAt(0) || '👤'}
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-xl md:text-2xl font-black tracking-tight truncate">สวัสดี, {currentStaff.fullName} {currentStaff.nickname ? `(${currentStaff.nickname})` : ''}</h2>
+                    <h2 className="text-xl md:text-2xl font-black tracking-tight truncate text-teal-400">สวัสดี, {currentStaff.fullName} {currentStaff.nickname ? `(${currentStaff.nickname})` : ''}</h2>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className="bg-white/10 px-3 py-1 rounded-lg border border-white/10 text-white text-xs font-bold shadow-sm">รหัส: {currentStaff.empId}</span> 
-                      <span className="bg-white/10 px-3 py-1 rounded-lg border border-white/10 text-white text-xs font-bold shadow-sm">แผนก: {currentStaff.department || '-'}</span>
+                      <span className="bg-slate-900 px-3 py-1 rounded-lg border border-slate-800 text-white text-xs font-bold">รหัส: {currentStaff.empId}</span> 
+                      <span className="bg-slate-900 px-3 py-1 rounded-lg border border-slate-800 text-white text-xs font-bold">แผนก: {currentStaff.department || '-'}</span>
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setCurrentStaff(null)} className="w-full md:w-auto px-6 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-sm transition-all backdrop-blur-md border border-white/20 relative z-10 whitespace-nowrap shadow-sm">
+                <button onClick={() => setCurrentStaff(null)} className="w-full md:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all border border-slate-800 relative z-10 whitespace-nowrap shadow-sm">
                   เปลี่ยนผู้ใช้งาน
                 </button>
               </div>
 
-              {/* 🟢 การ์ดเมนูสีสันสดใสแบบกระชับ (Compact Tabs) */}
               <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-6 md:mb-8">
-                
-                {/* การ์ด 1: แจ้งปัญหา IT */}
                 <button 
                   onClick={() => setActiveTab('it_repair')} 
                   className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border ${
                     activeTab === 'it_repair' 
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-transparent shadow-blue-500/30 ring-2 ring-blue-300 ring-offset-2 scale-[1.02]' 
-                      : 'bg-white text-slate-600 hover:bg-blue-50 border-slate-200 hover:border-blue-200'
+                      ? 'bg-black text-teal-400 border-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02]' 
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'it_repair' ? 'bg-white/20' : 'bg-blue-100 text-blue-500'}`}>🔧</div>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'it_repair' ? 'bg-teal-500/20 text-teal-400' : 'bg-slate-100 text-slate-400'}`}>🔧</div>
                   <div className="text-left">
                     <h4 className={`text-base md:text-lg font-black ${activeTab === 'it_repair' ? 'text-white' : 'text-slate-800'}`}>แจ้งปัญหา IT</h4>
-                    <p className={`text-xs mt-0.5 font-medium ${activeTab === 'it_repair' ? 'text-blue-100' : 'text-slate-500'}`}>ประวัติ {myRequests.length} รายการ</p>
+                    <p className={`text-xs mt-0.5 font-medium ${activeTab === 'it_repair' ? 'text-slate-400' : 'text-slate-500'}`}>ประวัติ {myRequests.length} รายการ</p>
                   </div>
                 </button>
 
-                {/* การ์ด 2: ขอเบิกอุปกรณ์ */}
                 <button 
                   onClick={() => setActiveTab('office_supplies')} 
                   className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border ${
                     activeTab === 'office_supplies' 
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-transparent shadow-emerald-500/30 ring-2 ring-emerald-300 ring-offset-2 scale-[1.02]' 
-                      : 'bg-white text-slate-600 hover:bg-emerald-50 border-slate-200 hover:border-emerald-200'
+                      ? 'bg-black text-teal-400 border-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02]' 
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'office_supplies' ? 'bg-white/20' : 'bg-emerald-100 text-emerald-500'}`}>📦</div>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'office_supplies' ? 'bg-teal-500/20 text-teal-400' : 'bg-slate-100 text-slate-400'}`}>📦</div>
                   <div className="text-left">
                     <h4 className={`text-base md:text-lg font-black ${activeTab === 'office_supplies' ? 'text-white' : 'text-slate-800'}`}>เบิกอุปกรณ์</h4>
-                    <p className={`text-xs mt-0.5 font-medium ${activeTab === 'office_supplies' ? 'text-emerald-100' : 'text-slate-500'}`}>ประวัติ {mySupplyReqs.length} คำขอ</p>
+                    <p className={`text-xs mt-0.5 font-medium ${activeTab === 'office_supplies' ? 'text-slate-400' : 'text-slate-500'}`}>ประวัติ {mySupplyReqs.length} คำขอ</p>
                   </div>
                 </button>
 
-                {/* การ์ด 3: ทรัพย์สินในความดูแล */}
                 <button 
                   onClick={() => setActiveTab('my_assets')} 
                   className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border ${
                     activeTab === 'my_assets' 
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-transparent shadow-orange-500/30 ring-2 ring-orange-300 ring-offset-2 scale-[1.02]' 
-                      : 'bg-white text-slate-600 hover:bg-orange-50 border-slate-200 hover:border-orange-200'
+                      ? 'bg-black text-teal-400 border-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02]' 
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'my_assets' ? 'bg-white/20' : 'bg-orange-100 text-orange-500'}`}>💻</div>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'my_assets' ? 'bg-teal-500/20 text-teal-400' : 'bg-slate-100 text-slate-400'}`}>💻</div>
                   <div className="text-left">
                     <h4 className={`text-base md:text-lg font-black ${activeTab === 'my_assets' ? 'text-white' : 'text-slate-800'}`}>ทรัพย์สินที่ดูแล</h4>
-                    <p className={`text-xs mt-0.5 font-medium ${activeTab === 'my_assets' ? 'text-orange-100' : 'text-slate-500'}`}>ครอบครอง {myAssetsList.length} รายการ</p>
+                    <p className={`text-xs mt-0.5 font-medium ${activeTab === 'my_assets' ? 'text-slate-400' : 'text-slate-500'}`}>ครอบครอง {myAssetsList.length} รายการ</p>
                   </div>
                 </button>
               </div>
 
-              {/* 🟢 เนื้อหาภายใน: แจ้งปัญหา IT */}
               {activeTab === 'it_repair' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1 bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 h-fit">
-                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3"><span className="p-2 bg-blue-100 text-blue-600 rounded-xl shadow-inner">📝</span> เปิดใบแจ้งปัญหาใหม่</h3>
-                    {/* ✅ แก้ไข: หุ้มด้วยฟังก์ชัน onRepairSubmit ที่มี State Loading */}
+                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3"><span className="p-2 bg-slate-100 text-slate-500 rounded-xl shadow-inner">📝</span> เปิดใบแจ้งปัญหาใหม่</h3>
                     <form onSubmit={onRepairSubmit} className="space-y-5">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">เรื่องที่ต้องการแจ้ง / อุปกรณ์ <span className="text-red-500">*</span></label>
                         <select 
                           value={staffRepairForm.assetName} 
                           onChange={(e) => setStaffRepairForm({...staffRepairForm, assetName: e.target.value})} 
-                          className="w-full border border-slate-300 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm text-base bg-slate-50 focus:bg-white cursor-pointer" 
+                          className="w-full border border-slate-300 p-4 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm text-base bg-slate-50 focus:bg-white cursor-pointer" 
                           required 
                         >
                           <option value="" disabled>-- เลือกระบุอุปกรณ์ / ปัญหา --</option>
@@ -281,20 +247,19 @@ export default function StaffView({
                         <textarea 
                           value={staffRepairForm.issue} 
                           onChange={(e) => setStaffRepairForm({...staffRepairForm, issue: e.target.value})} 
-                          className="w-full border border-slate-300 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm resize-none text-base bg-slate-50 focus:bg-white" 
+                          className="w-full border border-slate-300 p-4 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm resize-none text-base bg-slate-50 focus:bg-white" 
                           placeholder="อธิบายปัญหาเพิ่มเติม หรือขอสิทธิ์เข้าถึงโฟลเดอร์..." 
                           rows="4"
                           required 
                         ></textarea>
                       </div>
-                      {/* ✅ แก้ไข: เพิ่มเงื่อนไข Loading ในปุ่ม */}
                       <button 
                         type="submit" 
                         disabled={isSubmittingRepair}
-                        className={`w-full py-4 text-white font-bold text-base rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${isSubmittingRepair ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30 active:scale-[0.98]'}`}
+                        className={`w-full py-4 text-black font-bold text-base rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${isSubmittingRepair ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-500 hover:bg-teal-400 shadow-teal-500/30 active:scale-[0.98]'}`}
                       >
                         {isSubmittingRepair ? (
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                         ) : (
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
                         )}
@@ -330,7 +295,7 @@ export default function StaffView({
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {currentRepairRequests.map((req) => (
-                              <tr key={req.id} className="hover:bg-blue-50/30 transition-colors">
+                              <tr key={req.id} className="hover:bg-teal-50/30 transition-colors">
                                 <td className="px-5 py-4 text-slate-600 font-medium">
                                   {new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </td>
@@ -340,7 +305,7 @@ export default function StaffView({
                                   <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${
                                     req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                     req.status === 'กำลังดำเนินการ' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                    req.status === 'ซ่อมเสร็จสิ้น' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                    req.status === 'ซ่อมเสร็จสิ้น' ? 'bg-teal-50 text-teal-700 border-teal-200' :
                                     'bg-slate-100 text-slate-700 border-slate-200'
                                   }`}>
                                     {req.status}
@@ -349,8 +314,8 @@ export default function StaffView({
                                 <td className="px-5 py-4 text-center">
                                   {req.status === 'รอดำเนินการ' ? (
                                     <div className="flex items-center justify-center gap-2">
-                                      <button onClick={() => setEditStaffRepairModal({ isOpen: true, data: req })} className="inline-flex items-center justify-center w-8 h-8 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-lg transition-all shadow-sm" title="แก้ไข">✏️</button>
-                                      <button onClick={() => handleStaffDeleteRepair(req.id)} className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-lg transition-all shadow-sm" title="ยกเลิก/ลบ">🗑️</button>
+                                      <button onClick={() => setEditStaffRepairModal({ isOpen: true, data: req })} className="inline-flex items-center justify-center w-8 h-8 text-slate-600 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-all shadow-sm" title="แก้ไข">✏️</button>
+                                      <button onClick={() => handleStaffDeleteRepair(req.id)} className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-white hover:bg-red-50 border border-slate-300 rounded-lg transition-all shadow-sm" title="ยกเลิก/ลบ">🗑️</button>
                                     </div>
                                   ) : (
                                     <span className="text-[10px] text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-md">แก้ไขไม่ได้แล้ว</span>
@@ -363,48 +328,26 @@ export default function StaffView({
                       </div>
                     )}
                     
-                    {/* ✅ ส่วนการแสดงปุ่มเปลี่ยนหน้าของตารางแจ้งซ่อม */}
                     {totalRepairPages > 1 && (
                       <div className="flex justify-center items-center gap-1.5 mt-6 pt-4 border-t border-slate-100">
-                        <button 
-                          onClick={() => setRepairPage(p => Math.max(1, p - 1))} 
-                          disabled={repairPage === 1} 
-                          className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                        >
-                          &lt; ก่อนหน้า
-                        </button>
+                        <button onClick={() => setRepairPage(p => Math.max(1, p - 1))} disabled={repairPage === 1} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors">&lt; ก่อนหน้า</button>
                         <div className="flex gap-1">
                           {Array.from({ length: totalRepairPages }).map((_, i) => (
-                            <button 
-                              key={i} 
-                              onClick={() => setRepairPage(i + 1)} 
-                              className={`w-9 h-9 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${repairPage === i + 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200'}`}
-                            >
-                              {i + 1}
-                            </button>
+                            <button key={i} onClick={() => setRepairPage(i + 1)} className={`w-9 h-9 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${repairPage === i + 1 ? 'bg-black text-teal-400 shadow-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200'}`}>{i + 1}</button>
                           ))}
                         </div>
-                        <button 
-                          onClick={() => setRepairPage(p => Math.min(totalRepairPages, p + 1))} 
-                          disabled={repairPage === totalRepairPages} 
-                          className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                        >
-                          ถัดไป &gt;
-                        </button>
+                        <button onClick={() => setRepairPage(p => Math.min(totalRepairPages, p + 1))} disabled={repairPage === totalRepairPages} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors">ถัดไป &gt;</button>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* 🟢 เนื้อหาภายใน: เบิกอุปกรณ์สำนักงาน */}
               {activeTab === 'office_supplies' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1 bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 h-fit">
-                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3"><span className="p-2 bg-emerald-100 text-emerald-600 rounded-xl shadow-inner">📝</span> ฟอร์มขอเบิกอุปกรณ์</h3>
-                    {/* ✅ แก้ไข: หุ้มด้วยฟังก์ชัน onSupplySubmit ที่มี State Loading */}
+                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3"><span className="p-2 bg-slate-100 text-slate-500 rounded-xl shadow-inner">📝</span> ฟอร์มขอเบิกอุปกรณ์</h3>
                     <form onSubmit={onSupplySubmit} className="space-y-5">
-                      
                       <div ref={supplyDropdownRef} className="relative">
                         <label className="block text-sm font-bold text-slate-700 mb-2">ค้นหาและเลือกอุปกรณ์ <span className="text-red-500">*</span></label>
                         <div className="relative">
@@ -415,39 +358,23 @@ export default function StaffView({
                             type="text"
                             placeholder="พิมพ์ชื่ออุปกรณ์ที่ต้องการค้นหา..."
                             value={supplySearchTerm}
-                            onChange={(e) => {
-                              setSupplySearchTerm(e.target.value);
-                              setIsSupplyDropdownOpen(true);
-                            }}
+                            onChange={(e) => { setSupplySearchTerm(e.target.value); setIsSupplyDropdownOpen(true); }}
                             onFocus={() => setIsSupplyDropdownOpen(true)}
-                            className={`w-full pl-12 pr-4 py-4 border rounded-xl outline-none bg-slate-50 focus:bg-white text-base font-medium transition-all shadow-sm ${!supplyCart.length && supplySearchTerm ? 'border-amber-300 focus:ring-amber-500 focus:border-amber-500' : 'border-slate-300 focus:ring-emerald-500 focus:border-emerald-500'}`}
+                            className={`w-full pl-12 pr-4 py-4 border rounded-xl outline-none bg-slate-50 focus:bg-white text-base font-medium transition-all shadow-sm ${!supplyCart.length && supplySearchTerm ? 'border-amber-300 focus:ring-1 focus:ring-teal-500 focus:border-teal-500' : 'border-slate-300 focus:ring-1 focus:ring-teal-500 focus:border-teal-500'}`}
                           />
                         </div>
 
-                        {/* Dropdown ค้นหาอุปกรณ์ (ขยายให้ใหญ่ขึ้น) */}
                         {isSupplyDropdownOpen && (
                           <div className="absolute z-20 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-80 overflow-y-auto">
                             {filteredSupplies.length > 0 ? (
                               filteredSupplies.map(item => (
-                                <div
-                                  key={item.id}
-                                  className={`px-5 py-4 cursor-pointer hover:bg-emerald-50 transition-colors flex items-center gap-4 border-b border-slate-50 last:border-b-0 ${item.quantity <= 0 ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''} ${supplyCart.some(c => c.supplyId === item.id) ? 'bg-emerald-50' : ''}`}
+                                <div key={item.id} className={`px-5 py-4 cursor-pointer hover:bg-slate-50 transition-colors flex items-center gap-4 border-b border-slate-50 last:border-b-0 ${item.quantity <= 0 ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''} ${supplyCart.some(c => c.supplyId === item.id) ? 'bg-teal-50' : ''}`}
                                   onClick={() => {
                                     if (item.quantity > 0) {
-                                      // ตรวจสอบว่ามีอยู่ในตะกร้าหรือยัง ถ้ายังไม่มีให้เพิ่มเข้าไป
                                       if (!supplyCart.some(c => c.supplyId === item.id)) {
-                                        setSupplyCart([...supplyCart, {
-                                          supplyId: item.id,
-                                          name: item.name,
-                                          maxQty: item.quantity,
-                                          image: item.image,
-                                          unit: item.unit,
-                                          quantity: 1,
-                                          note: ''
-                                        }]);
+                                        setSupplyCart([...supplyCart, { supplyId: item.id, name: item.name, maxQty: item.quantity, image: item.image, unit: item.unit, quantity: 1, note: '' }]);
                                       }
-                                      setSupplySearchTerm(''); // ล้างช่องค้นหาเพื่อให้พร้อมพิมพ์ค้นหาชิ้นต่อไป
-                                      setIsSupplyDropdownOpen(false);
+                                      setSupplySearchTerm(''); setIsSupplyDropdownOpen(false);
                                     }
                                   }}
                                 >
@@ -461,79 +388,48 @@ export default function StaffView({
                                     <div className="text-sm font-medium mt-1">
                                       {item.quantity <= 0 ? (
                                         <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded-md border border-red-200">ของหมดสต็อก</span>
-                                      ) : item.quantity <= 5 ? (
-                                        <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">คงเหลือ {item.quantity} {item.unit}</span>
                                       ) : (
-                                        <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">คงเหลือ {item.quantity} {item.unit}</span>
+                                        <span className="text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">คงเหลือ {item.quantity} {item.unit}</span>
                                       )}
                                     </div>
                                   </div>
-                                  {supplyCart.some(c => c.supplyId === item.id) && (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                  )}
+                                  {supplyCart.some(c => c.supplyId === item.id) && (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>)}
                                 </div>
                               ))
-                            ) : (
-                              <div className="p-5 text-center text-base text-slate-500 font-medium">ไม่พบอุปกรณ์ที่ค้นหา</div>
-                            )}
+                            ) : (<div className="p-5 text-center text-base text-slate-500 font-medium">ไม่พบอุปกรณ์ที่ค้นหา</div>)}
                           </div>
                         )}
                       </div>
 
-                      {/* รายการอุปกรณ์ที่เลือกไว้ในตะกร้า (ขยายให้ใหญ่ขึ้น) */}
                       {supplyCart.length > 0 && (
                         <div className="space-y-4 mt-5">
                           <label className="block text-sm font-bold text-slate-700 mb-2">อุปกรณ์ที่เลือกแล้ว ({supplyCart.length} รายการ)</label>
                           {supplyCart.map((cartItem, index) => (
-                            <div key={cartItem.supplyId} className="p-5 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex flex-col gap-4 animate-in fade-in relative group">
-                              <button 
-                                type="button" 
-                                onClick={() => setSupplyCart(supplyCart.filter(c => c.supplyId !== cartItem.supplyId))} 
-                                className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-white hover:bg-red-500 p-1.5 rounded-full shadow-md border border-red-200 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                title="ลบรายการนี้"
-                              >
+                            <div key={cartItem.supplyId} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col gap-4 animate-in fade-in relative group">
+                              <button type="button" onClick={() => setSupplyCart(supplyCart.filter(c => c.supplyId !== cartItem.supplyId))} className="absolute -top-3 -right-3 bg-white text-slate-400 hover:text-red-500 hover:bg-slate-50 p-1.5 rounded-full shadow-md border border-slate-200 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100" title="ลบรายการนี้">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                               
                               <div className="flex items-center gap-4">
                                 {cartItem.image ? (
-                                  <img src={cartItem.image} alt={cartItem.name} className="w-14 h-14 rounded-xl object-cover border border-emerald-200 shadow-sm shrink-0" />
+                                  <img src={cartItem.image} alt={cartItem.name} className="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-sm shrink-0" />
                                 ) : (
-                                   <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center text-2xl shrink-0 shadow-sm border border-emerald-200">📎</div>
+                                   <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center text-2xl shrink-0 shadow-sm border border-slate-200">📎</div>
                                 )}
                                 <div>
-                                  <p className="text-base font-bold text-emerald-800 line-clamp-1">{cartItem.name}</p>
-                                  <p className="text-sm text-emerald-600 font-medium mt-0.5">เบิกได้สูงสุด: <span className="font-bold">{cartItem.maxQty}</span> {cartItem.unit}</p>
+                                  <p className="text-base font-bold text-slate-800 line-clamp-1">{cartItem.name}</p>
+                                  <p className="text-sm text-slate-500 font-medium mt-0.5">เบิกได้สูงสุด: <span className="font-bold">{cartItem.maxQty}</span> {cartItem.unit}</p>
                                 </div>
                               </div>
                               
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">จำนวน <span className="text-red-500">*</span></label>
-                                  <input 
-                                    type="number" min="1" max={cartItem.maxQty}
-                                    value={cartItem.quantity} 
-                                    onChange={(e) => {
-                                      const newCart = [...supplyCart];
-                                      newCart[index].quantity = e.target.value;
-                                      setSupplyCart(newCart);
-                                    }} 
-                                    className="w-full border border-emerald-200 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-base shadow-sm bg-white" required 
-                                  />
+                                  <input type="number" min="1" max={cartItem.maxQty} value={cartItem.quantity} onChange={(e) => { const newCart = [...supplyCart]; newCart[index].quantity = e.target.value; setSupplyCart(newCart); }} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-1 focus:ring-teal-500 outline-none text-base shadow-sm bg-white" required />
                                 </div>
                                 <div className="sm:col-span-2">
                                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">เหตุผลการเบิก / หมายเหตุ</label>
-                                  <input 
-                                    type="text"
-                                    value={cartItem.note} 
-                                    onChange={(e) => {
-                                      const newCart = [...supplyCart];
-                                      newCart[index].note = e.target.value;
-                                      setSupplyCart(newCart);
-                                    }} 
-                                    className="w-full border border-emerald-200 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-base shadow-sm bg-white" 
-                                    placeholder="เช่น นำไปใช้ในโปรเจค A..."
-                                  />
+                                  <input type="text" value={cartItem.note} onChange={(e) => { const newCart = [...supplyCart]; newCart[index].note = e.target.value; setSupplyCart(newCart); }} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-1 focus:ring-teal-500 outline-none text-base shadow-sm bg-white" placeholder="เช่น นำไปใช้ในโปรเจค A..." />
                                 </div>
                               </div>
                             </div>
@@ -541,14 +437,9 @@ export default function StaffView({
                         </div>
                       )}
                       
-                      {/* ✅ แก้ไข: เพิ่มเงื่อนไขปุ่มและข้อความให้สัมพันธ์กับจำนวนรายการในตะกร้า */}
-                      <button 
-                        type="submit" 
-                        disabled={supplyCart.length === 0 || isSubmittingSupply} 
-                        className={`w-full py-4 text-white font-bold text-base rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${(supplyCart.length > 0 && !isSubmittingSupply) ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-500/30 active:scale-[0.98]' : 'bg-slate-300 cursor-not-allowed shadow-none'}`}
-                      >
+                      <button type="submit" disabled={supplyCart.length === 0 || isSubmittingSupply} className={`w-full py-4 text-black font-bold text-base rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${(supplyCart.length > 0 && !isSubmittingSupply) ? 'bg-teal-500 hover:bg-teal-400 shadow-teal-500/30 active:scale-[0.98]' : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'}`}>
                         {isSubmittingSupply ? (
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                         ) : (
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" /><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 00-1-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" /></svg>
                         )}
@@ -560,9 +451,7 @@ export default function StaffView({
                   <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 flex flex-col h-full">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3"><span className="p-2 bg-slate-100 text-slate-500 rounded-xl shadow-inner">🕒</span> ประวัติคำขอเบิกอุปกรณ์ของคุณ</h3>
-                      {totalSupplyPages > 0 && (
-                        <span className="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">หน้า {supplyPage} / {totalSupplyPages}</span>
-                      )}
+                      {totalSupplyPages > 0 && (<span className="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">หน้า {supplyPage} / {totalSupplyPages}</span>)}
                     </div>
                     
                     {currentSupplyRequests.length === 0 ? (
@@ -583,14 +472,14 @@ export default function StaffView({
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {currentSupplyRequests.map((req) => (
-                              <tr key={req.id} className="hover:bg-emerald-50/30 transition-colors">
+                              <tr key={req.id} className="hover:bg-slate-50 transition-colors">
                                 <td className="px-5 py-4 text-slate-600 font-medium">
                                   {new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </td>
                                 <td className="px-5 py-4 text-slate-800 font-bold">{req.supplyName}</td>
-                                <td className="px-5 py-4 text-center font-black text-emerald-600 text-lg">{req.requestedQty}</td>
+                                <td className="px-5 py-4 text-center font-black text-slate-700 text-lg">{req.requestedQty}</td>
                                 <td className="px-5 py-4 text-center">
-                                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'อนุมัติแล้ว' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'อนุมัติแล้ว' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                                     {req.status}
                                   </span>
                                 </td>
@@ -601,49 +490,29 @@ export default function StaffView({
                       </div>
                     )}
 
-                    {/* ✅ ส่วนการแสดงปุ่มเปลี่ยนหน้าของตารางเบิกอุปกรณ์ */}
                     {totalSupplyPages > 1 && (
                       <div className="flex justify-center items-center gap-1.5 mt-6 pt-4 border-t border-slate-100">
-                        <button 
-                          onClick={() => setSupplyPage(p => Math.max(1, p - 1))} 
-                          disabled={supplyPage === 1} 
-                          className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                        >
-                          &lt; ก่อนหน้า
-                        </button>
+                        <button onClick={() => setSupplyPage(p => Math.max(1, p - 1))} disabled={supplyPage === 1} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors">&lt; ก่อนหน้า</button>
                         <div className="flex gap-1">
                           {Array.from({ length: totalSupplyPages }).map((_, i) => (
-                            <button 
-                              key={i} 
-                              onClick={() => setSupplyPage(i + 1)} 
-                              className={`w-9 h-9 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${supplyPage === i + 1 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200'}`}
-                            >
-                              {i + 1}
-                            </button>
+                            <button key={i} onClick={() => setSupplyPage(i + 1)} className={`w-9 h-9 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${supplyPage === i + 1 ? 'bg-black text-teal-400 shadow-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200'}`}>{i + 1}</button>
                           ))}
                         </div>
-                        <button 
-                          onClick={() => setSupplyPage(p => Math.min(totalSupplyPages, p + 1))} 
-                          disabled={supplyPage === totalSupplyPages} 
-                          className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                        >
-                          ถัดไป &gt;
-                        </button>
+                        <button onClick={() => setSupplyPage(p => Math.min(totalSupplyPages, p + 1))} disabled={supplyPage === totalSupplyPages} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors">ถัดไป &gt;</button>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* 🟢 เนื้อหาภายใน: ทรัพย์สินที่ครอบครอง */}
               {activeTab === 'my_assets' && (
-                <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200 border-t-4 border-t-orange-500">
+                <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-slate-100 pb-6">
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                      <span className="p-2 bg-orange-100 text-orange-600 rounded-xl shadow-inner">💻</span> ทรัพย์สินที่อยู่ในการดูแลของคุณ
+                      <span className="p-2 bg-slate-100 text-slate-500 rounded-xl shadow-inner">💻</span> ทรัพย์สินที่อยู่ในการดูแลของคุณ
                     </h3>
                     <span className="bg-slate-100 text-slate-600 px-4 py-1.5 rounded-xl text-sm font-bold border border-slate-200 shadow-sm flex items-center gap-2">
-                      จำนวนทั้งหมด <span className="bg-white px-2 py-0.5 rounded-lg text-orange-600">{myAssetsList.length}</span>
+                      จำนวนทั้งหมด <span className="bg-white px-2 py-0.5 rounded-lg text-slate-800">{myAssetsList.length}</span>
                     </span>
                   </div>
 
@@ -658,30 +527,23 @@ export default function StaffView({
                         const isAsset = assets.some(a => a.id === item.id);
                         const isAccessory = accessories.some(a => a.id === item.id);
                         
-                        let catText, icon, bgClass, borderClass, textClass, hoverText;
-                        if (isAsset) {
-                          catText = 'ทรัพย์สินหลัก'; icon = '🖥️'; hoverText = 'group-hover:text-blue-600';
-                          bgClass = 'bg-gradient-to-br from-blue-400 to-blue-600 text-white'; borderClass = 'border-blue-200'; textClass = 'text-blue-700 bg-blue-50';
-                        } else if (isAccessory) {
-                          catText = 'อุปกรณ์เสริม'; icon = '🖱️'; hoverText = 'group-hover:text-orange-600';
-                          bgClass = 'bg-gradient-to-br from-orange-400 to-orange-600 text-white'; borderClass = 'border-orange-200'; textClass = 'text-orange-700 bg-orange-50';
-                        } else {
-                          catText = 'โปรแกรม/License'; icon = '🔑'; hoverText = 'group-hover:text-purple-600';
-                          bgClass = 'bg-gradient-to-br from-purple-400 to-purple-600 text-white'; borderClass = 'border-purple-200'; textClass = 'text-purple-700 bg-purple-50';
-                        }
+                        let catText, icon, bgClass, borderClass, textClass;
+                        if (isAsset) { catText = 'ทรัพย์สินหลัก'; icon = '🖥️'; bgClass = 'bg-slate-100 text-slate-600'; borderClass = 'border-slate-200'; textClass = 'text-slate-700 bg-slate-50'; } 
+                        else if (isAccessory) { catText = 'อุปกรณ์เสริม'; icon = '🖱️'; bgClass = 'bg-slate-100 text-slate-600'; borderClass = 'border-slate-200'; textClass = 'text-slate-700 bg-slate-50'; } 
+                        else { catText = 'โปรแกรม/License'; icon = '🔑'; bgClass = 'bg-slate-100 text-slate-600'; borderClass = 'border-slate-200'; textClass = 'text-slate-700 bg-slate-50'; }
 
                         return (
-                          <div key={item.uniqueKey || item.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col gap-4 group">
+                          <div key={item.uniqueKey || item.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
                             <div className="flex items-start gap-4">
                               {item.image ? (
                                 <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0" />
                               ) : (
-                                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-sm shrink-0 ${bgClass}`}>
+                                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-sm shrink-0 border border-slate-200 ${bgClass}`}>
                                   {icon}
                                 </div>
                               )}
                               <div className="flex-1 min-w-0 pt-1">
-                                <h4 className={`font-bold text-slate-800 text-base truncate transition-colors ${hoverText}`} title={item.name}>{item.name}</h4>
+                                <h4 className="font-bold text-slate-800 text-base truncate" title={item.name}>{item.name}</h4>
                                 <p className="text-sm text-slate-500 truncate mt-0.5">{item.type || 'License'}</p>
                               </div>
                             </div>
@@ -691,7 +553,7 @@ export default function StaffView({
                                 {catText}
                               </span>
                               {item.sn && (
-                                <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm truncate max-w-[150px] font-bold" title={item.sn}>
+                                <span className="text-[10px] font-mono text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm truncate max-w-[150px] font-bold" title={item.sn}>
                                   SN: {item.sn}
                                 </span>
                               )}
@@ -703,19 +565,18 @@ export default function StaffView({
                   )}
                 </div>
               )}
-
             </div>
           )}
 
-          {/* Modal แก้ไขแจ้งปัญหา */}
+          {/* Modal แก้ไขแจ้งปัญหา (ปรับเป็นมิ้นดำ) */}
           {editStaffRepairModal.isOpen && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
               <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-5 flex justify-between items-center">
+                <div className="bg-black text-teal-400 px-6 py-5 flex justify-between items-center border-b border-slate-800">
                   <h3 className="font-bold text-lg flex items-center gap-2">
-                    <span className="bg-black/20 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขรายการแจ้งปัญหา
+                    <span className="bg-teal-500/20 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขรายการแจ้งปัญหา
                   </h3>
-                  <button onClick={() => setEditStaffRepairModal({ isOpen: false, data: null })} className="text-white/70 hover:text-white bg-black/20 hover:bg-black/40 p-1.5 rounded-xl transition-colors">
+                  <button onClick={() => setEditStaffRepairModal({ isOpen: false, data: null })} className="text-slate-500 hover:text-white bg-slate-900 hover:bg-slate-800 p-1.5 rounded-xl transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -725,7 +586,7 @@ export default function StaffView({
                     <select 
                       value={editStaffRepairModal.data.assetName} 
                       onChange={(e) => setEditStaffRepairModal(prev => ({...prev, data: {...prev.data, assetName: e.target.value}}))} 
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm shadow-sm bg-slate-50 focus:bg-white cursor-pointer" 
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-1 focus:ring-teal-500 outline-none text-sm shadow-sm bg-slate-50 focus:bg-white cursor-pointer" 
                       required 
                     >
                       <option value="" disabled>-- เลือกระบุอุปกรณ์ / ปัญหา --</option>
@@ -740,12 +601,12 @@ export default function StaffView({
                     <textarea 
                       value={editStaffRepairModal.data.issue} 
                       onChange={(e) => setEditStaffRepairModal(prev => ({...prev, data: {...prev.data, issue: e.target.value}}))} 
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none shadow-sm bg-slate-50 focus:bg-white" 
+                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-1 focus:ring-teal-500 outline-none text-sm resize-none shadow-sm bg-slate-50 focus:bg-white" 
                       rows="4" 
                       required
                     ></textarea>
                   </div>
-                  <button type="submit" className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30">
+                  <button type="submit" className="w-full py-3.5 bg-teal-500 hover:bg-teal-400 text-black font-bold rounded-xl transition-all shadow-lg shadow-teal-500/30">
                     บันทึกการแก้ไข
                   </button>
                 </form>

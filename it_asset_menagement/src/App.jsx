@@ -1,28 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from './firebase.js'; 
+import { db, auth } from './firebase'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser'; 
 
-// Components
-import Sidebar from './components/Sidebar.jsx';
-import DashboardStats from './components/DashboardStats.jsx';
-import CustomAlert from './components/CustomAlert.jsx';
-import AddModal from './components/AddModal.jsx';
-import CheckoutModal from './components/CheckoutModal.jsx';
-import EmployeeDetailsModal from './components/EmployeeDetailsModal.jsx';
-import AssetDetailsModal from './components/AssetDetailsModal.jsx';
-import EditEmpModal from './components/EditEmpModal.jsx';
-import EditAssetModal from './components/EditAssetModal.jsx';
-import EditLicenseModal from './components/EditLicenseModal.jsx';
-import ImportModal from './components/ImportModal.jsx';
-import ReturnModal from './components/ReturnModal.jsx';
-import RepairModal from './components/RepairModal.jsx';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal.jsx';
-import ConfirmModal from './components/ConfirmModal.jsx';
-import ResetPasswordModal from './components/ResetPasswordModal.jsx';
-import LoginView from './components/LoginView.jsx';
-import StaffView from './components/StaffView.jsx';
+// Hooks
+import useFirebaseData from './hooks/useFirebaseData'; // ✅ โหลดข้อมูลจากโฟลเดอร์ hooks
+
+// Components หลัก
+import Sidebar from './components/Sidebar';
+import TopHeader from './components/TopHeader';
+import DashboardStats from './components/DashboardStats';
+import ActionBar from './components/ActionBar';
+
+// Modals & Views
+import CustomAlert from './components/CustomAlert';
+import AddModal from './components/AddModal';
+import CheckoutModal from './components/CheckoutModal';
+import EmployeeDetailsModal from './components/EmployeeDetailsModal';
+import AssetDetailsModal from './components/AssetDetailsModal';
+import EditEmpModal from './components/EditEmpModal';
+import EditAssetModal from './components/EditAssetModal';
+import EditLicenseModal from './components/EditLicenseModal';
+import ImportModal from './components/ImportModal';
+import ReturnModal from './components/ReturnModal';
+import RepairModal from './components/RepairModal';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal';
+import ConfirmModal from './components/ConfirmModal';
+import ResetPasswordModal from './components/ResetPasswordModal';
+import LoginView from './components/LoginView';
+import StaffView from './components/StaffView';
+
+// Tables Components (แยกส่วนตารางทั้งหมด)
+import EmployeeTable from './components/EmployeeTable'; 
+import LicenseTable from './components/LicenseTable';   
+import OfficeSupplyTable from './components/OfficeSupplyTable';
+import AssetTable from './components/AssetTable';       
+import AccessoryTable from './components/AccessoryTable'; 
+import RepairTable from './components/RepairTable';               
+import SupplyRequestTable from './components/SupplyRequestTable'; 
 
 function App() {
   const [authRole, setAuthRole] = useState(null);
@@ -38,15 +54,11 @@ function App() {
 
   const [activeMenu, setActiveMenu] = useState('dashboard');
   
-  const [assets, setAssets] = useState([]);
-  const [accessories, setAccessories] = useState([]);
-  const [employees, setEmployees] = useState([]); 
-  const [deletedEmployees, setDeletedEmployees] = useState([]); // ✅ 1. State สำหรับพนักงานที่ลบ
-  const [licenses, setLicenses] = useState([]); 
-  const [repairRequests, setRepairRequests] = useState([]); 
-
-  const [officeSupplies, setOfficeSupplies] = useState([]);
-  const [supplyRequests, setSupplyRequests] = useState([]);
+  // ✅ ใช้ Custom Hook โหลดข้อมูลทั้งหมดมาจาก Firebase ภายในบรรทัดเดียว!
+  const {
+    assets, accessories, employees, deletedEmployees, licenses, 
+    repairRequests, officeSupplies, supplyRequests, transactions
+  } = useFirebaseData();
 
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]); 
@@ -104,7 +116,6 @@ function App() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: 'ยืนยัน', cancelText: 'ยกเลิก', icon: 'warning' });
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
 
-  // ✅ State สำหรับระบบ Dropdown แจ้งเตือน
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
 
@@ -131,9 +142,8 @@ function App() {
   const [repairFilterMonth, setRepairFilterMonth] = useState('ทั้งหมด'); 
   const [supplyFilterDate, setSupplyFilterDate] = useState('ทั้งหมด');
   const [officeSupplyStockFilter, setOfficeSupplyStockFilter] = useState('ทั้งหมด');
-  const [showDeletedEmployees, setShowDeletedEmployees] = useState(false); // ✅ 2. State สลับหน้าต่าง
+  const [showDeletedEmployees, setShowDeletedEmployees] = useState(false); 
   const [searchTerm, setSearchTerm] = useState('');
-  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
@@ -148,30 +158,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const unsubAssets = onSnapshot(collection(db, 'assets'), (snapshot) => setAssets(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
-    const unsubAccessories = onSnapshot(collection(db, 'accessories'), (snapshot) => setAccessories(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
-    const unsubEmployees = onSnapshot(collection(db, 'employees'), (snapshot) => setEmployees(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
-    const unsubDeletedEmployees = onSnapshot(collection(db, 'deleted_employees'), (snapshot) => setDeletedEmployees(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || [])); // ✅ 3. ดึงข้อมูลคนถูกลบ
-    const unsubLicenses = onSnapshot(collection(db, 'licenses'), (snapshot) => setLicenses(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
-    const unsubRepairReqs = onSnapshot(collection(db, 'repair_requests'), (snapshot) => setRepairRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
-    const unsubOfficeSupplies = onSnapshot(collection(db, 'office_supplies'), (snapshot) => setOfficeSupplies(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
-    const unsubSupplyReqs = onSnapshot(collection(db, 'supply_requests'), (snapshot) => setSupplyRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
-
-    let accData = []; let assetData = []; let licData = [];
-    const updateTransactionsState = () => {
-      const combined = [...accData, ...assetData, ...licData];
-      combined.sort((a, b) => b.timestamp - a.timestamp);
-      setTransactions(combined);
-    };
-
-    const unsubAccTx = onSnapshot(collection(db, 'accessories_transactions'), (snapshot) => { accData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'accessories', ...doc.data() })) || []; updateTransactionsState(); });
-    const unsubAssetTx = onSnapshot(collection(db, 'assets_transactions'), (snapshot) => { assetData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'assets', ...doc.data() })) || []; updateTransactionsState(); });
-    const unsubLicTx = onSnapshot(collection(db, 'licenses_transactions'), (snapshot) => { licData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'licenses', ...doc.data() })) || []; updateTransactionsState(); });
-
-    return () => { unsubAssets(); unsubAccessories(); unsubEmployees(); unsubDeletedEmployees(); unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); unsubAccTx(); unsubAssetTx(); unsubLicTx(); }; // ✅ 4. คืนค่า cleanup
-  }, []);
-
-  useEffect(() => {
     setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX');
     setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
@@ -179,7 +165,7 @@ function App() {
     setRepairFilterMonth('ทั้งหมด'); 
     setSupplyFilterDate('ทั้งหมด'); 
     setOfficeSupplyStockFilter('ทั้งหมด');
-    setShowDeletedEmployees(false); // ✅ 5. รีเซ็ตเมื่อเปลี่ยนหน้า
+    setShowDeletedEmployees(false); 
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]);
     
     if (activeMenu === 'assets') setType('คอมพิวเตอร์');
@@ -414,7 +400,7 @@ function App() {
       if (collectionName === 'employees') {
         const deletedEmps = employees.filter(emp => idsToDelete.includes(emp.id));
         deletedEmpStringIds = deletedEmps.map(emp => String(emp.empId).toLowerCase());
-        // ✅ 6. ย้ายข้อมูลพนักงานที่ลบไปไว้ใน deleted_employees
+        
         for (const emp of deletedEmps) {
           const empData = { ...emp };
           delete empData.id;
@@ -447,7 +433,6 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
-  // ✅ 7. ฟังก์ชันกู้คืนพนักงานที่ถูกลบ
   const handleRestoreEmployee = async (emp) => {
     try {
       const empData = { ...emp };
@@ -540,7 +525,7 @@ function App() {
         async () => {
           try {
             for (let i = 0; i < dataRows.length; i++) {
-              const cols = dataRows[i].split(',').map(col => col.replace(/^"|"$/g, '').trim());
+              const cols = dataRows[i].split(',').map(col => col.replace(new RegExp('"', 'g'), '').trim());
               if (activeMenu === 'employees') {
                 await addDoc(collection(db, 'employees'), { empId: cols[0]||'', fullName: cols[1]||'', fullNameEng: cols[2]||'', nickname: cols[3]||'', phone: cols[4]||'', email: cols[5]||'', company: cols[6]||'', department: cols[7]||'', position: cols[8]||'', manager: cols[9]||'', createdAt: serverTimestamp() });
               } else if (activeMenu === 'assets') {
@@ -831,12 +816,12 @@ function App() {
   if (activeMenu === 'assets') {
     baseData = assets.filter(item => {
       return (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) && 
-            (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) &&
-            (assetFilterDepartment === 'ทั้งหมด' || item.department === assetFilterDepartment);
+             (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) &&
+             (assetFilterDepartment === 'ทั้งหมด' || item.department === assetFilterDepartment);
     });
   }
   else if (activeMenu === 'licenses') baseData = licenses;
-  else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees; // ✅ 8. ดึงข้อมูลพนักงานตามสถานะที่เลือกดู
+  else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees;
   else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
   else if (activeMenu === 'office_supplies') {
     baseData = officeSupplies.filter(item => {
@@ -858,7 +843,6 @@ function App() {
     });
   }
 
-  // ดึงรายชื่อเดือนที่มีการทำรายการออกมา
   const getUniqueMonths = (data) => {
     const months = new Set();
     data.forEach(item => {
@@ -868,7 +852,7 @@ function App() {
         months.add(monthStr);
       }
     });
-    return Array.from(months).sort().reverse(); // เรียงจากเดือนล่าสุดไปเก่าสุด
+    return Array.from(months).sort().reverse();
   };
 
   const formatMonthLabel = (monthStr) => {
@@ -878,7 +862,6 @@ function App() {
     return `${monthNames[parseInt(month, 10) - 1]} ${parseInt(year, 10) + 543}`;
   };
 
-  // ✅ เพิ่มฟังก์ชันดึง "วันที่" แบบไม่ซ้ำกันออกมาทำตัวกรอง
   const getUniqueDates = (data) => {
     const dates = new Set();
     data.forEach(item => {
@@ -888,10 +871,9 @@ function App() {
         dates.add(dateStr);
       }
     });
-    return Array.from(dates).sort().reverse(); // เรียงจากใหม่ไปเก่า
+    return Array.from(dates).sort().reverse(); 
   };
 
-  // ✅ ฟังก์ชันแปลงรูปแบบวันที่ให้แสดงผลสวยงาม (เช่น 27/4/2569)
   const formatDateLabel = (dateStr) => {
     if (!dateStr || dateStr === 'ทั้งหมด') return 'ทั้งหมด';
     const [year, month, day] = dateStr.split('-');
@@ -909,7 +891,6 @@ function App() {
     return matchStatus && matchMonth;
   });
 
-  // ✅ อัปเดตตรรกะการกรองของหน้าเบิกอุปกรณ์ ให้กรองตาม "วันที่"
   let currentSupplyRequests = supplyRequests.filter(req => {
     const matchStatus = supplyFilterStatus === 'ทั้งหมด' || req.status === supplyFilterStatus;
     let matchDate = true;
@@ -936,7 +917,6 @@ function App() {
                     activeMenu === 'office_supplies' ? 'คลังอุปกรณ์สำนักงาน' : 
                     activeMenu === 'supply_requests' ? 'คำขอเบิกอุปกรณ์' : 'ข้อมูลพนักงาน';
 
-  // ✅ ฟังก์ชันตรวจสอบวันหมดอายุ License (ภายใน 30 วันถือว่าใกล้หมด)
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };
     const today = new Date();
@@ -953,18 +933,20 @@ function App() {
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
-  // ✅ คำนวณจำนวนการแจ้งเตือนที่รอดำเนินการ (รวม License ที่ใกล้หมดอายุด้วย)
   const pendingRepairsCount = repairRequests.filter(req => req.status === 'รอดำเนินการ').length;
   const pendingSuppliesCount = supplyRequests.filter(req => req.status === 'รอดำเนินการ').length;
   const expiringLicensesCount = licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length;
   
   const totalPendingCount = pendingRepairsCount + pendingSuppliesCount + expiringLicensesCount;
 
+  const totalSystemItems = assets.length + licenses.length + accessories.length + employees.length;
+  const currentDataLength = currentData.length;
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-400 font-medium">กำลังโหลด...</p>
         </div>
       </div>
@@ -973,7 +955,7 @@ function App() {
 
   if (authRole === null) {
     return (
-      <>
+      <React.Fragment>
         <LoginView
           showAdminLogin={showAdminLogin}
           setShowAdminLogin={setShowAdminLogin}
@@ -986,13 +968,13 @@ function App() {
           loginLoading={loginLoading} 
         />
         <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
-      </>
+      </React.Fragment>
     );
   }
 
   if (authRole === 'staff') {
     return (
-      <>
+      <React.Fragment>
         <StaffView 
           setAuthRole={setAuthRole} currentStaff={currentStaff} setCurrentStaff={setCurrentStaff} 
           staffEmpIdInput={staffEmpIdInput} setStaffEmpIdInput={setStaffEmpIdInput} handleStaffLogin={handleStaffLogin} 
@@ -1003,491 +985,159 @@ function App() {
           assets={assets} accessories={accessories} licenses={licenses} 
         />
         <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
-      </>
+      </React.Fragment>
     );
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-800" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="flex flex-col md:flex-row h-screen bg-slate-50 font-sans" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
+      
+      <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} authRole={authRole} />
       
       <main className="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
-        <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 px-6 md:px-10 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 sticky top-0 shrink-0">
-          <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">{menuTitle}</h2>
-          <div className="flex items-center gap-3">
-            
-            {/* ✅ ไอคอนแจ้งเตือนรูปกระดิ่ง พร้อม Dropdown */}
-            <div className="relative" ref={notifRef}>
-              <div 
-                className="cursor-pointer flex items-center justify-center p-2.5 bg-white border border-slate-200 rounded-full hover:bg-slate-100 transition-colors shadow-sm"
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
-                title={totalPendingCount > 0 ? `มีรายการรอดำเนินการ ${totalPendingCount} รายการ` : 'ไม่มีการแจ้งเตือนใหม่'}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${totalPendingCount > 0 ? 'text-amber-500' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {totalPendingCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm border-2 border-white animate-bounce">
-                    {totalPendingCount}
-                  </span>
-                )}
-              </div>
-
-              {/* Dropdown แจ้งเตือน */}
-              {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-slate-800">รายการรอดำเนินการ</h4>
-                    <span className="text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">{totalPendingCount}</span>
-                  </div>
-                  <div className="flex flex-col max-h-[300px] overflow-y-auto">
-                    {totalPendingCount === 0 ? (
-                      <div className="px-4 py-6 text-center text-slate-400 text-sm font-medium">
-                        ไม่มีรายการใหม่ 🎉
-                      </div>
-                    ) : (
-                      <>
-                        {pendingRepairsCount > 0 && (
-                          <button 
-                            onClick={() => { setActiveMenu('repairs'); setIsNotifOpen(false); }}
-                            className="px-4 py-3 text-left hover:bg-indigo-50 transition-colors border-b border-slate-50 flex items-start gap-3"
-                          >
-                            <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">🔧</span>
-                            <div>
-                              <p className="text-sm font-bold text-slate-800">แจ้งปัญหา IT</p>
-                              <p className="text-xs text-indigo-600 font-medium mt-0.5">{pendingRepairsCount} คิวใหม่</p>
-                            </div>
-                          </button>
-                        )}
-                        {pendingSuppliesCount > 0 && (
-                          <button 
-                            onClick={() => { setActiveMenu('supply_requests'); setIsNotifOpen(false); }}
-                            className="px-4 py-3 text-left hover:bg-emerald-50 transition-colors flex items-start gap-3"
-                          >
-                            <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">📝</span>
-                            <div>
-                              <p className="text-sm font-bold text-slate-800">ขอเบิกอุปกรณ์สำนักงาน</p>
-                              <p className="text-xs text-emerald-600 font-medium mt-0.5">{pendingSuppliesCount} คิวใหม่</p>
-                            </div>
-                          </button>
-                        )}
-                        {/* ✅ เพิ่มส่วนแจ้งเตือน License ลงในกระดิ่ง */}
-                        {expiringLicensesCount > 0 && (
-                          <button 
-                            onClick={() => { setActiveMenu('licenses'); setIsNotifOpen(false); }}
-                            className="px-4 py-3 text-left hover:bg-purple-50 transition-colors border-t border-slate-50 flex items-start gap-3"
-                          >
-                            <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">🔑</span>
-                            <div>
-                              <p className="text-sm font-bold text-slate-800">โปรแกรม/License</p>
-                              <p className="text-xs text-purple-600 font-medium mt-0.5">{expiringLicensesCount} รายการใกล้/หมดอายุ</p>
-                            </div>
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-full shadow-sm flex items-center gap-2 hidden sm:flex">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-              {activeMenu === 'dashboard' ? `ข้อมูลในระบบทั้งหมด ${assets.length + licenses.length + accessories.length + employees.length} รายการ` : `มีรายการทั้งหมด ${currentData.length} รายการ`}
-            </div>
-            <button onClick={handleLogout} className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow-sm whitespace-nowrap">ออกจากระบบ</button>
-          </div>
-        </header>
+        
+        <TopHeader 
+          menuTitle={menuTitle}
+          notifRef={notifRef}
+          isNotifOpen={isNotifOpen}
+          setIsNotifOpen={setIsNotifOpen}
+          totalPendingCount={totalPendingCount}
+          pendingRepairsCount={pendingRepairsCount}
+          pendingSuppliesCount={pendingSuppliesCount}
+          expiringLicensesCount={expiringLicensesCount}
+          setActiveMenu={setActiveMenu}
+          activeMenu={activeMenu}
+          totalSystemItems={totalSystemItems}
+          currentDataLength={currentDataLength}
+          handleLogout={handleLogout}
+        />
 
         <div className="flex-1 overflow-auto p-4 md:p-8">
           {activeMenu === 'dashboard' ? (
             <DashboardStats assets={assets} licenses={licenses} accessories={accessories} employees={employees} />
           ) : activeMenu === 'repairs' ? (
-            <div className="h-full flex flex-col bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
-              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-100 pb-6 shrink-0">
-                <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 whitespace-nowrap"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shadow-inner">🔧</span> คิวงานแจ้งปัญหาจากพนักงาน</h3>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <select value={repairFilterMonth} onChange={(e) => setRepairFilterMonth(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer">
-                    <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
-                    {getUniqueMonths(repairRequests).map(m => (
-                      <option key={m} value={m}>{formatMonthLabel(m)}</option>
-                    ))}
-                  </select>
-                  <select value={repairFilterStatus} onChange={(e) => setRepairFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer">
-                    <option value="ทั้งหมด">สถานะ: ทั้งหมด</option><option value="รอดำเนินการ">รอดำเนินการ</option><option value="กำลังดำเนินการ">กำลังดำเนินการ</option><option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option><option value="ยกเลิก">ยกเลิก</option>
-                  </select>
-                </div>
-              </div>
-              {currentRepairRequests.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-                  <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">✅</span>
-                  <p className="font-bold text-lg text-slate-500">ไม่มีคิวงานในสถานะนี้</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <table className="min-w-full text-left whitespace-nowrap text-sm">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr><th className="px-5 py-4 font-bold text-slate-500">วันที่แจ้ง</th><th className="px-5 py-4 font-bold text-slate-500">ผู้แจ้ง (รหัสพนักงาน)</th><th className="px-5 py-4 font-bold text-slate-500">หัวข้อ / รายละเอียดปัญหา</th><th className="px-5 py-4 font-bold text-slate-500 text-center">สถานะ</th><th className="px-5 py-4 font-bold text-slate-500 text-center">การจัดการ</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {currentRepairRequests.map((req) => (
-                        <tr key={req.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-4 text-slate-600 font-medium">{new Date(req.timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                          <td className="px-5 py-4"><div className="font-bold text-indigo-700">{req.empName}</div><div className="text-xs text-slate-500 mt-0.5">{req.empId} • {req.department || '-'}</div></td>
-                          <td className="px-5 py-4"><div className="font-bold text-slate-800">{req.assetName}</div><div className="text-xs text-slate-500 mt-0.5 truncate max-w-[250px]" title={req.issue}>{req.issue}</div></td>
-                          <td className="px-5 py-4 text-center">
-                            <select value={req.status} onChange={(e) => handleUpdateRepairRequestStatus(req.id, e.target.value)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border outline-none cursor-pointer shadow-sm ${req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'กำลังดำเนินการ' ? 'bg-blue-50 text-blue-700 border-blue-200' : req.status === 'ซ่อมเสร็จสิ้น' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
-                              <option value="รอดำเนินการ">รอดำเนินการ</option><option value="กำลังดำเนินการ">กำลังดำเนินการ</option><option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option><option value="ยกเลิก">ยกเลิก</option>
-                            </select>
-                          </td>
-                          <td className="px-5 py-4 text-center"><button onClick={() => handleDeleteRepairRequest(req.id)} className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-lg transition-all shadow-sm">🗑️</button></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            <RepairTable 
+              repairRequests={repairRequests}
+              currentRepairRequests={currentRepairRequests}
+              repairFilterMonth={repairFilterMonth}
+              setRepairFilterMonth={setRepairFilterMonth}
+              repairFilterStatus={repairFilterStatus}
+              setRepairFilterStatus={setRepairFilterStatus}
+              getUniqueMonths={getUniqueMonths}
+              formatMonthLabel={formatMonthLabel}
+              handleUpdateRepairRequestStatus={handleUpdateRepairRequestStatus}
+              handleDeleteRepairRequest={handleDeleteRepairRequest}
+            />
           ) : activeMenu === 'supply_requests' ? (
-            <div className="h-full flex flex-col bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200">
-              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-100 pb-6 shrink-0">
-                <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 whitespace-nowrap"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl shadow-inner">📝</span> คิวขอเบิกอุปกรณ์สำนักงาน</h3>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  {/* ✅ เปลี่ยน Dropdown ตรงนี้ให้เป็นเลือก วันที่ */}
-                  <select value={supplyFilterDate} onChange={(e) => setSupplyFilterDate(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
-                    <option value="ทั้งหมด">วันที่: ทั้งหมด</option>
-                    {getUniqueDates(supplyRequests).map(d => (
-                      <option key={d} value={d}>{formatDateLabel(d)}</option>
-                    ))}
-                  </select>
-                  <select value={supplyFilterStatus} onChange={(e) => setSupplyFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
-                    <option value="ทั้งหมด">สถานะ: ทั้งหมด</option><option value="รอดำเนินการ">รอดำเนินการ</option><option value="อนุมัติแล้ว">อนุมัติแล้ว</option><option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
-                  </select>
-                </div>
-              </div>
-              {currentSupplyRequests.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-                  <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">✅</span>
-                  <p className="font-bold text-lg text-slate-500">ไม่มีคำขอในสถานะนี้</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <table className="min-w-full text-left whitespace-nowrap text-sm">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr><th className="px-5 py-4 font-bold text-slate-500">วันที่ขอ</th><th className="px-5 py-4 font-bold text-slate-500">ผู้ขอ (รหัสพนักงาน)</th><th className="px-5 py-4 font-bold text-slate-500">อุปกรณ์ที่ต้องการ</th><th className="px-5 py-4 font-bold text-slate-500 text-center">จำนวน</th><th className="px-5 py-4 font-bold text-slate-500 text-center">สถานะ</th><th className="px-5 py-4 font-bold text-slate-500 text-center">การจัดการ</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {currentSupplyRequests.map((req) => (
-                        <tr key={req.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-4 text-slate-600 font-medium">{new Date(req.timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                          <td className="px-5 py-4"><div className="font-bold text-indigo-700">{req.empName}</div><div className="text-xs text-slate-500 mt-0.5">{req.empId} • {req.department || '-'}</div></td>
-                          <td className="px-5 py-4"><div className="font-bold text-slate-800">{req.supplyName}</div><div className="text-xs text-slate-500 mt-0.5 truncate max-w-[200px]">{req.note}</div></td>
-                          <td className="px-5 py-4 text-center font-bold text-emerald-600 text-lg">{req.requestedQty}</td>
-                          <td className="px-5 py-4 text-center">
-                            <select value={req.status} onChange={(e) => handleUpdateSupplyRequestStatus(req, e.target.value)} className={`px-3 py-1.5 rounded-lg text-xs font-bold border outline-none cursor-pointer shadow-sm ${req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' : req.status === 'อนุมัติแล้ว' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                              <option value="รอดำเนินการ">รอดำเนินการ</option><option value="อนุมัติแล้ว">อนุมัติแล้ว</option><option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
-                            </select>
-                          </td>
-                          <td className="px-5 py-4 text-center"><button onClick={() => handleDelete(req.id, 'supply_requests')} className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-lg transition-all shadow-sm">🗑️</button></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            <SupplyRequestTable 
+              supplyRequests={supplyRequests}
+              currentSupplyRequests={currentSupplyRequests}
+              supplyFilterDate={supplyFilterDate}
+              setSupplyFilterDate={setSupplyFilterDate}
+              supplyFilterStatus={supplyFilterStatus}
+              setSupplyFilterStatus={setSupplyFilterStatus}
+              getUniqueDates={getUniqueDates}
+              formatDateLabel={formatDateLabel}
+              handleUpdateSupplyRequestStatus={handleUpdateSupplyRequestStatus}
+              handleDelete={handleDelete}
+            />
           ) : (
             <div className="h-full flex flex-col">
               <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col flex-1">
-                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 border-b border-slate-100 pb-6 shrink-0">
-                  <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 whitespace-nowrap"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shadow-inner">📦</span> รายการ {menuTitle}</h3>
-                  <div className="flex flex-wrap w-full xl:w-auto gap-3 items-center sm:justify-end">
-                    <div className="relative w-full sm:w-auto flex-grow sm:flex-grow-0">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></div>
-                      <input type="text" placeholder="ค้นหาชื่อ หรือ รหัส..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-sm" />
-                    </div>
-                    
-                    {activeMenu === 'employees' && (
-                      <>
-                        {/* ✅ 9. ปุ่มสลับดูพนักงานปัจจุบัน / ถูกลบ */}
-                        <button onClick={() => setShowDeletedEmployees(!showDeletedEmployees)} className={`flex-1 sm:flex-none w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm ${showDeletedEmployees ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100' : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'}`}>
-                          {showDeletedEmployees ? 'ดูพนักงานปัจจุบัน' : 'ดูพนักงานที่ถูกลบ'}
-                        </button>
-                        {!showDeletedEmployees && (
-                          <>
-                            <button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>
-                            <button onClick={handleExportEmployees} className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm">ส่งออก CSV</button>
-                            {selectedEmployeeIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedEmployeeIds.length})</button>)}
-                          </>
-                        )}
-                      </>
-                    )}
-                    
-                    {activeMenu === 'assets' && (
-                      <>
-                        <select value={assetFilterDepartment} onChange={(e) => setAssetFilterDepartment(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">แผนก: ทั้งหมด</option><option value="DX">DX</option><option value="BD">BD</option><option value="General">General</option></select>
-                        <select value={assetFilterType} onChange={(e) => setAssetFilterType(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">ประเภท: ทั้งหมด</option><option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option><option value="หน้าจอ">หน้าจอ (Monitor)</option><option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option><option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option><option value="อื่นๆ">อื่นๆ</option></select>
-                        <select value={assetFilterStatus} onChange={(e) => setAssetFilterStatus(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">สถานะ: ทั้งหมด</option><option value="พร้อมใช้งาน">พร้อมใช้งาน</option><option value="ถูกใช้งาน">ถูกใช้งาน</option><option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option><option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option><option value="รอดำเนินการ">รอดำเนินการ</option></select>
-                      </>
-                    )}
-                    
-                    {activeMenu === 'accessories' && (
-                      <>
-                        <select value={accFilterType} onChange={(e) => setAccFilterType(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm cursor-pointer"><option value="ทั้งหมด">ประเภท: ทั้งหมด</option><option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option><option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option><option value="อุปกรณ์เสริมโน๊ตบุ๊ค">อุปกรณ์เสริมโน๊ตบุ๊ค</option><option value="หูฟัง (Headset)">หูฟัง (Headset)</option><option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option><option value="อื่นๆ">อื่นๆ</option></select>
-                        <button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>
-                        <button onClick={handleExportAccessories} className="flex-1 sm:flex-none w-full sm:w-auto bg-blue-50 text-blue-700 border border-blue-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm">ส่งออก CSV</button>
-                        {selectedAccessoryIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedAccessoryIds, collectionName: 'accessories' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedAccessoryIds.length})</button>)}
-                      </>
-                    )}
-
-                    {activeMenu === 'office_supplies' && (
-                      <>
-                        <select value={officeSupplyStockFilter} onChange={(e) => setOfficeSupplyStockFilter(e.target.value)} className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm cursor-pointer">
-                          <option value="ทั้งหมด">สถานะสต็อก: ทั้งหมด</option>
-                          <option value="ปกติ">🟢 ปกติ (&gt; 5)</option>
-                          <option value="ใกล้หมด">🟡 ใกล้หมด (1-5)</option>
-                          <option value="หมดสต็อก">🔴 หมดสต็อก (0)</option>
-                        </select>
-                        {selectedOfficeSupplyIds.length > 0 && (<button onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })} className="flex-1 sm:flex-none w-full sm:w-auto bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑️ ลบที่เลือก ({selectedOfficeSupplyIds.length})</button>)}
-                      </>
-                    )}
-
-                    {(activeMenu === 'assets' || activeMenu === 'licenses') && (<button onClick={() => setIsImportModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">นำเข้า CSV</button>)}
-                    
-                    {/* ✅ 10. ซ่อนปุ่มเพิ่ม หากดูพนักงานที่ถูกลบ */}
-                    {!showDeletedEmployees && (
-                      <button onClick={() => setIsAddModalOpen(true)} className="flex-1 sm:flex-none w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/30">➕ เพิ่มรายการใหม่</button>
-                    )}
-                  </div>
-                </div>
+                
+                <ActionBar 
+                  menuTitle={menuTitle}
+                  activeMenu={activeMenu}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  showDeletedEmployees={showDeletedEmployees}
+                  setShowDeletedEmployees={setShowDeletedEmployees}
+                  setIsImportModalOpen={setIsImportModalOpen}
+                  handleExportEmployees={handleExportEmployees}
+                  selectedEmployeeIds={selectedEmployeeIds}
+                  setConfirmDeleteModal={setConfirmDeleteModal}
+                  assetFilterDepartment={assetFilterDepartment}
+                  setAssetFilterDepartment={setAssetFilterDepartment}
+                  assetFilterType={assetFilterType}
+                  setAssetFilterType={setAssetFilterType}
+                  assetFilterStatus={assetFilterStatus}
+                  setAssetFilterStatus={setAssetFilterStatus}
+                  accFilterType={accFilterType}
+                  setAccFilterType={setAccFilterType}
+                  handleExportAccessories={handleExportAccessories}
+                  selectedAccessoryIds={selectedAccessoryIds}
+                  officeSupplyStockFilter={officeSupplyStockFilter}
+                  setOfficeSupplyStockFilter={setOfficeSupplyStockFilter}
+                  selectedOfficeSupplyIds={selectedOfficeSupplyIds}
+                  setIsAddModalOpen={setIsAddModalOpen}
+                />
                 
                 {currentData.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                  <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-12">
                     <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">📂</span>
                     <p className="font-bold text-lg text-slate-500">ไม่พบข้อมูลที่ค้นหา</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
-                      <thead className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
-                        <tr>
-                          {activeMenu === 'employees' ? (
-                            <>
-                              <th className="px-4 py-4 text-center"><input type="checkbox" className="w-4 h-4" checked={currentData.length > 0 && selectedEmployeeIds?.length === currentData.length} onChange={handleSelectAllEmployees} /></th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">รหัสพนักงาน</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่อ-นามสกุล</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">แผนก / บริษัท</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ตำแหน่ง</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
-                            </>
-                          ) : activeMenu === 'licenses' ? (
-                            <>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่อโปรแกรม</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">Product Key</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">วันหมดอายุ</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ราคา</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">สถานะ</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
-                            </>
-                          ) : activeMenu === 'office_supplies' ? (
-                            <>
-                              <th className="px-4 py-4 text-center"><input type="checkbox" className="w-4 h-4" checked={currentData.length > 0 && selectedOfficeSupplyIds?.length === currentData.length} onChange={handleSelectAllOfficeSupplies} /></th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่ออุปกรณ์</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ประเภท</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">สต็อกคงเหลือ</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
-                            </>
-                          ) : (
-                            <>
-                              {activeMenu === 'accessories' && (
-                                <th className="px-4 py-4 text-center"><input type="checkbox" className="w-4 h-4" checked={currentData.length > 0 && selectedAccessoryIds?.length === currentData.length} onChange={handleSelectAllAccessories} /></th>
-                              )}
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่ออุปกรณ์</th>
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs">ประเภท</th>
-                              {activeMenu === 'assets' && (
-                                <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">แผนก</th>
-                              )}
-                              {activeMenu === 'accessories' && (
-                                <>
-                                  <th className="px-5 py-4 font-bold text-slate-800 text-xs text-center bg-slate-100/50">
-                                    รวมทั้งหมดในระบบ <span className="text-sm ml-1 text-indigo-600">({currentData.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)})</span>
-                                  </th>
-                                  <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">
-                                    คงเหลือ <span className="text-sm ml-1 text-emerald-600">({currentData.reduce((sum, item) => sum + (Number(item.quantity || 0) - (item.assignees?.length || 0) - Number(item.brokenQuantity || 0)), 0)})</span>
-                                  </th>
-                                  <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">
-                                    ใช้งานไป <span className="text-sm ml-1 text-amber-600">({currentData.reduce((sum, item) => sum + (item.assignees?.length || 0), 0)})</span>
-                                  </th>
-                                  <th className="px-5 py-4 font-bold text-red-500 text-xs text-center">
-                                    ชำรุด/พัง <span className="text-sm ml-1">({currentData.reduce((sum, item) => sum + (Number(item.brokenQuantity) || 0), 0)})</span>
-                                  </th>
-                                </>
-                              )}
-                              {activeMenu !== 'accessories' && (
-                                <th className="px-5 py-4 font-bold text-slate-500 text-xs">ราคา</th>
-                              )}
-                              {activeMenu !== 'accessories' && (
-                                <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">สถานะ</th>
-                              )}
-                              <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
-                            </>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {currentData.map((item) => (
-                          <tr key={item.id} className="hover:bg-indigo-50/40 transition-colors group">
-                            {activeMenu === 'employees' ? (
-                              <>
-                                <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                  <input type="checkbox" className="w-4 h-4" checked={selectedEmployeeIds?.includes(item.id) || false} onChange={(e) => handleSelectEmployee(e, item.id)} />
-                                </td>
-                                <td className="px-5 py-4 font-bold text-indigo-700">{item.empId}</td>
-                                <td className="px-5 py-4">
-                                  <button onClick={() => { setSelectedEmployee(item); setEmpModalTab('info'); }} className="text-left flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-black text-lg shadow-inner">{item.fullName.charAt(0)}</div>
-                                    <div><span className="font-bold text-slate-800 group-hover:text-indigo-600">{item.fullName}</span> {item.nickname && <span className="text-slate-400 text-sm ml-2">({item.nickname})</span>}</div>
-                                  </button>
-                                </td>
-                                <td className="px-5 py-4 text-slate-600"><div className="text-sm font-bold text-slate-700">{item.department}</div><div className="text-xs text-slate-400">{item.company}</div></td>
-                                <td className="px-5 py-4 text-slate-600 text-sm">{item.position}</td>
-                                <td className="px-5 py-4 text-center space-x-2">
-                                  {/* ✅ เปลี่ยนให้โชว์ปุ่ม กู้คืน หากเป็นข้อมูลในถังขยะ */}
-                                  {showDeletedEmployees ? (
-                                    <button onClick={() => handleRestoreEmployee(item)} className="inline-flex items-center justify-center px-4 py-1.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-500 hover:text-white border border-emerald-200 hover:border-emerald-500 rounded-xl transition-all shadow-sm text-xs font-bold" title="กู้คืนข้อมูล">🔄 กู้คืน</button>
-                                  ) : (
-                                    <>
-                                      <button onClick={() => openEditEmpModal(item)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
-                                      <button onClick={() => handleDelete(item.id, 'employees')} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
-                                    </>
-                                  )}
-                                </td>
-                              </>
-                            ) : activeMenu === 'licenses' ? (
-                              <>
-                                <td className="px-5 py-4"><button onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory(activeMenu); }} className="text-left font-bold text-slate-800 group-hover:text-indigo-600">{item.name}</button></td>
-                                <td className="px-5 py-4 text-slate-600"><div className="text-sm font-bold font-mono bg-slate-100 px-3 py-1.5 rounded-lg w-fit border border-slate-200">{item.productKey || '-'}</div><div className="text-xs text-slate-400 ml-1 mt-1">{item.keyCode || '-'}</div></td>
-                                <td className="px-5 py-4 text-sm text-slate-600">
-                                  {/* ✅ เปลี่ยนการแสดงผลวันหมดอายุ เพื่อเพิ่มป้ายเตือนหากใกล้หมด */}
-                                  <div className="flex flex-col gap-1 items-start">
-                                    <span className="font-medium">{item.expirationDate || '-'}</span>
-                                    {(() => {
-                                      const expStatus = checkLicenseExpiration(item.expirationDate);
-                                      return expStatus.isExpiring ? (
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${expStatus.colorClass}`}>
-                                          ⚠️ {expStatus.statusText}
-                                        </span>
-                                      ) : null;
-                                    })()}
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4 text-sm font-bold text-emerald-600">{item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}</td>
-                                <td className="px-5 py-4">{!item.status || item.status === 'พร้อมใช้งาน' ? <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-emerald-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> พร้อมใช้งาน</div> : <div className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-amber-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> {item.status}</div>}</td>
-                                <td className="px-5 py-4 text-center space-x-2">
-                                  {!item.status || item.status === 'พร้อมใช้งาน' ? (
-                                    <button onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })} className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm" title="เบิกจ่าย">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                                    </button>
-                                  ) : item.status === 'ถูกใช้งาน' ? (
-                                    <button onClick={() => handleCheckin(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm" title="รับคืน">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                                    </button>
-                                  ) : null}
-                                  <button onClick={() => openEditLicenseModal(item)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
-                                  <button onClick={() => handleDelete(item.id, 'licenses')} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
-                                </td>
-                              </>
-                            ) : activeMenu === 'office_supplies' ? (
-                              <>
-                                <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}><input type="checkbox" className="w-4 h-4" checked={selectedOfficeSupplyIds?.includes(item.id) || false} onChange={(e) => handleSelectOfficeSupply(e, item.id)} /></td>
-                                <td className="px-5 py-4">
-                                  <div className="flex items-center gap-3">
-                                    {item.image ? <img src={item.image} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm" /> : <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0 shadow-inner border border-slate-200">📎</div>}
-                                    <div className="font-bold text-slate-800">{item.name}</div>
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4"><span className="bg-slate-100 text-slate-600 text-[11px] px-3 py-1.5 rounded-lg font-bold border border-slate-200">{item.type}</span></td>
-                                <td className="px-5 py-4 text-center">
-                                  {Number(item.quantity) <= 0 ? (
-                                    <div className="flex flex-col items-center gap-1">
-                                      <span className="font-black text-red-600 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
-                                      <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">หมดสต็อก 🚨</span>
-                                    </div>
-                                  ) : Number(item.quantity) <= 5 ? (
-                                    <div className="flex flex-col items-center gap-1">
-                                      <span className="font-black text-amber-500 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
-                                      <span className="text-[10px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">ใกล้หมด ⚠️</span>
-                                    </div>
-                                  ) : (
-                                    <div className="flex flex-col items-center gap-1">
-                                      <span className="font-black text-emerald-600 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
-                                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap">ปกติ</span>
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="px-5 py-4 text-center space-x-2">
-                                  <button onClick={() => openEditAssetModal(item, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
-                                  <button onClick={() => handleDelete(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
-                                </td>
-                              </>
-                            ) : (
-                              <>
-                                {activeMenu === 'accessories' && (
-                                  <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                    <input type="checkbox" className="w-4 h-4" checked={selectedAccessoryIds?.includes(item.id) || false} onChange={(e) => handleSelectAccessory(e, item.id)} />
-                                  </td>
-                                )}
-                                <td className="px-5 py-4">
-                                  <button onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory(activeMenu); }} className="text-left flex items-center gap-3 group">
-                                    {item.image ? <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm" /> : <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl shrink-0 shadow-inner border border-slate-200">{activeMenu === 'assets' ? '🖥️' : '🖱️'}</div>}
-                                    <div className="font-bold text-slate-800 group-hover:text-indigo-600">{item.name}</div>
-                                  </button>
-                                </td>
-                                <td className="px-5 py-4"><span className="bg-slate-100 text-slate-600 text-[11px] px-3 py-1.5 rounded-lg font-bold border border-slate-200">{item.type}</span></td>
-                                {activeMenu === 'assets' && (<td className="px-5 py-4 text-center text-sm font-bold text-indigo-700">{item.department || '-'}</td>)}
-                                {activeMenu === 'accessories' && (
-                                  <>
-                                    <td className="px-5 py-4 text-sm font-black text-slate-800 text-center bg-slate-100/50">{item.quantity || 0}</td>
-                                    <td className="px-5 py-4 text-sm font-bold text-slate-700 text-center bg-slate-50/50">{item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0) - Number(item.brokenQuantity || 0)) : 0}</td>
-                                    <td className="px-5 py-4 text-sm font-bold text-indigo-600 text-center">{item.assignees?.length || 0}</td>
-                                    <td className="px-5 py-4 text-sm font-bold text-red-500 text-center">{item.brokenQuantity || 0}</td>
-                                  </>
-                                )}
-                                {activeMenu !== 'accessories' && <td className="px-5 py-4 text-sm font-bold text-emerald-600">{item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}</td>}
-                                {activeMenu !== 'accessories' && (
-                                  <td className="px-5 py-4 text-center">
-                                    {(!item.status || item.status === 'พร้อมใช้งาน') ? (
-                                      <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-emerald-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> พร้อมใช้งาน</div>
-                                    ) : (
-                                      <div className="flex flex-col items-center gap-1">
-                                        <div className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold inline-flex border border-amber-200 shadow-sm"><span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> {item.status}</div>
-                                        {item.assignedName && <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">👤 {item.assignedName}</span>}
-                                      </div>
-                                    )}
-                                  </td>
-                                )}
-                                <td className="px-5 py-4 text-center space-x-2">
-                                  {activeMenu !== 'accessories' && (
-                                    (!item.status || item.status === 'พร้อมใช้งาน') ? (
-                                      <button onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: activeMenu })} className="inline-flex items-center justify-center w-9 h-9 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all shadow-sm" title="เบิกจ่าย">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                                      </button>
-                                    ) : item.status === 'ถูกใช้งาน' ? (
-                                      <button onClick={() => handleCheckin(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-teal-600 bg-teal-50 hover:bg-teal-600 hover:text-white border border-teal-200 hover:border-teal-600 rounded-xl transition-all shadow-sm" title="รับคืน">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                                      </button>
-                                    ) : null
-                                  )}
-                                  <button onClick={() => openEditAssetModal(item, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-xl transition-all shadow-sm" title="แก้ไข">✏️</button>
-                                  <button onClick={() => handleDelete(item.id, activeMenu)} className="inline-flex items-center justify-center w-9 h-9 text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 rounded-xl transition-all shadow-sm" title="ลบ">🗑️</button>
-                                </td>
-                              </>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {activeMenu === 'employees' ? (
+                      <EmployeeTable 
+                        currentData={currentData}
+                        selectedEmployeeIds={selectedEmployeeIds}
+                        handleSelectAllEmployees={handleSelectAllEmployees}
+                        handleSelectEmployee={handleSelectEmployee}
+                        setSelectedEmployee={setSelectedEmployee}
+                        setEmpModalTab={setEmpModalTab}
+                        showDeletedEmployees={showDeletedEmployees}
+                        handleRestoreEmployee={handleRestoreEmployee}
+                        openEditEmpModal={openEditEmpModal}
+                        setConfirmDeleteModal={setConfirmDeleteModal}
+                      />
+                    ) : activeMenu === 'licenses' ? (
+                      <LicenseTable 
+                        currentData={currentData}
+                        setSelectedAssetDetail={setSelectedAssetDetail}
+                        setSelectedAssetCategory={setSelectedAssetCategory}
+                        checkLicenseExpiration={checkLicenseExpiration}
+                        setCheckoutModal={setCheckoutModal}
+                        handleCheckin={handleCheckin}
+                        openEditLicenseModal={openEditLicenseModal}
+                        setConfirmDeleteModal={setConfirmDeleteModal}
+                      />
+                    ) : activeMenu === 'office_supplies' ? (
+                      <OfficeSupplyTable 
+                        currentData={currentData}
+                        selectedOfficeSupplyIds={selectedOfficeSupplyIds}
+                        handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies}
+                        handleSelectOfficeSupply={handleSelectOfficeSupply}
+                        openEditAssetModal={openEditAssetModal}
+                        setConfirmDeleteModal={setConfirmDeleteModal}
+                        activeMenu={activeMenu}
+                      />
+                    ) : activeMenu === 'accessories' ? (
+                      <AccessoryTable 
+                        currentData={currentData}
+                        selectedAccessoryIds={selectedAccessoryIds}
+                        handleSelectAllAccessories={handleSelectAllAccessories}
+                        handleSelectAccessory={handleSelectAccessory}
+                        setSelectedAssetDetail={setSelectedAssetDetail}
+                        setSelectedAssetCategory={setSelectedAssetCategory}
+                        setCheckoutModal={setCheckoutModal}
+                        openEditAssetModal={openEditAssetModal}
+                        setConfirmDeleteModal={setConfirmDeleteModal}
+                      />
+                    ) : activeMenu === 'assets' ? (
+                      <AssetTable 
+                        currentData={currentData}
+                        setSelectedAssetDetail={setSelectedAssetDetail}
+                        setSelectedAssetCategory={setSelectedAssetCategory}
+                        setCheckoutModal={setCheckoutModal}
+                        handleCheckin={handleCheckin}
+                        openEditAssetModal={openEditAssetModal}
+                        setConfirmDeleteModal={setConfirmDeleteModal}
+                      />
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -1495,7 +1145,8 @@ function App() {
           )}
         </div>
       </main>
-
+      
+      {/* Modals ทั้งหมด */}
       <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} />
       <CheckoutModal checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} />
       <EmployeeDetailsModal selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal} />
@@ -1508,12 +1159,7 @@ function App() {
       <RepairModal repairModal={repairModal} setRepairModal={setRepairModal} repairQuantity={repairQuantity} setRepairQuantity={setRepairQuantity} repairRemarks={repairRemarks} setRepairRemarks={setRepairRemarks} handleConfirmRepair={handleConfirmRepair} />
       <ConfirmDeleteModal confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete} />
       <ConfirmModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} confirmText={confirmModal.confirmText} cancelText={confirmModal.cancelText} icon={confirmModal.icon} onConfirm={handleConfirmModalOk} onCancel={closeConfirmModal} />
-      <ResetPasswordModal
-        isOpen={resetPasswordModal}
-        onClose={() => setResetPasswordModal(false)}
-        onSuccess={(msg) => setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })}
-        onError={(msg) => setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })}
-      />
+      <ResetPasswordModal isOpen={resetPasswordModal} onClose={() => setResetPasswordModal(false)} onSuccess={(msg) => setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })} onError={(msg) => setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </div>
   );

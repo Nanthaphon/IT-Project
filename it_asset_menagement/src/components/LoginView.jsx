@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import React from 'react';
 
 export default function LoginView({
   showAdminLogin,
@@ -8,164 +6,60 @@ export default function LoginView({
   setAuthRole,
   loginForm,
   setLoginForm,
-  handleAdminLogin,
-  loginError,
-  setLoginError,
-  loginLoading, // ← prop ใหม่จาก App.jsx
+  handleAdminLogin
 }) {
-  const [resetStatus, setResetStatus] = useState(null);
-  const [resetLoading, setResetLoading] = useState(false);
-
-  const handleForgotPassword = async () => {
-    const email = loginForm.username.trim();
-    if (!email) {
-      setResetStatus({ type: 'error', message: 'กรุณากรอก Email ในช่องด้านบนก่อน' });
-      return;
-    }
-    setResetLoading(true);
-    setResetStatus(null);
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setResetStatus({ type: 'success', message: `ส่งลิงก์รีเซ็ตรหัสผ่านไปยัง ${email} แล้ว กรุณาตรวจสอบอีเมลของคุณ` });
-    } catch (error) {
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
-        setResetStatus({ type: 'error', message: 'ไม่พบบัญชีที่ใช้ Email นี้ กรุณาตรวจสอบอีกครั้ง' });
-      } else {
-        setResetStatus({ type: 'error', message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
-      }
-    } finally {
-      setResetLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
       <div className="max-w-4xl w-full">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4">ระบบจัดการทรัพย์สิน IT</h1>
-          <p className="text-slate-400 text-lg">กรุณาเลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
-        </div>
+         <div className="text-center mb-10">
+           <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-teal-500 mb-4 tracking-tight">ระบบจัดการทรัพย์สิน IT</h1>
+           <p className="text-slate-400 text-lg">กรุณาเลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
+         </div>
+         
+         {!showAdminLogin ? (
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+             <button 
+               onClick={() => setAuthRole('staff')} 
+               className="bg-black border border-slate-800 p-8 rounded-[2rem] hover:bg-slate-900 hover:border-teal-500/50 transition-all duration-300 group text-left flex flex-col items-center text-center shadow-2xl"
+             >
+               <div className="w-20 h-20 bg-teal-500/10 text-teal-400 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 group-hover:bg-teal-500/20 transition-all shadow-[0_0_20px_rgba(20,184,166,0.15)]">👥</div>
+               <h2 className="text-2xl font-bold text-white mb-3 group-hover:text-teal-400 transition-colors">พนักงานทั่วไป (Staff)</h2>
+               <p className="text-slate-500 text-sm leading-relaxed">เข้าสู่ระบบเพื่อสร้างรายการแจ้งปัญหา IT และติดตามสถานะ <br/>(ระบุเพียงรหัสพนักงาน)</p>
+             </button>
 
-        {!showAdminLogin ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <button
-              onClick={() => setAuthRole('staff')}
-              className="bg-slate-800 border border-slate-700 p-8 rounded-3xl hover:bg-slate-700 hover:border-emerald-500 transition-all group text-left flex flex-col items-center text-center shadow-xl"
-            >
-              <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">👥</div>
-              <h2 className="text-2xl font-bold text-white mb-2">พนักงานทั่วไป (Staff)</h2>
-              <p className="text-slate-400">เข้าสู่ระบบเพื่อสร้างรายการแจ้งปัญหา IT และติดตามสถานะ (ระบุเพียงรหัสพนักงาน)</p>
-            </button>
-
-            <button
-              onClick={() => { setShowAdminLogin(true); setLoginError && setLoginError(''); }}
-              className="bg-slate-800 border border-slate-700 p-8 rounded-3xl hover:bg-slate-700 hover:border-indigo-500 transition-all group text-left flex flex-col items-center text-center shadow-xl"
-            >
-              <div className="w-20 h-20 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">💻</div>
-              <h2 className="text-2xl font-bold text-white mb-2">เจ้าหน้าที่ IT (Admin)</h2>
-              <p className="text-slate-400">เข้าสู่ระบบเพื่อจัดการทรัพย์สิน, โปรแกรม และจัดการคิวงานแจ้งซ่อม (ต้องใช้รหัสผ่าน)</p>
-            </button>
-          </div>
-        ) : (
-          <div className="max-w-md mx-auto bg-slate-800 border border-slate-700 p-8 rounded-3xl shadow-2xl">
-            <div className="flex items-center gap-4 mb-8">
-              <button
-                onClick={() => { setShowAdminLogin(false); setLoginError && setLoginError(''); }}
-                disabled={loginLoading}
-                className="text-slate-400 hover:text-white p-2 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors disabled:opacity-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <h2 className="text-2xl font-bold text-white">เข้าสู่ระบบ IT Admin</h2>
-            </div>
-
-            <form onSubmit={handleAdminLogin} className="space-y-5">
-              {loginError && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium px-4 py-3 rounded-xl flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {loginError}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-bold text-slate-400 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={loginForm.username}
-                  onChange={e => {
-                    setLoginForm({ ...loginForm, username: e.target.value });
-                    if (loginError && setLoginError) setLoginError('');
-                  }}
-                  disabled={loginLoading}
-                  className="w-full bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50"
-                  placeholder="admin@yourdomain.com"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-400 mb-2">Password</label>
-                <input
-                  type="password"
-                  value={loginForm.password}
-                  onChange={e => {
-                    setLoginForm({ ...loginForm, password: e.target.value });
-                    if (loginError && setLoginError) setLoginError('');
-                  }}
-                  disabled={loginLoading}
-                  className="w-full bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50"
-                  placeholder="••••••••"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-
-              {/* ปุ่ม Login + Spinner */}
-              <button
-                type="submit"
-                disabled={loginLoading}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30 mt-4 flex items-center justify-center gap-2"
-              >
-                {loginLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    <span>กำลังเข้าสู่ระบบ...</span>
-                  </>
-                ) : (
-                  <span>เข้าสู่ระบบ</span>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                disabled={resetLoading || loginLoading}
-                className="w-full text-sm text-slate-400 hover:text-indigo-400 disabled:opacity-50 transition-colors text-center py-1"
-              >
-                {resetLoading ? 'กำลังส่งอีเมล...' : 'ลืมรหัสผ่าน?'}
-              </button>
-
-              {resetStatus && (
-                <div className={`flex items-start gap-2 text-sm font-medium px-4 py-3 rounded-xl ${
-                  resetStatus.type === 'success'
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
-                }`}>
-                  <span className="mt-0.5 shrink-0">{resetStatus.type === 'success' ? '✅' : '⚠️'}</span>
-                  <span>{resetStatus.message}</span>
-                </div>
-              )}
-            </form>
-          </div>
-        )}
+             <button 
+               onClick={() => setShowAdminLogin(true)} 
+               className="bg-black border border-slate-800 p-8 rounded-[2rem] hover:bg-slate-900 hover:border-teal-500/50 transition-all duration-300 group text-left flex flex-col items-center text-center shadow-2xl"
+             >
+               <div className="w-20 h-20 bg-teal-500/10 text-teal-400 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 group-hover:bg-teal-500/20 transition-all shadow-[0_0_20px_rgba(20,184,166,0.15)]">💻</div>
+               <h2 className="text-2xl font-bold text-white mb-3 group-hover:text-teal-400 transition-colors">เจ้าหน้าที่ IT (Admin)</h2>
+               <p className="text-slate-500 text-sm leading-relaxed">เข้าสู่ระบบเพื่อจัดการทรัพย์สิน, โปรแกรม และคิวงานแจ้งซ่อม <br/>(ต้องใช้รหัสผ่าน)</p>
+             </button>
+           </div>
+         ) : (
+           <div className="max-w-md mx-auto bg-black border border-slate-800 p-8 md:p-10 rounded-[2rem] shadow-2xl">
+             <div className="flex items-center gap-4 mb-8">
+               <button onClick={() => setShowAdminLogin(false)} className="text-slate-500 hover:text-teal-400 p-2 bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
+               </button>
+               <h2 className="text-2xl font-bold text-white">เข้าสู่ระบบ IT Admin</h2>
+             </div>
+             <form onSubmit={handleAdminLogin} className="space-y-5">
+               <div>
+                 <label className="block text-sm font-bold text-slate-400 mb-2">Username</label>
+                 <input type="text" value={loginForm.username} onChange={e => setLoginForm({...loginForm, username: e.target.value})} className="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-white focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all placeholder:text-slate-600" placeholder="ลองพิมพ์: admin" required />
+               </div>
+               <div>
+                 <label className="block text-sm font-bold text-slate-400 mb-2">Password</label>
+                 <input type="password" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} className="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-white focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all placeholder:text-slate-600" placeholder="ลองพิมพ์: Admin@GB" required autoComplete="new-password" />
+               </div>
+               <button type="submit" className="w-full py-4 bg-teal-500 hover:bg-teal-400 text-black font-black rounded-xl transition-all shadow-lg shadow-teal-500/20 mt-6 active:scale-[0.98]">
+                 เข้าสู่ระบบ
+               </button>
+             </form>
+           </div>
+         )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 
-// นำเข้า Modals ทั้งหมดที่แยกไว้แล้ว พร้อมระบุนามสกุลไฟล์ให้ชัดเจน
+// นำเข้า Modals ทั้งหมดที่แยกไว้แล้ว
 import AddModal from './AddModal.jsx';
 import CheckoutModal from './CheckoutModal.jsx';
 import EmployeeDetailsModal from './EmployeeDetailsModal.jsx';
@@ -30,14 +30,13 @@ export default function ModalsContainer(props) {
       <RepairModal {...props} />
       <ConfirmDeleteModal {...props} />
       
-      {/* การแมปข้อมูลสำหรับ Modal ที่รับ Props เฉพาะเจาะจง */}
       <ConfirmModal 
-        isOpen={props.confirmModal.isOpen} 
-        title={props.confirmModal.title} 
-        message={props.confirmModal.message} 
-        confirmText={props.confirmModal.confirmText} 
-        cancelText={props.confirmModal.cancelText} 
-        icon={props.confirmModal.icon} 
+        isOpen={props.confirmModal?.isOpen} 
+        title={props.confirmModal?.title} 
+        message={props.confirmModal?.message} 
+        confirmText={props.confirmModal?.confirmText} 
+        cancelText={props.confirmModal?.cancelText} 
+        icon={props.confirmModal?.icon} 
         onConfirm={props.handleConfirmModalOk} 
         onCancel={props.closeConfirmModal} 
       />

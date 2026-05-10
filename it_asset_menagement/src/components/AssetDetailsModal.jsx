@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { db } from '../firebase'; 
-import { doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 
 export default function AssetDetailsModal({
   selectedAssetDetail, setSelectedAssetDetail, selectedAssetCategory, setSelectedAssetCategory,
   accessories, assets, licenses, setCheckoutModal, setReturnModal, handleCheckin, openEditLicenseModal, openEditAssetModal,
   setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert
 }) {
+  const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
   const [editingItemId, setEditingItemId] = useState(null); 
   const [tempSNValue, setTempSNValue] = useState(''); 
@@ -27,6 +27,37 @@ export default function AssetDetailsModal({
   const [isImportingCSV, setIsImportingCSV] = useState(false);
 
   if (!selectedAssetDetail) return null;
+
+  // 🟢 ฟังก์ชันคำนวณอายุการใช้งาน
+  const calculateAge = (dateString) => {
+    if (!dateString) return '-';
+    const purchaseDate = new Date(dateString);
+    const today = new Date();
+
+    if (isNaN(purchaseDate.getTime())) return '-';
+
+    let years = today.getFullYear() - purchaseDate.getFullYear();
+    let months = today.getMonth() - purchaseDate.getMonth();
+    let days = today.getDate() - purchaseDate.getDate();
+
+    if (days < 0) {
+      months--;
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years < 0) return 'ยังไม่ถึงวันที่ซื้อ'; 
+
+    if (years === 0 && months === 0) return 'น้อยกว่า 1 เดือน';
+    
+    let ageStr = '';
+    if (years > 0) ageStr += `${years} ปี `;
+    if (months > 0) ageStr += `${months} เดือน`;
+    
+    return ageStr.trim();
+  };
 
   const currentAssetDetail = 
     selectedAssetCategory === 'accessories' ? (accessories.find(a => a.id === selectedAssetDetail.id) || selectedAssetDetail) :
@@ -508,14 +539,13 @@ export default function AssetDetailsModal({
           
           <div className="p-4 bg-white border-t border-slate-200 flex justify-end gap-3 print:hidden">
             <button onClick={() => setShowLabelPreview(false)} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors">ปิด</button>
-            <button onClick={() => window.print()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">สั่งพิมพ์ (Print)</button>
+            <button onClick={() => window.print()} className="px-4 py-2 bg-[#1E487A] text-white rounded-lg font-medium hover:bg-[#133257] transition-colors">สั่งพิมพ์ (Print)</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // 🟢 Helper Function สำหรับ UI กล่องข้อมูลแบบ Minimal Clean
   const DetailItem = ({ label, value, isMono = false }) => (
     <div className="flex flex-col gap-1">
       <span className="text-xs font-medium text-slate-500">{label}</span>
@@ -529,22 +559,18 @@ export default function AssetDetailsModal({
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full flex flex-col max-h-[95vh] border border-slate-200">
         
-        {/* Header Modal - Clean & Flat */}
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white rounded-t-2xl shrink-0">
-          <h3 className="font-bold text-lg text-slate-800">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-[#1E487A] rounded-t-2xl shrink-0">
+          <h3 className="font-bold text-lg text-white">
             รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}
           </h3>
-          <button onClick={closeAll} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-md hover:bg-slate-100">
+          <button onClick={closeAll} className="text-blue-200 hover:text-white transition-colors p-1.5 rounded-md hover:bg-[#133257]">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         
-        {/* เนื้อหาหลัก - ใช้พื้นหลังเทาอ่อนเพื่อแบ่ง Section ให้ชัดเจน */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/50">
           
-          {/* 🟢 1. Overview (รูปภาพ + ข้อมูลหลัก) */}
           <div className="flex flex-col sm:flex-row gap-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            {/* รูปภาพ */}
             {currentAssetDetail.image && selectedAssetCategory !== 'licenses' ? (
               <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center bg-white">
                 <img src={currentAssetDetail.image} alt="Asset" className="max-w-full max-h-full object-contain p-1" />
@@ -556,9 +582,8 @@ export default function AssetDetailsModal({
               </div>
             )}
             
-            {/* ข้อมูลหัวข้อ */}
             <div className="flex-1 flex flex-col justify-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">{currentAssetDetail.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1E487A] mb-3">{currentAssetDetail.name}</h2>
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-semibold border border-slate-200">
                   {currentAssetDetail.type || 'ไม่ระบุประเภท'}
@@ -572,7 +597,7 @@ export default function AssetDetailsModal({
                 )}
 
                 {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
-                  <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md text-xs font-semibold border border-indigo-200">
+                  <span className="px-2.5 py-1 bg-blue-50 text-[#1E487A] rounded-md text-xs font-semibold border border-blue-200">
                     แผนก: {currentAssetDetail.department}
                   </span>
                 )}
@@ -580,27 +605,25 @@ export default function AssetDetailsModal({
             </div>
           </div>
 
-          {/* 🟢 2. ผู้ครอบครองปัจจุบัน (Minimal Box) */}
           {selectedAssetCategory !== 'accessories' && currentAssetDetail.assignedName && (
-            <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div className="bg-blue-50 border border-blue-100 p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                <div>
-                 <span className="text-xs text-indigo-500 font-bold tracking-wide uppercase">ผู้ครอบครองปัจจุบัน</span>
+                 <span className="text-xs text-[#1E487A] font-bold tracking-wide uppercase">ผู้ครอบครองปัจจุบัน</span>
                  <div className="flex items-center gap-2 mt-1">
-                   <div className="w-8 h-8 rounded-full bg-white text-indigo-600 flex items-center justify-center font-bold text-sm border border-indigo-200 shadow-sm shrink-0">
+                   <div className="w-8 h-8 rounded-full bg-white text-[#1E487A] flex items-center justify-center font-bold text-sm border border-blue-200 shadow-sm shrink-0">
                      {currentAssetDetail.assignedName.charAt(0)}
                    </div>
-                   <p className="text-lg font-bold text-indigo-900">{currentAssetDetail.assignedName}</p>
+                   <p className="text-lg font-bold text-[#1E487A]">{currentAssetDetail.assignedName}</p>
                  </div>
                </div>
-               <span className="px-3 py-1.5 bg-white rounded-md text-xs font-semibold border border-indigo-100 text-indigo-700 shadow-sm inline-flex items-center gap-1.5 w-fit">
+               <span className="px-3 py-1.5 bg-white rounded-md text-xs font-semibold border border-blue-100 text-[#1E487A] shadow-sm inline-flex items-center gap-1.5 w-fit">
                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> กำลังถูกใช้งาน
                </span>
             </div>
           )}
 
-          {/* 🟢 3. ข้อมูลจำเพาะ & การเงิน (Clean Grid) */}
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h4 className="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">ข้อมูลจำเพาะและการจัดซื้อ</h4>
+            <h4 className="text-sm font-bold text-[#1E487A] mb-4 border-b border-slate-100 pb-2">ข้อมูลจำเพาะและการจัดซื้อ</h4>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4">
               {selectedAssetCategory === 'licenses' ? (
@@ -609,6 +632,7 @@ export default function AssetDetailsModal({
                   <DetailItem label="รหัสอ้างอิง Key" value={currentAssetDetail.keyCode} />
                   <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
                   <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                  <DetailItem label="อายุการใช้งาน" value={calculateAge(currentAssetDetail.purchaseDate)} />
                   <DetailItem label="วันที่หมดอายุ" value={currentAssetDetail.expirationDate} />
                 </>
               ) : selectedAssetCategory === 'assets' ? (
@@ -619,6 +643,7 @@ export default function AssetDetailsModal({
                   <DetailItem label="ผู้จัดจำหน่าย" value={currentAssetDetail.vendor} />
                   <DetailItem label="บริษัท" value={currentAssetDetail.company} />
                   <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                  <DetailItem label="อายุการใช้งาน" value={calculateAge(currentAssetDetail.purchaseDate)} />
                   <DetailItem label="วันที่หมด Warranty" value={currentAssetDetail.warrantyDate} />
                 </>
               ) : (
@@ -628,7 +653,6 @@ export default function AssetDetailsModal({
                 </>
               )}
 
-              {/* แทรกราคาท้ายสุดเสมอ */}
               <div className="col-span-2 md:col-span-4 pt-4 mt-2 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500">{selectedAssetCategory === 'accessories' ? 'มูลค่ารวม' : 'ราคาจัดซื้อ'}</span>
                 <span className="text-base font-bold text-slate-800">
@@ -640,9 +664,8 @@ export default function AssetDetailsModal({
             </div>
           </div>
 
-          {/* 🟢 4. เอกสารแนบ (Flat List) */}
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h4 className="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">เอกสารแนบ</h4>
+            <h4 className="text-sm font-bold text-[#1E487A] mb-4 border-b border-slate-100 pb-2">เอกสารแนบ</h4>
             <div className="flex flex-col gap-3">
               {(() => {
                 let docs = currentAssetDetail.documents || [];
@@ -653,7 +676,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-wrap gap-2">
                     {docs.map((docItem, idx) => (
                       <div key={idx} className="flex items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden">
-                        <a href={docItem.data} download={docItem.name} className="flex items-center gap-2 text-xs text-indigo-600 font-medium py-2 px-3 hover:bg-slate-100 transition-colors max-w-[200px] truncate">
+                        <a href={docItem.data} download={docItem.name} className="flex items-center gap-2 text-xs text-[#1E487A] font-medium py-2 px-3 hover:bg-slate-100 transition-colors max-w-[200px] truncate">
                           <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                           <span className="truncate">{docItem.name}</span>
                         </a>
@@ -678,15 +701,14 @@ export default function AssetDetailsModal({
             </div>
           </div>
 
-          {/* 🟢 5. จัดการรายการอุปกรณ์ย่อย (เฉพาะ Accessories) */}
           {selectedAssetCategory === 'accessories' && (
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-100 pb-4 gap-3">
-                <h4 className="text-sm font-bold text-slate-800">รายการชิ้นย่อย ({individualItems.length})</h4>
+                <h4 className="text-sm font-bold text-[#1E487A]">รายการชิ้นย่อย ({individualItems.length})</h4>
                 <div className="flex items-center gap-2 flex-wrap">
                   {individualItems.length > 0 && (
                     <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer mr-2">
-                      <input type="checkbox" checked={selectedItemsForDelete.length === individualItems.length && individualItems.length > 0} onChange={handleSelectAllItems} className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" checked={selectedItemsForDelete.length === individualItems.length && individualItems.length > 0} onChange={handleSelectAllItems} className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
                       เลือกทั้งหมด
                     </label>
                   )}
@@ -698,13 +720,12 @@ export default function AssetDetailsModal({
                   <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-md transition-colors">
                     นำเข้า CSV
                   </button>
-                  <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-md transition-colors">
+                  <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs text-white bg-[#1E487A] hover:bg-[#133257] px-3 py-1.5 rounded-md transition-colors">
                     + เพิ่มชิ้นใหม่
                   </button>
                 </div>
               </div>
 
-              {/* ฟอร์มนำเข้า CSV */}
               {isImportingCSV && (
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
                   <div className="flex flex-col sm:flex-row gap-4 mb-3">
@@ -723,20 +744,19 @@ export default function AssetDetailsModal({
                 </div>
               )}
 
-              {/* ฟอร์มเพิ่มรายชิ้น */}
               {isAddingNew && (
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
-                    <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 outline-none w-full" placeholder="Serial Number" />
-                    <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 outline-none w-full" placeholder="รุ่น / โมเดล" />
-                    <input type="number" value={newItemData.cost} onChange={e=>setNewItemData({...newItemData, cost: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 outline-none w-full" placeholder="ราคา (บาท)" />
-                    <input type="date" value={newItemData.purchaseDate} onChange={e=>setNewItemData({...newItemData, purchaseDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 outline-none w-full text-slate-600" title="วันที่ซื้อ" />
-                    <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 outline-none w-full text-slate-600" title="วันหมดประกัน" />
-                    <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 outline-none w-full" placeholder="จำนวน (ชิ้น)" />
+                    <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="Serial Number" />
+                    <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="รุ่น / โมเดล" />
+                    <input type="number" value={newItemData.cost} onChange={e=>setNewItemData({...newItemData, cost: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="ราคา (บาท)" />
+                    <input type="date" value={newItemData.purchaseDate} onChange={e=>setNewItemData({...newItemData, purchaseDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันที่ซื้อ" />
+                    <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันหมดประกัน" />
+                    <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="จำนวน (ชิ้น)" />
                   </div>
                   <div className="flex justify-end gap-2">
                     <button onClick={() => setIsAddingNew(false)} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-md">ยกเลิก</button>
-                    <button onClick={handleAddNewPiece} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">บันทึก</button>
+                    <button onClick={handleAddNewPiece} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] hover:bg-[#133257] rounded-md disabled:opacity-50">บันทึก</button>
                   </div>
                 </div>
               )}
@@ -746,7 +766,7 @@ export default function AssetDetailsModal({
                   <div key={item.id} className="bg-white transition-colors hover:bg-slate-50">
                     <div onClick={() => setExpandedItem(expandedItem === index ? null : index)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
                       <div className="flex items-center gap-3 overflow-hidden">
-                        <input type="checkbox" checked={selectedItemsForDelete.includes(item.id)} onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-indigo-600 rounded border-slate-300 shrink-0" />
+                        <input type="checkbox" checked={selectedItemsForDelete.includes(item.id)} onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 shrink-0" />
                         <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-emerald-500' : item.type === 'assigned' ? 'bg-blue-500' : 'bg-red-500'}`}></span>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 truncate">
                           <span className="text-xs font-semibold text-slate-800 truncate">
@@ -758,7 +778,7 @@ export default function AssetDetailsModal({
                       
                       <div className="flex items-center gap-2 shrink-0">
                         {item.type === 'available' ? (
-                          <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[10px] font-semibold bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded">เบิกจ่าย</button>
+                          <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[10px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded">เบิกจ่าย</button>
                         ) : item.type === 'assigned' ? (
                           <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name }); }} className="text-[10px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">รับคืน</button>
                         ) : (
@@ -768,21 +788,20 @@ export default function AssetDetailsModal({
                       </div>
                     </div>
                     
-                    {/* ฟอร์มแก้ไขรายชิ้น (Flat UI) */}
                     {expandedItem === index && (
                       <div className="p-4 bg-slate-50 border-t border-slate-100 animate-in fade-in">
                         {editingItemId === item.id ? (
                           <div className="space-y-3">
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                              <input type="text" value={tempSNValue} onChange={(e) => setTempSNValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 font-mono w-full" placeholder="Serial Number" />
-                              <input type="text" value={tempModelValue} onChange={(e) => setTempModelValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 w-full" placeholder="รุ่น / โมเดล" />
-                              <input type="number" value={tempCostValue} onChange={(e) => setTempCostValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 w-full" placeholder="ราคา (บาท)" />
-                              <input type="date" value={tempPurchaseDateValue} onChange={(e) => setTempPurchaseDateValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 w-full" title="วันที่ซื้อ" />
-                              <input type="date" value={tempWarrantyDateValue} onChange={(e) => setTempWarrantyDateValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 w-full" title="วันหมดประกัน" />
+                              <input type="text" value={tempSNValue} onChange={(e) => setTempSNValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] font-mono w-full" placeholder="Serial Number" />
+                              <input type="text" value={tempModelValue} onChange={(e) => setTempModelValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="รุ่น / โมเดล" />
+                              <input type="number" value={tempCostValue} onChange={(e) => setTempCostValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="ราคา (บาท)" />
+                              <input type="date" value={tempPurchaseDateValue} onChange={(e) => setTempPurchaseDateValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันที่ซื้อ" />
+                              <input type="date" value={tempWarrantyDateValue} onChange={(e) => setTempWarrantyDateValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันหมดประกัน" />
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
                               <button onClick={() => setEditingItemId(null)} className="px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-100">ยกเลิก</button>
-                              <button onClick={() => handleSaveItemDetails(item)} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50">บันทึก</button>
+                              <button onClick={() => handleSaveItemDetails(item)} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] rounded-md hover:bg-[#133257] disabled:opacity-50">บันทึก</button>
                             </div>
                           </div>
                         ) : (
@@ -793,7 +812,7 @@ export default function AssetDetailsModal({
                               <div><span className="text-slate-400 block text-[10px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{item.purchaseDate || '-'}</span></div>
                               <div><span className="text-slate-400 block text-[10px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{item.warrantyDate || '-'}</span></div>
                             </div>
-                            <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); }} className="text-[10px] text-indigo-600 bg-white border border-indigo-200 px-3 py-1.5 rounded hover:bg-indigo-50 font-medium whitespace-nowrap">
+                            <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); }} className="text-[10px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap">
                               แก้ไขข้อมูล
                             </button>
                           </div>
@@ -808,11 +827,10 @@ export default function AssetDetailsModal({
           )}
         </div>
         
-        {/* Footer Buttons - Clean Outline */}
         <div className="px-6 py-4 bg-white flex flex-wrap justify-end gap-3 border-t border-slate-200 shrink-0 rounded-b-2xl">
            {selectedAssetCategory !== 'accessories' && (
              (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-               <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} className="w-full sm:w-auto px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-semibold transition-colors sm:mr-auto">เบิกจ่าย</button>
+               <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} className="w-full sm:w-auto px-5 py-2 bg-[#1E487A] text-white rounded-lg hover:bg-[#133257] text-sm font-semibold transition-colors sm:mr-auto">เบิกจ่าย</button>
              ) : currentAssetDetail.status === 'ถูกใช้งาน' ? (
                <button onClick={() => { handleCheckin(currentAssetDetail.id, selectedAssetCategory); setSelectedAssetDetail(null); setSelectedAssetCategory(''); }} className="w-full sm:w-auto px-5 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-semibold transition-colors sm:mr-auto">รับคืน</button>
              ) : null

@@ -1,121 +1,64 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 
 export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError }) {
-  const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const validate = () => {
-    const errs = {};
-    if (!form.currentPassword) errs.currentPassword = 'กรุณากรอกรหัสผ่านปัจจุบัน';
-    if (!form.newPassword) errs.newPassword = 'กรุณากรอกรหัสผ่านใหม่';
-    else if (form.newPassword.length < 6) errs.newPassword = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
-    if (!form.confirmPassword) errs.confirmPassword = 'กรุณายืนยันรหัสผ่านใหม่';
-    else if (form.newPassword !== form.confirmPassword) errs.confirmPassword = 'รหัสผ่านไม่ตรงกัน';
-    return errs;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-
-    setLoading(true);
-    setErrors({});
+    if (!email.trim()) return;
+    setIsLoading(true);
     try {
-      const user = auth.currentUser;
-      const credential = EmailAuthProvider.credential(user.email, form.currentPassword);
-      await reauthenticateWithCredential(user, credential);
-      await updatePassword(user, form.newPassword);
-      setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      onSuccess('เปลี่ยนรหัสผ่านสำเร็จ');
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email);
+      onSuccess('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว');
       onClose();
+      setEmail('');
     } catch (error) {
-      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        setErrors({ currentPassword: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' });
-      } else {
-        onError(error.message);
-      }
+      onError(error.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setErrors({});
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl">🔒</div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">เปลี่ยนรหัสผ่าน</h2>
-              <p className="text-xs text-slate-400">รีเซ็ตรหัสผ่านสำหรับบัญชี Admin</p>
-            </div>
-          </div>
-          <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 transition-colors text-2xl leading-none">&times;</button>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[90] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
+      <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100 text-center p-8">
+        <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-blue-50 text-[#1E487A] mb-6 shadow-inner border border-blue-100">
+          <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">รหัสผ่านปัจจุบัน</label>
-            <input
-              type="password"
-              value={form.currentPassword}
-              onChange={e => setForm(f => ({ ...f, currentPassword: e.target.value }))}
-              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all ${errors.currentPassword ? 'border-red-400 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100'}`}
-              placeholder="กรอกรหัสผ่านปัจจุบัน"
-            />
-            {errors.currentPassword && <p className="mt-1 text-xs text-red-500">{errors.currentPassword}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">รหัสผ่านใหม่</label>
-            <input
-              type="password"
-              value={form.newPassword}
-              onChange={e => setForm(f => ({ ...f, newPassword: e.target.value }))}
-              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all ${errors.newPassword ? 'border-red-400 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100'}`}
-              placeholder="อย่างน้อย 6 ตัวอักษร"
-            />
-            {errors.newPassword && <p className="mt-1 text-xs text-red-500">{errors.newPassword}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">ยืนยันรหัสผ่านใหม่</label>
-            <input
-              type="password"
-              value={form.confirmPassword}
-              onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
-              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all ${errors.confirmPassword ? 'border-red-400 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100'}`}
-              placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
-            />
-            {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>}
-          </div>
-
+        <h3 className="text-2xl font-bold text-[#1E487A] mb-3">รีเซ็ตรหัสผ่าน</h3>
+        <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+          กรุณาระบุอีเมลที่ใช้ในระบบ <br/>เพื่อรับลิงก์สำหรับตั้งรหัสผ่านใหม่
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input 
+            type="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="ระบุอีเมลของคุณ..."
+            required
+            className="w-full border border-slate-300 p-3.5 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-base transition-all shadow-sm text-center"
+          />
           <div className="flex gap-3 pt-2">
-            <button
+            <button 
               type="button"
-              onClick={handleClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              onClick={onClose}
+              className="flex-1 py-3.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all shadow-sm"
             >
               ยกเลิก
             </button>
-            <button
+            <button 
               type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors"
+              disabled={isLoading}
+              className="flex-1 py-3.5 rounded-xl font-bold text-white bg-[#1E487A] hover:bg-[#133257] transition-all shadow-lg shadow-[#1E487A]/30 disabled:opacity-50"
             >
-              {loading ? 'กำลังบันทึก...' : 'บันทึก'}
+              {isLoading ? 'กำลังส่ง...' : 'ยืนยัน'}
             </button>
           </div>
         </form>

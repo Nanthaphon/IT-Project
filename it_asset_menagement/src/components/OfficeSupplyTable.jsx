@@ -16,24 +16,24 @@ export default function OfficeSupplyTable({
           <th className="px-4 py-4 text-center">
             <input 
               type="checkbox" 
-              className="w-4 h-4 cursor-pointer" 
+              className="w-4 h-4 cursor-pointer rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" 
               checked={currentData.length > 0 && selectedOfficeSupplyIds?.length === currentData.length} 
               onChange={handleSelectAllOfficeSupplies} 
             />
           </th>
-          <th className="px-5 py-4 font-bold text-slate-500 text-xs">ชื่ออุปกรณ์</th>
-          <th className="px-5 py-4 font-bold text-slate-500 text-xs">ประเภท</th>
-          <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">สต็อกคงเหลือ</th>
-          <th className="px-5 py-4 font-bold text-slate-500 text-xs text-center">จัดการ</th>
+          <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider">ชื่ออุปกรณ์</th>
+          <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider">ประเภท</th>
+          <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-center">สต็อกคงเหลือ</th>
+          <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-center">จัดการ</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-slate-100 text-sm">
         {currentData.map((item) => (
-          <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
+          <tr key={item.id} className="hover:bg-blue-50/40 transition-colors group bg-white">
             <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
               <input 
                 type="checkbox" 
-                className="w-4 h-4 cursor-pointer" 
+                className="w-4 h-4 cursor-pointer rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" 
                 checked={selectedOfficeSupplyIds?.includes(item.id) || false} 
                 onChange={(e) => handleSelectOfficeSupply(e, item.id)} 
               />
@@ -43,9 +43,9 @@ export default function OfficeSupplyTable({
                 {item.image ? (
                   <img src={item.image} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 shadow-sm" />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0 shadow-inner border border-slate-200">📎</div>
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-lg shrink-0 border border-slate-200 text-slate-400 group-hover:text-[#1E487A] group-hover:bg-[#1E487A]/10 transition-colors">📎</div>
                 )}
-                <div className="font-bold text-slate-800">{item.name}</div>
+                <div className="font-bold text-slate-800 group-hover:text-[#1E487A] transition-colors">{item.name}</div>
               </div>
             </td>
             <td className="px-5 py-4">
@@ -66,22 +66,22 @@ export default function OfficeSupplyTable({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-1">
-                  <span className="font-black text-teal-600 text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
-                  <span className="text-[10px] bg-teal-50 text-teal-600 border border-teal-200 px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">ปกติ</span>
+                  <span className="font-black text-[#1E487A] text-xl">{item.quantity} <span className="text-xs text-slate-500 font-medium">{item.unit}</span></span>
+                  <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap">ปกติ</span>
                 </div>
               )}
             </td>
             <td className="px-5 py-4 text-center space-x-2">
               <button 
                 onClick={() => openEditAssetModal(item, activeMenu)} 
-                className="inline-flex items-center justify-center w-8 h-8 text-amber-600 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-all shadow-sm" 
+                className="inline-flex items-center justify-center w-8 h-8 text-amber-600 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-lg transition-all shadow-sm" 
                 title="แก้ไข"
               >
                 ✏️
               </button>
               <button 
                 onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: activeMenu })} 
-                className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-white hover:bg-red-50 border border-slate-300 rounded-lg transition-all shadow-sm" 
+                className="inline-flex items-center justify-center w-8 h-8 text-red-500 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-300 rounded-lg transition-all shadow-sm" 
                 title="ลบ"
               >
                 🗑️

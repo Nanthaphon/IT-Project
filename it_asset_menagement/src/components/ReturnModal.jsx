@@ -9,10 +9,10 @@ export default function ReturnModal({
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-slate-100 flex flex-col max-h-[90vh]">
-        <div className="bg-slate-800 text-white px-6 py-5 flex justify-between items-center shrink-0">
+        <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
           <h3 className="font-bold text-lg flex items-center gap-2"><span className="bg-white/20 p-1.5 rounded-lg text-sm">📥</span> ยืนยันการรับคืนอุปกรณ์</h3>
-          <button onClick={() => { setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null }); setReturnCondition('good'); setReturnRemarks(''); }} className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-700 hover:bg-slate-600 p-1.5 rounded-xl">
-            <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <button onClick={() => { setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null }); setReturnCondition('good'); setReturnRemarks(''); }} className="text-slate-300 hover:text-white transition-colors focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <form onSubmit={handleConfirmReturn} className="p-6 md:p-8 space-y-6 overflow-y-auto flex-1">
@@ -24,8 +24,8 @@ export default function ReturnModal({
             </p>
             <div className="mt-3 pt-3 border-t border-slate-200">
               <p className="text-xs text-slate-500 font-medium mb-1">รับคืนจาก</p>
-              <p className="text-sm font-bold text-indigo-700 flex items-center gap-1.5">
-                <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <p className="text-sm font-bold text-[#1E487A] flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 {returnModal.empName}
               </p>
             </div>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase'; 
+import { collection, onSnapshot, getFirestore } from 'firebase/firestore';
 
 export default function useFirebaseData() {
+  const db = getFirestore();
   const [assets, setAssets] = useState([]);
   const [accessories, setAccessories] = useState([]);
   const [employees, setEmployees] = useState([]); 
@@ -42,7 +42,7 @@ export default function useFirebaseData() {
       unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); 
       unsubAccTx(); unsubAssetTx(); unsubLicTx(); 
     }; 
-  }, []);
+  }, [db]);
 
   return {
     assets, accessories, employees, deletedEmployees, licenses, 

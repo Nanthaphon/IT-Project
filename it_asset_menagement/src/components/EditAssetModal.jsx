@@ -26,11 +26,11 @@ export default function EditAssetModal({
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-        <div className="bg-amber-500 text-white px-6 py-5 flex justify-between items-center shrink-0">
+        <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
           <h3 className="font-bold text-lg flex items-center gap-2">
-            <span className="bg-black/10 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูล{editAssetModal.collectionName === 'assets' ? 'ทรัพย์สินหลัก' : editAssetModal.collectionName === 'office_supplies' ? 'อุปกรณ์สำนักงาน' : 'อุปกรณ์เสริม'}
+            <span className="bg-white/20 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูล{editAssetModal.collectionName === 'assets' ? 'ทรัพย์สินหลัก' : editAssetModal.collectionName === 'office_supplies' ? 'อุปกรณ์สำนักงาน' : 'อุปกรณ์เสริม'}
           </h3>
-          <button onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="text-amber-100 hover:text-white focus:outline-none bg-amber-600/50 hover:bg-amber-600 p-1.5 rounded-xl transition-colors">
+          <button onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="text-blue-200 hover:text-white focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -58,19 +58,19 @@ export default function EditAssetModal({
               )}
               <input 
                 type="file" accept="image/*" onChange={handleImageUpload} 
-                className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer min-w-0"
+                className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#1E487A] hover:file:bg-blue-100 cursor-pointer min-w-0"
               />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
-            <input type="text" name="name" value={editAssetModal.data.name || ''} onChange={handleEditAssetChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+            <input type="text" name="name" value={editAssetModal.data.name || ''} onChange={handleEditAssetChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
           </div>
           
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">ประเภท</label>
-            <select name="type" value={editAssetModal.data.type || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer">
+            <select name="type" value={editAssetModal.data.type || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer">
               {editAssetModal.collectionName === 'assets' ? (
                 <><option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option><option value="หน้าจอ">หน้าจอ (Monitor)</option><option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option><option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option><option value="อื่นๆ">อื่นๆ</option></>
               ) : editAssetModal.collectionName === 'office_supplies' ? (
@@ -86,19 +86,19 @@ export default function EditAssetModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสทรัพย์สิน</label>
-                  <input type="text" name="assetTag" value={editAssetModal.data.assetTag || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm font-mono" />
+                  <input type="text" name="assetTag" value={editAssetModal.data.assetTag || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm font-mono" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">Serial Number</label>
-                  <input type="text" name="sn" value={editAssetModal.data.sn || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm font-mono" />
+                  <input type="text" name="sn" value={editAssetModal.data.sn || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm font-mono" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
-                  <input type="text" name="model" value={editAssetModal.data.model || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+                  <input type="text" name="model" value={editAssetModal.data.model || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                  <input type="text" name="company" value={editAssetModal.data.company || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+                  <input type="text" name="company" value={editAssetModal.data.company || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก <span className="text-red-500">*</span></label>
@@ -106,7 +106,7 @@ export default function EditAssetModal({
                     name="department" 
                     value={editAssetModal.data.department || 'DX'} 
                     onChange={handleEditAssetChange} 
-                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
+                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
                   >
                     <option value="DX">DX</option>
                     <option value="BD">BD</option>
@@ -115,24 +115,23 @@ export default function EditAssetModal({
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
-                  <input type="text" name="vendor" value={editAssetModal.data.vendor || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm" />
+                  <input type="text" name="vendor" value={editAssetModal.data.vendor || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-5 mt-5">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
-                  <input type="date" name="purchaseDate" value={editAssetModal.data.purchaseDate || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
+                  <input type="date" name="purchaseDate" value={editAssetModal.data.purchaseDate || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all text-slate-600 shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมด Warranty</label>
-                  <input type="date" name="warrantyDate" value={editAssetModal.data.warrantyDate || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all text-slate-600 shadow-sm" />
+                  <input type="date" name="warrantyDate" value={editAssetModal.data.warrantyDate || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all text-slate-600 shadow-sm" />
                 </div>
               </div>
             </>
           )}
 
-          {/* ปรับให้แสดงช่องราคา เฉพาะทรัพย์สินหลักเท่านั้น ตามความต้องการ */}
           {editAssetModal.collectionName === 'assets' && (
             <div className="mt-5">
               <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
@@ -140,12 +139,11 @@ export default function EditAssetModal({
                 type="number" step="any" min="0" name="cost" value={editAssetModal.data.cost || ''} onChange={handleEditAssetChange} 
                 onWheel={(e) => e.target.blur()} 
                 onKeyDown={(e) => (e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.preventDefault()}
-                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm transition-all shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
               />
             </div>
           )}
 
-          {/* ฟอร์มของอุปกรณ์สำนักงาน (office supplies) */}
           {editAssetModal.collectionName === 'office_supplies' && (
             <div className="grid grid-cols-2 gap-5 mt-5">
               <div>
@@ -154,20 +152,28 @@ export default function EditAssetModal({
                   type="number" min="0" name="quantity" value={editAssetModal.data.quantity || 0} onChange={handleEditAssetChange} 
                   onWheel={(e) => e.target.blur()} 
                   onKeyDown={(e) => (e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.preventDefault()}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                 />
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">หน่วยนับ</label>
-                <input type="text" name="unit" value={editAssetModal.data.unit || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm shadow-sm" placeholder="เช่น ชิ้น, กล่อง..." />
+                <input type="text" name="unit" value={editAssetModal.data.unit || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm shadow-sm" placeholder="เช่น ชิ้น, กล่อง..." />
               </div>
+            </div>
+          )}
+
+          {editAssetModal.collectionName === 'accessories' && (
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวนคงเหลือปัจจุบัน (แก้ไขได้)</label>
+              <input type="number" min="0" name="remainingQuantity" value={editAssetModal.data.remainingQuantity !== undefined ? editAssetModal.data.remainingQuantity : (editAssetModal.data.quantity ? (Number(editAssetModal.data.quantity) - (editAssetModal.data.assignees?.length || 0)) : (1 - (editAssetModal.data.assignees?.length || 0)))} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+              <p className="text-xs text-slate-500 mt-1">ระบุเฉพาะจำนวนที่ "อยู่ในคลังพร้อมเบิก" (ไม่รวมของที่พนักงานถืออยู่)</p>
             </div>
           )}
 
           {editAssetModal.collectionName === 'assets' && (
             <div className="mt-5">
               <label className="block text-sm font-bold text-slate-700 mb-1.5">สถานะ</label>
-              <select name="status" value={editAssetModal.data.status || 'พร้อมใช้งาน'} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer">
+              <select name="status" value={editAssetModal.data.status || 'พร้อมใช้งาน'} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer">
                 <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                 <option value="ถูกใช้งาน">ถูกใช้งาน</option>
                 <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
@@ -181,7 +187,7 @@ export default function EditAssetModal({
             <button type="button" onClick={() => setEditAssetModal({ isOpen: false, data: null, collectionName: '' })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all shadow-sm">
               ยกเลิก
             </button>
-            <button type="submit" className="flex-1 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold transition-all shadow-lg shadow-amber-500/30">
+            <button type="submit" className="flex-1 py-3 bg-[#1E487A] text-white rounded-xl hover:bg-[#133257] font-bold transition-all shadow-lg shadow-[#1E487A]/30">
               บันทึกการแก้ไข
             </button>
           </div>

@@ -1,44 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from './firebase'; 
+import { db, auth } from './firebase.js'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser'; 
 
 // Hooks
-import useFirebaseData from './hooks/useFirebaseData'; // ✅ โหลดข้อมูลจากโฟลเดอร์ hooks
+import useFirebaseData from './hooks/useFirebaseData.jsx';
 
 // Components หลัก
-import Sidebar from './components/Sidebar';
-import TopHeader from './components/TopHeader';
-import DashboardStats from './components/DashboardStats';
-import ActionBar from './components/ActionBar';
+import Sidebar from './components/Sidebar.jsx';
+import TopHeader from './components/TopHeader.jsx';
+import DashboardStats from './components/DashboardStats.jsx';
+import ActionBar from './components/ActionBar.jsx';
 
 // Modals & Views
-import CustomAlert from './components/CustomAlert';
-import AddModal from './components/AddModal';
-import CheckoutModal from './components/CheckoutModal';
-import EmployeeDetailsModal from './components/EmployeeDetailsModal';
-import AssetDetailsModal from './components/AssetDetailsModal';
-import EditEmpModal from './components/EditEmpModal';
-import EditAssetModal from './components/EditAssetModal';
-import EditLicenseModal from './components/EditLicenseModal';
-import ImportModal from './components/ImportModal';
-import ReturnModal from './components/ReturnModal';
-import RepairModal from './components/RepairModal';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal';
-import ConfirmModal from './components/ConfirmModal';
-import ResetPasswordModal from './components/ResetPasswordModal';
-import LoginView from './components/LoginView';
-import StaffView from './components/StaffView';
+import CustomAlert from './components/CustomAlert.jsx';
+import LoginView from './components/LoginView.jsx';
+import StaffView from './components/StaffView.jsx';
+import ModalsContainer from './components/ModalsContainer.jsx';
 
-// Tables Components (แยกส่วนตารางทั้งหมด)
-import EmployeeTable from './components/EmployeeTable'; 
-import LicenseTable from './components/LicenseTable';   
-import OfficeSupplyTable from './components/OfficeSupplyTable';
-import AssetTable from './components/AssetTable';       
-import AccessoryTable from './components/AccessoryTable'; 
-import RepairTable from './components/RepairTable';               
-import SupplyRequestTable from './components/SupplyRequestTable'; 
+// Tables Components
+import EmployeeTable from './components/EmployeeTable.jsx'; 
+import LicenseTable from './components/LicenseTable.jsx';   
+import OfficeSupplyTable from './components/OfficeSupplyTable.jsx';
+import AssetTable from './components/AssetTable.jsx';       
+import AccessoryTable from './components/AccessoryTable.jsx'; 
+import RepairTable from './components/RepairTable.jsx';               
+import SupplyRequestTable from './components/SupplyRequestTable.jsx'; 
 
 function App() {
   const [authRole, setAuthRole] = useState(null);
@@ -54,7 +42,20 @@ function App() {
 
   const [activeMenu, setActiveMenu] = useState('dashboard');
   
-  // ✅ ใช้ Custom Hook โหลดข้อมูลทั้งหมดมาจาก Firebase ภายในบรรทัดเดียว!
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, [isDarkMode]);
+
   const {
     assets, accessories, employees, deletedEmployees, licenses, 
     repairRequests, officeSupplies, supplyRequests, transactions
@@ -115,6 +116,13 @@ function App() {
   const [confirmDeleteModal, setConfirmDeleteModal] = useState({ isOpen: false, id: null, collectionName: null });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: 'ยืนยัน', cancelText: 'ยกเลิก', icon: 'warning' });
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
+
+  // 🟢 State สำหรับจัดเก็บสถานะเปิด/ปิดคอลัมน์ในตาราง Asset
+  const [visibleAssetColumns, setVisibleAssetColumns] = useState({
+    name: true, type: true, department: true, cost: true, status: true,
+    assetTag: false, sn: false, model: false, vendor: false, company: false,
+    purchaseDate: false, warrantyDate: false, assignedName: false
+  });
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
@@ -385,7 +393,7 @@ function App() {
     try {
       await addDoc(collection(db, 'licenses'), { ...licenseForm, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, createdAt: serverTimestamp() });
       setLicenseForm({ name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '' });
-      setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลโปรแกรม/License ใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
+      setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลโปรแกรม/ใบอนุญาต ใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
@@ -463,20 +471,62 @@ function App() {
   };
 
   const handleExportAccessories = () => {
-    if (accessories.length === 0) return setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: 'ไม่มีข้อมูลอุปกรณ์ให้ส่งออก', type: 'error' });
-    const headers = ['ชื่ออุปกรณ์', 'ประเภท', 'รวมทั้งหมดในระบบ', 'คงเหลือ', 'ใช้งานไป', 'ชำรุด/พัง'];
-    const rows = accessories.map(item => {
-       const total = Number(item.quantity || 0);
-       const used = item.assignees?.length || 0;
-       const broken = Number(item.brokenQuantity || 0);
-       const remain = total - used - broken;
-       return [item.name || '', item.type || '', total, remain, used, broken];
+    // ใช้ข้อมูลชุดเดียวกับที่แสดงบนตารางที่ถูกกรอง (Search/Filter) แล้ว
+    let dataToExport = activeMenu === 'accessories' ? currentData : accessories;
+    if (dataToExport.length === 0) return setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: 'ไม่มีข้อมูลอุปกรณ์ให้ส่งออก', type: 'error' });
+    
+    const headers = ['ชื่ออุปกรณ์', 'ประเภท', 'สถานะ', 'Serial Number', 'ผู้ถือครอง (พนักงาน)'];
+    const rows = [];
+
+    dataToExport.forEach(item => {
+      const total = Number(item.quantity || 0);
+      const used = item.assignees?.length || 0;
+      const broken = Number(item.brokenQuantity || 0);
+      const remain = total - used - broken;
+
+      // 1. แถวสำหรับชิ้นที่ "ถูกใช้งาน" (ดึงชื่อและ SN มาแสดง)
+      if (item.assignees && item.assignees.length > 0) {
+        item.assignees.forEach(assignee => {
+          rows.push([
+            item.name || '', 
+            item.type || '', 
+            'ถูกใช้งาน', 
+            assignee.serialNumber || '-', 
+            assignee.empName || '-'
+          ]);
+        });
+      }
+
+      // 2. แถวสำหรับชิ้นที่ "พร้อมใช้งาน" (คงเหลือในคลัง)
+      for (let i = 0; i < remain; i++) {
+        const sn = item.availableSNs?.[i] || '-';
+        rows.push([
+          item.name || '', 
+          item.type || '', 
+          'พร้อมใช้งาน', 
+          sn, 
+          '-'
+        ]);
+      }
+
+      // 3. แถวสำหรับชิ้นที่ "ชำรุด/พัง"
+      for (let i = 0; i < broken; i++) {
+        const sn = item.brokenSNs?.[i] || '-';
+        rows.push([
+          item.name || '', 
+          item.type || '', 
+          'ชำรุด', 
+          sn, 
+          '-'
+        ]);
+      }
     });
-    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "accessories_export.csv";
+    link.download = "accessories_export_detailed.csv";
     link.click();
   };
 
@@ -604,11 +654,7 @@ function App() {
             checkoutId: Date.now().toString(), 
             empId: emp.id, 
             empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`,
-            serialNumber: checkoutModal.sn || '',
-            model: checkoutModal.model || '',
-            customCost: checkoutModal.itemCost || '',
-            purchaseDate: checkoutModal.itemPurchaseDate || '',
-            warrantyDate: checkoutModal.itemWarrantyDate || ''
+            serialNumber: checkoutModal.sn || '' 
           });
 
           const updateData = { assignees: newAssignees };
@@ -617,27 +663,6 @@ function App() {
             const newAvailableSNs = [...item.availableSNs];
             newAvailableSNs.splice(checkoutModal.snIndex, 1);
             updateData.availableSNs = newAvailableSNs;
-
-            if (item.availableModels) {
-              const newAvailableModels = [...item.availableModels];
-              newAvailableModels.splice(checkoutModal.snIndex, 1);
-              updateData.availableModels = newAvailableModels;
-            }
-            if (item.availableCosts) {
-              const newAvailableCosts = [...item.availableCosts];
-              newAvailableCosts.splice(checkoutModal.snIndex, 1);
-              updateData.availableCosts = newAvailableCosts;
-            }
-            if (item.availablePurchaseDates) {
-              const newAvailablePurchaseDates = [...item.availablePurchaseDates];
-              newAvailablePurchaseDates.splice(checkoutModal.snIndex, 1);
-              updateData.availablePurchaseDates = newAvailablePurchaseDates;
-            }
-            if (item.availableWarrantyDates) {
-              const newAvailableWarrantyDates = [...item.availableWarrantyDates];
-              newAvailableWarrantyDates.splice(checkoutModal.snIndex, 1);
-              updateData.availableWarrantyDates = newAvailableWarrantyDates;
-            }
           }
 
           await updateDoc(doc(db, 'accessories', checkoutModal.assetId), updateData);
@@ -664,7 +689,7 @@ function App() {
           empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: checkoutModal.collectionName, action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       }
-      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined, itemCost: '', itemPurchaseDate: '', itemWarrantyDate: '' }); 
+      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined }); 
       setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks('');
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
@@ -843,6 +868,51 @@ function App() {
     });
   }
 
+  const handleExportAssets = () => {
+    let dataToExport = currentData;
+    if (dataToExport.length === 0) return setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: 'ไม่มีข้อมูลทรัพย์สินให้ส่งออก', type: 'error' });
+    
+    const headers = [];
+    if (visibleAssetColumns.name) headers.push('ชื่ออุปกรณ์');
+    if (visibleAssetColumns.type) headers.push('ประเภท');
+    if (visibleAssetColumns.department) headers.push('แผนก');
+    if (visibleAssetColumns.cost) headers.push('ราคา');
+    if (visibleAssetColumns.status) headers.push('สถานะ');
+    if (visibleAssetColumns.assetTag) headers.push('รหัสทรัพย์สิน');
+    if (visibleAssetColumns.sn) headers.push('Serial Number');
+    if (visibleAssetColumns.model) headers.push('ยี่ห้อ/รุ่น');
+    if (visibleAssetColumns.vendor) headers.push('ผู้จัดจำหน่าย');
+    if (visibleAssetColumns.company) headers.push('บริษัท');
+    if (visibleAssetColumns.purchaseDate) headers.push('วันที่ซื้อ');
+    if (visibleAssetColumns.warrantyDate) headers.push('วันที่หมด Warranty');
+    if (visibleAssetColumns.assignedName) headers.push('ผู้ครอบครอง');
+
+    const rows = dataToExport.map(item => {
+      const rowData = [];
+      if (visibleAssetColumns.name) rowData.push(item.name || '');
+      if (visibleAssetColumns.type) rowData.push(item.type || '');
+      if (visibleAssetColumns.department) rowData.push(item.department || '');
+      if (visibleAssetColumns.cost) rowData.push(item.cost || '');
+      if (visibleAssetColumns.status) rowData.push(item.status || 'พร้อมใช้งาน');
+      if (visibleAssetColumns.assetTag) rowData.push(item.assetTag || '');
+      if (visibleAssetColumns.sn) rowData.push(item.sn || '');
+      if (visibleAssetColumns.model) rowData.push(item.model || '');
+      if (visibleAssetColumns.vendor) rowData.push(item.vendor || '');
+      if (visibleAssetColumns.company) rowData.push(item.company || '');
+      if (visibleAssetColumns.purchaseDate) rowData.push(item.purchaseDate || '');
+      if (visibleAssetColumns.warrantyDate) rowData.push(item.warrantyDate || '');
+      if (visibleAssetColumns.assignedName) rowData.push(item.assignedName || '');
+      return rowData;
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "assets_export.csv";
+    link.click();
+  };
+
   const getUniqueMonths = (data) => {
     const months = new Set();
     data.forEach(item => {
@@ -911,7 +981,7 @@ function App() {
 
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวมระบบ (Dashboard)' :
                     activeMenu === 'assets' ? 'ทรัพย์สิน IT หลัก' : 
-                    activeMenu === 'licenses' ? 'โปรแกรม/License' : 
+                    activeMenu === 'licenses' ? 'โปรแกรม/ใบอนุญาต' : 
                     activeMenu === 'accessories' ? 'อุปกรณ์เสริม (Accessories)' : 
                     activeMenu === 'repairs' ? 'แจ้งปัญหา IT' : 
                     activeMenu === 'office_supplies' ? 'คลังอุปกรณ์สำนักงาน' : 
@@ -938,15 +1008,14 @@ function App() {
   const expiringLicensesCount = licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length;
   
   const totalPendingCount = pendingRepairsCount + pendingSuppliesCount + expiringLicensesCount;
-
   const totalSystemItems = assets.length + licenses.length + accessories.length + employees.length;
   const currentDataLength = currentData.length;
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center transition-colors">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-[#1E487A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-400 font-medium">กำลังโหลด...</p>
         </div>
       </div>
@@ -990,14 +1059,13 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-50 font-sans" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="flex flex-col md:flex-row h-screen bg-[#f4f7fe] text-slate-900 font-sans transition-colors duration-300" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
       
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} authRole={authRole} />
       
-      <main className="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
-        
+      <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
         <TopHeader 
           menuTitle={menuTitle}
           notifRef={notifRef}
@@ -1012,6 +1080,8 @@ function App() {
           totalSystemItems={totalSystemItems}
           currentDataLength={currentDataLength}
           handleLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
         />
 
         <div className="flex-1 overflow-auto p-4 md:p-8">
@@ -1045,8 +1115,7 @@ function App() {
             />
           ) : (
             <div className="h-full flex flex-col">
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col flex-1">
-                
+              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col flex-1 transition-colors duration-300">
                 <ActionBar 
                   menuTitle={menuTitle}
                   activeMenu={activeMenu}
@@ -1072,15 +1141,18 @@ function App() {
                   setOfficeSupplyStockFilter={setOfficeSupplyStockFilter}
                   selectedOfficeSupplyIds={selectedOfficeSupplyIds}
                   setIsAddModalOpen={setIsAddModalOpen}
+                  handleExportAssets={handleExportAssets}
+                  visibleAssetColumns={visibleAssetColumns}
+                  setVisibleAssetColumns={setVisibleAssetColumns}
                 />
                 
                 {currentData.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-12">
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
                     <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">📂</span>
                     <p className="font-bold text-lg text-slate-500">ไม่พบข้อมูลที่ค้นหา</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors duration-300">
                     {activeMenu === 'employees' ? (
                       <EmployeeTable 
                         currentData={currentData}
@@ -1136,6 +1208,7 @@ function App() {
                         handleCheckin={handleCheckin}
                         openEditAssetModal={openEditAssetModal}
                         setConfirmDeleteModal={setConfirmDeleteModal}
+                        visibleAssetColumns={visibleAssetColumns}
                       />
                     ) : null}
                   </div>
@@ -1146,21 +1219,21 @@ function App() {
         </div>
       </main>
       
-      {/* Modals ทั้งหมด */}
-      <AddModal isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} />
-      <CheckoutModal checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} />
-      <EmployeeDetailsModal selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal} />
-      <AssetDetailsModal selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} accessories={accessories} assets={assets} licenses={licenses} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} handleCheckin={handleCheckin} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks} showConfirm={showConfirm} setCustomAlert={setCustomAlert} />
-      <EditEmpModal editEmpModal={editEmpModal} setEditEmpModal={setEditEmpModal} handleUpdateEmployee={handleUpdateEmployee} handleEditEmpChange={handleEditEmpChange} />
-      <EditAssetModal editAssetModal={editAssetModal} setEditAssetModal={setEditAssetModal} handleUpdateAsset={handleUpdateAsset} handleEditAssetChange={handleEditAssetChange} />
-      <EditLicenseModal editLicenseModal={editLicenseModal} setEditLicenseModal={setEditLicenseModal} handleUpdateLicense={handleUpdateLicense} handleEditLicenseChange={handleEditLicenseChange} />
-      <ImportModal isImportModalOpen={isImportModalOpen} setIsImportModalOpen={setIsImportModalOpen} handleDownloadTemplate={handleDownloadTemplate} handleImportEmployees={handleImportEmployees} activeMenu={activeMenu} />
-      <ReturnModal returnModal={returnModal} setReturnModal={setReturnModal} returnCondition={returnCondition} setReturnCondition={setReturnCondition} returnRemarks={returnRemarks} setReturnRemarks={setReturnRemarks} handleConfirmReturn={handleConfirmReturn} />
-      <RepairModal repairModal={repairModal} setRepairModal={setRepairModal} repairQuantity={repairQuantity} setRepairQuantity={setRepairQuantity} repairRemarks={repairRemarks} setRepairRemarks={setRepairRemarks} handleConfirmRepair={handleConfirmRepair} />
-      <ConfirmDeleteModal confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete} />
-      <ConfirmModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} confirmText={confirmModal.confirmText} cancelText={confirmModal.cancelText} icon={confirmModal.icon} onConfirm={handleConfirmModalOk} onCancel={closeConfirmModal} />
-      <ResetPasswordModal isOpen={resetPasswordModal} onClose={() => setResetPasswordModal(false)} onSuccess={(msg) => setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })} onError={(msg) => setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })} />
-      <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
+      <ModalsContainer 
+        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument}
+        checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks}
+        selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}
+        selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} showConfirm={showConfirm} setCustomAlert={setCustomAlert}
+        editEmpModal={editEmpModal} setEditEmpModal={setEditEmpModal} handleUpdateEmployee={handleUpdateEmployee} handleEditEmpChange={handleEditEmpChange}
+        editAssetModal={editAssetModal} setEditAssetModal={setEditAssetModal} handleUpdateAsset={handleUpdateAsset} handleEditAssetChange={handleEditAssetChange}
+        editLicenseModal={editLicenseModal} setEditLicenseModal={setEditLicenseModal} handleUpdateLicense={handleUpdateLicense} handleEditLicenseChange={handleEditLicenseChange}
+        isImportModalOpen={isImportModalOpen} setIsImportModalOpen={setIsImportModalOpen} handleDownloadTemplate={handleDownloadTemplate} handleImportEmployees={handleImportEmployees}
+        returnModal={returnModal} returnCondition={returnCondition} setReturnCondition={setReturnCondition} returnRemarks={returnRemarks} setReturnRemarks={setReturnRemarks} handleConfirmReturn={handleConfirmReturn}
+        repairModal={repairModal} setRepairModal={setRepairModal} repairQuantity={repairQuantity} setRepairQuantity={setRepairQuantity} repairRemarks={repairRemarks} setRepairRemarks={setRepairRemarks} handleConfirmRepair={handleConfirmRepair}
+        confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete}
+        confirmModal={confirmModal} handleConfirmModalOk={handleConfirmModalOk} closeConfirmModal={closeConfirmModal}
+        resetPasswordModal={resetPasswordModal} setResetPasswordModal={setResetPasswordModal}
+      />
     </div>
   );
 }

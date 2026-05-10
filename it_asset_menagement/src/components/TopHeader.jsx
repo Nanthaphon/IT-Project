@@ -1,7 +1,7 @@
 import React from 'react';
 
-export default function TopHeader({
-  menuTitle,
+export default function TopHeader({ 
+  menuTitle, 
   notifRef,
   isNotifOpen,
   setIsNotifOpen,
@@ -10,96 +10,65 @@ export default function TopHeader({
   pendingSuppliesCount,
   expiringLicensesCount,
   setActiveMenu,
-  activeMenu,
   totalSystemItems,
   currentDataLength,
-  handleLogout
+  handleLogout 
 }) {
   return (
-    <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 px-6 md:px-10 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10 sticky top-0 shrink-0">
-      <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">{menuTitle}</h2>
+    <header className="bg-white shadow-sm border-b border-slate-200 px-6 md:px-10 py-5 flex justify-between items-center z-10 sticky top-0">
+      
       <div className="flex items-center gap-3">
+        <h2 className="text-2xl font-black text-[#1E487A] tracking-tight">{menuTitle}</h2>
+      </div>
+      
+      <div className="flex items-center gap-4">
         
-        {/* กล่องแจ้งเตือน */}
-        <div className="relative" ref={notifRef}>
-          <div 
-            className="cursor-pointer flex items-center justify-center p-2.5 bg-white border border-slate-200 rounded-full hover:bg-slate-100 transition-colors shadow-sm"
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-            title={totalPendingCount > 0 ? `มีรายการรอดำเนินการ ${totalPendingCount} รายการ` : 'ไม่มีการแจ้งเตือนใหม่'}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${totalPendingCount > 0 ? 'text-amber-500' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
+        {/* กระดิ่งแจ้งเตือน */}
+        <div ref={notifRef} className="relative cursor-pointer">
+          <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2.5 bg-slate-50 text-slate-500 hover:text-[#1E487A] rounded-full border border-slate-200 transition-colors shadow-sm focus:outline-none">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             {totalPendingCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm border-2 border-white animate-bounce">
-                {totalPendingCount}
-              </span>
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse border-2 border-white">{totalPendingCount}</span>
             )}
-          </div>
+          </button>
 
+          {/* รายการแจ้งเตือน */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-              <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
-                <h4 className="text-sm font-bold text-slate-800">รายการรอดำเนินการ</h4>
-                <span className="text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">{totalPendingCount}</span>
+            <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50">
+              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                <h3 className="font-bold text-[#1E487A] text-sm">การแจ้งเตือน</h3>
               </div>
-              <div className="flex flex-col max-h-[300px] overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto">
                 {totalPendingCount === 0 ? (
-                  <div className="px-4 py-6 text-center text-slate-400 text-sm font-medium">
-                    ไม่มีรายการใหม่ 🎉
-                  </div>
+                  <div className="p-4 text-center text-sm text-slate-500">ไม่มีรายการรอดำเนินการ</div>
                 ) : (
-                  <React.Fragment>
+                  <>
                     {pendingRepairsCount > 0 && (
-                      <button 
-                        onClick={() => { setActiveMenu('repairs'); setIsNotifOpen(false); }}
-                        className="px-4 py-3 text-left hover:bg-teal-50 transition-colors border-b border-slate-50 flex items-start gap-3"
-                      >
-                        <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">🔧</span>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">แจ้งปัญหา IT</p>
-                          <p className="text-xs text-teal-600 font-medium mt-0.5">{pendingRepairsCount} คิวใหม่</p>
-                        </div>
-                      </button>
+                      <div onClick={() => { setActiveMenu('repairs'); setIsNotifOpen(false); }} className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">🔧</div>
+                        <div><p className="text-sm font-bold text-slate-800">แจ้งซ่อมรอดำเนินการ</p><p className="text-xs text-slate-500 mt-0.5">มีรายการใหม่ <span className="font-bold text-blue-600">{pendingRepairsCount}</span> รายการ</p></div>
+                      </div>
                     )}
                     {pendingSuppliesCount > 0 && (
-                      <button 
-                        onClick={() => { setActiveMenu('supply_requests'); setIsNotifOpen(false); }}
-                        className="px-4 py-3 text-left hover:bg-emerald-50 transition-colors flex items-start gap-3"
-                      >
-                        <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">📝</span>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">ขอเบิกอุปกรณ์สำนักงาน</p>
-                          <p className="text-xs text-emerald-600 font-medium mt-0.5">{pendingSuppliesCount} คิวใหม่</p>
-                        </div>
-                      </button>
+                      <div onClick={() => { setActiveMenu('supply_requests'); setIsNotifOpen(false); }} className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">📦</div>
+                        <div><p className="text-sm font-bold text-slate-800">เบิกอุปกรณ์รอดำเนินการ</p><p className="text-xs text-slate-500 mt-0.5">มีคำขอเบิก <span className="font-bold text-emerald-600">{pendingSuppliesCount}</span> รายการ</p></div>
+                      </div>
                     )}
                     {expiringLicensesCount > 0 && (
-                      <button 
-                        onClick={() => { setActiveMenu('licenses'); setIsNotifOpen(false); }}
-                        className="px-4 py-3 text-left hover:bg-purple-50 transition-colors border-t border-slate-50 flex items-start gap-3"
-                      >
-                        <span className="text-lg bg-white shadow-sm border border-slate-100 rounded-lg p-1.5 shrink-0">🔑</span>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">โปรแกรม/License</p>
-                          <p className="text-xs text-purple-600 font-medium mt-0.5">{expiringLicensesCount} รายการใกล้/หมดอายุ</p>
-                        </div>
-                      </button>
+                      <div onClick={() => { setActiveMenu('licenses'); setIsNotifOpen(false); }} className="p-4 hover:bg-slate-50 cursor-pointer flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">🔑</div>
+                        <div><p className="text-sm font-bold text-slate-800">License ใกล้หมดอายุ</p><p className="text-xs text-slate-500 mt-0.5">มีโปรแกรมใกล้/หมดอายุ <span className="font-bold text-amber-600">{expiringLicensesCount}</span> รายการ</p></div>
+                      </div>
                     )}
-                  </React.Fragment>
+                  </>
                 )}
               </div>
             </div>
           )}
         </div>
 
-        {/* ป้ายแสดงจำนวนรายการ */}
-        <div className="text-sm font-bold text-teal-700 bg-teal-50 border border-teal-100 px-4 py-2 rounded-full shadow-sm flex items-center gap-2 hidden sm:flex">
-          <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-          {activeMenu === 'dashboard' ? `ข้อมูลในระบบทั้งหมด ${totalSystemItems} รายการ` : `มีรายการทั้งหมด ${currentDataLength} รายการ`}
-        </div>
-        
-        <button onClick={handleLogout} className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow-sm whitespace-nowrap">
+        <button onClick={handleLogout} className="text-sm font-bold text-[#1E487A] bg-white border-2 border-[#1E487A] px-5 py-2 rounded-full hover:bg-[#1E487A] hover:text-white transition-all shadow-sm">
           ออกจากระบบ
         </button>
       </div>

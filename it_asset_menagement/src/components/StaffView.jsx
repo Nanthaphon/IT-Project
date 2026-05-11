@@ -7,7 +7,7 @@ export default function StaffView({
   staffEmpIdInput,
   setStaffEmpIdInput,
   staffPasswordInput, // 🟢 รับ Props เพิ่ม
-  setStaffPasswordInput, // 🟢 รับ Props เพิ่ม
+  setStaffPasswordInput, // 🟢 รับ Props เพิ่ม,
   handleStaffLogin,
   staffRepairForm,
   setStaffRepairForm,

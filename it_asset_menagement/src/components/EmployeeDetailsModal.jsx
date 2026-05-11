@@ -10,11 +10,9 @@ export default function EmployeeDetailsModal({
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
-      
-      {/* แก้ไขตรงบรรทัดนี้: เปลี่ยน max-h-[90vh] เป็น h-[90vh] เพื่อล็อกความสูงให้คงที่ */}
-      <div className="bg-slate-50 rounded-3xl shadow-2xl max-w-6xl w-full overflow-hidden transform transition-all flex flex-col h-[90vh] border border-slate-200/50">
+      <div className="bg-slate-50 rounded-3xl shadow-2xl max-w-6xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-200/50">
         
-        <div className="bg-[#1E487A] text-white p-6 flex justify-between items-center border-b border-[#133257] shrink-0">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 flex justify-between items-center border-b border-slate-700 shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-indigo-500/20 text-indigo-300 rounded-2xl flex items-center justify-center text-2xl border border-indigo-500/30 shadow-inner">{selectedEmployee.fullName?.charAt(0) || '👤'}</div>
             <div>
@@ -28,9 +26,9 @@ export default function EmployeeDetailsModal({
         </div>
 
         <div className="flex px-6 pt-4 bg-white border-b border-slate-200 gap-4 overflow-x-auto scrollbar-hide shrink-0">
-          <button onClick={() => setEmpModalTab('info')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'info' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📋 ข้อมูลทั่วไป</button>
-          <button onClick={() => setEmpModalTab('assets')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'assets' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📦 ครอบครองปัจจุบัน</button>
-          <button onClick={() => setEmpModalTab('history')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'history' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>🕒 ประวัติการเบิก-คืน</button>
+          <button onClick={() => setEmpModalTab('info')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'info' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📋 ข้อมูลทั่วไป</button>
+          <button onClick={() => setEmpModalTab('assets')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'assets' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📦 ครอบครองปัจจุบัน</button>
+          <button onClick={() => setEmpModalTab('history')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'history' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>🕒 ประวัติการเบิก-คืน</button>
         </div>
         
         <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
@@ -41,15 +39,16 @@ export default function EmployeeDetailsModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
                   <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">ชื่อ-นามสกุล (TH)</span><span className="font-bold text-slate-800">{selectedEmployee.fullName || '-'}</span></div>
                   <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">ชื่อ-นามสกุล (EN)</span><span className="font-bold text-slate-800">{selectedEmployee.fullNameEng || '-'}</span></div>
+                  <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">เลขบัตรประชาชน</span><span className="font-bold text-slate-800">{selectedEmployee.nationalId || '-'}</span></div>
                   <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">ตำแหน่ง</span><span className="font-bold text-slate-800">{selectedEmployee.position || '-'}</span></div>
                   <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">แผนก</span><span className="font-bold text-slate-800">{selectedEmployee.department || '-'}</span></div>
-                  <div className="flex flex-col md:col-span-2"><span className="text-xs font-semibold text-slate-500 mb-1">บริษัท</span><span className="font-bold text-slate-800">{selectedEmployee.company || '-'}</span></div>
+                  <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">บริษัท</span><span className="font-bold text-slate-800">{selectedEmployee.company || '-'}</span></div>
                 </div>
               </div>
               <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 pb-2 border-b border-slate-100">ข้อมูลการติดต่อและสังกัด</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-                  <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">อีเมล (Email)</span><span className="font-bold text-[#1E487A]">{selectedEmployee.email || '-'}</span></div>
+                  <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">อีเมล (Email)</span><span className="font-bold text-indigo-600">{selectedEmployee.email || '-'}</span></div>
                   <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">เบอร์โทรศัพท์</span><span className="font-bold text-slate-800">{selectedEmployee.phone || '-'}</span></div>
                   <div className="flex flex-col md:col-span-2"><span className="text-xs font-semibold text-slate-500 mb-1">หัวหน้างาน</span><span className="font-bold text-slate-800 flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">👤</span>{selectedEmployee.manager || '-'}</span></div>
                 </div>
@@ -64,7 +63,7 @@ export default function EmployeeDetailsModal({
                 const empAccessories = accessories.reduce((accList, acc) => {
                   if (acc.assignees) {
                     acc.assignees.filter(a => a.empId === selectedEmployee.id).forEach(checkout => {
-                      accList.push({ ...acc, uniqueKey: checkout.checkoutId, checkoutId: checkout.checkoutId, sn: checkout.serialNumber }); 
+                      accList.push({ ...acc, uniqueKey: checkout.checkoutId, checkoutId: checkout.checkoutId }); 
                     });
                   } else if (acc.assignedTo === selectedEmployee.id) {
                     accList.push({ ...acc, uniqueKey: acc.id }); 
@@ -83,21 +82,16 @@ export default function EmployeeDetailsModal({
                       const category = isAsset ? 'assets' : isAccessory ? 'accessories' : 'licenses';
 
                       return (
-                        <div key={item.uniqueKey || item.id} className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-[#1E487A]/30 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div key={item.uniqueKey || item.id} className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div className="flex items-center gap-4">
                             {item.image ? (<img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0" />) : (<div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border border-slate-200 ${isAsset ? 'bg-blue-50 text-blue-500' : isAccessory ? 'bg-orange-50 text-orange-500' : 'bg-purple-50 text-purple-500'}`}>{isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑'}</div>)}
                             <div>
-                              <p className="font-bold text-slate-800 text-lg group-hover:text-[#1E487A] transition-colors flex items-center gap-2">
+                              <p className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors flex items-center gap-2">
                                 {item.name}
                               </p>
-                              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className={`text-[10px] uppercase tracking-wide px-2.5 py-1 rounded-lg font-bold border shadow-sm ${isAsset ? 'bg-blue-50 border-blue-200 text-blue-700' : isAccessory ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-purple-50 border-purple-200 text-purple-700'}`}>{isAsset ? 'ทรัพย์สินหลัก' : isAccessory ? 'อุปกรณ์เสริม' : 'โปรแกรม/ใบอนุญาต'}</span>
-                                <span className="text-xs font-medium text-slate-500">{item.type || 'ใบอนุญาต'}</span>
-                                {item.sn && (
-                                  <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm ml-1">
-                                    SN: {item.sn}
-                                  </span>
-                                )}
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-[10px] uppercase tracking-wide px-2.5 py-1 rounded-lg font-bold border shadow-sm ${isAsset ? 'bg-blue-50 border-blue-200 text-blue-700' : isAccessory ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-purple-50 border-purple-200 text-purple-700'}`}>{isAsset ? 'ทรัพย์สินหลัก' : isAccessory ? 'อุปกรณ์เสริม' : 'โปรแกรม/License'}</span>
+                                <span className="text-xs font-medium text-slate-500">{item.type || 'License'}</span>
                               </div>
                             </div>
                           </div>
@@ -124,7 +118,7 @@ export default function EmployeeDetailsModal({
             <div className="space-y-5">
               <div className="flex flex-wrap gap-2 p-1.5 bg-white border border-slate-200 rounded-2xl w-fit shadow-sm">
                 {[{ id: 'all', label: 'ทั้งหมด', icon: '📋' }, { id: 'assets', label: 'ทรัพย์สินหลัก', icon: '🖥️' }, { id: 'licenses', label: 'โปรแกรม', icon: '🔑' }, { id: 'accessories', label: 'อุปกรณ์เสริม', icon: '🖱️' }].map((cat) => (
-                  <button key={cat.id} onClick={() => setHistoryFilter(cat.id)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${historyFilter === cat.id ? 'bg-[#1E487A] text-white shadow-md shadow-[#1E487A]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}><span>{cat.icon}</span> {cat.label}</button>
+                  <button key={cat.id} onClick={() => setHistoryFilter(cat.id)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${historyFilter === cat.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}><span>{cat.icon}</span> {cat.label}</button>
                 ))}
               </div>
 

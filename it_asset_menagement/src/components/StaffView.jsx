@@ -6,8 +6,8 @@ export default function StaffView({
   setCurrentStaff,
   staffEmpIdInput,
   setStaffEmpIdInput,
-  staffPasswordInput, // 🟢 รับ Props เพิ่ม
-  setStaffPasswordInput, // 🟢 รับ Props เพิ่ม,
+  staffPasswordInput,
+  setStaffPasswordInput,
   handleStaffLogin,
   staffRepairForm,
   setStaffRepairForm,
@@ -37,6 +37,9 @@ export default function StaffView({
   const [supplyPage, setSupplyPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
+  // 🟢 State สำหรับฟีเจอร์จดจำฉัน
+  const [rememberMe, setRememberMe] = useState(false);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (supplyDropdownRef.current && !supplyDropdownRef.current.contains(event.target)) {
@@ -51,6 +54,27 @@ export default function StaffView({
     setRepairPage(1);
     setSupplyPage(1);
   }, [activeTab]);
+
+  // 🟢 ดึงข้อมูลจาก LocalStorage เมื่อโหลดหน้านี้ขึ้นมา
+  useEffect(() => {
+    if (!currentStaff) {
+      const savedData = localStorage.getItem('staffRemember');
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          if (Date.now() < parsed.expiry) {
+            setStaffEmpIdInput(parsed.empId || '');
+            if (setStaffPasswordInput) setStaffPasswordInput(parsed.password || '');
+            setRememberMe(true);
+          } else {
+            localStorage.removeItem('staffRemember');
+          }
+        } catch (e) {
+          console.error('Error parsing stored login', e);
+        }
+      }
+    }
+  }, [currentStaff, setStaffEmpIdInput, setStaffPasswordInput]);
 
   const filteredSupplies = officeSupplies.filter(supply =>
     supply.name?.toLowerCase().includes(supplySearchTerm.toLowerCase())
@@ -81,6 +105,21 @@ export default function StaffView({
     } finally {
       setIsSubmittingSupply(false);
     }
+  };
+
+  // 🟢 ฟังก์ชันจัดการเมื่อกดปุ่มเข้าสู่ระบบ (บันทึก Remember Me ลงเครื่อง)
+  const handleLoginSubmit = (e) => {
+    if (rememberMe) {
+      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // เก็บไว้ 30 วัน
+      localStorage.setItem('staffRemember', JSON.stringify({
+        empId: staffEmpIdInput,
+        password: staffPasswordInput,
+        expiry
+      }));
+    } else {
+      localStorage.removeItem('staffRemember');
+    }
+    handleStaffLogin(e);
   };
 
   const getMyAssets = () => {
@@ -117,7 +156,8 @@ export default function StaffView({
           <div className="w-10 h-10 bg-[#1E487A] rounded-xl flex items-center justify-center text-white shadow-sm font-serif italic text-2xl">
             G
           </div>
-          <h1 className="text-xl font-black text-[#1E487A] tracking-tight hidden sm:block">Staff Portal</h1>
+          {/* 🟢 แก้ไขคำว่า Portal เป็น พนักงานทั่วไป */}
+          <h1 className="text-xl font-black text-[#1E487A] tracking-tight hidden sm:block">พนักงานทั่วไป</h1>
         </div>
         {currentStaff && (
           <button 
@@ -135,10 +175,11 @@ export default function StaffView({
              <div className="w-20 h-20 bg-blue-50 text-[#1E487A] rounded-2xl flex items-center justify-center text-4xl mb-6 mx-auto shadow-sm border border-blue-100">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
              </div>
-             <h2 className="text-2xl font-black text-[#1E487A] mb-2 text-center tracking-tight">ยืนยันตัวตนพนักงาน</h2>
+             <h2 className="text-2xl font-black text-[#1E487A] mb-2 text-center tracking-tight">ยืนยันตัวตน</h2>
              <p className="text-slate-500 text-center mb-8 text-sm font-medium">กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อเข้าสู่ระบบบริการ แจ้งปัญหา และเบิกอุปกรณ์</p>
              
-             <form onSubmit={handleStaffLogin} className="space-y-5">
+             {/* 🟢 เรียกใช้ handleLoginSubmit แทนเพื่อเซฟข้อมูลก่อนล็อคอิน */}
+             <form onSubmit={handleLoginSubmit} className="space-y-5">
                <div>
                  <input 
                    type="text" 
@@ -149,7 +190,6 @@ export default function StaffView({
                    required 
                  />
                </div>
-               {/* 🟢 เพิ่มช่องกรอกรหัสบัตรประชาชน (รหัสผ่าน) ตามสไตล์เดิมของคุณ */}
                <div>
                  <input 
                    type="password" 
@@ -161,8 +201,23 @@ export default function StaffView({
                    required 
                  />
                </div>
+
+               {/* 🟢 Checkbox สำหรับฟีเจอร์จดจำฉันไว้ 30 วัน */}
+               <div className="flex items-center gap-2.5 mt-2 justify-center">
+                 <input 
+                   type="checkbox" 
+                   id="rememberMe" 
+                   checked={rememberMe}
+                   onChange={(e) => setRememberMe(e.target.checked)}
+                   className="w-4 h-4 text-[#1E487A] border-slate-300 rounded focus:ring-[#1E487A] cursor-pointer"
+                 />
+                 <label htmlFor="rememberMe" className="text-sm font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors">
+                   จดจำฉันไว้ 30 วัน
+                 </label>
+               </div>
+
                <button type="submit" className="w-full py-4 bg-[#1E487A] hover:bg-[#133257] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#1E487A]/20 flex items-center justify-center gap-2 active:scale-[0.98]">
-                 เข้าสู่ระบบพนักงาน <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                 เข้าสู่ระบบ <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                </button>
              </form>
              

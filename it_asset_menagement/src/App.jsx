@@ -156,7 +156,12 @@ function App() {
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setAuthRole('admin');
+        if (user.email && user.email.toLowerCase().startsWith('hr@')) {
+          setAuthRole('hr');
+          setActiveMenu('office_supplies');
+        } else {
+          setAuthRole('admin');
+        }
       } else {
         setAuthRole(prev => prev === 'staff' ? prev : null);
       }
@@ -197,7 +202,7 @@ function App() {
   };
 
   const handleLogout = async () => {
-    if (authRole === 'admin') await signOut(auth);
+    if (authRole === 'admin' || authRole === 'hr') await signOut(auth);
     setAuthRole(null);
     setCurrentStaff(null);
   };
@@ -1003,9 +1008,10 @@ function App() {
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
-  const pendingRepairsCount = repairRequests.filter(req => req.status === 'รอดำเนินการ').length;
+  // 🟢 กรองไม่ให้ HR เห็นแจ้งเตือนของฝั่ง IT
+  const pendingRepairsCount = authRole === 'admin' ? repairRequests.filter(req => req.status === 'รอดำเนินการ').length : 0;
   const pendingSuppliesCount = supplyRequests.filter(req => req.status === 'รอดำเนินการ').length;
-  const expiringLicensesCount = licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length;
+  const expiringLicensesCount = authRole === 'admin' ? licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length : 0;
   
   const totalPendingCount = pendingRepairsCount + pendingSuppliesCount + expiringLicensesCount;
   const totalSystemItems = assets.length + licenses.length + accessories.length + employees.length;

@@ -24,24 +24,36 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
       
       {/* รายการเมนู (ซ่อน Scrollbar เผื่อกรณีเปิดในจอเล็กมากๆ) */}
       <nav className="flex flex-row md:flex-col md:flex-1 p-3 space-x-2 md:space-x-0 md:space-y-1.5 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <button onClick={() => setActiveMenu('dashboard')} className={getBtnClass('dashboard')}><span className="mr-2.5 text-lg">📊</span><span>แดชบอร์ด</span></button>
-        <button onClick={() => setActiveMenu('assets')} className={getBtnClass('assets')}><span className="mr-2.5 text-lg">🖥️</span><span>ทรัพย์สินหลัก</span></button>
-        <button onClick={() => setActiveMenu('licenses')} className={getBtnClass('licenses')}><span className="mr-2.5 text-lg">🔑</span><span>โปรแกรม/ใบอนุญาต</span></button>
-        <button onClick={() => setActiveMenu('accessories')} className={getBtnClass('accessories')}><span className="mr-2.5 text-lg">🖱️</span><span>อุปกรณ์เสริม</span></button>
-
+        
+        {/* 🟢 เมนูที่เห็นเฉพาะ IT Admin */}
         {authRole === 'admin' && (
           <>
-            <div className="w-full border-t border-slate-100 my-2 hidden md:block shrink-0"></div>
+            <button onClick={() => setActiveMenu('dashboard')} className={getBtnClass('dashboard')}><span className="mr-2.5 text-lg">📊</span><span>แดชบอร์ด</span></button>
+            <button onClick={() => setActiveMenu('assets')} className={getBtnClass('assets')}><span className="mr-2.5 text-lg">🖥️</span><span>ทรัพย์สินหลัก</span></button>
+            <button onClick={() => setActiveMenu('licenses')} className={getBtnClass('licenses')}><span className="mr-2.5 text-lg">🔑</span><span>โปรแกรม/ใบอนุญาต</span></button>
+            <button onClick={() => setActiveMenu('accessories')} className={getBtnClass('accessories')}><span className="mr-2.5 text-lg">🖱️</span><span>อุปกรณ์เสริม</span></button>
+          </>
+        )}
+
+        {/* 🟢 เมนูที่เห็นทั้ง IT Admin และ HR */}
+        {(authRole === 'admin' || authRole === 'hr') && (
+          <>
+            {authRole === 'admin' && <div className="w-full border-t border-slate-100 my-2 hidden md:block shrink-0"></div>}
             <button onClick={() => setActiveMenu('office_supplies')} className={getBtnClass('office_supplies')}><span className="mr-2.5 text-lg">📦</span><span>อุปกรณ์สำนักงาน</span></button>
             <button onClick={() => setActiveMenu('supply_requests')} className={getBtnClass('supply_requests')}><span className="mr-2.5 text-lg">📝</span><span>คำขอเบิกอุปกรณ์</span></button>
           </>
         )}
 
+        {/* 🟢 เมนูข้อมูลพนักงาน (เห็นทั้ง 2 ฝ่าย) */}
         <div className="w-full border-t border-slate-100 my-2 hidden md:block shrink-0"></div>
         <button onClick={() => setActiveMenu('employees')} className={getBtnClass('employees')}><span className="mr-2.5 text-lg">👥</span><span>ข้อมูลพนักงาน</span></button>
-        <button onClick={() => setActiveMenu('repairs')} className={getBtnClass('repairs')}><span className="mr-2.5 text-lg">🔧</span><span>แจ้งซ่อม</span></button>
         
-        {/* เมนูเปลี่ยนรหัสผ่าน */}
+        {/* 🟢 เมนูแจ้งซ่อมเห็นเฉพาะ IT Admin */}
+        {authRole === 'admin' && (
+          <button onClick={() => setActiveMenu('repairs')} className={getBtnClass('repairs')}><span className="mr-2.5 text-lg">🔧</span><span>แจ้งซ่อม</span></button>
+        )}
+        
+        {/* เมนูเปลี่ยนรหัสผ่าน (เห็นทั้งคู่) */}
         <div className="w-full border-t border-slate-100 my-2 hidden md:block shrink-0"></div>
         <button onClick={onResetPassword} className="w-full flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 text-sm text-slate-500 hover:bg-slate-100 hover:text-[#1E487A] font-medium">
           <span className="mr-2.5 text-lg">🔐</span><span>เปลี่ยนรหัสผ่าน</span>

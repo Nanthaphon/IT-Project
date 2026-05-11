@@ -33,7 +33,7 @@ export default function LoginView({
              >
                <div className="w-20 h-20 bg-slate-50 text-[#1E487A] rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 group-hover:bg-[#1E487A]/10 transition-all border border-slate-100">👥</div>
                <h2 className="text-2xl font-bold text-slate-800 mb-3 group-hover:text-[#1E487A] transition-colors">พนักงานทั่วไป (Staff)</h2>
-               <p className="text-slate-500 text-sm leading-relaxed">เข้าสู่ระบบเพื่อสร้างรายการแจ้งปัญหา IT และติดตามสถานะ <br/>(ระบุเพียงรหัสพนักงาน)</p>
+               <p className="text-slate-500 text-sm leading-relaxed">เข้าสู่ระบบเพื่อสร้างรายการแจ้งปัญหา IT และติดตามสถานะ <br/>(ใช้รหัสพนักงาน และรหัสบัตรประชาชน)</p>
              </button>
 
              <button 

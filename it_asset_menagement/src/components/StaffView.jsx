@@ -6,6 +6,8 @@ export default function StaffView({
   setCurrentStaff,
   staffEmpIdInput,
   setStaffEmpIdInput,
+  staffPasswordInput, // 🟢 รับ Props เพิ่ม
+  setStaffPasswordInput, // 🟢 รับ Props เพิ่ม
   handleStaffLogin,
   staffRepairForm,
   setStaffRepairForm,
@@ -119,7 +121,7 @@ export default function StaffView({
         </div>
         {currentStaff && (
           <button 
-            onClick={() => { setAuthRole(null); setCurrentStaff(null); }} 
+            onClick={() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} 
             className="text-sm font-bold text-[#1E487A] bg-white hover:bg-slate-50 border border-[#1E487A]/30 hover:border-[#1E487A] px-5 py-2 rounded-full transition-all shadow-sm flex items-center gap-2"
           >
             ออกจากระบบ
@@ -134,7 +136,7 @@ export default function StaffView({
                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
              </div>
              <h2 className="text-2xl font-black text-[#1E487A] mb-2 text-center tracking-tight">ยืนยันตัวตนพนักงาน</h2>
-             <p className="text-slate-500 text-center mb-8 text-sm font-medium">กรุณากรอกรหัสพนักงานของคุณเพื่อเข้าสู่ระบบบริการ แจ้งปัญหา และเบิกอุปกรณ์</p>
+             <p className="text-slate-500 text-center mb-8 text-sm font-medium">กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อเข้าสู่ระบบบริการ แจ้งปัญหา และเบิกอุปกรณ์</p>
              
              <form onSubmit={handleStaffLogin} className="space-y-5">
                <div>
@@ -147,10 +149,31 @@ export default function StaffView({
                    required 
                  />
                </div>
+               {/* 🟢 เพิ่มช่องกรอกรหัสบัตรประชาชน (รหัสผ่าน) ตามสไตล์เดิมของคุณ */}
+               <div>
+                 <input 
+                   type="password" 
+                   maxLength="13"
+                   value={staffPasswordInput} 
+                   onChange={e => setStaffPasswordInput?.(e.target.value)} 
+                   className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all shadow-sm text-center font-bold text-lg tracking-widest placeholder:text-sm placeholder:font-medium placeholder:tracking-normal" 
+                   placeholder="ระบุรหัสผ่าน (รหัสบัตรประชาชน 13 หลัก)" 
+                   required 
+                 />
+               </div>
                <button type="submit" className="w-full py-4 bg-[#1E487A] hover:bg-[#133257] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#1E487A]/20 flex items-center justify-center gap-2 active:scale-[0.98]">
-                 ตรวจสอบข้อมูล <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                 เข้าสู่ระบบพนักงาน <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                </button>
              </form>
+             
+             <div className="mt-6 text-center">
+               <button 
+                 onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} 
+                 className="text-sm font-bold text-slate-400 hover:text-[#1E487A] transition-colors"
+               >
+                 ← กลับไปหน้าเลือกบทบาท
+               </button>
+             </div>
            </div>
          ) : (
            <div className="w-full max-w-screen-2xl space-y-6 md:space-y-8">
@@ -168,7 +191,7 @@ export default function StaffView({
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setCurrentStaff(null)} className="w-full md:w-auto px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-sm transition-all border border-white/10 relative z-10 whitespace-nowrap shadow-sm">
+                <button onClick={() => { setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} className="w-full md:w-auto px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-sm transition-all border border-white/10 relative z-10 whitespace-nowrap shadow-sm">
                   เปลี่ยนผู้ใช้งาน
                 </button>
               </div>
@@ -472,7 +495,7 @@ export default function StaffView({
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {currentSupplyRequests.map((req) => (
-                              <tr key={req.id} className="hover:bg-blue-50/40 transition-colors">
+                              <tr key={req.id} className="hover:bg-blue-50/40 transition-colors bg-white group">
                                 <td className="px-5 py-4 text-slate-600 font-medium">
                                   {new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </td>

@@ -37,7 +37,7 @@ export default function StaffView({
   const [supplyPage, setSupplyPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
-  // 🟢 State สำหรับฟีเจอร์จดจำฉัน
+  // 🟢 State สำหรับฟีเจอร์จดจำฉันน
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {

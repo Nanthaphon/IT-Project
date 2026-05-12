@@ -1,30 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function StaffView({
-  setAuthRole,
-  currentStaff,
-  setCurrentStaff,
-  staffEmpIdInput,
-  setStaffEmpIdInput,
-  staffPasswordInput,
-  setStaffPasswordInput,
-  handleStaffLogin,
-  staffRepairForm,
-  setStaffRepairForm,
-  handleSubmitRepairRequest,
-  repairRequests,
-  editStaffRepairModal,
-  setEditStaffRepairModal,
-  handleStaffUpdateRepair,
-  handleStaffDeleteRepair,
-  officeSupplies = [],
-  supplyRequests = [],
-  handleStaffSubmitSupplyRequest,
-  assets = [],
-  accessories = [],
-  licenses = []
+  setAuthRole, currentStaff, setCurrentStaff,
+  staffEmpIdInput, setStaffEmpIdInput, staffPasswordInput, setStaffPasswordInput, handleStaffLogin,
+  staffRepairForm, setStaffRepairForm, handleSubmitRepairRequest, repairRequests, editStaffRepairModal, setEditStaffRepairModal, handleStaffUpdateRepair, handleStaffDeleteRepair,
+  officeSupplies = [], supplyRequests = [], handleStaffSubmitSupplyRequest,
+  assets = [], accessories = [], licenses = [],
+  replacementRequests = [], handleStaffSubmitReplacement 
 }) {
-  const [activeTab, setActiveTab] = useState('it_repair'); // 'it_repair' | 'office_supplies' | 'my_assets'
+  const [activeTab, setActiveTab] = useState('it_repair'); // 'it_repair' | 'office_supplies' | 'my_assets' | 'replacement'
   const [supplyCart, setSupplyCart] = useState([]);
   const [supplySearchTerm, setSupplySearchTerm] = useState('');
   const [isSupplyDropdownOpen, setIsSupplyDropdownOpen] = useState(false);
@@ -32,12 +16,16 @@ export default function StaffView({
 
   const [isSubmittingRepair, setIsSubmittingRepair] = useState(false);
   const [isSubmittingSupply, setIsSubmittingSupply] = useState(false);
+  
+  // 🟢 State สำหรับฟอร์มเปลี่ยนเครื่อง
+  const [replaceStatusForm, setReplaceStatusForm] = useState('เครื่องช้า / ค้างบ่อย');
+  const [replaceReasonForm, setReplaceReasonForm] = useState('');
+  const [isSubmittingReplace, setIsSubmittingReplace] = useState(false);
 
   const [repairPage, setRepairPage] = useState(1);
   const [supplyPage, setSupplyPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
-  // 🟢 State สำหรับฟีเจอร์จดจำฉันน
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
@@ -55,7 +43,6 @@ export default function StaffView({
     setSupplyPage(1);
   }, [activeTab]);
 
-  // 🟢 ดึงข้อมูลจาก LocalStorage เมื่อโหลดหน้านี้ขึ้นมา
   useEffect(() => {
     if (!currentStaff) {
       const savedData = localStorage.getItem('staffRemember');
@@ -83,12 +70,8 @@ export default function StaffView({
   const onRepairSubmit = async (e) => {
     e.preventDefault();
     setIsSubmittingRepair(true);
-    try {
-      await handleSubmitRepairRequest(e);
-      setRepairPage(1);
-    } finally {
-      setIsSubmittingRepair(false);
-    }
+    try { await handleSubmitRepairRequest(e); setRepairPage(1); } 
+    finally { setIsSubmittingRepair(false); }
   };
 
   const onSupplySubmit = async (e) => {
@@ -99,23 +82,29 @@ export default function StaffView({
       for (const item of supplyCart) {
         await handleStaffSubmitSupplyRequest(item.supplyId, item.name, item.quantity, item.note);
       }
-      setSupplyCart([]); 
-      setSupplySearchTerm(''); 
-      setSupplyPage(1);
+      setSupplyCart([]); setSupplySearchTerm(''); setSupplyPage(1);
+    } finally { setIsSubmittingSupply(false); }
+  };
+
+  // 🟢 ฟังก์ชันส่งคำขอเปลี่ยนเครื่อง
+  const onReplacementSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmittingReplace(true);
+    try {
+      if (handleStaffSubmitReplacement) {
+        await handleStaffSubmitReplacement(replaceStatusForm, replaceReasonForm);
+        setReplaceStatusForm('เครื่องช้า / ค้างบ่อย');
+        setReplaceReasonForm('');
+      }
     } finally {
-      setIsSubmittingSupply(false);
+      setIsSubmittingReplace(false);
     }
   };
 
-  // 🟢 ฟังก์ชันจัดการเมื่อกดปุ่มเข้าสู่ระบบ (บันทึก Remember Me ลงเครื่อง)
   const handleLoginSubmit = (e) => {
     if (rememberMe) {
-      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // เก็บไว้ 30 วัน
-      localStorage.setItem('staffRemember', JSON.stringify({
-        empId: staffEmpIdInput,
-        password: staffPasswordInput,
-        expiry
-      }));
+      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput, password: staffPasswordInput, expiry }));
     } else {
       localStorage.removeItem('staffRemember');
     }
@@ -141,10 +130,11 @@ export default function StaffView({
 
   const myAssetsList = getMyAssets();
   const myRequests = repairRequests.filter(req => req.empId === currentStaff?.empId);
+  const mySupplyReqs = supplyRequests.filter(req => req.empId === currentStaff?.empId);
+  const myReplacementReqs = replacementRequests.filter(req => req.empId === currentStaff?.empId);
+
   const totalRepairPages = Math.ceil(myRequests.length / ITEMS_PER_PAGE);
   const currentRepairRequests = myRequests.slice((repairPage - 1) * ITEMS_PER_PAGE, repairPage * ITEMS_PER_PAGE);
-
-  const mySupplyReqs = supplyRequests.filter(req => req.empId === currentStaff?.empId);
   const totalSupplyPages = Math.ceil(mySupplyReqs.length / ITEMS_PER_PAGE);
   const currentSupplyRequests = mySupplyReqs.slice((supplyPage - 1) * ITEMS_PER_PAGE, supplyPage * ITEMS_PER_PAGE);
 
@@ -153,17 +143,11 @@ export default function StaffView({
       
       <header className="bg-white shadow-sm border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#1E487A] rounded-xl flex items-center justify-center text-white shadow-sm font-serif italic text-2xl">
-            G
-          </div>
-          {/* 🟢 แก้ไขคำว่า Portal เป็น พนักงานทั่วไป */}
+          <div className="w-10 h-10 bg-[#1E487A] rounded-xl flex items-center justify-center text-white shadow-sm font-serif italic text-2xl">G</div>
           <h1 className="text-xl font-black text-[#1E487A] tracking-tight hidden sm:block">พนักงานทั่วไป</h1>
         </div>
         {currentStaff && (
-          <button 
-            onClick={() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} 
-            className="text-sm font-bold text-[#1E487A] bg-white hover:bg-slate-50 border border-[#1E487A]/30 hover:border-[#1E487A] px-5 py-2 rounded-full transition-all shadow-sm flex items-center gap-2"
-          >
+          <button onClick={() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} className="text-sm font-bold text-[#1E487A] bg-white hover:bg-slate-50 border border-[#1E487A]/30 hover:border-[#1E487A] px-5 py-2 rounded-full transition-all shadow-sm flex items-center gap-2">
             ออกจากระบบ
           </button>
         )}
@@ -178,56 +162,32 @@ export default function StaffView({
              <h2 className="text-2xl font-black text-[#1E487A] mb-2 text-center tracking-tight">ยืนยันตัวตน</h2>
              <p className="text-slate-500 text-center mb-8 text-sm font-medium">กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อเข้าสู่ระบบบริการ แจ้งปัญหา และเบิกอุปกรณ์</p>
              
-             {/* 🟢 เรียกใช้ handleLoginSubmit แทนเพื่อเซฟข้อมูลก่อนล็อคอิน */}
              <form onSubmit={handleLoginSubmit} className="space-y-5">
                <div>
                  <input 
-                   type="text" 
-                   value={staffEmpIdInput} 
-                   onChange={e => setStaffEmpIdInput(e.target.value)} 
+                   type="text" value={staffEmpIdInput} onChange={e => setStaffEmpIdInput(e.target.value)} 
                    className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all shadow-sm text-center font-bold text-lg tracking-widest placeholder:text-sm placeholder:font-medium placeholder:tracking-normal" 
-                   placeholder="ระบุรหัสพนักงาน (เช่น EMP001)" 
-                   required 
+                   placeholder="ระบุรหัสพนักงาน (เช่น EMP001)" required 
                  />
                </div>
                <div>
                  <input 
-                   type="password" 
-                   maxLength="13"
-                   value={staffPasswordInput} 
-                   onChange={e => setStaffPasswordInput?.(e.target.value)} 
+                   type="password" maxLength="13" value={staffPasswordInput || ''} onChange={e => setStaffPasswordInput?.(e.target.value)} 
                    className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all shadow-sm text-center font-bold text-lg tracking-widest placeholder:text-sm placeholder:font-medium placeholder:tracking-normal" 
-                   placeholder="ระบุรหัสผ่าน (รหัสบัตรประชาชน 13 หลัก)" 
-                   required 
+                   placeholder="ระบุรหัสผ่าน (รหัสบัตรประชาชน 13 หลัก)" required 
                  />
                </div>
-
-               {/* 🟢 Checkbox สำหรับฟีเจอร์จดจำฉันไว้ 30 วัน */}
                <div className="flex items-center gap-2.5 mt-2 justify-center">
-                 <input 
-                   type="checkbox" 
-                   id="rememberMe" 
-                   checked={rememberMe}
-                   onChange={(e) => setRememberMe(e.target.checked)}
-                   className="w-4 h-4 text-[#1E487A] border-slate-300 rounded focus:ring-[#1E487A] cursor-pointer"
-                 />
-                 <label htmlFor="rememberMe" className="text-sm font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors">
-                   จดจำฉันไว้ 30 วัน
-                 </label>
+                 <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 text-[#1E487A] border-slate-300 rounded focus:ring-[#1E487A] cursor-pointer" />
+                 <label htmlFor="rememberMe" className="text-sm font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors">จดจำฉันไว้ 30 วัน</label>
                </div>
-
                <button type="submit" className="w-full py-4 bg-[#1E487A] hover:bg-[#133257] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#1E487A]/20 flex items-center justify-center gap-2 active:scale-[0.98]">
                  เข้าสู่ระบบ <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                </button>
              </form>
              
              <div className="mt-6 text-center">
-               <button 
-                 onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} 
-                 className="text-sm font-bold text-slate-400 hover:text-[#1E487A] transition-colors"
-               >
-                 ← กลับไปหน้าเลือกบทบาท
-               </button>
+               <button onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }} className="text-sm font-bold text-slate-400 hover:text-[#1E487A] transition-colors">← กลับไปหน้าเลือกบทบาท</button>
              </div>
            </div>
          ) : (
@@ -251,50 +211,38 @@ export default function StaffView({
                 </button>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-6 md:mb-8">
+              {/* 🟢 ส่วนของ Tabs เมนู */}
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-6 md:mb-8 flex-wrap">
                 <button 
                   onClick={() => setActiveTab('it_repair')} 
-                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border ${
-                    activeTab === 'it_repair' 
-                      ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' 
-                      : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'
-                  }`}
+                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border min-w-[200px] ${activeTab === 'it_repair' ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'}`}
                 >
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'it_repair' ? 'bg-[#1E487A] text-white shadow-sm' : 'bg-slate-100 text-slate-400'}`}>🔧</div>
-                  <div className="text-left">
-                    <h4 className={`text-base md:text-lg font-black ${activeTab === 'it_repair' ? 'text-[#1E487A]' : 'text-slate-700'}`}>แจ้งปัญหา IT</h4>
-                    <p className="text-xs mt-0.5 font-medium text-slate-500">ประวัติ {myRequests.length} รายการ</p>
-                  </div>
+                  <div className="text-left"><h4 className={`text-base md:text-lg font-black ${activeTab === 'it_repair' ? 'text-[#1E487A]' : 'text-slate-700'}`}>แจ้งปัญหา IT</h4><p className="text-xs mt-0.5 font-medium text-slate-500">ประวัติ {myRequests.length} รายการ</p></div>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('replacement')} 
+                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border min-w-[200px] ${activeTab === 'replacement' ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'}`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'replacement' ? 'bg-[#1E487A] text-white shadow-sm' : 'bg-slate-100 text-slate-400'}`}>🔄</div>
+                  <div className="text-left"><h4 className={`text-base md:text-lg font-black ${activeTab === 'replacement' ? 'text-[#1E487A]' : 'text-slate-700'}`}>ขอเปลี่ยนเครื่อง</h4><p className="text-xs mt-0.5 font-medium text-slate-500">ประวัติ {myReplacementReqs.length} คำขอ</p></div>
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('office_supplies')} 
-                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border ${
-                    activeTab === 'office_supplies' 
-                      ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' 
-                      : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'
-                  }`}
+                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border min-w-[200px] ${activeTab === 'office_supplies' ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'}`}
                 >
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'office_supplies' ? 'bg-[#1E487A] text-white shadow-sm' : 'bg-slate-100 text-slate-400'}`}>📦</div>
-                  <div className="text-left">
-                    <h4 className={`text-base md:text-lg font-black ${activeTab === 'office_supplies' ? 'text-[#1E487A]' : 'text-slate-700'}`}>เบิกอุปกรณ์</h4>
-                    <p className="text-xs mt-0.5 font-medium text-slate-500">ประวัติ {mySupplyReqs.length} คำขอ</p>
-                  </div>
+                  <div className="text-left"><h4 className={`text-base md:text-lg font-black ${activeTab === 'office_supplies' ? 'text-[#1E487A]' : 'text-slate-700'}`}>เบิกอุปกรณ์</h4><p className="text-xs mt-0.5 font-medium text-slate-500">ประวัติ {mySupplyReqs.length} คำขอ</p></div>
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('my_assets')} 
-                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border ${
-                    activeTab === 'my_assets' 
-                      ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' 
-                      : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'
-                  }`}
+                  className={`flex-1 p-4 rounded-2xl shadow-sm flex items-center gap-4 transition-all duration-300 border min-w-[200px] ${activeTab === 'my_assets' ? 'bg-white border-[#1E487A] shadow-md shadow-[#1E487A]/10 scale-[1.02]' : 'bg-white/60 text-slate-600 hover:bg-white border-transparent'}`}
                 >
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${activeTab === 'my_assets' ? 'bg-[#1E487A] text-white shadow-sm' : 'bg-slate-100 text-slate-400'}`}>💻</div>
-                  <div className="text-left">
-                    <h4 className={`text-base md:text-lg font-black ${activeTab === 'my_assets' ? 'text-[#1E487A]' : 'text-slate-700'}`}>ทรัพย์สินที่ดูแล</h4>
-                    <p className="text-xs mt-0.5 font-medium text-slate-500">ครอบครอง {myAssetsList.length} รายการ</p>
-                  </div>
+                  <div className="text-left"><h4 className={`text-base md:text-lg font-black ${activeTab === 'my_assets' ? 'text-[#1E487A]' : 'text-slate-700'}`}>ทรัพย์สินที่ดูแล</h4><p className="text-xs mt-0.5 font-medium text-slate-500">ครอบครอง {myAssetsList.length} รายการ</p></div>
                 </button>
               </div>
 
@@ -355,7 +303,7 @@ export default function StaffView({
                     
                     {currentRepairRequests.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl">
-                        <span className="text-5xl mb-4 opacity-50">📂</span>
+                        <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">📂</span>
                         <p className="font-bold text-lg text-slate-500">คุณยังไม่มีประวัติแจ้งปัญหาในหน้านี้</p>
                       </div>
                     ) : (
@@ -414,6 +362,102 @@ export default function StaffView({
                           ))}
                         </div>
                         <button onClick={() => setRepairPage(p => Math.min(totalRepairPages, p + 1))} disabled={repairPage === totalRepairPages} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors">ถัดไป &gt;</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------- 🔄 TAB: ขอเปลี่ยนเครื่อง -------------------- */}
+              {activeTab === 'replacement' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 h-fit">
+                    <h3 className="text-xl font-bold text-[#1E487A] mb-6 flex items-center gap-3"><span className="p-2 bg-blue-50 text-[#1E487A] rounded-xl shadow-sm border border-blue-100">📝</span> ฟอร์มขอเปลี่ยนเครื่องโน๊ตบุ๊ค</h3>
+                    <form onSubmit={onReplacementSubmit} className="space-y-5">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">สถานะเครื่องปัจจุบัน <span className="text-red-500">*</span></label>
+                        <select 
+                          value={replaceStatusForm} 
+                          onChange={(e) => setReplaceStatusForm(e.target.value)} 
+                          className="w-full border border-slate-300 p-4 rounded-xl focus:ring-2 focus:ring-[#1E487A] outline-none transition-all shadow-sm text-base bg-slate-50 focus:bg-white cursor-pointer" 
+                          required 
+                        >
+                          <option value="เครื่องช้า / ค้างบ่อย">เครื่องช้า / ค้างบ่อย</option>
+                          <option value="เปิดไม่ติด / ชำรุดหนัก">เปิดไม่ติด / ชำรุดหนัก</option>
+                          <option value="แบตเตอรี่เสื่อมสภาพ">แบตเตอรี่เสื่อมสภาพ</option>
+                          <option value="จอแสดงผลมีปัญหา">จอแสดงผลมีปัญหา</option>
+                          <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">เหตุผลความต้องการขอเปลี่ยน <span className="text-red-500">*</span></label>
+                        <textarea 
+                          value={replaceReasonForm} 
+                          onChange={(e) => setReplaceReasonForm(e.target.value)} 
+                          className="w-full border border-slate-300 p-4 rounded-xl focus:ring-2 focus:ring-[#1E487A] outline-none transition-all shadow-sm resize-none text-base bg-slate-50 focus:bg-white" 
+                          placeholder="อธิบายเหตุผลเพิ่มเติม เช่น ประสิทธิภาพไม่พอต่อการทำงาน, มีอาการช็อต..." 
+                          rows="4"
+                          required 
+                        ></textarea>
+                      </div>
+                      
+                      <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-xs text-amber-700 font-medium flex gap-3 items-start">
+                        <span className="text-lg">ℹ️</span>
+                        <p>เมื่อกดส่งคำขอ ระบบจะส่งอีเมลเพื่อแจ้งให้ <b>หัวหน้างานของคุณ ({currentStaff?.manager || 'ไม่ระบุ'})</b> ได้รับทราบและพิจารณาโดยอัตโนมัติ</p>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={isSubmittingReplace}
+                        className={`w-full py-4 text-white font-bold text-base rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${isSubmittingReplace ? 'bg-[#1E487A]/50 cursor-not-allowed' : 'bg-[#1E487A] hover:bg-[#133257] shadow-[#1E487A]/30 active:scale-[0.98]'}`}
+                      >
+                        {isSubmittingReplace ? 'กำลังส่งคำขอและอีเมล...' : 'ส่งคำขอเปลี่ยนเครื่อง'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col h-full">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold text-[#1E487A] flex items-center gap-3"><span className="p-2 bg-blue-50 text-[#1E487A] rounded-xl shadow-inner border border-blue-100">🕒</span> ประวัติขอเปลี่ยนเครื่องของคุณ</h3>
+                    </div>
+                    
+                    {myReplacementReqs.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                        <span className="text-5xl mb-4 opacity-50 drop-shadow-sm">📂</span>
+                        <p className="font-bold text-lg text-slate-500">คุณยังไม่มีประวัติการขอเปลี่ยนเครื่อง</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm flex-1">
+                        <table className="min-w-full text-left whitespace-nowrap text-sm h-full">
+                          <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider">วันที่ขอ</th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider">สถานะเครื่องปัจจุบัน</th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider">เหตุผล</th>
+                              <th className="px-5 py-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-center">สถานะคำขอ</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {myReplacementReqs.map((req) => (
+                              <tr key={req.id} className="hover:bg-blue-50/40 transition-colors bg-white">
+                                <td className="px-5 py-4 text-slate-600 font-medium">
+                                  {new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </td>
+                                <td className="px-5 py-4 text-slate-800 font-bold">{req.currentStatus}</td>
+                                <td className="px-5 py-4 text-slate-600 truncate max-w-[200px]" title={req.reason}>{req.reason}</td>
+                                <td className="px-5 py-4 text-center">
+                                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${
+                                    req.status === 'รอดำเนินการ' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                    req.status === 'อนุมัติแล้ว' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                    'bg-red-50 text-red-700 border-red-200'
+                                  }`}>
+                                    {req.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </div>

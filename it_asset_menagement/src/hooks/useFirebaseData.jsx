@@ -12,6 +12,7 @@ export default function useFirebaseData() {
   const [officeSupplies, setOfficeSupplies] = useState([]);
   const [supplyRequests, setSupplyRequests] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [replacementRequests, setReplacementRequests] = useState([]); // 🟢 เพิ่ม State ใหม่
 
   useEffect(() => {
     // 1. ดึงข้อมูลทรัพย์สินและคำขอต่างๆ
@@ -23,6 +24,8 @@ export default function useFirebaseData() {
     const unsubRepairReqs = onSnapshot(collection(db, 'repair_requests'), (snapshot) => setRepairRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
     const unsubOfficeSupplies = onSnapshot(collection(db, 'office_supplies'), (snapshot) => setOfficeSupplies(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubSupplyReqs = onSnapshot(collection(db, 'supply_requests'), (snapshot) => setSupplyRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
+    // 🟢 ดึงข้อมูลคำขอเปลี่ยนเครื่อง
+    const unsubReplacementReqs = onSnapshot(collection(db, 'replacement_requests'), (snapshot) => setReplacementRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
 
     // 2. ดึงข้อมูลประวัติการทำรายการ (Transactions)
     let accData = []; let assetData = []; let licData = [];
@@ -40,12 +43,13 @@ export default function useFirebaseData() {
     return () => { 
       unsubAssets(); unsubAccessories(); unsubEmployees(); unsubDeletedEmployees(); 
       unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); 
+      unsubReplacementReqs(); // 🟢 คืนค่า
       unsubAccTx(); unsubAssetTx(); unsubLicTx(); 
     }; 
   }, [db]);
 
   return {
     assets, accessories, employees, deletedEmployees, licenses, 
-    repairRequests, officeSupplies, supplyRequests, transactions
+    repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests
   };
 }

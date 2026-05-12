@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
@@ -8,8 +8,20 @@ export default function AddModal({
   purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate, 
   quantity, setQuantity, unit, setUnit, 
   assetImage, setAssetImage, assetDepartment, setAssetDepartment,
-  sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor
+  sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor,
+  employees = [] // 🟢 รับข้อมูลพนักงานเข้ามาเพื่อใช้ใน Dropdown
 }) {
+  const [isManagerDropdownOpen, setIsManagerDropdownOpen] = useState(false);
+  const managerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (managerRef.current && !managerRef.current.contains(event.target)) setIsManagerDropdownOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (!isAddModalOpen) return null;
 
   const handleImageUpload = (e) => {
@@ -85,10 +97,49 @@ export default function AddModal({
                   <input type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ตำแหน่งงาน" />
                 </div>
               </div>
-              <div>
+
+              {/* 🟢 อัปเดตช่องเลือกหัวหน้างานให้เป็นแบบค้นหารายชื่อจากระบบ */}
+              <div ref={managerRef} className="relative">
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-                <input type="text" name="manager" value={empForm.manager || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="หัวหน้างาน" />
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    name="manager" 
+                    value={empForm.manager || ''} 
+                    onChange={handleEmpChange} 
+                    onFocus={() => setIsManagerDropdownOpen(true)}
+                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" 
+                    placeholder="ค้นหาและเลือกหัวหน้างาน..." 
+                    autoComplete="off"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </div>
+                </div>
+                {isManagerDropdownOpen && (
+                  <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {employees.filter(emp => emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())).map(emp => (
+                      <div 
+                        key={emp.id} 
+                        className="px-4 py-2.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 flex justify-between items-center"
+                        onClick={() => {
+                          handleEmpChange({ target: { name: 'manager', value: emp.fullName } });
+                          setIsManagerDropdownOpen(false);
+                        }}
+                      >
+                        <div>
+                          <div className="font-bold text-slate-800">{emp.fullName}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {employees.filter(emp => emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())).length === 0 && (
+                      <div className="p-3 text-center text-xs text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                    )}
+                  </div>
+                )}
               </div>
+
               <div className="pt-2">
                 <button type="submit" className="w-full bg-[#1E487A] text-white font-bold py-3 px-4 rounded-xl hover:bg-[#133257] shadow-lg shadow-[#1E487A]/30 transition-all active:scale-[0.98]">
                   บันทึกข้อมูลพนักงาน

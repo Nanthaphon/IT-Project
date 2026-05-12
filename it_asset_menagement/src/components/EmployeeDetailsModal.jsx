@@ -10,25 +10,31 @@ export default function EmployeeDetailsModal({
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
-      <div className="bg-slate-50 rounded-3xl shadow-2xl max-w-6xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-200/50">
+      <div className="bg-slate-50 rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-200/50">
         
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 flex justify-between items-center border-b border-slate-700 shrink-0">
+        {/* 🟢 Header ธีมน้ำเงิน (#1E487A) */}
+        <div className="bg-[#1E487A] text-white p-6 flex justify-between items-center border-b border-[#133257] shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-500/20 text-indigo-300 rounded-2xl flex items-center justify-center text-2xl border border-indigo-500/30 shadow-inner">{selectedEmployee.fullName?.charAt(0) || '👤'}</div>
+            <div className="w-12 h-12 bg-[#133257] text-white rounded-full flex items-center justify-center text-xl font-bold border border-white/20 shadow-inner">
+              {selectedEmployee.fullName?.charAt(0) || '👤'}
+            </div>
             <div>
-              <h3 className="font-bold text-xl tracking-wide flex items-center gap-2">{selectedEmployee.fullName} {selectedEmployee.nickname && <span className="text-slate-400 font-medium text-base">({selectedEmployee.nickname})</span>}</h3>
-              <p className="text-sm text-slate-400 font-medium mt-0.5">รหัสพนักงาน: <span className="text-indigo-300 font-bold">{selectedEmployee.empId}</span></p>
+              <h3 className="font-bold text-xl tracking-wide flex items-center gap-2">
+                {selectedEmployee.fullName} {selectedEmployee.nickname && <span className="text-blue-200 font-medium text-base">({selectedEmployee.nickname})</span>}
+              </h3>
+              <p className="text-sm text-blue-100 font-medium mt-0.5">รหัสพนักงาน: <span className="text-white font-bold">{selectedEmployee.empId}</span></p>
             </div>
           </div>
-          <button onClick={() => setSelectedEmployee(null)} className="text-slate-400 hover:text-white transition-colors focus:outline-none bg-slate-800/50 hover:bg-slate-700 p-2.5 rounded-xl">
+          <button onClick={() => setSelectedEmployee(null)} className="text-blue-200 hover:text-white transition-colors focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-2.5 rounded-xl">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        <div className="flex px-6 pt-4 bg-white border-b border-slate-200 gap-4 overflow-x-auto scrollbar-hide shrink-0">
-          <button onClick={() => setEmpModalTab('info')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'info' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📋 ข้อมูลทั่วไป</button>
-          <button onClick={() => setEmpModalTab('assets')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'assets' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📦 ครอบครองปัจจุบัน</button>
-          <button onClick={() => setEmpModalTab('history')} className={`pb-4 px-2 text-sm md:text-base font-semibold border-b-4 transition-all whitespace-nowrap ${empModalTab === 'history' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>🕒 ประวัติการเบิก-คืน</button>
+        {/* 🟢 แถบ Tabs */}
+        <div className="flex px-6 pt-4 bg-white border-b border-slate-200 gap-6 overflow-x-auto scrollbar-hide shrink-0">
+          <button onClick={() => setEmpModalTab('info')} className={`pb-4 px-2 text-sm md:text-base font-bold border-b-[3px] transition-all whitespace-nowrap ${empModalTab === 'info' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📋 ข้อมูลทั่วไป</button>
+          <button onClick={() => setEmpModalTab('assets')} className={`pb-4 px-2 text-sm md:text-base font-bold border-b-[3px] transition-all whitespace-nowrap ${empModalTab === 'assets' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>📦 ครอบครองปัจจุบัน</button>
+          <button onClick={() => setEmpModalTab('history')} className={`pb-4 px-2 text-sm md:text-base font-bold border-b-[3px] transition-all whitespace-nowrap ${empModalTab === 'history' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}>🕒 ประวัติการเบิก-คืน</button>
         </div>
         
         <div className="p-6 md:p-8 overflow-y-auto space-y-4 text-sm md:text-base text-slate-800 flex-1">
@@ -48,7 +54,7 @@ export default function EmployeeDetailsModal({
               <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100">
                 <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 pb-2 border-b border-slate-100">ข้อมูลการติดต่อและสังกัด</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-                  <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">อีเมล (Email)</span><span className="font-bold text-indigo-600">{selectedEmployee.email || '-'}</span></div>
+                  <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">อีเมล (Email)</span><span className="font-bold text-[#1E487A]">{selectedEmployee.email || '-'}</span></div>
                   <div className="flex flex-col"><span className="text-xs font-semibold text-slate-500 mb-1">เบอร์โทรศัพท์</span><span className="font-bold text-slate-800">{selectedEmployee.phone || '-'}</span></div>
                   <div className="flex flex-col md:col-span-2"><span className="text-xs font-semibold text-slate-500 mb-1">หัวหน้างาน</span><span className="font-bold text-slate-800 flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">👤</span>{selectedEmployee.manager || '-'}</span></div>
                 </div>
@@ -82,11 +88,11 @@ export default function EmployeeDetailsModal({
                       const category = isAsset ? 'assets' : isAccessory ? 'accessories' : 'licenses';
 
                       return (
-                        <div key={item.uniqueKey || item.id} className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div key={item.uniqueKey || item.id} className="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div className="flex items-center gap-4">
                             {item.image ? (<img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0" />) : (<div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border border-slate-200 ${isAsset ? 'bg-blue-50 text-blue-500' : isAccessory ? 'bg-orange-50 text-orange-500' : 'bg-purple-50 text-purple-500'}`}>{isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑'}</div>)}
                             <div>
-                              <p className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors flex items-center gap-2">
+                              <p className="font-bold text-slate-800 text-lg group-hover:text-[#1E487A] transition-colors flex items-center gap-2">
                                 {item.name}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
@@ -118,7 +124,7 @@ export default function EmployeeDetailsModal({
             <div className="space-y-5">
               <div className="flex flex-wrap gap-2 p-1.5 bg-white border border-slate-200 rounded-2xl w-fit shadow-sm">
                 {[{ id: 'all', label: 'ทั้งหมด', icon: '📋' }, { id: 'assets', label: 'ทรัพย์สินหลัก', icon: '🖥️' }, { id: 'licenses', label: 'โปรแกรม', icon: '🔑' }, { id: 'accessories', label: 'อุปกรณ์เสริม', icon: '🖱️' }].map((cat) => (
-                  <button key={cat.id} onClick={() => setHistoryFilter(cat.id)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${historyFilter === cat.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}><span>{cat.icon}</span> {cat.label}</button>
+                  <button key={cat.id} onClick={() => setHistoryFilter(cat.id)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${historyFilter === cat.id ? 'bg-[#1E487A] text-white shadow-md shadow-[#1E487A]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}><span>{cat.icon}</span> {cat.label}</button>
                 ))}
               </div>
 
@@ -147,10 +153,10 @@ export default function EmployeeDetailsModal({
                           const dateObj = new Date(record.timestamp);
                           const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
                           return (
-                            <tr key={record.id} className="hover:bg-indigo-50/30 transition-colors group">
+                            <tr key={record.id} className="hover:bg-blue-50/30 transition-colors group">
                               <td className="px-5 py-4 text-slate-500 font-medium">{formattedDate}</td>
-                              <td className="px-5 py-4 text-center"><span className={`font-bold px-3 py-1.5 rounded-lg text-xs border shadow-sm ${record.action?.includes('เบิกจ่าย') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : record.action?.includes('รับคืน') ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>{record.action || '-'}</span></td>
-                              <td className="px-5 py-4 text-slate-800 font-bold text-base group-hover:text-indigo-700 transition-colors">{record.assetName}</td>
+                              <td className="px-5 py-4 text-center"><span className={`font-bold px-3 py-1.5 rounded-lg text-xs border shadow-sm ${record.action?.includes('เบิกจ่าย') ? 'bg-blue-50 text-[#1E487A] border-blue-200' : record.action?.includes('รับคืน') ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>{record.action || '-'}</span></td>
+                              <td className="px-5 py-4 text-slate-800 font-bold text-base group-hover:text-[#1E487A] transition-colors">{record.assetName}</td>
                               <td className="px-5 py-4 text-center"><span className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 uppercase border border-slate-200 shadow-sm">{(record.category === 'assets' || record.category === 'asset') ? 'ทรัพย์สิน' : (record.category === 'licenses' || record.category === 'license') ? 'ใบอนุญาต' : 'อุปกรณ์'}</span></td>
                               <td className="px-5 py-4 text-center"><span className={`font-bold px-3 py-1.5 rounded-lg text-xs border shadow-sm ${record.condition === 'ชำรุด' ? 'bg-red-50 text-red-700 border-red-200' : record.condition === 'ปกติ' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>{record.condition || '-'}</span></td>
                               <td className="px-5 py-4 text-slate-500 max-w-[200px] truncate" title={record.remarks}>{record.remarks || '-'}</td>
@@ -168,9 +174,13 @@ export default function EmployeeDetailsModal({
         
         <div className="p-6 bg-white flex justify-end gap-3 border-t border-slate-200 rounded-b-3xl shrink-0">
            {!selectedEmployee.deletedAt && (
-             <button onClick={() => openEditEmpModal(selectedEmployee)} className="px-6 py-3 bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold transition-all shadow-sm text-sm md:text-base flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg> แก้ไขข้อมูลพนักงาน</button>
+             <button onClick={() => openEditEmpModal(selectedEmployee)} className="px-6 py-3 bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold transition-all shadow-sm text-sm md:text-base flex items-center gap-2">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg> แก้ไขข้อมูลพนักงาน
+             </button>
            )}
-           <button onClick={() => setSelectedEmployee(null)} className="px-8 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-all shadow-lg shadow-slate-800/30 text-sm md:text-base">ปิดหน้าต่าง</button>
+           <button onClick={() => setSelectedEmployee(null)} className="px-8 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-bold transition-all shadow-lg shadow-slate-800/30 text-sm md:text-base">
+             ปิดหน้าต่าง
+           </button>
         </div>
       </div>
     </div>

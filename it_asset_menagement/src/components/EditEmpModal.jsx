@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function EditEmpModal({
   editEmpModal,
   setEditEmpModal,
   handleUpdateEmployee,
-  handleEditEmpChange
+  handleEditEmpChange,
+  employees = [] // 🟢 รับข้อมูลพนักงานเข้ามาเพื่อใช้ใน Dropdown
 }) {
+  const [isManagerDropdownOpen, setIsManagerDropdownOpen] = useState(false);
+  const managerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (managerRef.current && !managerRef.current.contains(event.target)) setIsManagerDropdownOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (!editEmpModal.isOpen || !editEmpModal.data) return null;
 
   return (
@@ -68,10 +80,49 @@ export default function EditEmpModal({
               <input type="text" name="position" value={editEmpModal.data.position || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
             </div>
           </div>
-          <div>
+
+          {/* 🟢 อัปเดตช่องเลือกหัวหน้างานให้เป็นแบบค้นหารายชื่อจากระบบ */}
+          <div ref={managerRef} className="relative">
             <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-            <input type="text" name="manager" value={editEmpModal.data.manager || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+            <div className="relative">
+              <input 
+                type="text" 
+                name="manager" 
+                value={editEmpModal.data.manager || ''} 
+                onChange={handleEditEmpChange} 
+                onFocus={() => setIsManagerDropdownOpen(true)}
+                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" 
+                placeholder="ค้นหาและเลือกหัวหน้างาน..." 
+                autoComplete="off"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
+            {isManagerDropdownOpen && (
+              <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                {employees.filter(emp => emp.fullName?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase())).map(emp => (
+                  <div 
+                    key={emp.id} 
+                    className="px-4 py-2.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 flex justify-between items-center"
+                    onClick={() => {
+                      handleEditEmpChange({ target: { name: 'manager', value: emp.fullName } });
+                      setIsManagerDropdownOpen(false);
+                    }}
+                  >
+                    <div>
+                      <div className="font-bold text-slate-800">{emp.fullName}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                    </div>
+                  </div>
+                ))}
+                {employees.filter(emp => emp.fullName?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase())).length === 0 && (
+                  <div className="p-3 text-center text-xs text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                )}
+              </div>
+            )}
           </div>
+
           <div className="flex gap-3 pt-5 border-t border-slate-100 mt-auto shrink-0">
             <button type="button" onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all shadow-sm">
               ยกเลิก

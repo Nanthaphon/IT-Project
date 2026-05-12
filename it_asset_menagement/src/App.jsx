@@ -1,26 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from './firebase'; 
+import { db, auth } from './firebase.js'; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-import useFirebaseData from './hooks/useFirebaseData';
-import Sidebar from './components/Sidebar';
-import TopHeader from './components/TopHeader';
-import DashboardStats from './components/DashboardStats';
-import ActionBar from './components/ActionBar';
-import CustomAlert from './components/CustomAlert';
-import LoginView from './components/LoginView';
-import StaffView from './components/StaffView';
-import ModalsContainer from './components/ModalsContainer';
+// 🟢 เรียกใช้งานไลบรารีส่งอีเมล
+import emailjs from '@emailjs/browser';
 
-import EmployeeTable from './components/EmployeeTable'; 
-import LicenseTable from './components/LicenseTable';   
-import OfficeSupplyTable from './components/OfficeSupplyTable';
-import AssetTable from './components/AssetTable';       
-import AccessoryTable from './components/AccessoryTable'; 
-import RepairTable from './components/RepairTable';               
-import SupplyRequestTable from './components/SupplyRequestTable'; 
-import ReplacementRequestTable from './components/ReplacementRequestTable';
+import useFirebaseData from './hooks/useFirebaseData.jsx';
+import Sidebar from './components/Sidebar.jsx';
+import TopHeader from './components/TopHeader.jsx';
+import DashboardStats from './components/DashboardStats.jsx';
+import ActionBar from './components/ActionBar.jsx';
+import CustomAlert from './components/CustomAlert.jsx';
+import LoginView from './components/LoginView.jsx';
+import StaffView from './components/StaffView.jsx';
+import ModalsContainer from './components/ModalsContainer.jsx';
+
+import EmployeeTable from './components/EmployeeTable.jsx'; 
+import LicenseTable from './components/LicenseTable.jsx';   
+import OfficeSupplyTable from './components/OfficeSupplyTable.jsx';
+import AssetTable from './components/AssetTable.jsx';       
+import AccessoryTable from './components/AccessoryTable.jsx'; 
+import RepairTable from './components/RepairTable.jsx';               
+import SupplyRequestTable from './components/SupplyRequestTable.jsx'; 
+import ReplacementRequestTable from './components/ReplacementRequestTable.jsx';
 
 function App() {
   const [authRole, setAuthRole] = useState(null);
@@ -185,21 +188,73 @@ function App() {
     else { setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'รหัสพนักงาน หรือ รหัสบัตรประชาชน ไม่ถูกต้อง', type: 'error' }); }
   };
 
+  // 🟢 ฟังก์ชันส่งแจ้งซ่อม + อีเมล
   const handleSubmitRepairRequest = async (e) => {
     e.preventDefault(); if (!staffRepairForm.assetName.trim() || !staffRepairForm.issue.trim()) return;
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      setStaffRepairForm({ assetName: '', issue: '' }); setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหาของคุณแล้ว', type: 'success' });
+      
+      const managerData = employees.find(emp => emp.fullName === currentStaff.manager);
+      const managerEmail = managerData?.email || '';
+
+      if (managerEmail) {
+        try {
+          await emailjs.send(
+            'service_ri3q4ss', 'template_qzzmkqo',
+            {
+              request_type: 'แจ้งปัญหา IT / แจ้งซ่อม',
+              emp_name: currentStaff.fullName,
+              emp_id: currentStaff.empId,
+              department: currentStaff.department || '-',
+              item_name: staffRepairForm.assetName,
+              details: `อาการที่พบ/รายละเอียด: ${staffRepairForm.issue}`,
+              to_email: managerEmail 
+            },
+            'Y8fj0JAEUhLQcq9ig'
+          );
+        } catch (emailError) {
+          console.error("ส่งอีเมลแจ้งซ่อมไม่สำเร็จ:", emailError);
+        }
+      }
+
+      setStaffRepairForm({ assetName: '', issue: '' }); 
+      setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งเตือนผ่านอีเมลแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
+  // 🟢 ฟังก์ชันส่งคำขอเบิกอุปกรณ์สำนักงาน + อีเมล
   const handleStaffSubmitSupplyRequest = async (supplyId, supplyName, reqQty, note) => {
     try {
       await addDoc(collection(db, 'supply_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, supplyId: supplyId, supplyName: supplyName, requestedQty: Number(reqQty), note: note, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์สำนักงานเรียบร้อยแล้ว', type: 'success' });
+      
+      const managerData = employees.find(emp => emp.fullName === currentStaff.manager);
+      const managerEmail = managerData?.email || '';
+
+      if (managerEmail) {
+        try {
+          await emailjs.send(
+            'service_ri3q4ss', 'template_qzzmkqo',
+            {
+              request_type: 'ขอเบิกอุปกรณ์สำนักงาน',
+              emp_name: currentStaff.fullName,
+              emp_id: currentStaff.empId,
+              department: currentStaff.department || '-',
+              item_name: supplyName,
+              details: `จำนวนที่ต้องการเบิก: ${reqQty} \nเหตุผล/หมายเหตุ: ${note || '-'}`,
+              to_email: managerEmail 
+            },
+            'Y8fj0JAEUhLQcq9ig'
+          );
+        } catch (emailError) {
+          console.error("ส่งอีเมลเบิกอุปกรณ์ไม่สำเร็จ:", emailError);
+        }
+      }
+
+      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งเตือนผ่านอีเมลเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
+  // 🟢 ฟังก์ชันส่งคำขอเปลี่ยนเครื่อง + อีเมล
   const handleStaffSubmitReplacement = async (currentStatus, reason) => {
     if (!currentStaff) return;
     try {
@@ -219,7 +274,27 @@ function App() {
         createdAt: serverTimestamp()
       });
 
-      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ระบบได้ส่งคำขอเปลี่ยนเครื่องเรียบร้อยแล้ว', type: 'success' });
+      if (managerEmail) {
+        try {
+          await emailjs.send(
+            'service_ri3q4ss', 'template_qzzmkqo',
+            {
+              request_type: 'ขอเปลี่ยนเครื่องโน๊ตบุ๊ค',
+              emp_name: currentStaff.fullName,
+              emp_id: currentStaff.empId,
+              department: currentStaff.department || '-',
+              item_name: 'เปลี่ยนเครื่องโน๊ตบุ๊ค',
+              details: `สถานะปัจจุบัน: ${currentStatus} \nเหตุผลความต้องการ: ${reason}`,
+              to_email: managerEmail
+            },
+            'Y8fj0JAEUhLQcq9ig'
+          );
+        } catch (emailError) {
+          console.error("ส่งอีเมลแจ้งหัวหน้าไม่สำเร็จ:", emailError);
+        }
+      }
+
+      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ระบบได้ส่งคำขอเปลี่ยนเครื่องและแจ้งเตือนหัวหน้างานเรียบร้อยแล้ว', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
@@ -392,6 +467,7 @@ function App() {
           });
 
           const updateData = { assignees: newAssignees };
+          
           if (checkoutModal.snIndex !== undefined && item.availableSNs) {
             const newAvailableSNs = [...item.availableSNs];
             newAvailableSNs.splice(checkoutModal.snIndex, 1);

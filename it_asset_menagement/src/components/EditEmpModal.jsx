@@ -63,10 +63,6 @@ export default function EditEmpModal({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Email</label>
-            <input type="email" name="email" value={editEmpModal.data.email || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-          </div>
-          <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
             <input type="text" name="company" value={editEmpModal.data.company || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
           </div>

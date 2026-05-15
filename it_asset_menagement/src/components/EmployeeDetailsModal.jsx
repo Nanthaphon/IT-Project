@@ -131,13 +131,9 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
       ${cell('แผนก / ฝ่าย', employee.department)}
       ${cell('บริษัท', employee.company)}
     </div>
-    <!-- แถว 4: อีเมล | เบอร์โทร -->
+    <!-- แถว 4: เบอร์โทร | หัวหน้างาน -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:4px">
-      ${cell('อีเมล', employee.email)}
       ${cell('เบอร์โทรศัพท์', employee.phone)}
-    </div>
-    <!-- แถว 5: หัวหน้างาน (full width) -->
-    <div style="display:grid;grid-template-columns:1fr;gap:6px 16px;margin-bottom:4px">
       ${cell('หัวหน้างาน / ผู้บังคับบัญชา', employee.manager)}
     </div>
     ${(employee.m365Email || employee.m365Password) ? `
@@ -371,9 +367,8 @@ export default function EmployeeDetailsModal({
 
               <Section title="ข้อมูลการติดต่อ">
                 <InfoGrid>
-                  <InfoItem label="อีเมล"         value={selectedEmployee.email}   accent />
                   <InfoItem label="เบอร์โทรศัพท์" value={selectedEmployee.phone} />
-                  <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} span2 />
+                  <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} />
                 </InfoGrid>
               </Section>
 

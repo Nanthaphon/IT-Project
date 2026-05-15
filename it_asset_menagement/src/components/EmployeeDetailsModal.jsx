@@ -1,5 +1,250 @@
 import React, { useState } from 'react';
 
+/* ════════════════════════════════════════════════
+   ฟังก์ชันพิมพ์ใบส่งมอบทรัพย์สิน
+════════════════════════════════════════════════ */
+function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) {
+  const today = new Date();
+  const thDate = today.toLocaleDateString('th-TH', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+  const thYear = today.getFullYear() + 543;
+
+  const row = (cells, isHeader = false) =>
+    `<tr>${cells.map(c => isHeader
+      ? `<th style="border:1px solid #cbd5e1;padding:7px 10px;background:#f8fafc;font-weight:600;font-size:12px;text-align:center;white-space:nowrap">${c}</th>`
+      : `<td style="border:1px solid #e2e8f0;padding:7px 10px;font-size:12px;vertical-align:top">${c ?? '-'}</td>`
+    ).join('')}</tr>`;
+
+  const table = (headers, rows, emptyText) => `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:4px">
+      <thead>${row(headers, true)}</thead>
+      <tbody>
+        ${rows.length > 0
+          ? rows.join('')
+          : `<tr><td colspan="${headers.length}" style="border:1px solid #e2e8f0;padding:12px;text-align:center;color:#94a3b8;font-size:12px">${emptyText}</td></tr>`
+        }
+      </tbody>
+    </table>`;
+
+  const assetRows = empAssets.map((item, i) => row([
+    i + 1,
+    item.name || '-',
+    item.type || '-',
+    item.model || '-',
+    item.assetTag || '-',
+    item.sn || '-',
+    item.status || 'พร้อมใช้งาน',
+  ]));
+
+  const licenseRows = empLicenses.map((item, i) => row([
+    i + 1,
+    item.name || '-',
+    item.type || '-',
+    item.licenseKey || item.productKey || '-',
+    item.vendor || '-',
+    item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('th-TH') : 'ไม่มีวันหมดอายุ',
+  ]));
+
+  const accessoryRows = empAccessories.map((item, i) => row([
+    i + 1,
+    item.name || '-',
+    item.type || '-',
+    item.sn || item.serialNumber || '-',
+    item.brand || '-',
+    '1',
+  ]));
+
+  const infoField = (label, value, width = '50%') =>
+    `<div style="width:${width};padding:4px 0;display:flex;gap:8px;align-items:baseline">
+      <span style="font-size:11px;color:#64748b;white-space:nowrap;min-width:110px">${label}</span>
+      <span style="flex:1;border-bottom:1px dotted #cbd5e1;font-size:13px;font-weight:500;color:#1e293b;padding-bottom:1px">${value || '-'}</span>
+    </div>`;
+
+  const totalItems = empAssets.length + empLicenses.length + empAccessories.length;
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ใบส่งมอบทรัพย์สิน - ${employee.fullName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sarabun', 'Prompt', sans-serif;
+      font-size: 13px;
+      color: #1e293b;
+      background: #fff;
+      padding: 32px 40px;
+    }
+    @media print {
+      body { padding: 16px 24px; }
+      .no-print { display: none !important; }
+      @page { size: A4; margin: 15mm 15mm 15mm 15mm; }
+    }
+    .doc-title { font-size: 20px; font-weight: 700; text-align: center; color: #1E487A; margin-bottom: 2px; }
+    .doc-sub   { font-size: 12px; text-align: center; color: #64748b; margin-bottom: 20px; }
+    .divider   { border: none; border-top: 2px solid #1E487A; margin: 12px 0 16px; }
+    .thin-divider { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+    .section-title {
+      font-size: 13px; font-weight: 600; color: #fff;
+      background: #1E487A; padding: 6px 12px;
+      border-radius: 4px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .info-grid { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-bottom: 4px; }
+    .badge {
+      display: inline-block;
+      background: #eff6ff; color: #1E487A;
+      border: 1px solid #bfdbfe;
+      border-radius: 4px; padding: 2px 8px;
+      font-size: 11px; font-weight: 600;
+    }
+    .sig-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 24px; margin-top: 32px;
+    }
+    .sig-box {
+      border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 16px; text-align: center;
+    }
+    .sig-line {
+      border-bottom: 1px solid #94a3b8;
+      margin: 40px 16px 6px;
+    }
+    .sig-label { font-size: 11px; color: #64748b; }
+    .sig-name  { font-size: 12px; font-weight: 600; margin-top: 2px; }
+    .print-btn {
+      display: block; margin: 0 auto 20px;
+      padding: 10px 32px;
+      background: #1E487A; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .print-btn:hover { background: #133257; }
+    .doc-no { font-size: 11px; color: #94a3b8; text-align: right; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+  <button class="print-btn no-print" onclick="window.print()">🖨️ พิมพ์เอกสาร / บันทึก PDF</button>
+
+  <!-- Header -->
+  <div class="doc-no">วันที่ออกเอกสาร: ${thDate}</div>
+  <div class="doc-title">ใบส่งมอบทรัพย์สิน IT</div>
+  <div class="doc-sub">IT Asset Transfer Document &nbsp;·&nbsp; จำนวนรายการทั้งสิ้น <strong>${totalItems} รายการ</strong></div>
+  <hr class="divider" />
+
+  <!-- ข้อมูลพนักงาน -->
+  <div class="section-title">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    ข้อมูลผู้รับมอบ (พนักงาน)
+  </div>
+  <div class="info-grid">
+    ${infoField('ชื่อ-นามสกุล (TH)', employee.fullName)}
+    ${infoField('ชื่อ-นามสกุล (EN)', employee.fullNameEng)}
+    ${infoField('รหัสพนักงาน', employee.empId)}
+    ${infoField('ตำแหน่ง', employee.position)}
+    ${infoField('แผนก / ฝ่าย', employee.department)}
+    ${infoField('บริษัท', employee.company)}
+    ${infoField('อีเมล', employee.email)}
+    ${infoField('เบอร์โทรศัพท์', employee.phone)}
+    ${infoField('หัวหน้างาน', employee.manager, '100%')}
+  </div>
+
+  <hr class="thin-divider" />
+
+  <!-- ทรัพย์สินหลัก -->
+  <div class="section-title" style="background:#1E487A">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+    ทรัพย์สินหลัก (Computers / Hardware)
+    <span class="badge" style="background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.3)">${empAssets.length} รายการ</span>
+  </div>
+  ${table(
+    ['#', 'ชื่ออุปกรณ์', 'ประเภท', 'ยี่ห้อ / รุ่น', 'รหัสทรัพย์สิน', 'Serial Number', 'สถานะ'],
+    assetRows,
+    'ไม่มีทรัพย์สินหลัก'
+  )}
+
+  <div style="margin-top:16px"></div>
+
+  <!-- โปรแกรม/ใบอนุญาต -->
+  <div class="section-title">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    โปรแกรม / ใบอนุญาต (Licenses)
+    <span class="badge" style="background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.3)">${empLicenses.length} รายการ</span>
+  </div>
+  ${table(
+    ['#', 'ชื่อโปรแกรม', 'ประเภท', 'License Key', 'ผู้จัดจำหน่าย', 'วันหมดอายุ'],
+    licenseRows,
+    'ไม่มีโปรแกรม / ใบอนุญาต'
+  )}
+
+  <div style="margin-top:16px"></div>
+
+  <!-- อุปกรณ์เสริม -->
+  <div class="section-title">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+    อุปกรณ์เสริม (Accessories)
+    <span class="badge" style="background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.3)">${empAccessories.length} รายการ</span>
+  </div>
+  ${table(
+    ['#', 'ชื่ออุปกรณ์', 'ประเภท', 'Serial Number', 'ยี่ห้อ', 'จำนวน'],
+    accessoryRows,
+    'ไม่มีอุปกรณ์เสริม'
+  )}
+
+  <hr class="thin-divider" style="margin-top:20px" />
+
+  <!-- หมายเหตุ -->
+  <div style="margin-bottom:8px">
+    <div class="section-title" style="background:#475569;margin-bottom:8px">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      หมายเหตุ / เงื่อนไข
+    </div>
+    <div style="font-size:11.5px;color:#475569;line-height:1.8;padding:0 4px">
+      <div>1. ผู้รับมอบรับทราบและยืนยันว่าได้รับทรัพย์สินตามรายการข้างต้นครบถ้วนและอยู่ในสภาพสมบูรณ์</div>
+      <div>2. ผู้รับมอบต้องดูแลรักษาทรัพย์สินให้อยู่ในสภาพดี และใช้งานตามวัตถุประสงค์ที่กำหนดเท่านั้น</div>
+      <div>3. หากทรัพย์สินเกิดความเสียหายจากการใช้งานที่ไม่เหมาะสม ผู้รับมอบต้องรับผิดชอบค่าซ่อมหรือค่าทดแทน</div>
+      <div>4. เมื่อสิ้นสุดการใช้งาน ผู้รับมอบต้องส่งคืนทรัพย์สินในสภาพเรียบร้อยแก่ฝ่าย IT</div>
+    </div>
+  </div>
+
+  <!-- Signatures -->
+  <div class="sig-grid">
+    <div class="sig-box">
+      <div style="font-size:12px;font-weight:600;color:#1E487A;margin-bottom:8px">ผู้รับมอบทรัพย์สิน</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(${employee.fullName})</div>
+      <div class="sig-label">ตำแหน่ง: ${employee.position || '................................'}</div>
+      <div class="sig-label" style="margin-top:4px">วันที่: ................................</div>
+    </div>
+    <div class="sig-box">
+      <div style="font-size:12px;font-weight:600;color:#1E487A;margin-bottom:8px">เจ้าหน้าที่ IT / ผู้ส่งมอบ</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(................................)</div>
+      <div class="sig-label">ตำแหน่ง: เจ้าหน้าที่ IT</div>
+      <div class="sig-label" style="margin-top:4px">วันที่: ................................</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:10px;color:#cbd5e1;margin-top:20px">
+    เอกสารนี้ออกโดยระบบ IT Asset Management · ${thDate}
+  </div>
+
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+}
+
+/* ════════════════════════════════════════════════
+   Main Component
+════════════════════════════════════════════════ */
 export default function EmployeeDetailsModal({
   selectedEmployee, setSelectedEmployee, empModalTab, setEmpModalTab,
   assets, licenses, accessories, transactions, openEditEmpModal, handleCheckin, setReturnModal
@@ -41,6 +286,15 @@ export default function EmployeeDetailsModal({
 
   const initial = selectedEmployee.fullName?.charAt(0) || '?';
 
+  const handlePrint = () => {
+    printTransferDoc({
+      employee: selectedEmployee,
+      empAssets,
+      empLicenses,
+      empAccessories,
+    });
+  };
+
   return (
     <div
       className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
@@ -53,7 +307,6 @@ export default function EmployeeDetailsModal({
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-4">
-            {/* Avatar */}
             <div className="w-10 h-10 rounded-xl bg-[#1E487A] text-white flex items-center justify-center text-base font-bold shrink-0 select-none">
               {initial}
             </div>
@@ -127,7 +380,7 @@ export default function EmployeeDetailsModal({
 
               <Section title="ข้อมูลการติดต่อ">
                 <InfoGrid>
-                  <InfoItem label="อีเมล"       value={selectedEmployee.email}   accent />
+                  <InfoItem label="อีเมล"         value={selectedEmployee.email}   accent />
                   <InfoItem label="เบอร์โทรศัพท์" value={selectedEmployee.phone} />
                   <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} span2 />
                 </InfoGrid>
@@ -206,7 +459,6 @@ export default function EmployeeDetailsModal({
           {/* ======= TAB: ประวัติเบิก-คืน ======= */}
           {empModalTab === 'history' && (
             <div className="space-y-4">
-              {/* Filter pills */}
               <div className="flex flex-wrap gap-1.5">
                 {[
                   { id: 'all',         label: 'ทั้งหมด' },
@@ -295,24 +547,41 @@ export default function EmployeeDetailsModal({
         </div>
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-100 bg-white shrink-0">
-          {!selectedEmployee.deletedAt && (
-            <button
-              onClick={() => openEditEmpModal(selectedEmployee)}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              แก้ไขข้อมูล
-            </button>
-          )}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white shrink-0">
+
+          {/* ปุ่มพิมพ์ใบส่งมอบ */}
           <button
-            onClick={() => setSelectedEmployee(null)}
-            className="px-4 py-2 text-sm font-semibold text-white bg-[#1E487A] hover:bg-[#133257] rounded-lg transition"
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#1E487A] border border-[#1E487A]/30 bg-blue-50 hover:bg-[#1E487A] hover:text-white rounded-lg transition group"
           >
-            ปิด
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            พิมพ์ใบส่งมอบทรัพย์สิน
+            <span className="text-[10px] font-semibold bg-[#1E487A]/10 group-hover:bg-white/20 text-[#1E487A] group-hover:text-white px-1.5 py-0.5 rounded-md transition">
+              {allHeld.length} รายการ
+            </span>
           </button>
+
+          <div className="flex items-center gap-2">
+            {!selectedEmployee.deletedAt && (
+              <button
+                onClick={() => openEditEmpModal(selectedEmployee)}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                แก้ไขข้อมูล
+              </button>
+            )}
+            <button
+              onClick={() => setSelectedEmployee(null)}
+              className="px-4 py-2 text-sm font-semibold text-white bg-[#1E487A] hover:bg-[#133257] rounded-lg transition"
+            >
+              ปิด
+            </button>
+          </div>
         </div>
 
       </div>
@@ -320,25 +589,18 @@ export default function EmployeeDetailsModal({
   );
 }
 
-/* ── Tiny helper components ── */
-
+/* ── Helper components ── */
 function Section({ title, children }) {
   return (
     <div>
       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
-      <div className="border border-slate-200 rounded-xl overflow-hidden">
-        {children}
-      </div>
+      <div className="border border-slate-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
 }
 
 function InfoGrid({ children }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x-0">
-      {children}
-    </div>
-  );
+  return <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x-0">{children}</div>;
 }
 
 function InfoItem({ label, value, accent, span2 }) {

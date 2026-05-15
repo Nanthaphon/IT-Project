@@ -12,8 +12,8 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
   /* ── table helpers ── */
   const row = (cells, isHeader = false) =>
     `<tr>${cells.map(c => isHeader
-      ? `<th style="border:1px solid #cbd5e1;padding:5px 8px;background:#f8fafc;font-weight:600;font-size:11px;text-align:center;white-space:nowrap">${c}</th>`
-      : `<td style="border:1px solid #e2e8f0;padding:5px 8px;font-size:11px;vertical-align:top">${c ?? '-'}</td>`
+      ? `<th style="border:1px solid #94a3b8;padding:6px 10px;background:#e2e8f0;font-weight:700;font-size:12px;text-align:center;white-space:nowrap;color:#000">${c}</th>`
+      : `<td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;vertical-align:top;color:#000">${c ?? '-'}</td>`
     ).join('')}</tr>`;
 
   const table = (headers, rows, emptyText) => `
@@ -22,18 +22,18 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
       <tbody>
         ${rows.length > 0
           ? rows.join('')
-          : `<tr><td colspan="${headers.length}" style="border:1px solid #e2e8f0;padding:8px;text-align:center;color:#94a3b8;font-size:11px">${emptyText}</td></tr>`
+          : `<tr><td colspan="${headers.length}" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">${emptyText}</td></tr>`
         }
       </tbody>
     </table>`;
 
   /* ── section title helper ── */
   const sectionTitle = (iconPath, label, count) =>
-    `<div style="font-size:11.5px;font-weight:600;color:#fff;background:#1E487A;padding:4px 10px;
-      border-radius:3px;margin-bottom:5px;display:flex;align-items:center;gap:5px">
-      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${iconPath}</svg>
+    `<div style="font-size:13px;font-weight:700;color:#fff;background:#1E487A;padding:5px 12px;
+      border-radius:3px;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${iconPath}</svg>
       ${label}
-      <span style="margin-left:auto;background:rgba(255,255,255,0.2);border-radius:3px;padding:1px 6px;font-size:10px">${count} รายการ</span>
+      <span style="margin-left:auto;background:rgba(255,255,255,0.2);border-radius:3px;padding:1px 8px;font-size:11px">${count} รายการ</span>
     </div>`;
 
   /* ── rows ── */
@@ -53,9 +53,9 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
 
   /* ── info cell (ใช้ใน 2-col grid) ── */
   const cell = (label, value) =>
-    `<div style="padding:3px 0">
-      <div style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:1px">${label}</div>
-      <div style="font-size:12px;font-weight:500;color:#1e293b;border-bottom:1px dotted #e2e8f0;padding-bottom:2px">${value || '-'}</div>
+    `<div style="padding:4px 0">
+      <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">${label}</div>
+      <div style="font-size:13px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${value || '-'}</div>
     </div>`;
 
   const totalItems = empAssets.length + empLicenses.length + empAccessories.length;
@@ -70,7 +70,7 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
     *  { box-sizing:border-box; margin:0; padding:0; }
     body {
       font-family:'Sarabun','Prompt',sans-serif;
-      font-size:12px; color:#1e293b; background:#fff;
+      font-size:13px; color:#000; background:#fff;
       padding:20px 28px;
     }
     @media print {
@@ -92,23 +92,23 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
   <!-- ════ HEADER ════ -->
   <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
     <div>
-      <div style="font-size:17px;font-weight:700;color:#1E487A;line-height:1.2">ใบส่งมอบทรัพย์สิน IT</div>
-      <div style="font-size:10.5px;color:#64748b;margin-top:1px">IT Asset Transfer Document</div>
+      <div style="font-size:19px;font-weight:700;color:#1E487A;line-height:1.2">ใบส่งมอบทรัพย์สิน IT</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">IT Asset Transfer Document</div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:10px;color:#94a3b8">วันที่ออกเอกสาร</div>
-      <div style="font-size:11.5px;font-weight:600;color:#1e293b">${thDate}</div>
-      <div style="margin-top:2px;background:#eff6ff;color:#1E487A;border:1px solid #bfdbfe;
-        border-radius:3px;padding:1px 8px;font-size:10px;font-weight:600;display:inline-block">
+      <div style="font-size:11px;color:#000">วันที่ออกเอกสาร</div>
+      <div style="font-size:13px;font-weight:700;color:#000">${thDate}</div>
+      <div style="margin-top:3px;background:#eff6ff;color:#1E487A;border:1px solid #bfdbfe;
+        border-radius:3px;padding:2px 10px;font-size:12px;font-weight:700;display:inline-block">
         รวม ${totalItems} รายการ
       </div>
     </div>
   </div>
-  <div style="border-top:2px solid #1E487A;margin-bottom:8px"></div>
+  <div style="border-top:2px solid #1E487A;margin-bottom:10px"></div>
 
   <!-- ════ ข้อมูลพนักงาน (2 columns) ════ -->
-  <div style="font-size:11px;font-weight:600;color:#1E487A;margin-bottom:5px;
-    display:flex;align-items:center;gap:5px">
+  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:6px;
+    display:flex;align-items:center;gap:6px">
     <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
     </svg>
@@ -176,40 +176,38 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
     accessoryRows, 'ไม่มีอุปกรณ์เสริม'
   )}
 
-  <div style="border-top:1px solid #e2e8f0;margin:8px 0"></div>
+  <div style="border-top:1px solid #000;margin:10px 0"></div>
 
-  <!-- ════ เงื่อนไข + ลายเซ็น (side by side) ════ -->
-  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px;align-items:start">
-
-    <!-- เงื่อนไข -->
-    <div style="font-size:10.5px;color:#475569;line-height:1.7">
-      <div style="font-weight:600;color:#1e293b;margin-bottom:3px;font-size:11px">เงื่อนไขการรับมอบทรัพย์สิน</div>
+  <!-- ════ เงื่อนไขการรับมอบ ════ -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:6px">เงื่อนไขการรับมอบทรัพย์สิน</div>
+    <div style="font-size:13px;color:#000;line-height:1.9">
       <div>1. ผู้รับมอบยืนยันว่าได้รับทรัพย์สินครบถ้วนและอยู่ในสภาพสมบูรณ์</div>
       <div>2. ต้องดูแลรักษาทรัพย์สินและใช้งานตามวัตถุประสงค์ที่กำหนดเท่านั้น</div>
       <div>3. หากเกิดความเสียหายจากการใช้งานที่ไม่เหมาะสม ผู้รับมอบรับผิดชอบค่าทดแทน</div>
       <div>4. เมื่อสิ้นสุดการใช้งาน ต้องส่งคืนทรัพย์สินในสภาพเรียบร้อยแก่ฝ่าย IT</div>
     </div>
+  </div>
 
-    <!-- ลายเซ็น 2 คน -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div style="border:1px solid #e2e8f0;border-radius:5px;padding:8px;text-align:center">
-        <div style="font-size:10px;font-weight:600;color:#1E487A;margin-bottom:2px">ผู้รับมอบ</div>
-        <div style="border-bottom:1px solid #94a3b8;margin:24px 4px 4px"></div>
-        <div style="font-size:10px;font-weight:600">(${employee.fullName})</div>
-        <div style="font-size:9.5px;color:#64748b">${employee.position || '................'}</div>
-        <div style="font-size:9.5px;color:#64748b;margin-top:2px">วันที่ ...............</div>
-      </div>
-      <div style="border:1px solid #e2e8f0;border-radius:5px;padding:8px;text-align:center">
-        <div style="font-size:10px;font-weight:600;color:#1E487A;margin-bottom:2px">เจ้าหน้าที่ IT</div>
-        <div style="border-bottom:1px solid #94a3b8;margin:24px 4px 4px"></div>
-        <div style="font-size:10px;font-weight:600">(................................)</div>
-        <div style="font-size:9.5px;color:#64748b">เจ้าหน้าที่ IT</div>
-        <div style="font-size:9.5px;color:#64748b;margin-top:2px">วันที่ ...............</div>
-      </div>
+  <!-- ════ ลายเซ็น (ใต้กฏ) ════ -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
+    <div style="border:1px solid #000;border-radius:5px;padding:12px 16px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้รับมอบ (พนักงาน)</div>
+      <div style="border-bottom:1px solid #000;margin:36px 8px 8px"></div>
+      <div style="font-size:13px;font-weight:700;color:#000">(${employee.fullName})</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">${employee.position || '.....................................'}</div>
+      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ .....................................</div>
+    </div>
+    <div style="border:1px solid #000;border-radius:5px;padding:12px 16px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้ส่งมอบ (เจ้าหน้าที่ IT)</div>
+      <div style="border-bottom:1px solid #000;margin:36px 8px 8px"></div>
+      <div style="font-size:13px;font-weight:700;color:#000">(.....................................)</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">เจ้าหน้าที่ IT</div>
+      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ .....................................</div>
     </div>
   </div>
 
-  <div style="text-align:center;font-size:9px;color:#cbd5e1;margin-top:8px">
+  <div style="text-align:center;font-size:10px;color:#64748b;margin-top:10px">
     ออกโดยระบบ IT Asset Management · ${thDate}
   </div>
 

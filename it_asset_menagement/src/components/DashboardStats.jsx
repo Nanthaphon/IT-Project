@@ -1,207 +1,266 @@
 import React from 'react';
 
 export default function DashboardStats({ assets = [], licenses = [], accessories = [], employees = [] }) {
-  
-  // โค้ดคำนวณสถิติระบบเดิม 100% ไม่มีการแก้ไข
-  const totalAssets = assets.length;
-  const assetAvailable = assets.filter(a => !a.status || a.status === 'พร้อมใช้งาน').length;
-  const assetInUse = assets.filter(a => a.status === 'ถูกใช้งาน').length;
-  const assetBroken = assets.filter(a => a.status === 'ชำรุดเสียหาย' || a.status === 'ไม่สามารถใช้งานได้').length;
-  const assetMaintenance = assets.filter(a => a.status === 'รอดำเนินการ').length;
 
-  const accTotal = accessories.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-  const accUsed = accessories.reduce((sum, item) => sum + (item.assignees?.length || 0), 0);
-  const accBroken = accessories.reduce((sum, item) => sum + (Number(item.brokenQuantity) || 0), 0);
+  /* ── คำนวณสถิติ (ไม่แก้ logic เดิม) ── */
+  const totalAssets     = assets.length;
+  const assetAvailable  = assets.filter(a => !a.status || a.status === 'พร้อมใช้งาน').length;
+  const assetInUse      = assets.filter(a => a.status === 'ถูกใช้งาน').length;
+  const assetBroken     = assets.filter(a => a.status === 'ชำรุดเสียหาย' || a.status === 'ไม่สามารถใช้งานได้').length;
+  const assetMaintenance= assets.filter(a => a.status === 'รอดำเนินการ').length;
+
+  const accTotal  = accessories.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
+  const accUsed   = accessories.reduce((s, i) => s + (i.assignees?.length || 0), 0);
+  const accBroken = accessories.reduce((s, i) => s + (Number(i.brokenQuantity) || 0), 0);
   const accRemain = Math.max(0, accTotal - accUsed - accBroken);
 
   const totalLicenses = licenses.length;
-  const licAvailable = licenses.filter(l => !l.status || l.status === 'พร้อมใช้งาน').length;
-  const licInUse = licenses.filter(l => l.status === 'ถูกใช้งาน').length;
+  const licAvailable  = licenses.filter(l => !l.status || l.status === 'พร้อมใช้งาน').length;
+  const licInUse      = licenses.filter(l => l.status === 'ถูกใช้งาน').length;
 
-  const calcValue = (arr) => arr.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
-  const calcAccValue = (arr) => arr.reduce((sum, item) => sum + ((Number(item.cost) || 0) * (Number(item.quantity) || 0)), 0);
+  const calcValue    = (arr) => arr.reduce((s, i) => s + (Number(i.cost) || 0), 0);
+  const calcAccValue = (arr) => arr.reduce((s, i) => s + ((Number(i.cost) || 0) * (Number(i.quantity) || 0)), 0);
 
   const assetValue = calcValue(assets);
-  const licValue = calcValue(licenses);
-  const accValue = calcAccValue(accessories);
+  const licValue   = calcValue(licenses);
+  const accValue   = calcAccValue(accessories);
   const totalValue = assetValue + licValue + accValue;
 
-  const formatCurrency = (val) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(val);
-  const getPercent = (val, total) => total > 0 ? (val / total) * 100 : 0;
+  const fmt     = (v) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(v);
+  const pct     = (v, t) => t > 0 ? (v / t) * 100 : 0;
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500" style={{ fontFamily: "'Prompt', sans-serif" }}>
-      
-      {/* 🟢 การ์ดสรุปจำนวนรวม (Theme: ขาวขอบน้ำเงิน + ไอคอนพื้นหลังแบบเก่า) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-[#1E487A] relative overflow-hidden flex items-center justify-between">
-          <div className="relative z-10">
-            <p className="text-slate-500 font-bold mb-1 text-sm tracking-wide">ทรัพย์สิน IT หลัก</p>
-            <h4 className="text-4xl font-black text-[#1E487A]">{totalAssets} <span className="text-base font-medium text-slate-400">เครื่อง</span></h4>
+    <div className="space-y-5" style={{ fontFamily: "'Prompt', sans-serif" }}>
+
+      {/* ── Row 1: KPI cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard
+          label="ทรัพย์สินหลัก"
+          value={totalAssets}
+          unit="รายการ"
+          sub={`ใช้งาน ${assetInUse} · ว่าง ${assetAvailable}`}
+          icon={<IconMonitor />}
+          accent="#1E487A"
+        />
+        <KpiCard
+          label="License / โปรแกรม"
+          value={totalLicenses}
+          unit="รายการ"
+          sub={`ใช้งาน ${licInUse} · ว่าง ${licAvailable}`}
+          icon={<IconDoc />}
+          accent="#1E487A"
+        />
+        <KpiCard
+          label="อุปกรณ์เสริม"
+          value={accTotal}
+          unit="ชิ้น"
+          sub={`คงเหลือ ${accRemain} · ใช้ ${accUsed}`}
+          icon={<IconDevice />}
+          accent="#1E487A"
+        />
+        <KpiCard
+          label="พนักงานในระบบ"
+          value={employees.length}
+          unit="คน"
+          sub="ข้อมูลพนักงานทั้งหมด"
+          icon={<IconUsers />}
+          accent="#1E487A"
+        />
+      </div>
+
+      {/* ── Row 2: Status charts ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {/* ทรัพย์สินหลัก */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-700">สถานะทรัพย์สินหลัก</p>
+            <span className="text-xs text-slate-400">{totalAssets} รายการ</span>
           </div>
-          <div className="text-7xl opacity-[0.08] absolute -right-4 -bottom-4 transform rotate-12 select-none pointer-events-none">🖥️</div>
+
+          {/* Stacked bar */}
+          <div className="w-full h-2 rounded-full bg-slate-100 flex overflow-hidden mb-4">
+            <div style={{ width: `${pct(assetAvailable, totalAssets)}%` }}   className="bg-emerald-500 transition-all" />
+            <div style={{ width: `${pct(assetInUse, totalAssets)}%` }}        className="bg-[#1E487A] transition-all" />
+            <div style={{ width: `${pct(assetMaintenance, totalAssets)}%` }}  className="bg-amber-400 transition-all" />
+            <div style={{ width: `${pct(assetBroken, totalAssets)}%` }}       className="bg-red-400 transition-all" />
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'พร้อมใช้',   value: assetAvailable,   dot: 'bg-emerald-500' },
+              { label: 'ถูกใช้งาน', value: assetInUse,        dot: 'bg-[#1E487A]'  },
+              { label: 'รอจัดการ',  value: assetMaintenance,  dot: 'bg-amber-400'  },
+              { label: 'ชำรุด',     value: assetBroken,       dot: 'bg-red-400'    },
+            ].map(s => (
+              <div key={s.label} className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                  <span className="text-[10px] text-slate-400 font-medium">{s.label}</span>
+                </div>
+                <p className="text-base font-bold text-slate-800">{s.value}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-[#1E487A] relative overflow-hidden flex items-center justify-between">
-          <div className="relative z-10">
-            <p className="text-slate-500 font-bold mb-1 text-sm tracking-wide">โปรแกรม / ใบอนุญาต</p>
-            <h4 className="text-4xl font-black text-[#1E487A]">{totalLicenses} <span className="text-base font-medium text-slate-400">รายการ</span></h4>
+        {/* อุปกรณ์เสริม */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-700">สถานะอุปกรณ์เสริม</p>
+            <span className="text-xs text-slate-400">{accTotal} ชิ้น</span>
           </div>
-          <div className="text-7xl opacity-[0.08] absolute -right-4 -bottom-4 transform -rotate-12 select-none pointer-events-none">🔑</div>
-        </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-[#1E487A] relative overflow-hidden flex items-center justify-between">
-          <div className="relative z-10">
-            <p className="text-slate-500 font-bold mb-1 text-sm tracking-wide">อุปกรณ์เสริมทั้งหมด</p>
-            <h4 className="text-4xl font-black text-[#1E487A]">{accTotal} <span className="text-base font-medium text-slate-400">ชิ้น</span></h4>
-          </div>
-          <div className="text-7xl opacity-[0.08] absolute -right-4 -bottom-4 transform rotate-12 select-none pointer-events-none">🖱️</div>
-        </div>
+          <div className="flex items-center gap-5">
+            {/* Donut */}
+            <div className="relative shrink-0 w-20 h-20">
+              <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                {accTotal > 0 && <>
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#10b981" strokeWidth="4"
+                    strokeDasharray={`${pct(accRemain, accTotal) * 0.879} 87.9`} strokeLinecap="round" />
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#1E487A" strokeWidth="4"
+                    strokeDasharray={`${pct(accUsed, accTotal) * 0.879} 87.9`}
+                    strokeDashoffset={`-${pct(accRemain, accTotal) * 0.879}`} strokeLinecap="round" />
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="#f87171" strokeWidth="4"
+                    strokeDasharray={`${pct(accBroken, accTotal) * 0.879} 87.9`}
+                    strokeDashoffset={`-${(pct(accRemain, accTotal) + pct(accUsed, accTotal)) * 0.879}`} strokeLinecap="round" />
+                </>}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-sm font-bold text-slate-800">{accTotal}</span>
+                <span className="text-[9px] text-slate-400">ทั้งหมด</span>
+              </div>
+            </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-[#1E487A] relative overflow-hidden flex items-center justify-between">
-          <div className="relative z-10">
-            <p className="text-slate-500 font-bold mb-1 text-sm tracking-wide">พนักงานในระบบ</p>
-            <h4 className="text-4xl font-black text-[#1E487A]">{employees.length} <span className="text-base font-medium text-slate-400">คน</span></h4>
+            {/* Legend */}
+            <div className="flex-1 space-y-2.5">
+              {[
+                { label: 'คงเหลือ (คลัง)', value: accRemain, dot: 'bg-emerald-500' },
+                { label: 'ถูกใช้งาน',       value: accUsed,   dot: 'bg-[#1E487A]'  },
+                { label: 'ชำรุด / เสีย',    value: accBroken, dot: 'bg-red-400'    },
+              ].map(s => (
+                <div key={s.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
+                    <span className="text-xs text-slate-500">{s.label}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-slate-800">{s.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="text-7xl opacity-[0.08] absolute -right-4 -bottom-4 transform -rotate-12 select-none pointer-events-none">👥</div>
         </div>
       </div>
 
-      {/* 🟢 สัดส่วนสถานะการใช้งาน */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* สัดส่วนทรัพย์สินหลัก */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full">
-          <h3 className="text-lg font-bold text-[#1E487A] mb-6 flex items-center gap-2">
-            <span className="p-2 bg-slate-100 rounded-lg">📊</span> สัดส่วนสถานะ: ทรัพย์สินหลัก
-          </h3>
-          
-          <div className="w-full h-3 rounded-full bg-slate-100 flex overflow-hidden mb-8">
-             <div style={{ width: `${getPercent(assetAvailable, totalAssets)}%` }} className="bg-emerald-500 hover:opacity-90 transition-all cursor-pointer"></div>
-             <div style={{ width: `${getPercent(assetInUse, totalAssets)}%` }} className="bg-amber-500 hover:opacity-90 transition-all cursor-pointer"></div>
-             <div style={{ width: `${getPercent(assetMaintenance, totalAssets)}%` }} className="bg-orange-500 hover:opacity-90 transition-all cursor-pointer"></div>
-             <div style={{ width: `${getPercent(assetBroken, totalAssets)}%` }} className="bg-red-500 hover:opacity-90 transition-all cursor-pointer"></div>
-          </div>
+      {/* ── Row 3: Value summary + License ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-auto">
-             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
-               <div className="text-[10px] text-slate-500 font-bold mb-1 flex items-center justify-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> พร้อมใช้</div>
-               <div className="text-xl font-black text-slate-800">{assetAvailable}</div>
-             </div>
-             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
-               <div className="text-[10px] text-slate-500 font-bold mb-1 flex items-center justify-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> ถูกใช้งาน</div>
-               <div className="text-xl font-black text-slate-800">{assetInUse}</div>
-             </div>
-             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
-               <div className="text-[10px] text-slate-500 font-bold mb-1 flex items-center justify-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500"></span> รอจัดการ</div>
-               <div className="text-xl font-black text-slate-800">{assetMaintenance}</div>
-             </div>
-             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
-               <div className="text-[10px] text-slate-500 font-bold mb-1 flex items-center justify-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> ชำรุด</div>
-               <div className="text-xl font-black text-slate-800">{assetBroken}</div>
-             </div>
+        {/* มูลค่ารวม */}
+        <div className="lg:col-span-2 bg-[#1E487A] rounded-xl p-6 text-white">
+          <p className="text-xs font-semibold text-blue-200 uppercase tracking-wider mb-1">มูลค่าทรัพย์สินรวม</p>
+          <p className="text-3xl font-bold text-white mb-5">{fmt(totalValue)}</p>
+
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
+            {[
+              { label: 'ทรัพย์สินหลัก', value: fmt(assetValue) },
+              { label: 'License',        value: fmt(licValue)   },
+              { label: 'อุปกรณ์เสริม',  value: fmt(accValue)   },
+            ].map(item => (
+              <div key={item.label}>
+                <p className="text-[10px] text-blue-200 font-medium mb-0.5">{item.label}</p>
+                <p className="text-sm font-semibold text-white">{item.value}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* สัดส่วนอุปกรณ์เสริม */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full">
-          <h3 className="text-lg font-bold text-[#1E487A] mb-6 flex items-center gap-2">
-            <span className="p-2 bg-slate-100 rounded-lg">📦</span> สัดส่วนสถานะ: อุปกรณ์เสริม
-          </h3>
-          
-          <div className="flex flex-col sm:flex-row items-center gap-6 mt-auto mb-auto">
-            <div className="relative w-32 h-32 rounded-full flex items-center justify-center border-8 border-slate-50 shrink-0" 
-                 style={{ background: `conic-gradient(#10b981 0% ${getPercent(accRemain, accTotal)}%, #f59e0b ${getPercent(accRemain, accTotal)}% ${getPercent(accRemain, accTotal) + getPercent(accUsed, accTotal)}%, #ef4444 ${getPercent(accRemain, accTotal) + getPercent(accUsed, accTotal)}% 100%)` }}>
-               <div className="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center shadow-sm">
-                 <span className="text-xl font-black text-slate-800">{accTotal}</span>
-                 <span className="text-[9px] font-bold text-slate-400 uppercase">ทั้งหมด</span>
-               </div>
-            </div>
+        {/* License allocation */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-700 mb-1">การจัดสรร License</p>
+            <p className="text-3xl font-bold text-slate-800 mb-1">
+              {totalLicenses} <span className="text-sm font-medium text-slate-400">รายการ</span>
+            </p>
+          </div>
 
-            <div className="flex-1 w-full space-y-3">
-              <div className="flex justify-between items-center bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
-                <span className="text-sm font-bold text-slate-600 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> คงเหลือ (คลัง)</span>
-                <span className="font-black text-slate-800 text-base">{accRemain}</span>
+          {/* progress bar */}
+          <div className="mt-4">
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden mb-3">
+              <div
+                className="h-full bg-[#1E487A] rounded-full transition-all"
+                style={{ width: `${pct(licInUse, totalLicenses)}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] text-slate-400 font-medium">ว่าง</span>
+                </div>
+                <p className="text-lg font-bold text-slate-800">{licAvailable}</p>
               </div>
-              <div className="flex justify-between items-center bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
-                <span className="text-sm font-bold text-slate-600 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500"></span> ใช้งานไป</span>
-                <span className="font-black text-slate-800 text-base">{accUsed}</span>
-              </div>
-              <div className="flex justify-between items-center bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
-                <span className="text-sm font-bold text-slate-600 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500"></span> ชำรุด / เสีย</span>
-                <span className="font-black text-slate-800 text-base">{accBroken}</span>
+              <div className="bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1E487A]" />
+                  <span className="text-[10px] text-slate-400 font-medium">ถูกใช้</span>
+                </div>
+                <p className="text-lg font-bold text-slate-800">{licInUse}</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* 🟢 สรุปมูลค่าและการจัดสรร */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* มูลค่าทรัพย์สิน (ไฮไลต์สีน้ำเงินเข้มตามโลโก้) */}
-        <div className="lg:col-span-2 bg-[#1E487A] p-6 md:p-8 rounded-2xl shadow-lg text-white relative overflow-hidden flex flex-col justify-center">
-          <div className="relative z-10">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <span>💎</span> สรุปมูลค่าทรัพย์สินรวมในระบบ
-            </h3>
-            
-            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 border-b border-white/20 pb-8 mb-6">
-              <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">มูลค่ารวมทั้งหมด (Total Value)</p>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white">
-                  {formatCurrency(totalValue)}
-                </h2>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-bold text-blue-200 bg-white/10 px-4 py-2 rounded-lg w-fit sm:ml-auto">คำนวณจากรายการที่มีการระบุราคา</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <p className="text-xs text-blue-200 font-bold mb-1">💻 ทรัพย์สินหลัก</p>
-                <p className="text-xl font-bold text-white">{formatCurrency(assetValue)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-blue-200 font-bold mb-1">🔑 ใบอนุญาต</p>
-                <p className="text-xl font-bold text-white">{formatCurrency(licValue)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-blue-200 font-bold mb-1">🖱️ อุปกรณ์เสริม</p>
-                <p className="text-xl font-bold text-white">{formatCurrency(accValue)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* License Allocation */}
-        <div className="lg:col-span-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-          <h3 className="text-lg font-bold text-[#1E487A] mb-6 flex items-center gap-2">
-            <span className="p-2 bg-slate-100 rounded-lg">🔑</span> การจัดสรรใบอนุญาต
-          </h3>
-          <div className="flex-1 flex flex-col justify-center gap-4">
-            <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex justify-between items-center">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">ทั้งหมด</p>
-                <p className="text-2xl font-black text-slate-800">{totalLicenses} <span className="text-sm font-medium text-slate-400">รายการ</span></p>
-              </div>
-              <div className="text-2xl opacity-30">📑</div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white border border-slate-200 shadow-sm p-4 rounded-xl">
-                <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1 mb-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ว่าง</p>
-                <p className="text-2xl font-black text-slate-800">{licAvailable}</p>
-              </div>
-              <div className="bg-white border border-slate-200 shadow-sm p-4 rounded-xl">
-                <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1 mb-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ถูกใช้งาน</p>
-                <p className="text-2xl font-black text-slate-800">{licInUse}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
+  );
+}
+
+/* ── KPI Card ── */
+function KpiCard({ label, value, unit, sub, icon, accent }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-slate-500">{label}</p>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-100 text-slate-400">
+          {icon}
+        </div>
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-slate-900">
+          {value} <span className="text-sm font-medium text-slate-400">{unit}</span>
+        </p>
+        <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Micro SVG Icons ── */
+function IconMonitor() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+}
+function IconDoc() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+}
+function IconDevice() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+    </svg>
+  );
+}
+function IconUsers() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
   );
 }

@@ -75,8 +75,9 @@ function App() {
   const [assetDocument, setAssetDocument] = useState(null);
 
   const [empForm, setEmpForm] = useState({
-    fullName: '', fullNameEng: '', empId: '', nationalId: '', department: '', email: '', 
-    company: '', position: '', nickname: '', manager: '', phone: ''
+    fullName: '', fullNameEng: '', empId: '', nationalId: '', department: '', email: '',
+    company: '', position: '', nickname: '', manager: '', phone: '',
+    m365Email: '', m365Password: ''
   });
   const [licenseForm, setLicenseForm] = useState({
     name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1
@@ -357,7 +358,7 @@ function App() {
     if (isDuplicate) return setCustomAlert({ isOpen: true, title: 'ข้อมูลซ้ำซ้อน!', message: `รหัสพนักงาน หรือ ชื่อ-นามสกุล นี้มีอยู่ในระบบแล้ว`, type: 'error' });
     try {
       await addDoc(collection(db, 'employees'), { ...empForm, createdAt: serverTimestamp() });
-      setEmpForm({ fullName: '', fullNameEng: '', empId: '', nationalId: '', department: '', email: '', company: '', position: '', nickname: '', manager: '', phone: '' }); 
+      setEmpForm({ fullName: '', fullNameEng: '', empId: '', nationalId: '', department: '', email: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '' });
       setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };

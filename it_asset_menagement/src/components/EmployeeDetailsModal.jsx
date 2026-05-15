@@ -137,9 +137,23 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
       ${cell('เบอร์โทรศัพท์', employee.phone)}
     </div>
     <!-- แถว 5: หัวหน้างาน (full width) -->
-    <div style="display:grid;grid-template-columns:1fr;gap:6px 16px">
+    <div style="display:grid;grid-template-columns:1fr;gap:6px 16px;margin-bottom:4px">
       ${cell('หัวหน้างาน / ผู้บังคับบัญชา', employee.manager)}
     </div>
+    ${(employee.m365Email || employee.m365Password) ? `
+    <!-- แถว 6: Microsoft 365 -->
+    <div style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:6px">
+      <div style="font-size:11px;font-weight:700;color:#1E487A;margin-bottom:5px;display:flex;align-items:center;gap:4px">
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+        </svg>
+        บัญชี Microsoft 365
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px">
+        ${cell('อีเมล Microsoft 365', employee.m365Email || '-')}
+        ${cell('รหัสผ่าน Microsoft 365', employee.m365Password || '-')}
+      </div>
+    </div>` : ''}
   </div>
 
   <!-- ════ ทรัพย์สินหลัก ════ -->
@@ -362,6 +376,15 @@ export default function EmployeeDetailsModal({
                   <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} span2 />
                 </InfoGrid>
               </Section>
+
+              {(selectedEmployee.m365Email || selectedEmployee.m365Password) && (
+                <Section title="บัญชี Microsoft 365">
+                  <InfoGrid>
+                    <InfoItem label="อีเมล Microsoft 365"    value={selectedEmployee.m365Email}    accent />
+                    <InfoItem label="รหัสผ่าน Microsoft 365" value={selectedEmployee.m365Password} mono />
+                  </InfoGrid>
+                </Section>
+              )}
             </div>
           )}
 
@@ -580,11 +603,11 @@ function InfoGrid({ children }) {
   return <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x-0">{children}</div>;
 }
 
-function InfoItem({ label, value, accent, span2 }) {
+function InfoItem({ label, value, accent, span2, mono }) {
   return (
     <div className={`flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0 ${span2 ? 'sm:col-span-2' : ''}`}>
       <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
-      <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'}`}>
+      <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
     </div>

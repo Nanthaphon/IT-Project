@@ -123,6 +123,24 @@ export default function EditEmpModal({
             )}
           </div>
 
+          {/* ── Microsoft 365 ── */}
+          <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-[#1E487A] flex items-center gap-1.5">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+              บัญชี Microsoft 365
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">อีเมล Microsoft 365</label>
+                <input type="email" name="m365Email" value={editEmpModal.data.m365Email || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm bg-white" placeholder="user@domain.com" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสผ่าน Microsoft 365</label>
+                <input type="text" name="m365Password" value={editEmpModal.data.m365Password || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm bg-white font-mono" placeholder="รหัสผ่าน" />
+              </div>
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-5 border-t border-slate-100 mt-auto shrink-0">
             <button type="button" onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all shadow-sm">
               ยกเลิก

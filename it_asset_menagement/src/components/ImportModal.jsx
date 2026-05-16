@@ -14,7 +14,7 @@ export default function ImportModal({
                 activeMenu === 'licenses' ? 'โปรแกรม/License' : 'พนักงาน';
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all flex flex-col border border-slate-100">
         <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center">
           <h3 className="font-bold text-lg flex items-center gap-2">

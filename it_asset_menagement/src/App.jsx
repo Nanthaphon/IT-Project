@@ -3,8 +3,52 @@ import { db, auth } from './firebase.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-// 🟢 เรียกใช้งานไลบรารีส่งอีเมล
-import emailjs from '@emailjs/browser';
+// Microsoft Teams Webhook URL
+const TEAMS_WEBHOOK_URL = 'https://defaultc172e49cae364c49b87c48a1df2152.f5.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cb2a94ff6c124f83bdf128c177a463e1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6tyj3Sp8-d7trIMuxPo6uMwg9th3a1I6mauD3x9xxBo';
+
+async function sendTeamsNotification({ title, color, facts }) {
+  const card = {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      content: {
+        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard',
+        version: '1.4',
+        body: [
+          {
+            type: 'Container',
+            style: 'emphasis',
+            items: [{
+              type: 'TextBlock',
+              text: title,
+              weight: 'Bolder',
+              size: 'Medium',
+              color: color || 'Accent',
+              wrap: true
+            }]
+          },
+          {
+            type: 'FactSet',
+            facts: facts.map(f => ({ title: f.label, value: f.value }))
+          },
+          {
+            type: 'TextBlock',
+            text: `🕐 ${new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}`,
+            size: 'Small',
+            isSubtle: true,
+            spacing: 'Small'
+          }
+        ]
+      }
+    }]
+  };
+  await fetch('https://itassetmenagement.vercel.app/api/notify-teams', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(card)
+  });
+}
 
 import useFirebaseData from './hooks/useFirebaseData.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -195,31 +239,24 @@ function App() {
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
       
-      const managerData = employees.find(emp => emp.fullName === currentStaff.manager);
-      const managerEmail = managerData?.email || '';
-
-      if (managerEmail) {
-        try {
-          await emailjs.send(
-            'service_ri3q4ss', 'template_qzzmkqo',
-            {
-              request_type: 'แจ้งปัญหา IT / แจ้งซ่อม',
-              emp_name: currentStaff.fullName,
-              emp_id: currentStaff.empId,
-              department: currentStaff.department || '-',
-              item_name: staffRepairForm.assetName,
-              details: `อาการที่พบ/รายละเอียด: ${staffRepairForm.issue}`,
-              to_email: managerEmail 
-            },
-            'Y8fj0JAEUhLQcq9ig'
-          );
-        } catch (emailError) {
-          console.error("ส่งอีเมลแจ้งซ่อมไม่สำเร็จ:", emailError);
-        }
+      try {
+        await sendTeamsNotification({
+          title: '🔧 แจ้งปัญหา IT / แจ้งซ่อม',
+          color: 'Accent',
+          facts: [
+            { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
+            { label: 'แผนก', value: currentStaff.department || '-' },
+            { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
+            { label: 'อุปกรณ์ / ปัญหา', value: staffRepairForm.assetName },
+            { label: 'อาการที่พบ', value: staffRepairForm.issue },
+          ]
+        });
+      } catch (teamsError) {
+        console.error('แจ้งเตือน Teams ไม่สำเร็จ:', teamsError);
       }
 
-      setStaffRepairForm({ assetName: '', issue: '' }); 
-      setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งเตือนผ่านอีเมลแล้ว', type: 'success' });
+      setStaffRepairForm({ assetName: '', issue: '' });
+      setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งเตือนผ่าน Microsoft Teams แล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
@@ -228,46 +265,36 @@ function App() {
     try {
       await addDoc(collection(db, 'supply_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, supplyId: supplyId, supplyName: supplyName, requestedQty: Number(reqQty), note: note, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
       
-      const managerData = employees.find(emp => emp.fullName === currentStaff.manager);
-      const managerEmail = managerData?.email || '';
-
-      if (managerEmail) {
-        try {
-          await emailjs.send(
-            'service_ri3q4ss', 'template_qzzmkqo',
-            {
-              request_type: 'ขอเบิกอุปกรณ์สำนักงาน',
-              emp_name: currentStaff.fullName,
-              emp_id: currentStaff.empId,
-              department: currentStaff.department || '-',
-              item_name: supplyName,
-              details: `จำนวนที่ต้องการเบิก: ${reqQty} \nเหตุผล/หมายเหตุ: ${note || '-'}`,
-              to_email: managerEmail 
-            },
-            'Y8fj0JAEUhLQcq9ig'
-          );
-        } catch (emailError) {
-          console.error("ส่งอีเมลเบิกอุปกรณ์ไม่สำเร็จ:", emailError);
-        }
+      try {
+        await sendTeamsNotification({
+          title: '📦 คำขอเบิกอุปกรณ์สำนักงาน',
+          color: 'Good',
+          facts: [
+            { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
+            { label: 'แผนก', value: currentStaff.department || '-' },
+            { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
+            { label: 'อุปกรณ์ที่ขอเบิก', value: supplyName },
+            { label: 'จำนวน', value: `${reqQty} ชิ้น` },
+            { label: 'หมายเหตุ', value: note || '-' },
+          ]
+        });
+      } catch (teamsError) {
+        console.error('แจ้งเตือน Teams ไม่สำเร็จ:', teamsError);
       }
 
-      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งเตือนผ่านอีเมลเรียบร้อยแล้ว', type: 'success' });
+      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งเตือนผ่าน Microsoft Teams เรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
-  // 🟢 ฟังก์ชันส่งคำขอเปลี่ยนเครื่อง + อีเมล
+  // ฟังก์ชันบันทึกคำขอเปลี่ยนเครื่อง (ไม่ส่งอีเมล — พิมพ์ฟอร์มแทน)
   const handleStaffSubmitReplacement = async (currentStatus, reason) => {
     if (!currentStaff) return;
     try {
-      const managerData = employees.find(e => e.fullName === currentStaff.manager);
-      const managerEmail = managerData?.email || '';
-      
       await addDoc(collection(db, 'replacement_requests'), {
         empId: currentStaff.empId,
         empName: currentStaff.fullName,
         department: currentStaff.department,
         managerName: currentStaff.manager || '-',
-        managerEmail: managerEmail,
         currentStatus: currentStatus,
         reason: reason,
         status: 'รอดำเนินการ',
@@ -275,27 +302,7 @@ function App() {
         createdAt: serverTimestamp()
       });
 
-      if (managerEmail) {
-        try {
-          await emailjs.send(
-            'service_ri3q4ss', 'template_qzzmkqo',
-            {
-              request_type: 'ขอเปลี่ยนเครื่องโน๊ตบุ๊ค',
-              emp_name: currentStaff.fullName,
-              emp_id: currentStaff.empId,
-              department: currentStaff.department || '-',
-              item_name: 'เปลี่ยนเครื่องโน๊ตบุ๊ค',
-              details: `สถานะปัจจุบัน: ${currentStatus} \nเหตุผลความต้องการ: ${reason}`,
-              to_email: managerEmail
-            },
-            'Y8fj0JAEUhLQcq9ig'
-          );
-        } catch (emailError) {
-          console.error("ส่งอีเมลแจ้งหัวหน้าไม่สำเร็จ:", emailError);
-        }
-      }
-
-      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ระบบได้ส่งคำขอเปลี่ยนเครื่องและแจ้งเตือนหัวหน้างานเรียบร้อยแล้ว', type: 'success' });
+      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่องเรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
@@ -646,7 +653,7 @@ function App() {
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#f4f7fe] text-slate-900 font-sans transition-colors duration-300" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="flex flex-col md:flex-row h-screen bg-[#f4f7fe] text-slate-900 font-sans transition-colors duration-300">
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} authRole={authRole} />
       

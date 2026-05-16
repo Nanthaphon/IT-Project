@@ -53,7 +53,6 @@ export default function ActionBar({
   return (
     <div
       className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-slate-200 shrink-0"
-      style={{ fontFamily: "'Prompt', sans-serif" }}
     >
       {/* Title */}
       <p className="text-sm font-semibold text-slate-700 whitespace-nowrap">รายการ{menuTitle}</p>

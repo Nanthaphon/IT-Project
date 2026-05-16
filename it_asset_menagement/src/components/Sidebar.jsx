@@ -39,17 +39,17 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
 
   return (
     <aside
-      className="w-full md:w-60 bg-white flex flex-col flex-shrink-0 border-r border-slate-200 h-screen"
-      style={{ fontFamily: "'Prompt', sans-serif" }}
+      className="w-full md:w-60 flex flex-col flex-shrink-0 h-screen"
+      style={{ background: 'linear-gradient(180deg, #1E487A 0%, #133257 100%)' }}
     >
       {/* Logo */}
-      <div className="h-14 px-5 flex items-center gap-3 border-b border-slate-100 shrink-0">
-        <div className="w-7 h-7 bg-[#1E487A] text-white rounded-lg flex items-center justify-center font-serif italic text-base shadow-sm select-none">
+      <div className="h-14 px-5 flex items-center gap-3 border-b border-white/10 shrink-0">
+        <div className="w-8 h-8 bg-white/15 border border-white/20 text-white rounded-xl flex items-center justify-center font-serif italic text-base shadow-sm select-none">
           G
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-slate-800">IT Admin</p>
-          <p className="text-[10px] text-slate-400 tracking-wide">Asset Management</p>
+          <p className="text-sm font-semibold text-white">IT Admin</p>
+          <p className="text-[10px] text-blue-200/70 tracking-wide">Asset Management</p>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {groups.map((group) => (
           <div key={group.group}>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-2 mb-1.5">
+            <p className="text-[10px] font-semibold text-blue-200/50 uppercase tracking-widest px-2 mb-1.5">
               {group.group}
             </p>
             <div className="space-y-0.5">
@@ -69,12 +69,12 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
                     onClick={() => setActiveMenu(id)}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
                       active
-                        ? 'bg-[#1E487A] text-white font-semibold'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 font-medium'
+                        ? 'bg-white text-[#1E487A] font-semibold shadow-md'
+                        : 'text-blue-100/80 hover:bg-white/10 hover:text-white font-medium'
                     }`}
                   >
                     <Icon
-                      className={`h-4 w-4 shrink-0 ${active ? 'text-white' : 'text-slate-400'}`}
+                      className={`h-4 w-4 shrink-0 ${active ? 'text-[#1E487A]' : 'text-blue-200/70'}`}
                     />
                     <span className="truncate">{label}</span>
                   </button>
@@ -86,23 +86,23 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
 
         {/* เปลี่ยนรหัสผ่าน */}
         <div>
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-2 mb-1.5">
+          <p className="text-[10px] font-semibold text-blue-200/50 uppercase tracking-widest px-2 mb-1.5">
             บัญชี
           </p>
           <button
             onClick={onResetPassword}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-blue-100/80 hover:bg-white/10 hover:text-white transition-all"
           >
-            <IconLock className="h-4 w-4 shrink-0 text-slate-400" />
+            <IconLock className="h-4 w-4 shrink-0 text-blue-200/70" />
             <span>เปลี่ยนรหัสผ่าน</span>
           </button>
         </div>
       </nav>
 
       {/* Status footer */}
-      <div className="hidden md:flex items-center gap-2 px-5 py-3 border-t border-slate-100 shrink-0">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span className="text-xs text-slate-400 font-medium">ระบบออนไลน์</span>
+      <div className="hidden md:flex items-center gap-2 px-5 py-3 border-t border-white/10 shrink-0">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+        <span className="text-xs text-blue-200/60 font-medium">ระบบออนไลน์</span>
       </div>
     </aside>
   );

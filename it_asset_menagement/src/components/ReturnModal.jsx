@@ -7,7 +7,7 @@ export default function ReturnModal({
   if (!returnModal.isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80] transition-opacity">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all border border-slate-100 flex flex-col max-h-[90vh]">
         <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
           <h3 className="font-bold text-lg flex items-center gap-2"><span className="bg-white/20 p-1.5 rounded-lg text-sm">📥</span> ยืนยันการรับคืนอุปกรณ์</h3>

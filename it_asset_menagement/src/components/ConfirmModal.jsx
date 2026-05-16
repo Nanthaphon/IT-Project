@@ -4,7 +4,7 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, canc
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[90] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[90] transition-opacity">
       <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all border border-slate-100 text-center p-8">
         <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-50 text-amber-500 mb-6 shadow-inner border border-amber-100">
           <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">

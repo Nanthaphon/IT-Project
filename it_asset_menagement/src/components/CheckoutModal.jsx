@@ -25,7 +25,7 @@ export default function CheckoutModal({
   });
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
       <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full min-h-[500px] flex flex-col overflow-hidden transform transition-all border border-slate-100">
         <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
           <h3 className="font-bold text-xl flex items-center gap-2"><span className="bg-white/20 p-1.5 rounded-lg">📤</span> ระบุพนักงานที่เบิกจ่าย</h3>

@@ -285,7 +285,6 @@ export default function EmployeeDetailsModal({
   return (
     <div
       className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
-      style={{ fontFamily: "'Prompt', sans-serif" }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
 

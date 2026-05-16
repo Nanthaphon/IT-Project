@@ -30,7 +30,7 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
   const pct     = (v, t) => t > 0 ? (v / t) * 100 : 0;
 
   return (
-    <div className="space-y-5" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="space-y-5">
 
       {/* ── Row 1: KPI cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -944,58 +944,49 @@ export default function AssetDetailsModal({
                        <p className="font-bold text-slate-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {purchaseHistory.map((hist, index) => (
-                        <div key={hist.id} className={`bg-white border rounded-2xl p-5 md:p-6 transition-all relative ${index === 0 ? 'border-[#1E487A] shadow-md ring-1 ring-[#1E487A]/10' : 'border-slate-200 shadow-sm hover:shadow-md'}`}>
-                          
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                              <span className="text-lg">📅</span> {hist.purchaseDate ? new Date(hist.purchaseDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'ไม่ได้ระบุวันที่'}
+                        <div key={hist.id} className={`bg-white border rounded-xl px-4 py-3 transition-all ${index === 0 ? 'border-[#1E487A]/40 ring-1 ring-[#1E487A]/10' : 'border-slate-200 hover:border-slate-300'}`}>
+                          <div className="flex items-center justify-between gap-3">
+                            {/* Left: date + badge */}
+                            <div className="flex items-center gap-2 min-w-0">
+                              {index === 0 && (
+                                <span className="bg-blue-50 text-[#1E487A] px-2 py-0.5 rounded text-[9px] font-black tracking-widest border border-blue-100 shrink-0">ล่าสุด</span>
+                              )}
+                              <span className="text-xs text-slate-400 font-medium shrink-0">
+                                {hist.purchaseDate ? new Date(hist.purchaseDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : 'ไม่ระบุวันที่'}
+                              </span>
                             </div>
-                            {index === 0 && (
-                              <span className="bg-blue-50 text-[#1E487A] px-3 py-1 rounded-full text-[10px] font-black tracking-widest border border-blue-100">ล่าสุด</span>
-                            )}
-                          </div>
-                          
-                          <div className="mb-4">
-                            <div className="text-2xl md:text-3xl font-black text-[#1E487A]">
+                            {/* Center: price */}
+                            <div className="text-base font-black text-[#1E487A] shrink-0">
                               {hist.cost ? `฿${Number(hist.cost).toLocaleString()}` : '-'}
                             </div>
+                            {/* Right: vendor + model */}
+                            <div className="flex-1 min-w-0 hidden sm:block">
+                              <p className="text-xs text-slate-600 truncate"><span className="text-slate-400">Vendor:</span> {hist.vendor || '-'}</p>
+                              <p className="text-xs text-slate-600 truncate"><span className="text-slate-400">Model:</span> {hist.model || '-'}</p>
+                            </div>
+                            {/* Actions */}
+                            <div className="flex gap-1.5 shrink-0">
+                              <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100 rounded-lg transition-all">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                              </button>
+                              <button onClick={() => handleDeleteHistory(hist.id)} className="p-1.5 bg-red-50 border border-red-100 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
                           </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
-                            <div>
-                              <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-1">ผู้จัดจำหน่าย (VENDOR)</p>
-                              <p className="font-bold text-slate-800">{hist.vendor || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-1">ยี่ห้อ/รุ่น (MODEL)</p>
-                              <p className="font-bold text-slate-800">{hist.model || '-'}</p>
-                            </div>
-                          </div>
-
-                          {hist.note && (
-                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm text-slate-600 flex items-start gap-2 mb-4">
-                              <span className="text-slate-400 mt-0.5">💬</span>
-                              <p>{hist.note}</p>
-                            </div>
-                          )}
-
-                          {hist.documents && hist.documents.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {hist.documents.map((docItem, idx) => (
-                                <a key={idx} href={docItem.data} download={docItem.name} className="flex items-center gap-2 text-xs bg-slate-50 text-slate-600 border border-slate-200 font-medium py-1.5 px-3 rounded-md hover:bg-blue-50 hover:text-[#1E487A] hover:border-blue-200 transition-colors max-w-[200px] truncate">
-                                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                          {(hist.note || (hist.documents && hist.documents.length > 0)) && (
+                            <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap gap-2 items-start">
+                              {hist.note && <p className="text-xs text-slate-500 flex-1">{hist.note}</p>}
+                              {hist.documents?.map((docItem, idx) => (
+                                <a key={idx} href={docItem.data} download={docItem.name} className="flex items-center gap-1 text-xs bg-slate-50 text-slate-500 border border-slate-200 py-1 px-2 rounded hover:bg-blue-50 hover:text-[#1E487A] transition-colors max-w-[160px] truncate">
+                                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                                   <span className="truncate">{docItem.name}</span>
                                 </a>
                               ))}
                             </div>
                           )}
-
-                          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                             <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="px-4 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all shadow-sm">✏️ แก้ไข</button>
-                             <button onClick={() => handleDeleteHistory(hist.id)} className="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-100 rounded-lg text-xs font-bold transition-all shadow-sm">🗑️ ลบ</button>
-                          </div>
                         </div>
                       ))}
                     </div>

@@ -14,7 +14,6 @@ export default function LoginView({
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex flex-col items-center justify-center p-4"
-      style={{ fontFamily: "'Prompt', sans-serif" }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap');`}</style>
 

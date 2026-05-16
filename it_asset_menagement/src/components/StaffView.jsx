@@ -1,5 +1,175 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+/* ════════════════════════════════════════════════
+   พิมพ์ฟอร์มขอเปลี่ยนเครื่อง
+════════════════════════════════════════════════ */
+function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
+  const today = new Date();
+  const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const assetRows = myAssets.length > 0
+    ? myAssets.map((item, i) => `
+        <tr>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;text-align:center">${i + 1}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${item.name || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${item.type || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${item.sn || item.serialNumber || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${item.assetTag || '-'}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ฟอร์มขอเปลี่ยนเครื่อง - ${staff.fullName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Sarabun',sans-serif; font-size:13px; color:#000; background:#fff; padding:24px 32px; }
+    @media print {
+      body { padding:0; }
+      .no-print { display:none !important; }
+      @page { size:A4 portrait; margin:12mm 14mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="no-print" onclick="window.print()"
+    style="display:block;margin:0 auto 20px;padding:8px 32px;background:#1E487A;color:#fff;
+    border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+    🖨️ พิมพ์ / บันทึก PDF
+  </button>
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:12px">
+    <div style="font-size:20px;font-weight:700;color:#1E487A">ฟอร์มขอเปลี่ยนเครื่องคอมพิวเตอร์</div>
+    <div style="font-size:13px;color:#000;margin-top:3px">Computer Replacement Request Form</div>
+  </div>
+  <div style="border-top:2px solid #1E487A;margin-bottom:14px"></div>
+
+  <!-- วันที่ -->
+  <div style="text-align:right;font-size:12px;color:#000;margin-bottom:12px">
+    วันที่ยื่นคำขอ: <strong>${thDate}</strong>
+  </div>
+
+  <!-- ข้อมูลพนักงาน -->
+  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:7px;display:flex;align-items:center;gap:5px">
+    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+    </svg>
+    ข้อมูลผู้ยื่นคำขอ
+  </div>
+  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:10px 14px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px">
+      <div>
+        <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">ชื่อ-นามสกุล</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.fullName || '-'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">รหัสพนักงาน</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.empId || '-'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">แผนก</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.department || '-'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">ตำแหน่ง</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.position || '-'}</div>
+      </div>
+      <div style="grid-column:1 / -1">
+        <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">หัวหน้างาน / ผู้บังคับบัญชา</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.manager || '-'}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- เครื่องที่ถือครองปัจจุบัน -->
+  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:7px;display:flex;align-items:center;gap:5px">
+    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+    </svg>
+    เครื่องคอมพิวเตอร์ที่ถือครองปัจจุบัน
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+    <thead>
+      <tr>
+        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center;white-space:nowrap">#</th>
+        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">ชื่ออุปกรณ์</th>
+        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">ประเภท</th>
+        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">Serial Number</th>
+        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">รหัสทรัพย์สิน</th>
+      </tr>
+    </thead>
+    <tbody>${assetRows}</tbody>
+  </table>
+
+  <!-- เหตุผลขอเปลี่ยน -->
+  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:7px;display:flex;align-items:center;gap:5px">
+    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+    เหตุผลและรายละเอียดการขอเปลี่ยน
+  </div>
+  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:10px 14px;margin-bottom:14px">
+    <div style="margin-bottom:8px">
+      <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">สถานะเครื่องปัจจุบัน</div>
+      <div style="font-size:13px;font-weight:700;color:#000">${currentStatus}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">รายละเอียด / เหตุผล</div>
+      <div style="font-size:13px;color:#000;line-height:1.7;min-height:40px;white-space:pre-wrap">${reason}</div>
+    </div>
+  </div>
+
+  <!-- เงื่อนไข -->
+  <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:6px">เงื่อนไขและข้อตกลง</div>
+  <div style="font-size:12px;color:#000;line-height:1.9;margin-bottom:16px">
+    <div>1. ผู้ยื่นคำขอยืนยันว่าข้อมูลที่กรอกทั้งหมดเป็นความจริง</div>
+    <div>2. เครื่องเดิมที่ส่งคืนต้องอยู่ในสภาพสมบูรณ์ที่สุดเท่าที่จะทำได้</div>
+    <div>3. การอนุมัติขึ้นอยู่กับดุลยพินิจของหัวหน้างานและฝ่าย IT</div>
+    <div>4. ต้องผ่านการอนุมัติจากหัวหน้าแผนกก่อนนำมายื่นฝ่าย IT</div>
+  </div>
+
+  <!-- ลายเซ็น 3 ช่อง -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+    <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้ยื่นคำขอ (พนักงาน)</div>
+      <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
+      <div style="font-size:13px;font-weight:700;color:#000">(${staff.fullName})</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">${staff.position || '............................'}</div>
+      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
+    </div>
+    <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">หัวหน้าแผนก (ผู้อนุมัติ)</div>
+      <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
+      <div style="font-size:13px;font-weight:700;color:#000">(${staff.manager || '............................'})</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">หัวหน้าแผนก ${staff.department || ''}</div>
+      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
+    </div>
+    <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">เจ้าหน้าที่ IT (รับเรื่อง)</div>
+      <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
+      <div style="font-size:13px;font-weight:700;color:#000">(.............................)</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">เจ้าหน้าที่ IT</div>
+      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:10px;color:#64748b;margin-top:12px">
+    ออกโดยระบบ IT Asset Management · ${thDate}
+  </div>
+
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=750');
+  win.document.write(html);
+  win.document.close();
+}
+
 export default function StaffView({
   setAuthRole, currentStaff, setCurrentStaff,
   staffEmpIdInput, setStaffEmpIdInput, staffPasswordInput, setStaffPasswordInput, handleStaffLogin,
@@ -91,6 +261,14 @@ export default function StaffView({
     try {
       if (handleStaffSubmitReplacement) {
         await handleStaffSubmitReplacement(replaceStatusForm, replaceReasonForm);
+        // พิมพ์ฟอร์มหลังบันทึกสำเร็จ
+        const myAssets = assets.filter(item => item.assignedTo === currentStaff?.id);
+        printReplacementForm({
+          staff: currentStaff,
+          currentStatus: replaceStatusForm,
+          reason: replaceReasonForm,
+          myAssets
+        });
         setReplaceStatusForm('เครื่องช้า / ค้างบ่อย');
         setReplaceReasonForm('');
       }
@@ -168,7 +346,7 @@ export default function StaffView({
   ======================================== */
   if (!currentStaff) {
     return (
-      <div className="min-h-screen bg-[#F4F7FE] flex items-center justify-center p-4" style={{ fontFamily: "'Prompt', sans-serif" }}>
+      <div className="min-h-screen bg-[#F4F7FE] flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
@@ -220,7 +398,7 @@ export default function StaffView({
      MAIN STAFF PORTAL
   ======================================== */
   return (
-    <div className="min-h-screen bg-[#F4F7FE] flex flex-col" style={{ fontFamily: "'Prompt', sans-serif" }}>
+    <div className="min-h-screen bg-[#F4F7FE] flex flex-col">
 
       {/* ── Header ── */}
       <header className="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
@@ -405,13 +583,22 @@ export default function StaffView({
                     required
                   />
                 </div>
-                <div className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2.5 leading-relaxed">
-                  ระบบจะแจ้งหัวหน้างาน <span className="font-semibold text-slate-700">{currentStaff?.manager || 'ไม่ระบุ'}</span> ทางอีเมลโดยอัตโนมัติ
+                <div className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5 leading-relaxed flex items-start gap-2">
+                  <svg className="h-3.5 w-3.5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span>ระบบจะบันทึกคำขอและ<span className="font-semibold"> เปิดหน้าพิมพ์ฟอร์มให้อัตโนมัติ</span> — นำฟอร์มให้หัวหน้าแผนกเซ็นต์แล้วส่งให้ IT</span>
                 </div>
                 <button type="submit" disabled={isSubmittingReplace} className={primaryBtn(isSubmittingReplace)}>
                   {isSubmittingReplace
-                    ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>
-                    : 'ส่งคำขอเปลี่ยนเครื่อง'}
+                    ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังบันทึก...</>
+                    : <>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        บันทึก + พิมพ์ฟอร์ม
+                      </>
+                  }
                 </button>
               </form>
             </div>
@@ -429,6 +616,7 @@ export default function StaffView({
                         <Th>สถานะเครื่อง</Th>
                         <Th>เหตุผล</Th>
                         <Th center>สถานะคำขอ</Th>
+                        <Th center>พิมพ์ฟอร์ม</Th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -438,6 +626,23 @@ export default function StaffView({
                           <Td bold>{req.currentStatus}</Td>
                           <Td muted truncate>{req.reason}</Td>
                           <td className="px-4 py-3 text-center"><span className={statusBadge(req.status)}>{req.status}</span></td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => printReplacementForm({
+                                staff: currentStaff,
+                                currentStatus: req.currentStatus,
+                                reason: req.reason,
+                                myAssets: assets.filter(a => a.assignedTo === currentStaff?.id)
+                              })}
+                              title="พิมพ์ฟอร์มซ้ำ"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-100 hover:border-blue-600 px-2.5 py-1.5 rounded-lg transition-all"
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              </svg>
+                              พิมพ์
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

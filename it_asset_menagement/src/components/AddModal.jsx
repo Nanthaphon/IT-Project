@@ -3,13 +3,14 @@ import React, { useState, useRef, useEffect } from 'react';
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
   handleAddEmployee, empForm, handleEmpChange,
-  handleAddLicense, licenseForm, handleLicenseChange,
+  handleAddLicense, licenseForm, handleLicenseChange, licenseImage, setLicenseImage,
   handleAdd, name, setName, type, setType, cost, setCost, 
   purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate, 
   quantity, setQuantity, unit, setUnit, 
   assetImage, setAssetImage, assetDepartment, setAssetDepartment,
   sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor,
-  employees = [] // 🟢 รับข้อมูลพนักงานเข้ามาเพื่อใช้ใน Dropdown
+  employees = [],
+  fieldOptions = {}
 }) {
   const [isManagerDropdownOpen, setIsManagerDropdownOpen] = useState(false);
   const managerRef = useRef(null);
@@ -81,16 +82,19 @@ export default function AddModal({
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                <input type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ชื่อบริษัท" />
+                <input list="fo-companies-emp" type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ชื่อบริษัท" autoComplete="off" />
+                <datalist id="fo-companies-emp">{(fieldOptions.companies||[]).map(v=><option key={v} value={v}/>)}</datalist>
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
-                  <input type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="แผนก" />
+                  <input list="fo-departments-emp" type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="แผนก" autoComplete="off" />
+                  <datalist id="fo-departments-emp">{(fieldOptions.departments||[]).map(v=><option key={v} value={v}/>)}</datalist>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-                  <input type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ตำแหน่งงาน" />
+                  <input list="fo-positions-emp" type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ตำแหน่งงาน" autoComplete="off" />
+                  <datalist id="fo-positions-emp">{(fieldOptions.positions||[]).map(v=><option key={v} value={v}/>)}</datalist>
                 </div>
               </div>
 
@@ -162,6 +166,29 @@ export default function AddModal({
             </form>
           ) : activeMenu === 'licenses' ? (
             <form onSubmit={handleAddLicense} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">รูปภาพโปรแกรม / ใบอนุญาต</label>
+                <div className="flex items-center gap-4">
+                  {licenseImage ? (
+                    <div className="relative">
+                      <img src={licenseImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
+                      <button type="button" onClick={() => setLicenseImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600">×</button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 border-dashed shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                  )}
+                  <input
+                    type="file" accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) { const reader = new FileReader(); reader.onloadend = () => setLicenseImage(reader.result); reader.readAsDataURL(file); }
+                    }}
+                    className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#1E487A] hover:file:bg-blue-100 cursor-pointer"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
@@ -264,23 +291,19 @@ export default function AddModal({
                       <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                      <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท / ผู้ผลิต</label>
+                      <input list="fo-companies-asset" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                      <datalist id="fo-companies-asset">{(fieldOptions.companies||[]).map(v=><option key={v} value={v}/>)}</datalist>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก <span className="text-red-500">*</span></label>
-                      <select 
-                        value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)}
-                        className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none bg-white transition-all text-sm text-slate-700 shadow-sm cursor-pointer"
-                      >
-                        <option value="DX">DX</option>
-                        <option value="BD">BD</option>
-                        <option value="General">General</option>
-                      </select>
+                      <input list="fo-departments-asset" type="text" value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                      <datalist id="fo-departments-asset">{(fieldOptions.departments||[]).map(v=><option key={v} value={v}/>)}</datalist>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
-                      <input type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+                      <input list="fo-vendors-asset" type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                      <datalist id="fo-vendors-asset">{(fieldOptions.vendors||[]).map(v=><option key={v} value={v}/>)}</datalist>
                     </div>
                   </div>
 

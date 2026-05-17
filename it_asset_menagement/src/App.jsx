@@ -59,6 +59,8 @@ import CustomAlert from './components/CustomAlert.jsx';
 import LoginView from './components/LoginView.jsx';
 import StaffView from './components/StaffView.jsx';
 import ModalsContainer from './components/ModalsContainer.jsx';
+import DropdownOptionsManager from './components/DropdownOptionsManager.jsx';
+import ITReportModal from './components/ITReportModal.jsx';
 
 import EmployeeTable from './components/EmployeeTable.jsx'; 
 import LicenseTable from './components/LicenseTable.jsx';   
@@ -83,6 +85,14 @@ function App() {
   const [editStaffRepairModal, setEditStaffRepairModal] = useState({ isOpen: false, data: null });
 
   const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [pendingAssetId, setPendingAssetId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('asset') || null;
+  });
+  const [pendingAssetCat, setPendingAssetCat] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('cat') || 'assets';
+  });
   
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
@@ -92,8 +102,9 @@ function App() {
   }, [isDarkMode]);
 
   const {
-    assets, accessories, employees, deletedEmployees, licenses, 
-    repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests
+    assets, accessories, employees, deletedEmployees, licenses,
+    repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
+    fieldOptions,
   } = useFirebaseData();
 
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
@@ -126,6 +137,7 @@ function App() {
   const [licenseForm, setLicenseForm] = useState({
     name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1
   });
+  const [licenseImage, setLicenseImage] = useState(null);
 
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [empModalTab, setEmpModalTab] = useState('info');
@@ -156,6 +168,10 @@ function App() {
     name: true, type: true, department: true, cost: true, status: true,
     assetTag: false, sn: false, model: false, vendor: false, company: false,
     purchaseDate: false, warrantyDate: false, assignedName: false
+  });
+  const [visibleLicenseColumns, setVisibleLicenseColumns] = useState({
+    image: true, name: true, productKey: true, supplier: true,
+    purchaseDate: false, expirationDate: true, cost: true, quantity: true, status: true,
   });
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -199,6 +215,19 @@ function App() {
     });
     return () => unsubAuth();
   }, []);
+
+  useEffect(() => {
+    if (!pendingAssetId || !authRole || authRole === 'staff') return;
+    const allItems = [...assets, ...accessories, ...licenses];
+    const found = allItems.find(a => a.id === pendingAssetId);
+    if (!found) return;
+    const cat = pendingAssetCat || 'assets';
+    setActiveMenu(cat === 'accessories' ? 'accessories' : cat === 'licenses' ? 'licenses' : 'assets');
+    setSelectedAssetCategory(cat);
+    setSelectedAssetDetail(found);
+    setPendingAssetId(null);
+    window.history.replaceState({}, '', window.location.pathname);
+  }, [pendingAssetId, authRole, assets, accessories, licenses]);
 
   useEffect(() => {
     setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX');
@@ -343,12 +372,14 @@ function App() {
     e.preventDefault(); if (!name.trim()) return;
     const collectionName = activeMenu === 'assets' ? 'assets' : activeMenu === 'office_supplies' ? 'office_supplies' : 'accessories';
     try {
-      const qtyToSave = activeMenu === 'accessories' ? 0 : Number(quantity);
+      const qtyToSave = Number(quantity);
       if (activeMenu === 'office_supplies') {
         await addDoc(collection(db, 'office_supplies'), { name, type, quantity: qtyToSave, unit, status: 'พร้อมใช้งาน', image: assetImage || null, createdAt: serverTimestamp() });
       } else {
         await addDoc(collection(db, collectionName), {
-          name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null, department: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: activeMenu === 'assets' ? vendor : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
+          name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
+          assignees: activeMenu === 'accessories' ? [] : undefined,
+          department: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: activeMenu === 'assets' ? vendor : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
         });
       }
       setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX'); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
@@ -373,13 +404,15 @@ function App() {
   const handleAddLicense = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'licenses'), { 
-        ...licenseForm, 
+      await addDoc(collection(db, 'licenses'), {
+        ...licenseForm,
         quantity: Number(licenseForm.quantity || 1),
         assignees: [],
-        status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, createdAt: serverTimestamp() 
+        image: licenseImage || null,
+        status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, createdAt: serverTimestamp()
       });
       setLicenseForm({ name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1 });
+      setLicenseImage(null);
       setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลโปรแกรม/ใบอนุญาต ใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
@@ -437,8 +470,38 @@ function App() {
 
   const handleExportEmployees = () => { /* ... */ };
   const handleExportAccessories = () => { /* ... */ };
-  const handleExportLicenses = () => { /* ... */ };
-  const handleDownloadTemplate = () => { /* ... */ };
+  const handleExportLicenses = () => {
+    const rows = [['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ', 'ราคา', 'จำนวนสิทธิ์', 'สถานะ']];
+    licenses.forEach(l => rows.push([l.name || '', l.productKey || '', l.keyCode || '', l.supplier || '', l.purchaseDate || '', l.expirationDate || '', l.cost || '', l.quantity || '', l.status || '']));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'licenses.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+  const handleDownloadTemplate = () => {
+    let headers, filename;
+    if (activeMenu === 'assets') {
+      headers = ['ชื่ออุปกรณ์', 'ประเภท', 'รหัสทรัพย์สิน', 'Serial Number', 'ยี่ห้อ/รุ่น', 'บริษัท', 'ผู้จัดจำหน่าย', 'แผนก', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty'];
+      filename = 'template_assets.csv';
+    } else if (activeMenu === 'accessories') {
+      headers = ['ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty'];
+      filename = 'template_accessories.csv';
+    } else if (activeMenu === 'licenses') {
+      headers = ['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'จำนวนสิทธิ์', 'ราคา', 'วันที่ซื้อ', 'วันหมดอายุ'];
+      filename = 'template_licenses.csv';
+    } else {
+      headers = ['รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร', 'M365 Email'];
+      filename = 'template_employees.csv';
+    }
+    const csv = headers.map(h => `"${h}"`).join(',') + '\n';
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   const handleImportEmployees = (e) => { /* ... */ };
   const handleExportAssets = () => { /* ... */ }; 
   
@@ -454,6 +517,43 @@ function App() {
   const handleEditLicenseChange = (e) => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));
   const handleUpdateLicense = async (e) => { e.preventDefault(); try { const updatedData = { ...editLicenseModal.data }; delete updatedData.id; if (updatedData.remainingQuantity !== undefined) { updatedData.quantity = Number(updatedData.remainingQuantity) + (updatedData.assignees?.length || 0); delete updatedData.remainingQuantity; } await updateDoc(doc(db, 'licenses', editLicenseModal.data.id), updatedData); setEditLicenseModal({ isOpen: false, data: null }); setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } };
 
+  const [isITReportOpen, setIsITReportOpen] = useState(false);
+  const [savingFieldOptions, setSavingFieldOptions] = useState(false);
+  const handleSaveFieldOptions = async (data) => {
+    setSavingFieldOptions(true);
+    try {
+      await setDoc(doc(db, 'settings', 'fieldOptions'), data);
+    } catch (err) {
+      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
+    } finally {
+      setSavingFieldOptions(false);
+    }
+  };
+
+  // Normalize accessory item arrays to array-of-objects format (backward compat)
+  const getAvailableItems = (acc) => {
+    if (Array.isArray(acc.availableItems)) return [...acc.availableItems];
+    const availCount = Math.max(0, Number(acc.quantity||0) - (acc.assignees?.length||0) - Number(acc.brokenQuantity||0));
+    return Array.from({length: availCount}, (_, i) => ({
+      sn: acc.availableSNs?.[i] || '',
+      model: acc.availableModels?.[i] || '',
+      cost: acc.availableCosts?.[i] || '',
+      purchaseDate: acc.availablePurchaseDates?.[i] || '',
+      warrantyDate: acc.availableWarrantyDates?.[i] || '',
+    }));
+  };
+  const getBrokenItems = (acc) => {
+    if (Array.isArray(acc.brokenItems)) return [...acc.brokenItems];
+    const brokenCount = Number(acc.brokenQuantity||0);
+    return Array.from({length: brokenCount}, (_, i) => ({
+      sn: acc.brokenSNs?.[i] || '',
+      model: acc.brokenModels?.[i] || '',
+      cost: acc.brokenCosts?.[i] || '',
+      purchaseDate: acc.brokenPurchaseDates?.[i] || '',
+      warrantyDate: acc.brokenWarrantyDates?.[i] || '',
+    }));
+  };
+
   const handleCheckout = async (e) => {
     e.preventDefault();
     if (!checkoutEmpId) return;
@@ -463,42 +563,101 @@ function App() {
     try {
       if (checkoutModal.collectionName === 'accessories') {
         const item = accessories.find(a => a.id === checkoutModal.assetId);
-        const remainingQty = item ? (item.quantity ? (Number(item.quantity) - (item.assignees?.length || 0)) : (1 - (item.assignees?.length || 0))) : 0;
-        
+        const remainingQty = item
+          ? Math.max(0, Number(item.quantity||0) - (item.assignees?.length||0) - Number(item.brokenQuantity||0))
+          : 0;
+
         if (item && remainingQty > 0) {
-          const newAssignees = item.assignees ? [...item.assignees] : [];
-          newAssignees.push({ 
-            checkoutId: Date.now().toString(), 
-            empId: emp.id, 
+          const availItems = getAvailableItems(item);
+          const idx = checkoutModal.snIndex ?? 0;
+          const pickedItem = availItems[idx] || {};
+          availItems.splice(idx, 1);
+
+          const newAssignee = {
+            checkoutId: Date.now().toString(),
+            empId: emp.id,
             empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`,
-            serialNumber: checkoutModal.sn || '' 
+            serialNumber: pickedItem.sn || checkoutModal.sn || '',
+            model: pickedItem.model || checkoutModal.itemModel || '',
+            itemCost: pickedItem.cost || checkoutModal.itemCost || '',
+            purchaseDate: pickedItem.purchaseDate || checkoutModal.itemPurchaseDate || '',
+            warrantyDate: pickedItem.warrantyDate || checkoutModal.itemWarrantyDate || '',
+          };
+
+          await updateDoc(doc(db, 'accessories', checkoutModal.assetId), {
+            assignees: [...(item.assignees || []), newAssignee],
+            availableItems: availItems,
           });
-
-          const updateData = { assignees: newAssignees };
-          
-          if (checkoutModal.snIndex !== undefined && item.availableSNs) {
-            const newAvailableSNs = [...item.availableSNs];
-            newAvailableSNs.splice(checkoutModal.snIndex, 1);
-            updateData.availableSNs = newAvailableSNs;
-          }
-
-          await updateDoc(doc(db, 'accessories', checkoutModal.assetId), updateData);
           await addDoc(collection(db, 'accessories_transactions'), {
-            empId: emp.id, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: `SN: ${checkoutModal.sn || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now()
+            empId: emp.id, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
+            condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now()
           });
         } else {
           return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอ', type: 'error' });
         }
+      } else if (checkoutModal.collectionName === 'licenses') {
+        const item = licenses.find(l => l.id === checkoutModal.assetId);
+        if (!item) return;
+        const totalQty = Number(item.quantity || 1);
+        const currentAssignees = item.assignees || [];
+        if (currentAssignees.length >= totalQty) {
+          return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'สิทธิ์ License ถูกใช้งานครบแล้ว', type: 'error' });
+        }
+        // Transfer selected available slot's per-seat data to the new assignee
+        const pickedIdx = checkoutModal.seatIndex ?? 0;
+        const availableKeys = [...(item.availableKeys || [])];
+        const availableKeyCodes = [...(item.availableKeyCodes || [])];
+        const availableSeatCosts = [...(item.availableSeatCosts || [])];
+        const oldDocMap = { ...(item.availableSeatDocs || {}) };
+        const seatProductKey = availableKeys[pickedIdx] || '';
+        const seatKeyCode = availableKeyCodes[pickedIdx] || '';
+        const seatCost = availableSeatCosts[pickedIdx] || '';
+        const seatDocuments = oldDocMap[String(pickedIdx)] || [];
+        // Remove picked slot from arrays and re-index doc map
+        availableKeys.splice(pickedIdx, 1);
+        availableKeyCodes.splice(pickedIdx, 1);
+        availableSeatCosts.splice(pickedIdx, 1);
+        const totalAvailBefore = Math.max(0, totalQty - currentAssignees.length);
+        const newDocMap = {};
+        let newIdx = 0;
+        for (let i = 0; i < totalAvailBefore; i++) {
+          if (i === pickedIdx) continue;
+          if (oldDocMap[String(i)]) newDocMap[String(newIdx)] = oldDocMap[String(i)];
+          newIdx++;
+        }
+        const checkoutDate = new Date().toLocaleDateString('th-TH');
+        const newAssignees = [...currentAssignees, {
+          checkoutId: Date.now().toString(),
+          empId: emp.id,
+          empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`,
+          checkoutDate,
+          remarks: checkoutRemarks.trim() || '',
+          productKey: seatProductKey,
+          keyCode: seatKeyCode,
+          seatCost: seatCost,
+          seatDocuments: seatDocuments,
+        }];
+        const newStatus = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+        await updateDoc(doc(db, 'licenses', checkoutModal.assetId), {
+          assignees: newAssignees,
+          status: newStatus,
+          assignedTo: newAssignees.map(a => a.empId).join(','),
+          assignedName: newAssignees.map(a => a.empName).join(', '),
+          availableKeys,
+          availableKeyCodes,
+          availableSeatCosts,
+          availableSeatDocs: newDocMap,
+        });
+        await addDoc(collection(db, 'licenses_transactions'), {
+          empId: emp.id, assetName: item.name, category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
+        });
       } else {
         await updateDoc(doc(db, checkoutModal.collectionName, checkoutModal.assetId), {
           status: 'ถูกใช้งาน', assignedTo: emp.id, assignedName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
         });
-        const itemArray = checkoutModal.collectionName === 'assets' ? assets : licenses;
-        const itemToCheckout = itemArray.find(a => a.id === checkoutModal.assetId);
-        const txCollection = checkoutModal.collectionName === 'assets' ? 'assets_transactions' : 'licenses_transactions';
-
-        await addDoc(collection(db, txCollection), {
-          empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: checkoutModal.collectionName, action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
+        const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
+        await addDoc(collection(db, 'assets_transactions'), {
+          empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       }
       setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined }); 
@@ -538,15 +697,49 @@ function App() {
         const updateData = { assignees: newAssignees };
 
         if (collectionName === 'accessories') {
-           if (returnCondition === 'broken') {
-             updateData.brokenQuantity = (Number(item.brokenQuantity) || 0) + 1;
-             updateData.brokenSNs = [...(item.brokenSNs || []), returnedItem?.serialNumber || ''];
-           } else {
-             updateData.availableSNs = [...(item.availableSNs || []), returnedItem?.serialNumber || ''];
-           }
+          if (returnCondition === 'broken') {
+            const brokenItems = getBrokenItems(item);
+            brokenItems.push({
+              sn: returnedItem?.serialNumber || '',
+              model: returnedItem?.model || '',
+              cost: returnedItem?.itemCost || returnedItem?.customCost || '',
+              purchaseDate: returnedItem?.purchaseDate || '',
+              warrantyDate: returnedItem?.warrantyDate || '',
+            });
+            updateData.brokenQuantity = brokenItems.length;
+            updateData.brokenItems = brokenItems;
+          } else {
+            const availItems = getAvailableItems(item);
+            availItems.push({
+              sn: returnedItem?.serialNumber || '',
+              model: returnedItem?.model || '',
+              cost: returnedItem?.itemCost || returnedItem?.customCost || '',
+              purchaseDate: returnedItem?.purchaseDate || '',
+              warrantyDate: returnedItem?.warrantyDate || '',
+            });
+            updateData.availableItems = availItems;
+          }
         }
 
-        updateData.status = 'พร้อมใช้งาน'; updateData.assignedTo = null; updateData.assignedName = null;
+        if (collectionName === 'licenses') {
+          const totalQty = Number(item.quantity || 1);
+          updateData.status = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+          updateData.assignedTo = newAssignees.length > 0 ? newAssignees.map(a => a.empId).join(',') : null;
+          updateData.assignedName = newAssignees.length > 0 ? newAssignees.map(a => a.empName).join(', ') : null;
+          // Move returned assignee's per-seat data back to available arrays
+          if (returnedItem) {
+            const currentAvailCount = Math.max(0, totalQty - item.assignees.length);
+            const newAvailCount = currentAvailCount + 1;
+            updateData.availableKeys = [...(item.availableKeys || []), returnedItem.productKey || ''];
+            updateData.availableKeyCodes = [...(item.availableKeyCodes || []), returnedItem.keyCode || ''];
+            updateData.availableSeatCosts = [...(item.availableSeatCosts || []), returnedItem.seatCost || ''];
+            const newDocMap = { ...(item.availableSeatDocs || {}) };
+            if (returnedItem.seatDocuments?.length > 0) newDocMap[String(newAvailCount - 1)] = returnedItem.seatDocuments;
+            updateData.availableSeatDocs = newDocMap;
+          }
+        } else {
+          updateData.status = 'พร้อมใช้งาน'; updateData.assignedTo = null; updateData.assignedName = null;
+        }
         await updateDoc(doc(db, collectionName, returnModal.assetId), updateData);
         const txCollection = collectionName === 'accessories' ? 'accessories_transactions' : 'licenses_transactions';
         await addDoc(collection(db, txCollection), { empId: returnModal.empId, empName: returnModal.empName, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน', condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ', remarks: returnRemarks.trim() || '-', timestamp: Date.now() });
@@ -562,7 +755,53 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' }); }
   };
 
-  const handleConfirmRepair = async (e) => { /* ... */ };
+  const handleConfirmRepair = async (e) => {
+    e.preventDefault();
+    try {
+      const { assetId, brokenIndex, brokenSN, brokenModel, brokenCost, brokenPurchaseDate, brokenWarrantyDate } = repairModal;
+      const item = accessories.find(a => a.id === assetId);
+      if (!item) return;
+
+      const idx = brokenIndex ?? 0;
+      const brokenItems = getBrokenItems(item);
+
+      // Use data passed directly from modal (guaranteed correct), fallback to array
+      const repairedItem = {
+        sn: brokenSN ?? (brokenItems[idx]?.sn || ''),
+        model: brokenModel ?? (brokenItems[idx]?.model || ''),
+        cost: brokenCost ?? (brokenItems[idx]?.cost || ''),
+        purchaseDate: brokenPurchaseDate ?? (brokenItems[idx]?.purchaseDate || ''),
+        warrantyDate: brokenWarrantyDate ?? (brokenItems[idx]?.warrantyDate || ''),
+      };
+
+      brokenItems.splice(idx, 1);
+
+      const availItems = getAvailableItems(item);
+      availItems.push(repairedItem);
+
+      const newBrokenQuantity = brokenItems.length;
+      const newStatus = availItems.length > 0 ? 'พร้อมใช้งาน' : ((item.assignees?.length || 0) > 0 ? 'ถูกใช้งาน' : 'พร้อมใช้งาน');
+
+      await updateDoc(doc(db, 'accessories', assetId), {
+        brokenItems,
+        brokenQuantity: newBrokenQuantity,
+        availableItems: availItems,
+        status: newStatus,
+      });
+
+      await addDoc(collection(db, 'accessories_transactions'), {
+        assetId, assetName: item.name, category: 'accessories',
+        action: 'ซ่อมเสร็จ/เข้าคลัง', condition: 'ปกติ',
+        remarks: repairRemarks.trim() || '-', timestamp: Date.now(),
+      });
+
+      setRepairModal({ isOpen: false, assetId: null, assetName: null, maxRepair: 0, brokenIndex: undefined });
+      setRepairQuantity(1); setRepairRemarks('');
+      setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'นำอุปกรณ์กลับเข้าคลังเรียบร้อยแล้ว', type: 'success' });
+    } catch (error) {
+      setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
+    }
+  };
 
   const getUniqueMonths = (data) => { /* ... */ return []; };
   const formatMonthLabel = (monthStr) => { /* ... */ };
@@ -661,7 +900,28 @@ function App() {
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
 
         <div className="flex-1 overflow-auto p-4 md:p-8">
-          {activeMenu === 'dashboard' ? (
+          {activeMenu === 'field_options' ? (
+            <DropdownOptionsManager
+              fieldOptions={fieldOptions}
+              onSave={handleSaveFieldOptions}
+              saving={savingFieldOptions}
+            />
+          ) : activeMenu === 'it_report' ? (
+            <div className="flex flex-col items-center justify-center h-full gap-6">
+              <div className="text-center">
+                <div className="text-6xl mb-4">📊</div>
+                <h2 className="text-2xl font-bold text-slate-800">สร้าง IT Monthly Report</h2>
+                <p className="text-slate-500 mt-2 text-sm max-w-md">ระบบจะดึงข้อมูล Hardware, Software, Support จากระบบโดยอัตโนมัติ และ Export เป็นไฟล์ .pptx พร้อม Present</p>
+              </div>
+              <button
+                onClick={() => setIsITReportOpen(true)}
+                className="flex items-center gap-2 px-8 py-4 bg-[#1E487A] hover:bg-[#133257] text-white rounded-2xl font-bold text-base transition-all shadow-xl shadow-[#1E487A]/30"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                สร้างไฟล์ Report
+              </button>
+            </div>
+          ) : activeMenu === 'dashboard' ? (
             <DashboardStats assets={assets} licenses={licenses} accessories={accessories} employees={employees} />
           ) : activeMenu === 'repairs' ? (
             <RepairTable repairRequests={repairRequests} currentRepairRequests={currentRepairRequests} repairFilterMonth={repairFilterMonth} setRepairFilterMonth={setRepairFilterMonth} repairFilterStatus={repairFilterStatus} setRepairFilterStatus={setRepairFilterStatus} getUniqueMonths={getUniqueMonths} formatMonthLabel={formatMonthLabel} handleUpdateRepairRequestStatus={handleUpdateRepairRequestStatus} handleDeleteRepairRequest={handleDeleteRepairRequest} />
@@ -681,6 +941,7 @@ function App() {
                   selectedEmployeeIds={selectedEmployeeIds} setConfirmDeleteModal={setConfirmDeleteModal} assetFilterDepartment={assetFilterDepartment} setAssetFilterDepartment={setAssetFilterDepartment} assetFilterType={assetFilterType} setAssetFilterType={setAssetFilterType} assetFilterStatus={assetFilterStatus} setAssetFilterStatus={setAssetFilterStatus} accFilterType={accFilterType} setAccFilterType={setAccFilterType}
                   handleExportAccessories={handleExportAccessories} selectedAccessoryIds={selectedAccessoryIds} officeSupplyStockFilter={officeSupplyStockFilter} setOfficeSupplyStockFilter={setOfficeSupplyStockFilter} selectedOfficeSupplyIds={selectedOfficeSupplyIds} setIsAddModalOpen={setIsAddModalOpen} handleExportAssets={handleExportAssets} visibleAssetColumns={visibleAssetColumns} setVisibleAssetColumns={setVisibleAssetColumns}
                   handleExportLicenses={handleExportLicenses} selectedLicenseIds={selectedLicenseIds}
+                  visibleLicenseColumns={visibleLicenseColumns} setVisibleLicenseColumns={setVisibleLicenseColumns}
                 />
                 
                 {currentData.length === 0 ? (
@@ -690,7 +951,7 @@ function App() {
                     {activeMenu === 'employees' ? (
                       <EmployeeTable currentData={currentData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} />
                     ) : activeMenu === 'licenses' ? (
-                      <LicenseTable 
+                      <LicenseTable
                         currentData={currentData}
                         selectedLicenseIds={selectedLicenseIds}
                         handleSelectAllLicenses={handleSelectAllLicenses}
@@ -699,15 +960,17 @@ function App() {
                         setSelectedAssetCategory={setSelectedAssetCategory}
                         checkLicenseExpiration={checkLicenseExpiration}
                         setCheckoutModal={setCheckoutModal}
+                        handleCheckin={handleCheckin}
                         openEditLicenseModal={openEditLicenseModal}
                         setConfirmDeleteModal={setConfirmDeleteModal}
+                        visibleLicenseColumns={visibleLicenseColumns}
                       />
                     ) : activeMenu === 'office_supplies' ? (
                       <OfficeSupplyTable currentData={currentData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} />
                     ) : activeMenu === 'accessories' ? (
                       <AccessoryTable currentData={currentData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} />
                     ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} handleCheckin={handleCheckin} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} visibleAssetColumns={visibleAssetColumns} />
+                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} visibleAssetColumns={visibleAssetColumns} />
                     ) : null}
                   </div>
                 )}
@@ -718,19 +981,28 @@ function App() {
       </main>
       
       <ModalsContainer 
-        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument}
+        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} fieldOptions={fieldOptions}
         checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}
         selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} showConfirm={showConfirm} setCustomAlert={setCustomAlert}
         editEmpModal={editEmpModal} setEditEmpModal={setEditEmpModal} handleUpdateEmployee={handleUpdateEmployee} handleEditEmpChange={handleEditEmpChange}
         editAssetModal={editAssetModal} setEditAssetModal={setEditAssetModal} handleUpdateAsset={handleUpdateAsset} handleEditAssetChange={handleEditAssetChange}
         editLicenseModal={editLicenseModal} setEditLicenseModal={setEditLicenseModal} handleUpdateLicense={handleUpdateLicense} handleEditLicenseChange={handleEditLicenseChange}
-        isImportModalOpen={isImportModalOpen} setIsImportModalOpen={setIsImportModalOpen} handleDownloadTemplate={handleDownloadTemplate} handleImportEmployees={handleImportEmployees}
+        isImportModalOpen={isImportModalOpen} setIsImportModalOpen={setIsImportModalOpen} handleDownloadTemplate={handleDownloadTemplate} handleImportEmployees={handleImportEmployees} activeMenu={activeMenu}
         returnModal={returnModal} returnCondition={returnCondition} setReturnCondition={setReturnCondition} returnRemarks={returnRemarks} setReturnRemarks={setReturnRemarks} handleConfirmReturn={handleConfirmReturn}
         repairModal={repairModal} setRepairModal={setRepairModal} repairQuantity={repairQuantity} setRepairQuantity={setRepairQuantity} repairRemarks={repairRemarks} setRepairRemarks={setRepairRemarks} handleConfirmRepair={handleConfirmRepair}
         confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete}
         confirmModal={confirmModal} handleConfirmModalOk={handleConfirmModalOk} closeConfirmModal={closeConfirmModal}
         resetPasswordModal={resetPasswordModal} setResetPasswordModal={setResetPasswordModal}
+      />
+      <ITReportModal
+        isOpen={isITReportOpen}
+        onClose={() => setIsITReportOpen(false)}
+        employees={employees}
+        repairRequests={repairRequests}
+        assets={assets}
+        accessories={accessories}
+        licenses={licenses}
       />
     </div>
   );

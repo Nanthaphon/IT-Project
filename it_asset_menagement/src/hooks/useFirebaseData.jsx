@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, getFirestore } from 'firebase/firestore';
+import { collection, onSnapshot, getFirestore, doc } from 'firebase/firestore';
 
 export default function useFirebaseData() {
   const db = getFirestore();
@@ -12,7 +12,8 @@ export default function useFirebaseData() {
   const [officeSupplies, setOfficeSupplies] = useState([]);
   const [supplyRequests, setSupplyRequests] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [replacementRequests, setReplacementRequests] = useState([]); // 🟢 เพิ่ม State ใหม่
+  const [replacementRequests, setReplacementRequests] = useState([]);
+  const [fieldOptions, setFieldOptions] = useState({});
 
   useEffect(() => {
     // 1. ดึงข้อมูลทรัพย์สินและคำขอต่างๆ
@@ -24,8 +25,9 @@ export default function useFirebaseData() {
     const unsubRepairReqs = onSnapshot(collection(db, 'repair_requests'), (snapshot) => setRepairRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
     const unsubOfficeSupplies = onSnapshot(collection(db, 'office_supplies'), (snapshot) => setOfficeSupplies(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })) || []));
     const unsubSupplyReqs = onSnapshot(collection(db, 'supply_requests'), (snapshot) => setSupplyRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
-    // 🟢 ดึงข้อมูลคำขอเปลี่ยนเครื่อง
     const unsubReplacementReqs = onSnapshot(collection(db, 'replacement_requests'), (snapshot) => setReplacementRequests(snapshot.docs?.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp) || []));
+    // ดึง field options (settings/fieldOptions)
+    const unsubFieldOpts = onSnapshot(doc(db, 'settings', 'fieldOptions'), (snap) => setFieldOptions(snap.exists() ? snap.data() : {}));
 
     // 2. ดึงข้อมูลประวัติการทำรายการ (Transactions)
     let accData = []; let assetData = []; let licData = [];
@@ -40,16 +42,17 @@ export default function useFirebaseData() {
     const unsubLicTx = onSnapshot(collection(db, 'licenses_transactions'), (snapshot) => { licData = snapshot.docs?.map(doc => ({ id: doc.id, category: 'licenses', ...doc.data() })) || []; updateTransactionsState(); });
 
     // 3. คืนค่าการเชื่อมต่อเมื่อ Component ถูกทำลาย
-    return () => { 
-      unsubAssets(); unsubAccessories(); unsubEmployees(); unsubDeletedEmployees(); 
-      unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs(); 
-      unsubReplacementReqs(); // 🟢 คืนค่า
-      unsubAccTx(); unsubAssetTx(); unsubLicTx(); 
-    }; 
+    return () => {
+      unsubAssets(); unsubAccessories(); unsubEmployees(); unsubDeletedEmployees();
+      unsubLicenses(); unsubRepairReqs(); unsubOfficeSupplies(); unsubSupplyReqs();
+      unsubReplacementReqs(); unsubFieldOpts();
+      unsubAccTx(); unsubAssetTx(); unsubLicTx();
+    };
   }, [db]);
 
   return {
-    assets, accessories, employees, deletedEmployees, licenses, 
-    repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests
+    assets, accessories, employees, deletedEmployees, licenses,
+    repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
+    fieldOptions,
   };
 }

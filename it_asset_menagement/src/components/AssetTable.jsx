@@ -35,7 +35,7 @@ export default function AssetTable({
   setSelectedAssetDetail,
   setSelectedAssetCategory,
   setCheckoutModal,
-  handleCheckin,
+  setReturnModal,
   openEditAssetModal,
   setConfirmDeleteModal,
   visibleAssetColumns
@@ -145,7 +145,7 @@ export default function AssetTable({
                   </button>
                 ) : item.status === 'ถูกใช้งาน' ? (
                   <button
-                    onClick={() => handleCheckin(item.id, 'assets')}
+                    onClick={() => setReturnModal({ isOpen: true, assetId: item.id, collectionName: 'assets', empId: item.assignedTo, empName: item.assignedName, assetName: item.name })}
                     className="px-2.5 py-1.5 bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-500 hover:text-white rounded-md font-semibold transition-all text-xs"
                     title="รับคืน"
                   >

@@ -4,7 +4,8 @@ export default function EditAssetModal({
   editAssetModal,
   setEditAssetModal,
   handleUpdateAsset,
-  handleEditAssetChange
+  handleEditAssetChange,
+  fieldOptions = {},
 }) {
   if (!editAssetModal.isOpen || !editAssetModal.data) return null;
 
@@ -97,25 +98,19 @@ export default function EditAssetModal({
                   <input type="text" name="model" value={editAssetModal.data.model || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                  <input type="text" name="company" value={editAssetModal.data.company || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท / ผู้ผลิต</label>
+                  <input list="fo-companies-edit" type="text" name="company" value={editAssetModal.data.company || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                  <datalist id="fo-companies-edit">{(fieldOptions.companies||[]).map(v=><option key={v} value={v}/>)}</datalist>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก <span className="text-red-500">*</span></label>
-                  <select 
-                    name="department" 
-                    value={editAssetModal.data.department || 'DX'} 
-                    onChange={handleEditAssetChange} 
-                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none bg-white text-sm text-slate-700 transition-all shadow-sm cursor-pointer"
-                  >
-                    <option value="DX">DX</option>
-                    <option value="BD">BD</option>
-                    <option value="General">General</option>
-                  </select>
+                  <input list="fo-departments-edit" type="text" name="department" value={editAssetModal.data.department || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                  <datalist id="fo-departments-edit">{(fieldOptions.departments||[]).map(v=><option key={v} value={v}/>)}</datalist>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
-                  <input type="text" name="vendor" value={editAssetModal.data.vendor || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+                  <input list="fo-vendors-edit" type="text" name="vendor" value={editAssetModal.data.vendor || ''} onChange={handleEditAssetChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                  <datalist id="fo-vendors-edit">{(fieldOptions.vendors||[]).map(v=><option key={v} value={v}/>)}</datalist>
                 </div>
               </div>
 

@@ -4,7 +4,8 @@ export default function CheckoutModal({
   checkoutModal, setCheckoutModal, handleCheckout,
   checkoutSearchTerm, setCheckoutSearchTerm,
   checkoutEmpId, setCheckoutEmpId, employees,
-  checkoutRemarks, setCheckoutRemarks
+  checkoutRemarks, setCheckoutRemarks,
+  licenses, accessories,
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -19,60 +20,249 @@ export default function CheckoutModal({
 
   if (!checkoutModal.isOpen) return null;
 
+  const isLicense    = checkoutModal.collectionName === 'licenses';
+  const isAccessory  = checkoutModal.collectionName === 'accessories';
+  const needSelector = isLicense || isAccessory;
+
+  /* ── Build available slots ── */
+  let availableSlots = [];
+
+  if (isLicense && licenses) {
+    const licItem = licenses.find(l => l.id === checkoutModal.assetId);
+    if (licItem) {
+      const availCount = Math.max(
+        0,
+        Number(licItem.quantity || 0) - (licItem.assignees || []).length
+      );
+      for (let i = 0; i < availCount; i++) {
+        availableSlots.push({
+          index: i,
+          label: `สิทธิ์ #${i + 1}`,
+          sub: licItem.availableKeys?.[i] || '',
+          sub2: licItem.availableKeyCodes?.[i] ? `รหัสอ้างอิง: ${licItem.availableKeyCodes[i]}` : '',
+          cost: licItem.availableSeatCosts?.[i] || '',
+        });
+      }
+    }
+  }
+
+  if (isAccessory && accessories) {
+    const accItem = accessories.find(a => a.id === checkoutModal.assetId);
+    if (accItem) {
+      // Try new format first, fall back to parallel arrays
+      const items = Array.isArray(accItem.availableItems) ? accItem.availableItems : (() => {
+        const availCount = Math.max(0, Number(accItem.quantity||0) - (accItem.assignees?.length||0) - Number(accItem.brokenQuantity||0));
+        return Array.from({length: availCount}, (_, i) => ({
+          sn: accItem.availableSNs?.[i] || '',
+          model: accItem.availableModels?.[i] || '',
+          cost: accItem.availableCosts?.[i] || '',
+          purchaseDate: accItem.availablePurchaseDates?.[i] || '',
+          warrantyDate: accItem.availableWarrantyDates?.[i] || '',
+        }));
+      })();
+
+      items.forEach((it, i) => {
+        availableSlots.push({
+          index: i,
+          label: it.sn ? `SN: ${it.sn}` : `ชิ้นที่ ${i + 1}`,
+          sub: it.model || '',
+          sub2: '',
+          cost: it.cost || '',
+          sn: it.sn || '',
+          model: it.model || '',
+          itemCost: it.cost || '',
+          itemPurchaseDate: it.purchaseDate || '',
+          itemWarrantyDate: it.warrantyDate || '',
+        });
+      });
+    }
+  }
+
+  const selectedIndex = isLicense
+    ? (checkoutModal.seatIndex ?? 0)
+    : (checkoutModal.snIndex ?? 0);
+
+  const selectSlot = (slot) => {
+    if (isLicense) {
+      setCheckoutModal(prev => ({ ...prev, seatIndex: slot.index }));
+    } else {
+      setCheckoutModal(prev => ({
+        ...prev,
+        snIndex: slot.index,
+        sn: slot.sn || '',
+        itemModel: slot.model || '',
+        itemCost: slot.itemCost || '',
+        itemPurchaseDate: slot.itemPurchaseDate || '',
+        itemWarrantyDate: slot.itemWarrantyDate || '',
+      }));
+    }
+  };
+
   const filteredEmployees = employees.filter(emp => {
     const term = checkoutSearchTerm.toLowerCase();
-    return (emp.fullName?.toLowerCase().includes(term) || emp.fullNameEng?.toLowerCase().includes(term) || emp.empId?.toLowerCase().includes(term) || emp.nickname?.toLowerCase().includes(term));
+    return (
+      emp.fullName?.toLowerCase().includes(term) ||
+      emp.fullNameEng?.toLowerCase().includes(term) ||
+      emp.empId?.toLowerCase().includes(term) ||
+      emp.nickname?.toLowerCase().includes(term)
+    );
   });
+
+  const close = () => {
+    setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined });
+    setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks(''); setIsDropdownOpen(false);
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full min-h-[500px] flex flex-col overflow-hidden transform transition-all border border-slate-100">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden transform transition-all border border-slate-100 max-h-[90vh]">
         <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
-          <h3 className="font-bold text-xl flex items-center gap-2"><span className="bg-white/20 p-1.5 rounded-lg">📤</span> ระบุพนักงานที่เบิกจ่าย</h3>
-          <button onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks(''); setIsDropdownOpen(false); }} className="text-blue-200 hover:text-white transition-colors focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <h3 className="font-bold text-xl flex items-center gap-2">
+            <span className="bg-white/20 p-1.5 rounded-lg">📤</span> ระบุพนักงานที่เบิกจ่าย
+          </h3>
+          <button onClick={close} className="text-blue-200 hover:text-white transition-colors focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        
-        <form onSubmit={(e) => { if (!checkoutEmpId) { e.preventDefault(); return; } handleCheckout(e); }} className="p-6 md:p-8 flex flex-col flex-1 overflow-y-auto">
-          
+
+        <form onSubmit={(e) => { if (!checkoutEmpId) { e.preventDefault(); return; } handleCheckout(e); }} className="p-6 md:p-8 flex flex-col flex-1 overflow-y-auto gap-5">
+
+          {/* ── Item/Seat selector (accessories & licenses only) ── */}
+          {needSelector && availableSlots.length > 0 && (
+            <div>
+              <label className="block text-base font-bold text-slate-700 mb-2">
+                {isAccessory ? 'เลือกชิ้นที่จะเบิกจ่าย' : 'เลือกสิทธิ์ที่จะเบิกจ่าย'}
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                {availableSlots.map((slot) => {
+                  const isSelected = selectedIndex === slot.index;
+                  return (
+                    <label
+                      key={slot.index}
+                      className={`flex items-start gap-3 p-3.5 border-2 rounded-xl cursor-pointer transition-all ${isSelected ? 'bg-blue-50 border-[#1E487A]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                    >
+                      <input
+                        type="radio"
+                        name="slotIndex"
+                        value={slot.index}
+                        checked={isSelected}
+                        onChange={() => selectSlot(slot)}
+                        className="mt-0.5 w-4 h-4 text-[#1E487A] focus:ring-[#1E487A] border-gray-300 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-semibold text-slate-700">{slot.label}</span>
+                          {slot.cost && (
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                              ฿{Number(slot.cost).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                        {slot.sub && (
+                          <div className={`mt-1 text-xs truncate ${isLicense ? 'font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded border border-slate-200' : 'text-slate-500'}`}>
+                            {slot.sub}
+                          </div>
+                        )}
+                        {slot.sub2 && (
+                          <div className="mt-0.5 text-xs text-slate-400 truncate">{slot.sub2}</div>
+                        )}
+                        {!slot.sub && !slot.cost && (
+                          <div className="mt-0.5 text-xs text-slate-400">ไม่มีข้อมูลเพิ่มเติม</div>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* แจ้งถ้าไม่มี slot ว่าง */}
+          {needSelector && availableSlots.length === 0 && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm font-medium px-4 py-3 rounded-xl">
+              ไม่มีรายการที่พร้อมเบิกจ่าย
+            </div>
+          )}
+
+          {/* ── Employee search ── */}
           <div ref={wrapperRef} className="relative">
-            <label className="block text-base font-bold text-slate-700 mb-2">ค้นหาและเลือกพนักงาน <span className="text-red-500">*</span></label>
+            <label className="block text-base font-bold text-slate-700 mb-2">
+              ค้นหาและเลือกพนักงาน <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></div>
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
               <input
-                type="text" placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..." value={checkoutSearchTerm}
+                type="text"
+                placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
+                value={checkoutSearchTerm}
                 onChange={(e) => { setCheckoutSearchTerm(e.target.value); setCheckoutEmpId(''); setIsDropdownOpen(true); }}
                 onFocus={() => setIsDropdownOpen(true)}
-                className={`w-full pl-11 pr-4 py-3.5 border rounded-xl outline-none bg-white text-base transition-all shadow-sm ${!checkoutEmpId && checkoutSearchTerm ? 'border-amber-300 focus:ring-amber-500 focus:border-amber-500' : 'border-slate-300 focus:ring-[#1E487A] focus:border-[#1E487A]'}`} autoComplete="off"
+                className={`w-full pl-11 pr-4 py-3.5 border rounded-xl outline-none bg-white text-base transition-all shadow-sm ${!checkoutEmpId && checkoutSearchTerm ? 'border-amber-300 focus:ring-amber-500 focus:border-amber-500' : 'border-slate-300 focus:ring-[#1E487A] focus:border-[#1E487A]'}`}
+                autoComplete="off"
               />
             </div>
-            
+
             {isDropdownOpen && (
               <div className="absolute z-10 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-[300px] overflow-y-auto">
                 {filteredEmployees.length > 0 ? (
                   filteredEmployees.map(emp => (
-                    <div key={emp.id} className={`px-5 py-3.5 cursor-pointer hover:bg-blue-50 transition-colors flex items-center gap-4 border-b border-slate-50 last:border-b-0 ${checkoutEmpId === emp.id ? 'bg-blue-50' : ''}`}
+                    <div
+                      key={emp.id}
+                      className={`px-5 py-3.5 cursor-pointer hover:bg-blue-50 transition-colors flex items-center gap-4 border-b border-slate-50 last:border-b-0 ${checkoutEmpId === emp.id ? 'bg-blue-50' : ''}`}
                       onClick={() => { setCheckoutEmpId(emp.id); setCheckoutSearchTerm(`${emp.empId} - ${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`); setIsDropdownOpen(false); }}
                     >
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1E487A] flex items-center justify-center font-bold text-base shrink-0 shadow-inner">{emp.fullName?.charAt(0) || '?'}</div>
-                      <div className="flex-1 min-w-0"><div className="font-bold text-slate-800 text-base truncate">{emp.fullName} {emp.nickname ? `(${emp.nickname})` : ''}</div><div className="text-sm text-slate-500 font-medium truncate">{emp.empId} • {emp.department || '-'}</div></div>
-                      {checkoutEmpId === emp.id && (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#1E487A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>)}
+                      <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1E487A] flex items-center justify-center font-bold text-base shrink-0 shadow-inner">
+                        {emp.fullName?.charAt(0) || '?'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-800 text-base truncate">{emp.fullName} {emp.nickname ? `(${emp.nickname})` : ''}</div>
+                        <div className="text-sm text-slate-500 font-medium truncate">{emp.empId} • {emp.department || '-'}</div>
+                      </div>
+                      {checkoutEmpId === emp.id && (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#1E487A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                     </div>
                   ))
-                ) : (<div className="p-5 text-center text-base text-slate-500 font-medium">ไม่พบข้อมูลพนักงาน</div>)}
+                ) : (
+                  <div className="p-5 text-center text-base text-slate-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
+                )}
               </div>
             )}
           </div>
 
-          <div className="mt-4">
+          {/* ── Remarks ── */}
+          <div>
             <label className="block text-base font-bold text-slate-700 mb-2">เหตุผล / หมายเหตุ (ถ้ามี)</label>
-            <textarea value={checkoutRemarks} onChange={(e) => setCheckoutRemarks(e.target.value)} className="w-full border border-slate-300 p-3.5 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-base transition-all resize-none shadow-sm" placeholder="ระบุเหตุผลการเบิกจ่าย หรือหมายเหตุเพิ่มเติม..." rows="2"></textarea>
+            <textarea
+              value={checkoutRemarks}
+              onChange={(e) => setCheckoutRemarks(e.target.value)}
+              className="w-full border border-slate-300 p-3.5 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-base transition-all resize-none shadow-sm"
+              placeholder="ระบุเหตุผลการเบิกจ่าย หรือหมายเหตุเพิ่มเติม..."
+              rows="2"
+            />
           </div>
-          
+
+          {/* ── Buttons ── */}
           <div className="flex gap-4 pt-5 border-t border-slate-100 mt-auto shrink-0">
-            <button type="button" onClick={() => { setCheckoutModal({ isOpen: false, assetId: null, collectionName: '' }); setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks(''); setIsDropdownOpen(false); }} className="flex-1 py-3.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold text-base transition-all">ยกเลิก</button>
-            <button type="submit" disabled={!checkoutEmpId} className={`flex-1 py-3.5 text-white rounded-xl font-bold text-base transition-all shadow-lg ${checkoutEmpId ? 'bg-[#1E487A] hover:bg-[#133257] shadow-[#1E487A]/30' : 'bg-slate-300 cursor-not-allowed shadow-none'}`}>ยืนยันเบิกจ่าย</button>
+            <button type="button" onClick={close} className="flex-1 py-3.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold text-base transition-all">
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              disabled={!checkoutEmpId || (needSelector && availableSlots.length === 0)}
+              className={`flex-1 py-3.5 text-white rounded-xl font-bold text-base transition-all shadow-lg ${checkoutEmpId && !(needSelector && availableSlots.length === 0) ? 'bg-[#1E487A] hover:bg-[#133257] shadow-[#1E487A]/30' : 'bg-slate-300 cursor-not-allowed shadow-none'}`}
+            >
+              ยืนยันเบิกจ่าย
+            </button>
           </div>
         </form>
       </div>

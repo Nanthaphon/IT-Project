@@ -1,24 +1,45 @@
 import React from 'react';
+import {
+  LayoutDashboard,
+  Server,
+  FileText,
+  Cpu,
+  Package,
+  ClipboardList,
+  Users,
+  Wrench,
+  RefreshCw,
+  KeyRound,
+  SlidersHorizontal,
+  BarChart3,
+} from 'lucide-react';
 
 const NAV_ITEMS = {
   admin: [
     {
       group: 'ทรัพย์สิน',
       items: [
-        { id: 'dashboard',   label: 'แดชบอร์ด',         icon: IconDashboard },
-        { id: 'assets',      label: 'ทรัพย์สินหลัก',     icon: IconAsset },
-        { id: 'licenses',    label: 'โปรแกรม / License', icon: IconLicense },
-        { id: 'accessories', label: 'อุปกรณ์เสริม',      icon: IconAccessory },
+        { id: 'dashboard',   label: 'แดชบอร์ด',         icon: LayoutDashboard },
+        { id: 'assets',      label: 'ทรัพย์สินหลัก',     icon: Server },
+        { id: 'licenses',    label: 'โปรแกรม / License', icon: FileText },
+        { id: 'accessories', label: 'อุปกรณ์เสริม',      icon: Cpu },
       ],
     },
     {
       group: 'การจัดการ',
       items: [
-        { id: 'office_supplies',      label: 'อุปกรณ์สำนักงาน',  icon: IconBox },
-        { id: 'supply_requests',      label: 'คำขอเบิกอุปกรณ์',  icon: IconClipboard },
-        { id: 'employees',            label: 'ข้อมูลพนักงาน',    icon: IconUsers },
-        { id: 'repairs',              label: 'แจ้งซ่อม',         icon: IconWrench },
-        { id: 'replacement_requests', label: 'ขอเปลี่ยนเครื่อง', icon: IconRefresh },
+        { id: 'office_supplies',      label: 'อุปกรณ์สำนักงาน',  icon: Package },
+        { id: 'supply_requests',      label: 'คำขอเบิกอุปกรณ์',  icon: ClipboardList },
+        { id: 'employees',            label: 'ข้อมูลพนักงาน',    icon: Users },
+        { id: 'repairs',              label: 'แจ้งซ่อม',         icon: Wrench },
+        { id: 'replacement_requests', label: 'ขอเปลี่ยนเครื่อง', icon: RefreshCw },
+      ],
+    },
+    {
+      group: 'ตั้งค่า',
+      items: [
+        { id: 'field_options', label: 'ตัวเลือกฟิลด์', icon: SlidersHorizontal },
+        { id: 'it_report',     label: 'สร้าง IT Report', icon: BarChart3 },
       ],
     },
   ],
@@ -26,9 +47,9 @@ const NAV_ITEMS = {
     {
       group: 'การจัดการ',
       items: [
-        { id: 'office_supplies', label: 'อุปกรณ์สำนักงาน', icon: IconBox },
-        { id: 'supply_requests', label: 'คำขอเบิกอุปกรณ์', icon: IconClipboard },
-        { id: 'employees',       label: 'ข้อมูลพนักงาน',   icon: IconUsers },
+        { id: 'office_supplies', label: 'อุปกรณ์สำนักงาน', icon: Package },
+        { id: 'supply_requests', label: 'คำขอเบิกอุปกรณ์', icon: ClipboardList },
+        { id: 'employees',       label: 'ข้อมูลพนักงาน',   icon: Users },
       ],
     },
   ],
@@ -38,45 +59,83 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
   const groups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
 
   return (
-    <aside
-      className="w-full md:w-60 flex flex-col flex-shrink-0 h-screen"
-      style={{ background: 'linear-gradient(180deg, #1E487A 0%, #133257 100%)' }}
+    <aside className="w-full md:w-64 flex flex-col flex-shrink-0 h-screen relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0f2544 0%, #0a1a33 60%, #071220 100%)' }}
     >
+      {/* Decorative background blobs */}
+      <div className="absolute top-0 left-0 w-48 h-48 rounded-full opacity-10 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)', transform: 'translate(-30%, -30%)' }} />
+      <div className="absolute bottom-20 right-0 w-40 h-40 rounded-full opacity-5 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', transform: 'translate(40%, 0)' }} />
+
       {/* Logo */}
-      <div className="h-14 px-5 flex items-center gap-3 border-b border-white/10 shrink-0">
-        <div className="w-8 h-8 bg-white/15 border border-white/20 text-white rounded-xl flex items-center justify-center font-serif italic text-base shadow-sm select-none">
-          G
+      <div className="relative px-5 pt-6 pb-5 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden"
+              style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <img src="/gb_icon.svg" alt="Logo" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 shadow-sm"
+              style={{ borderColor: '#0f2544', boxShadow: '0 0 6px rgba(52,211,153,0.6)' }} />
+          </div>
+          <div className="leading-tight">
+            <p className="text-sm font-bold text-white tracking-wide">IT Admin</p>
+            <p className="text-[11px] text-blue-300/60 tracking-widest uppercase">Asset Management</p>
+          </div>
         </div>
-        <div className="leading-tight">
-          <p className="text-sm font-semibold text-white">IT Admin</p>
-          <p className="text-[10px] text-blue-200/70 tracking-wide">Asset Management</p>
-        </div>
+        <div className="mt-5 h-px" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.08) 0%, transparent 100%)' }} />
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <nav className="relative flex-1 overflow-y-auto px-3 py-2 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {groups.map((group) => (
           <div key={group.group}>
-            <p className="text-[10px] font-semibold text-blue-200/50 uppercase tracking-widest px-2 mb-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] px-3 mb-2"
+              style={{ color: 'rgba(147,197,253,0.4)' }}>
               {group.group}
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {group.items.map(({ id, label, icon: Icon }) => {
                 const active = activeMenu === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setActiveMenu(id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
-                      active
-                        ? 'bg-white text-[#1E487A] font-semibold shadow-md'
-                        : 'text-blue-100/80 hover:bg-white/10 hover:text-white font-medium'
-                    }`}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group relative"
+                    style={active ? {
+                      background: 'linear-gradient(135deg, rgba(59,130,246,0.25) 0%, rgba(99,102,241,0.15) 100%)',
+                      boxShadow: 'inset 0 0 0 1px rgba(99,102,241,0.3)',
+                    } : {}}
                   >
-                    <Icon
-                      className={`h-4 w-4 shrink-0 ${active ? 'text-[#1E487A]' : 'text-blue-200/70'}`}
-                    />
-                    <span className="truncate">{label}</span>
+                    {/* Active left bar */}
+                    {active && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full"
+                        style={{ background: 'linear-gradient(180deg, #60a5fa, #818cf8)' }} />
+                    )}
+
+                    {/* Icon container */}
+                    <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200"
+                      style={active ? {
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+                        boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+                      } : {
+                        background: 'rgba(255,255,255,0.05)',
+                      }}>
+                      <Icon className={`h-4 w-4 transition-colors duration-200 ${active ? 'text-white' : 'text-blue-300/50 group-hover:text-blue-200'}`} />
+                    </span>
+
+                    <span className={`truncate font-medium transition-colors duration-200 ${
+                      active ? 'text-white' : 'text-blue-200/60 group-hover:text-blue-100'
+                    }`}>
+                      {label}
+                    </span>
+
+                    {/* Hover glow */}
+                    {!active && (
+                      <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        style={{ background: 'rgba(255,255,255,0.03)' }} />
+                    )}
                   </button>
                 );
               })}
@@ -84,98 +143,42 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
           </div>
         ))}
 
-        {/* เปลี่ยนรหัสผ่าน */}
+        {/* บัญชี */}
         <div>
-          <p className="text-[10px] font-semibold text-blue-200/50 uppercase tracking-widest px-2 mb-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] px-3 mb-2"
+            style={{ color: 'rgba(147,197,253,0.4)' }}>
             บัญชี
           </p>
           <button
             onClick={onResetPassword}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-blue-100/80 hover:bg-white/10 hover:text-white transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group"
           >
-            <IconLock className="h-4 w-4 shrink-0 text-blue-200/70" />
-            <span>เปลี่ยนรหัสผ่าน</span>
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <KeyRound className="h-4 w-4 text-blue-300/50 group-hover:text-blue-200 transition-colors" />
+            </span>
+            <span className="font-medium text-blue-200/60 group-hover:text-blue-100 transition-colors">
+              เปลี่ยนรหัสผ่าน
+            </span>
           </button>
         </div>
       </nav>
 
-      {/* Status footer */}
-      <div className="hidden md:flex items-center gap-2 px-5 py-3 border-t border-white/10 shrink-0">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
-        <span className="text-xs text-blue-200/60 font-medium">ระบบออนไลน์</span>
+      {/* Footer */}
+      <div className="relative hidden md:block px-4 py-4 shrink-0">
+        <div className="h-px mb-4" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.07) 0%, transparent 100%)' }} />
+        <div className="flex items-center gap-2.5 px-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"
+              style={{ boxShadow: '0 0 6px rgba(52,211,153,0.8)' }}></span>
+          </span>
+          <span className="text-xs font-medium" style={{ color: 'rgba(147,197,253,0.5)' }}>
+            ระบบออนไลน์
+          </span>
+        </div>
       </div>
     </aside>
   );
 }
 
-/* ── SVG Icon components ── */
-function IconDashboard({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5h7.5V3H3v10.5zM3 21h7.5v-4.5H3V21zm10.5 0H21v-10.5h-7.5V21zm0-18v4.5H21V3h-7.5z" />
-    </svg>
-  );
-}
-function IconAsset({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-    </svg>
-  );
-}
-function IconLicense({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  );
-}
-function IconAccessory({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-    </svg>
-  );
-}
-function IconBox({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-    </svg>
-  );
-}
-function IconClipboard({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-    </svg>
-  );
-}
-function IconUsers({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-function IconWrench({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-function IconRefresh({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  );
-}
-function IconLock({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-    </svg>
-  );
-}

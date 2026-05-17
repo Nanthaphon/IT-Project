@@ -27,22 +27,33 @@ export default function ActionBar({
   setIsAddModalOpen,
   handleExportAssets,
   visibleAssetColumns,
-  setVisibleAssetColumns
+  setVisibleAssetColumns,
+  handleExportLicenses,
+  selectedLicenseIds,
+  visibleLicenseColumns,
+  setVisibleLicenseColumns,
 }) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = React.useState(false);
   const columnDropdownRef = React.useRef(null);
+  const [isLicenseColumnDropdownOpen, setIsLicenseColumnDropdownOpen] = React.useState(false);
+  const licenseColumnDropdownRef = React.useRef(null);
 
   React.useEffect(() => {
     function handleClickOutside(event) {
-      if (columnDropdownRef.current && !columnDropdownRef.current.contains(event.target)) {
-        setIsColumnDropdownOpen(false);
-      }
+      if (columnDropdownRef.current && !columnDropdownRef.current.contains(event.target)) setIsColumnDropdownOpen(false);
+      if (licenseColumnDropdownRef.current && !licenseColumnDropdownRef.current.contains(event.target)) setIsLicenseColumnDropdownOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleColumn = (col) => setVisibleAssetColumns(prev => ({ ...prev, [col]: !prev[col] }));
+  const toggleLicenseColumn = (col) => setVisibleLicenseColumns(prev => ({ ...prev, [col]: !prev[col] }));
+  const licenseColumnLabels = {
+    image: 'รูปภาพ', name: 'ชื่อโปรแกรม', productKey: 'Product Key',
+    supplier: 'Supplier', purchaseDate: 'วันที่ซื้อ', expirationDate: 'วันหมดอายุ',
+    cost: 'ราคา', quantity: 'จำนวนสิทธิ์', status: 'สถานะ',
+  };
 
   const columnLabels = {
     name: 'ชื่ออุปกรณ์', type: 'ประเภท', department: 'แผนก', cost: 'ราคา', status: 'สถานะ',
@@ -192,9 +203,36 @@ export default function ActionBar({
           </>
         )}
 
-        {/* ── Import for licenses ── */}
+        {/* ── Licenses controls ── */}
         {activeMenu === 'licenses' && (
-          <Btn onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>
+          <>
+            <div className="relative" ref={licenseColumnDropdownRef}>
+              <Btn onClick={() => setIsLicenseColumnDropdownOpen(!isLicenseColumnDropdownOpen)}>
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+                คอลัมน์
+              </Btn>
+              {isLicenseColumnDropdownOpen && (
+                <div className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-2 space-y-0.5 max-h-64 overflow-y-auto">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">แสดงคอลัมน์</p>
+                  {Object.keys(licenseColumnLabels).map(col => (
+                    <label key={col} className={`flex items-center gap-2.5 text-sm px-2 py-1.5 rounded-lg cursor-pointer transition ${col === 'name' ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}`}>
+                      <input type="checkbox" checked={visibleLicenseColumns?.[col] ?? true} onChange={() => toggleLicenseColumn(col)} disabled={col === 'name'} className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
+                      <span className="text-slate-600 font-medium">{licenseColumnLabels[col]}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Btn onClick={handleExportLicenses}>ส่งออก CSV</Btn>
+            <Btn onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>
+            {selectedLicenseIds?.length > 0 && (
+              <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedLicenseIds, collectionName: 'licenses' })}>
+                ลบ ({selectedLicenseIds.length})
+              </DangerBtn>
+            )}
+          </>
         )}
 
         {/* ── Add button ── */}

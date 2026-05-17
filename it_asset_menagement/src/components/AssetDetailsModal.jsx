@@ -26,6 +26,27 @@ export default function AssetDetailsModal({
 
   const [isImportingCSV, setIsImportingCSV] = useState(false);
 
+  // License seat states
+  const [selectedLicenseSeatsForDelete, setSelectedLicenseSeatsForDelete] = useState([]);
+  const [isAddingNewLicenseSeat, setIsAddingNewLicenseSeat] = useState(false);
+  const [newSeatCount, setNewSeatCount] = useState(1);
+  const [newSeatProductKey, setNewSeatProductKey] = useState('');
+  const [newSeatKeyCode, setNewSeatKeyCode] = useState('');
+  const [newSeatSupplier, setNewSeatSupplier] = useState('');
+  const [newSeatCost, setNewSeatCost] = useState('');
+  const [newSeatPurchaseDate, setNewSeatPurchaseDate] = useState('');
+  const [newSeatExpirationDate, setNewSeatExpirationDate] = useState('');
+  const [newSeatDocs, setNewSeatDocs] = useState([]);
+  const [isImportingLicenseCSV, setIsImportingLicenseCSV] = useState(false);
+  const [editingLicenseSeatId, setEditingLicenseSeatId] = useState(null);
+  const [tempLicenseSupplier, setTempLicenseSupplier] = useState('');
+  const [tempLicensePurchaseDate, setTempLicensePurchaseDate] = useState('');
+  const [tempLicenseExpirationDate, setTempLicenseExpirationDate] = useState('');
+  const [tempLicenseProductKey, setTempLicenseProductKey] = useState('');
+  const [tempLicenseKeyCode, setTempLicenseKeyCode] = useState('');
+  const [tempLicenseSeatCost, setTempLicenseSeatCost] = useState('');
+  const [tempLicenseSeatDocs, setTempLicenseSeatDocs] = useState([]);
+
   // 🟢 State สำหรับจัดการ Tab
   const [activeTab, setActiveTab] = useState('info'); // 'info', 'history', 'docs'
 
@@ -164,35 +185,33 @@ export default function AssetDetailsModal({
       const currentQty = Number(currentAssetDetail.quantity || 0);
       const addQty = Number(newItemData.quantity) || 1;
 
-      const newAvailableSNs = [...(currentAssetDetail.availableSNs || [])];
-      const newAvailableModels = [...(currentAssetDetail.availableModels || [])];
-      const newAvailableCosts = [...(currentAssetDetail.availableCosts || [])];
-      const newAvailablePurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
-      const newAvailableWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
-
-      const availableCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
-
-      while (newAvailableSNs.length < availableCount) newAvailableSNs.push('');
-      while (newAvailableModels.length < availableCount) newAvailableModels.push('');
-      while (newAvailableCosts.length < availableCount) newAvailableCosts.push('');
-      while (newAvailablePurchaseDates.length < availableCount) newAvailablePurchaseDates.push('');
-      while (newAvailableWarrantyDates.length < availableCount) newAvailableWarrantyDates.push('');
+      // Always write to availableItems (new format) — migrates existing data as needed
+      const existingItems = Array.isArray(currentAssetDetail.availableItems)
+        ? [...currentAssetDetail.availableItems]
+        : (() => {
+            const availCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
+            return Array.from({length: availCount}, (_, i) => ({
+              sn: currentAssetDetail.availableSNs?.[i] || '',
+              model: currentAssetDetail.availableModels?.[i] || '',
+              cost: currentAssetDetail.availableCosts?.[i] || '',
+              purchaseDate: currentAssetDetail.availablePurchaseDates?.[i] || '',
+              warrantyDate: currentAssetDetail.availableWarrantyDates?.[i] || '',
+            }));
+          })();
 
       for (let i = 0; i < addQty; i++) {
-        newAvailableSNs.push(newItemData.sn.trim());
-        newAvailableModels.push(newItemData.model.trim());
-        newAvailableCosts.push(newItemData.cost.trim());
-        newAvailablePurchaseDates.push(newItemData.purchaseDate);
-        newAvailableWarrantyDates.push(newItemData.warrantyDate);
+        existingItems.push({
+          sn: newItemData.sn.trim(),
+          model: newItemData.model.trim(),
+          cost: newItemData.cost.trim(),
+          purchaseDate: newItemData.purchaseDate,
+          warrantyDate: newItemData.warrantyDate,
+        });
       }
 
       await updateDoc(docRef, {
         quantity: currentQty + addQty,
-        availableSNs: newAvailableSNs,
-        availableModels: newAvailableModels,
-        availableCosts: newAvailableCosts,
-        availablePurchaseDates: newAvailablePurchaseDates,
-        availableWarrantyDates: newAvailableWarrantyDates
+        availableItems: existingItems,
       });
 
       setIsAddingNew(false);
@@ -211,62 +230,51 @@ export default function AssetDetailsModal({
       const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
       
       if (item.type === 'available') {
-        const newSNs = [...(currentAssetDetail.availableSNs || [])];
-        const newModels = [...(currentAssetDetail.availableModels || [])];
-        const newCosts = [...(currentAssetDetail.availableCosts || [])];
-        const newPurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
-        const newWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
-
-        while (newSNs.length <= item.originalIndex) newSNs.push('');
-        while (newModels.length <= item.originalIndex) newModels.push('');
-        while (newCosts.length <= item.originalIndex) newCosts.push('');
-        while (newPurchaseDates.length <= item.originalIndex) newPurchaseDates.push('');
-        while (newWarrantyDates.length <= item.originalIndex) newWarrantyDates.push('');
-
-        newSNs[item.originalIndex] = tempSNValue.trim();
-        newModels[item.originalIndex] = tempModelValue.trim();
-        newCosts[item.originalIndex] = tempCostValue.trim();
-        newPurchaseDates[item.originalIndex] = tempPurchaseDateValue;
-        newWarrantyDates[item.originalIndex] = tempWarrantyDateValue;
-
-        await updateDoc(docRef, { 
-          availableSNs: newSNs, availableModels: newModels, availableCosts: newCosts, availablePurchaseDates: newPurchaseDates, availableWarrantyDates: newWarrantyDates 
-        });
-      } 
+        const idx = item.originalIndex;
+        if (Array.isArray(currentAssetDetail.availableItems)) {
+          const newItems = [...currentAssetDetail.availableItems];
+          if (newItems[idx]) {
+            newItems[idx] = { ...newItems[idx], sn: tempSNValue.trim(), model: tempModelValue.trim(), cost: tempCostValue.trim(), purchaseDate: tempPurchaseDateValue, warrantyDate: tempWarrantyDateValue };
+          }
+          await updateDoc(docRef, { availableItems: newItems });
+        } else {
+          // old parallel array format
+          const newSNs = [...(currentAssetDetail.availableSNs||[])]; while (newSNs.length <= idx) newSNs.push(''); newSNs[idx] = tempSNValue.trim();
+          const newModels = [...(currentAssetDetail.availableModels||[])]; while (newModels.length <= idx) newModels.push(''); newModels[idx] = tempModelValue.trim();
+          const newCosts = [...(currentAssetDetail.availableCosts||[])]; while (newCosts.length <= idx) newCosts.push(''); newCosts[idx] = tempCostValue.trim();
+          const newPurchaseDates = [...(currentAssetDetail.availablePurchaseDates||[])]; while (newPurchaseDates.length <= idx) newPurchaseDates.push(''); newPurchaseDates[idx] = tempPurchaseDateValue;
+          const newWarrantyDates = [...(currentAssetDetail.availableWarrantyDates||[])]; while (newWarrantyDates.length <= idx) newWarrantyDates.push(''); newWarrantyDates[idx] = tempWarrantyDateValue;
+          await updateDoc(docRef, { availableSNs: newSNs, availableModels: newModels, availableCosts: newCosts, availablePurchaseDates: newPurchaseDates, availableWarrantyDates: newWarrantyDates });
+        }
+      }
       else if (item.type === 'assigned') {
         const newAssignees = [...(currentAssetDetail.assignees || [])];
         const idx = newAssignees.findIndex(a => a.checkoutId === item.assignee.checkoutId);
         if (idx !== -1) {
           newAssignees[idx].serialNumber = tempSNValue.trim();
           newAssignees[idx].model = tempModelValue.trim();
-          newAssignees[idx].customCost = tempCostValue.trim();
+          newAssignees[idx].itemCost = tempCostValue.trim();
           newAssignees[idx].purchaseDate = tempPurchaseDateValue;
           newAssignees[idx].warrantyDate = tempWarrantyDateValue;
           await updateDoc(docRef, { assignees: newAssignees });
         }
       } 
       else if (item.type === 'broken') {
-        const newSNs = [...(currentAssetDetail.brokenSNs || [])];
-        const newModels = [...(currentAssetDetail.brokenModels || [])];
-        const newCosts = [...(currentAssetDetail.brokenCosts || [])];
-        const newPurchaseDates = [...(currentAssetDetail.brokenPurchaseDates || [])];
-        const newWarrantyDates = [...(currentAssetDetail.brokenWarrantyDates || [])];
-
-        while (newSNs.length <= item.originalIndex) newSNs.push('');
-        while (newModels.length <= item.originalIndex) newModels.push('');
-        while (newCosts.length <= item.originalIndex) newCosts.push('');
-        while (newPurchaseDates.length <= item.originalIndex) newPurchaseDates.push('');
-        while (newWarrantyDates.length <= item.originalIndex) newWarrantyDates.push('');
-
-        newSNs[item.originalIndex] = tempSNValue.trim();
-        newModels[item.originalIndex] = tempModelValue.trim();
-        newCosts[item.originalIndex] = tempCostValue.trim();
-        newPurchaseDates[item.originalIndex] = tempPurchaseDateValue;
-        newWarrantyDates[item.originalIndex] = tempWarrantyDateValue;
-
-        await updateDoc(docRef, { 
-          brokenSNs: newSNs, brokenModels: newModels, brokenCosts: newCosts, brokenPurchaseDates: newPurchaseDates, brokenWarrantyDates: newWarrantyDates 
-        });
+        const idx = item.originalIndex;
+        if (Array.isArray(currentAssetDetail.brokenItems)) {
+          const newItems = [...currentAssetDetail.brokenItems];
+          if (newItems[idx]) {
+            newItems[idx] = { ...newItems[idx], sn: tempSNValue.trim(), model: tempModelValue.trim(), cost: tempCostValue.trim(), purchaseDate: tempPurchaseDateValue, warrantyDate: tempWarrantyDateValue };
+          }
+          await updateDoc(docRef, { brokenItems: newItems });
+        } else {
+          const newSNs = [...(currentAssetDetail.brokenSNs||[])]; while (newSNs.length <= idx) newSNs.push(''); newSNs[idx] = tempSNValue.trim();
+          const newModels = [...(currentAssetDetail.brokenModels||[])]; while (newModels.length <= idx) newModels.push(''); newModels[idx] = tempModelValue.trim();
+          const newCosts = [...(currentAssetDetail.brokenCosts||[])]; while (newCosts.length <= idx) newCosts.push(''); newCosts[idx] = tempCostValue.trim();
+          const newPurchaseDates = [...(currentAssetDetail.brokenPurchaseDates||[])]; while (newPurchaseDates.length <= idx) newPurchaseDates.push(''); newPurchaseDates[idx] = tempPurchaseDateValue;
+          const newWarrantyDates = [...(currentAssetDetail.brokenWarrantyDates||[])]; while (newWarrantyDates.length <= idx) newWarrantyDates.push(''); newWarrantyDates[idx] = tempWarrantyDateValue;
+          await updateDoc(docRef, { brokenSNs: newSNs, brokenModels: newModels, brokenCosts: newCosts, brokenPurchaseDates: newPurchaseDates, brokenWarrantyDates: newWarrantyDates });
+        }
       }
       setEditingItemId(null);
     } catch (error) {
@@ -368,42 +376,71 @@ export default function AssetDetailsModal({
     const totalQty = currentAssetDetail.quantity ? Number(currentAssetDetail.quantity) : 0;
     const assigneesCount = currentAssetDetail.assignees?.length || 0;
     const brokenCount = Number(currentAssetDetail.brokenQuantity || 0);
-    const availableCount = Math.max(0, totalQty - assigneesCount - brokenCount);
 
-    for (let i = 0; i < availableCount; i++) {
-      individualItems.push({ 
-        type: 'available', status: 'พร้อมใช้งาน', 
-        sn: currentAssetDetail.availableSNs?.[i] || '', 
-        model: currentAssetDetail.availableModels?.[i] || '',
-        itemCost: currentAssetDetail.availableCosts?.[i] || '',
-        purchaseDate: currentAssetDetail.availablePurchaseDates?.[i] || '',
-        warrantyDate: currentAssetDetail.availableWarrantyDates?.[i] || '',
-        id: `avail-${i}`, originalIndex: i
+    // Available items — prefer new format, fall back to parallel arrays
+    if (Array.isArray(currentAssetDetail.availableItems)) {
+      currentAssetDetail.availableItems.forEach((it, i) => {
+        individualItems.push({
+          type: 'available', status: 'พร้อมใช้งาน',
+          sn: it.sn || '', model: it.model || '',
+          itemCost: it.cost || '',
+          purchaseDate: it.purchaseDate || '', warrantyDate: it.warrantyDate || '',
+          id: `avail-${i}`, originalIndex: i,
+        });
       });
+    } else {
+      const availableCount = Math.max(0, totalQty - assigneesCount - brokenCount);
+      for (let i = 0; i < availableCount; i++) {
+        individualItems.push({
+          type: 'available', status: 'พร้อมใช้งาน',
+          sn: currentAssetDetail.availableSNs?.[i] || '',
+          model: currentAssetDetail.availableModels?.[i] || '',
+          itemCost: currentAssetDetail.availableCosts?.[i] || '',
+          purchaseDate: currentAssetDetail.availablePurchaseDates?.[i] || '',
+          warrantyDate: currentAssetDetail.availableWarrantyDates?.[i] || '',
+          id: `avail-${i}`, originalIndex: i,
+        });
+      }
     }
+
+    // Assigned items
     if (currentAssetDetail.assignees) {
       currentAssetDetail.assignees.forEach((a, i) => {
-        individualItems.push({ 
-          type: 'assigned', status: 'ถูกใช้งาน', 
-          assignee: a, sn: a.serialNumber || '', 
+        individualItems.push({
+          type: 'assigned', status: 'ถูกใช้งาน',
+          assignee: a, sn: a.serialNumber || '',
           model: a.model || '',
-          itemCost: a.customCost || '',
+          itemCost: a.itemCost || a.customCost || '',
           purchaseDate: a.purchaseDate || '',
           warrantyDate: a.warrantyDate || '',
-          id: `assign-${a.checkoutId || i}`, originalIndex: i
+          id: `assign-${a.checkoutId || i}`, originalIndex: i,
         });
       });
     }
-    for (let i = 0; i < brokenCount; i++) {
-      individualItems.push({ 
-        type: 'broken', status: 'ชำรุดเสียหาย', 
-        sn: currentAssetDetail.brokenSNs?.[i] || '', 
-        model: currentAssetDetail.brokenModels?.[i] || '',
-        itemCost: currentAssetDetail.brokenCosts?.[i] || '',
-        purchaseDate: currentAssetDetail.brokenPurchaseDates?.[i] || '',
-        warrantyDate: currentAssetDetail.brokenWarrantyDates?.[i] || '',
-        id: `broken-${i}`, originalIndex: i
+
+    // Broken items — prefer new format, fall back to parallel arrays
+    if (Array.isArray(currentAssetDetail.brokenItems)) {
+      currentAssetDetail.brokenItems.forEach((it, i) => {
+        individualItems.push({
+          type: 'broken', status: 'ชำรุดเสียหาย',
+          sn: it.sn || '', model: it.model || '',
+          itemCost: it.cost || '',
+          purchaseDate: it.purchaseDate || '', warrantyDate: it.warrantyDate || '',
+          id: `broken-${i}`, originalIndex: i,
+        });
       });
+    } else {
+      for (let i = 0; i < brokenCount; i++) {
+        individualItems.push({
+          type: 'broken', status: 'ชำรุดเสียหาย',
+          sn: currentAssetDetail.brokenSNs?.[i] || '',
+          model: currentAssetDetail.brokenModels?.[i] || '',
+          itemCost: currentAssetDetail.brokenCosts?.[i] || '',
+          purchaseDate: currentAssetDetail.brokenPurchaseDates?.[i] || '',
+          warrantyDate: currentAssetDetail.brokenWarrantyDates?.[i] || '',
+          id: `broken-${i}`, originalIndex: i,
+        });
+      }
     }
 
     individualItems.sort((a, b) => {
@@ -419,6 +456,33 @@ export default function AssetDetailsModal({
   if (selectedAssetCategory === 'accessories') {
     totalAccessoriesCost = individualItems.reduce((sum, item) => sum + (Number(item.itemCost) || 0), 0);
   }
+
+  let licenseSeats = [];
+  if (selectedAssetCategory === 'licenses') {
+    const totalQty = Number(currentAssetDetail.quantity || 0);
+    const assignees = currentAssetDetail.assignees || [];
+    const availableCount = Math.max(0, totalQty - assignees.length);
+    for (let i = 0; i < availableCount; i++) {
+      licenseSeats.push({
+        type: 'available', id: `avail-${i}`, index: i,
+        productKey: currentAssetDetail.availableKeys?.[i] || '',
+        keyCode: currentAssetDetail.availableKeyCodes?.[i] || '',
+        seatCost: currentAssetDetail.availableSeatCosts?.[i] || '',
+        documents: currentAssetDetail.availableSeatDocs?.[String(i)] || [],
+      });
+    }
+    assignees.forEach((a, i) => {
+      licenseSeats.push({
+        type: 'assigned', id: `assign-${a.checkoutId || i}`, assignee: a,
+        productKey: a.productKey || '',
+        keyCode: a.keyCode || '',
+        seatCost: a.seatCost || '',
+        documents: a.seatDocuments || [],
+      });
+    });
+  }
+
+  const totalLicenseCost = licenseSeats.reduce((sum, s) => sum + (Number(s.seatCost) || 0), 0);
 
   const handleSelectItem = (itemId) => {
     setSelectedItemsForDelete(prev => 
@@ -446,28 +510,36 @@ export default function AssetDetailsModal({
           const availIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('avail-')).map(id => parseInt(id.replace('avail-', '')));
           const brokenIndicesToDelete = selectedItemsForDelete.filter(id => id.startsWith('broken-')).map(id => parseInt(id.replace('broken-', '')));
           const assignIdsToDelete = selectedItemsForDelete.filter(id => id.startsWith('assign-')).map(id => id.replace('assign-', ''));
-          const newAvailableSNs = (currentAssetDetail.availableSNs || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-          const newAvailableModels = (currentAssetDetail.availableModels || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-          const newAvailableCosts = (currentAssetDetail.availableCosts || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-          const newAvailablePurchaseDates = (currentAssetDetail.availablePurchaseDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-          const newAvailableWarrantyDates = (currentAssetDetail.availableWarrantyDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
-          const newBrokenSNs = (currentAssetDetail.brokenSNs || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-          const newBrokenModels = (currentAssetDetail.brokenModels || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-          const newBrokenCosts = (currentAssetDetail.brokenCosts || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-          const newBrokenPurchaseDates = (currentAssetDetail.brokenPurchaseDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
-          const newBrokenWarrantyDates = (currentAssetDetail.brokenWarrantyDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
           const newAssignees = (currentAssetDetail.assignees || []).filter(a => !assignIdsToDelete.includes(a.checkoutId));
           const totalDeleted = selectedItemsForDelete.length;
           const newQuantity = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - totalDeleted);
           const newBrokenQuantity = Math.max(0, (Number(currentAssetDetail.brokenQuantity) || 0) - brokenIndicesToDelete.length);
-          await updateDoc(docRef, {
-            quantity: newQuantity, brokenQuantity: newBrokenQuantity,
-            availableSNs: newAvailableSNs, availableModels: newAvailableModels, availableCosts: newAvailableCosts,
-            availablePurchaseDates: newAvailablePurchaseDates, availableWarrantyDates: newAvailableWarrantyDates,
-            brokenSNs: newBrokenSNs, brokenModels: newBrokenModels, brokenCosts: newBrokenCosts,
-            brokenPurchaseDates: newBrokenPurchaseDates, brokenWarrantyDates: newBrokenWarrantyDates,
-            assignees: newAssignees
-          });
+
+          const updatePayload = { quantity: newQuantity, brokenQuantity: newBrokenQuantity, assignees: newAssignees };
+
+          // Available items: prefer new format, fall back to parallel arrays
+          if (Array.isArray(currentAssetDetail.availableItems)) {
+            updatePayload.availableItems = currentAssetDetail.availableItems.filter((_, i) => !availIndicesToDelete.includes(i));
+          } else {
+            updatePayload.availableSNs = (currentAssetDetail.availableSNs || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+            updatePayload.availableModels = (currentAssetDetail.availableModels || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+            updatePayload.availableCosts = (currentAssetDetail.availableCosts || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+            updatePayload.availablePurchaseDates = (currentAssetDetail.availablePurchaseDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+            updatePayload.availableWarrantyDates = (currentAssetDetail.availableWarrantyDates || []).filter((_, idx) => !availIndicesToDelete.includes(idx));
+          }
+
+          // Broken items: prefer new format, fall back to parallel arrays
+          if (Array.isArray(currentAssetDetail.brokenItems)) {
+            updatePayload.brokenItems = currentAssetDetail.brokenItems.filter((_, i) => !brokenIndicesToDelete.includes(i));
+          } else {
+            updatePayload.brokenSNs = (currentAssetDetail.brokenSNs || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+            updatePayload.brokenModels = (currentAssetDetail.brokenModels || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+            updatePayload.brokenCosts = (currentAssetDetail.brokenCosts || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+            updatePayload.brokenPurchaseDates = (currentAssetDetail.brokenPurchaseDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+            updatePayload.brokenWarrantyDates = (currentAssetDetail.brokenWarrantyDates || []).filter((_, idx) => !brokenIndicesToDelete.includes(idx));
+          }
+
+          await updateDoc(docRef, updatePayload);
           setSelectedItemsForDelete([]);
           setExpandedItem(null);
           setEditingItemId(null);
@@ -530,26 +602,25 @@ export default function AssetDetailsModal({
           try {
             const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
             const currentQty = Number(currentAssetDetail.quantity || 0);
-            const availableCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
-            const updatedAvailableSNs = [...(currentAssetDetail.availableSNs || [])];
-            const updatedAvailableModels = [...(currentAssetDetail.availableModels || [])];
-            const updatedAvailableCosts = [...(currentAssetDetail.availableCosts || [])];
-            const updatedAvailablePurchaseDates = [...(currentAssetDetail.availablePurchaseDates || [])];
-            const updatedAvailableWarrantyDates = [...(currentAssetDetail.availableWarrantyDates || [])];
-            while (updatedAvailableSNs.length < availableCount) updatedAvailableSNs.push('');
-            while (updatedAvailableModels.length < availableCount) updatedAvailableModels.push('');
-            while (updatedAvailableCosts.length < availableCount) updatedAvailableCosts.push('');
-            while (updatedAvailablePurchaseDates.length < availableCount) updatedAvailablePurchaseDates.push('');
-            while (updatedAvailableWarrantyDates.length < availableCount) updatedAvailableWarrantyDates.push('');
-            updatedAvailableSNs.push(...newSNs);
-            updatedAvailableModels.push(...newModels);
-            updatedAvailableCosts.push(...newCosts);
-            updatedAvailablePurchaseDates.push(...newPurchaseDates);
-            updatedAvailableWarrantyDates.push(...newWarrantyDates);
+            // Always write to availableItems (new format) — migrates existing data as needed
+            const existingItems = Array.isArray(currentAssetDetail.availableItems)
+              ? [...currentAssetDetail.availableItems]
+              : (() => {
+                  const availCount = Math.max(0, currentQty - (currentAssetDetail.assignees?.length || 0) - Number(currentAssetDetail.brokenQuantity || 0));
+                  return Array.from({length: availCount}, (_, i) => ({
+                    sn: currentAssetDetail.availableSNs?.[i] || '',
+                    model: currentAssetDetail.availableModels?.[i] || '',
+                    cost: currentAssetDetail.availableCosts?.[i] || '',
+                    purchaseDate: currentAssetDetail.availablePurchaseDates?.[i] || '',
+                    warrantyDate: currentAssetDetail.availableWarrantyDates?.[i] || '',
+                  }));
+                })();
+            for (let i = 0; i < dataRows.length; i++) {
+              existingItems.push({ sn: newSNs[i] || '', model: newModels[i] || '', cost: newCosts[i] || '', purchaseDate: newPurchaseDates[i] || '', warrantyDate: newWarrantyDates[i] || '' });
+            }
             await updateDoc(docRef, {
               quantity: currentQty + dataRows.length,
-              availableSNs: updatedAvailableSNs, availableModels: updatedAvailableModels, availableCosts: updatedAvailableCosts,
-              availablePurchaseDates: updatedAvailablePurchaseDates, availableWarrantyDates: updatedAvailableWarrantyDates
+              availableItems: existingItems,
             });
             setIsImportingCSV(false);
             setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: 'นำเข้าข้อมูลรายการย่อยเรียบร้อยแล้ว', type: 'success' });
@@ -566,6 +637,212 @@ export default function AssetDetailsModal({
     reader.readAsText(file);
   };
 
+  const handleAddLicenseSeats = async () => {
+    if (isSavingItem) return;
+    setIsSavingItem(true);
+    try {
+      const count = Number(newSeatCount) || 1;
+      const existingAvailCount = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0));
+      const newKeys = [...(currentAssetDetail.availableKeys || [])];
+      const newKeyCodes = [...(currentAssetDetail.availableKeyCodes || [])];
+      const newCosts = [...(currentAssetDetail.availableSeatCosts || [])];
+      const newDocMap = { ...(currentAssetDetail.availableSeatDocs || {}) };
+      for (let i = 0; i < count; i++) {
+        newKeys.push(newSeatProductKey.trim());
+        newKeyCodes.push(newSeatKeyCode.trim());
+        newCosts.push(newSeatCost.trim());
+        if (newSeatDocs.length > 0) newDocMap[String(existingAvailCount + i)] = newSeatDocs;
+      }
+      const updateData = {
+        quantity: (Number(currentAssetDetail.quantity) || 0) + count,
+        availableKeys: newKeys,
+        availableKeyCodes: newKeyCodes,
+        availableSeatCosts: newCosts,
+        availableSeatDocs: newDocMap,
+      };
+      if (newSeatSupplier.trim()) updateData.supplier = newSeatSupplier.trim();
+      if (newSeatPurchaseDate) updateData.purchaseDate = newSeatPurchaseDate;
+      if (newSeatExpirationDate) updateData.expirationDate = newSeatExpirationDate;
+      await updateDoc(doc(db, 'licenses', currentAssetDetail.id), updateData);
+      setIsAddingNewLicenseSeat(false);
+      setNewSeatCount(1);
+      setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier('');
+      setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate('');
+      setNewSeatDocs([]);
+    } catch (error) { console.error(error); }
+    finally { setIsSavingItem(false); }
+  };
+
+  const handleNewSeatDocUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ไฟล์ใหญ่เกินไป', message: 'แต่ละไฟล์ต้องไม่เกิน 5MB', type: 'error' });
+      e.target.value = null; return;
+    }
+    setIsSavingItem(true);
+    try {
+      const newDocs = await Promise.all(files.map(file => new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onloadend = () => res({ name: file.name, data: reader.result });
+        reader.onerror = rej;
+        reader.readAsDataURL(file);
+      })));
+      setNewSeatDocs(prev => [...prev, ...newDocs]);
+    } catch (err) { console.error(err); }
+    finally { setIsSavingItem(false); e.target.value = null; }
+  };
+
+  const handleSelectLicenseSeat = (seatId) => {
+    setSelectedLicenseSeatsForDelete(prev =>
+      prev.includes(seatId) ? prev.filter(id => id !== seatId) : [...prev, seatId]
+    );
+  };
+
+  const handleSelectAllLicenseSeats = () => {
+    if (selectedLicenseSeatsForDelete.length === licenseSeats.length) {
+      setSelectedLicenseSeatsForDelete([]);
+    } else {
+      setSelectedLicenseSeatsForDelete(licenseSeats.map(s => s.id));
+    }
+  };
+
+  const handleDeleteSelectedLicenseSeats = () => {
+    showConfirm('ยืนยันการลบ', `ต้องการลบสิทธิ์ที่เลือก ${selectedLicenseSeatsForDelete.length} รายการ?`, async () => {
+      if (isSavingItem) return;
+      setIsSavingItem(true);
+      try {
+        const availIndices = selectedLicenseSeatsForDelete.filter(id => id.startsWith('avail-')).map(id => parseInt(id.replace('avail-', '')));
+        const assigneeIdsToDelete = selectedLicenseSeatsForDelete.filter(id => id.startsWith('assign-')).map(id => id.replace('assign-', ''));
+        const newAssignees = (currentAssetDetail.assignees || []).filter(a => !assigneeIdsToDelete.includes(a.checkoutId));
+        const totalDeleted = availIndices.length + assigneeIdsToDelete.length;
+        const newQty = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - totalDeleted);
+        const newStatus = newAssignees.length >= newQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+        await updateDoc(doc(db, 'licenses', currentAssetDetail.id), {
+          quantity: newQty, assignees: newAssignees, status: newStatus,
+          assignedTo: newAssignees.length > 0 ? newAssignees.map(a => a.empId).join(',') : null,
+          assignedName: newAssignees.length > 0 ? newAssignees.map(a => a.empName).join(', ') : null,
+          availableKeys: (currentAssetDetail.availableKeys || []).filter((_, i) => !availIndices.includes(i)),
+          availableKeyCodes: (currentAssetDetail.availableKeyCodes || []).filter((_, i) => !availIndices.includes(i)),
+          availableSeatCosts: (currentAssetDetail.availableSeatCosts || []).filter((_, i) => !availIndices.includes(i)),
+          availableSeatDocs: (() => {
+            const oldDocMap = currentAssetDetail.availableSeatDocs || {};
+            const totalAvail = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0));
+            const newDocMap = {};
+            let newIdx = 0;
+            for (let i = 0; i < totalAvail; i++) {
+              if (!availIndices.includes(i)) {
+                if (oldDocMap[String(i)]) newDocMap[String(newIdx)] = oldDocMap[String(i)];
+                newIdx++;
+              }
+            }
+            return newDocMap;
+          })(),
+        });
+        setSelectedLicenseSeatsForDelete([]);
+        setExpandedItem(null);
+      } catch (error) {
+        if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
+      } finally { setIsSavingItem(false); }
+    }, { confirmText: 'ลบ', icon: 'trash' });
+  };
+
+  const handleSaveLicenseSeatEdit = async (seat) => {
+    if (isSavingItem) return;
+    setIsSavingItem(true);
+    try {
+      const docRef = doc(db, 'licenses', currentAssetDetail.id);
+      const updateData = { supplier: tempLicenseSupplier, purchaseDate: tempLicensePurchaseDate, expirationDate: tempLicenseExpirationDate };
+
+      if (seat.type === 'available') {
+        const idx = seat.index;
+        const pad = (arr, val) => { const a = [...(arr || [])]; while (a.length <= idx) a.push(val); return a; };
+        const newKeys = pad(currentAssetDetail.availableKeys, ''); newKeys[idx] = tempLicenseProductKey;
+        const newKeyCodes = pad(currentAssetDetail.availableKeyCodes, ''); newKeyCodes[idx] = tempLicenseKeyCode;
+        const newCosts = pad(currentAssetDetail.availableSeatCosts, ''); newCosts[idx] = tempLicenseSeatCost;
+        const newDocMap = { ...(currentAssetDetail.availableSeatDocs || {}) };
+        if (tempLicenseSeatDocs.length > 0) newDocMap[String(idx)] = tempLicenseSeatDocs;
+        else delete newDocMap[String(idx)];
+        Object.assign(updateData, { availableKeys: newKeys, availableKeyCodes: newKeyCodes, availableSeatCosts: newCosts, availableSeatDocs: newDocMap });
+      } else if (seat.type === 'assigned') {
+        const newAssignees = [...(currentAssetDetail.assignees || [])];
+        const idx = newAssignees.findIndex(a => a.checkoutId === seat.assignee.checkoutId);
+        if (idx !== -1) {
+          newAssignees[idx] = { ...newAssignees[idx], productKey: tempLicenseProductKey, keyCode: tempLicenseKeyCode, seatCost: tempLicenseSeatCost, seatDocuments: tempLicenseSeatDocs };
+          updateData.assignees = newAssignees;
+        }
+      }
+      await updateDoc(docRef, updateData);
+      setEditingLicenseSeatId(null);
+    } catch (error) { console.error(error); }
+    finally { setIsSavingItem(false); }
+  };
+
+  const handleLicenseSeatDocUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ไฟล์ใหญ่เกินไป', message: 'แต่ละไฟล์ต้องไม่เกิน 5MB', type: 'error' });
+      e.target.value = null; return;
+    }
+    setIsSavingItem(true);
+    try {
+      const newDocs = await Promise.all(files.map(file => new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onloadend = () => res({ name: file.name, data: reader.result });
+        reader.onerror = rej;
+        reader.readAsDataURL(file);
+      })));
+      setTempLicenseSeatDocs(prev => [...prev, ...newDocs]);
+    } catch (err) { console.error(err); }
+    finally { setIsSavingItem(false); e.target.value = null; }
+  };
+
+  const handleDownloadLicenseSeatTemplate = () => {
+    const csv = '"จำนวนสิทธิ์ที่เพิ่ม"\n"1"\n';
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'template_license_seats.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUploadLicenseSeatCSV = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const rows = event.target.result.split('\n').filter(r => r.trim() !== '');
+      if (rows.length <= 1) {
+        if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: 'ไม่พบข้อมูลในไฟล์', type: 'error' });
+        e.target.value = null; return;
+      }
+      const count = rows.slice(1).reduce((sum, row) => {
+        const val = parseInt(row.replace(/[^0-9]/g, ''));
+        return sum + (isNaN(val) ? 0 : val);
+      }, 0);
+      if (count <= 0) {
+        if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: 'ไม่พบจำนวนสิทธิ์ที่ถูกต้อง', type: 'error' });
+        e.target.value = null; return;
+      }
+      showConfirm('ยืนยันการนำเข้า', `ต้องการเพิ่มสิทธิ์อีก ${count} สิทธิ์?`, async () => {
+        setIsSavingItem(true);
+        try {
+          await updateDoc(doc(db, 'licenses', currentAssetDetail.id), {
+            quantity: (Number(currentAssetDetail.quantity) || 0) + count
+          });
+          setIsImportingLicenseCSV(false);
+          if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: `เพิ่มสิทธิ์อีก ${count} สิทธิ์เรียบร้อย`, type: 'success' });
+        } catch (err) {
+          if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: err.message, type: 'error' });
+        } finally { setIsSavingItem(false); }
+      }, { confirmText: 'นำเข้า' });
+      e.target.value = null;
+    };
+    reader.readAsText(file);
+  };
+
   const closeAll = () => {
     setSelectedAssetDetail(null);
     setSelectedAssetCategory('');
@@ -573,8 +850,16 @@ export default function AssetDetailsModal({
     setEditingItemId(null);
     setIsAddingNew(false);
     setShowLabelPreview(false);
-    setSelectedItemsForDelete([]); 
+    setSelectedItemsForDelete([]);
     setIsImportingCSV(false);
+    setSelectedLicenseSeatsForDelete([]);
+    setIsAddingNewLicenseSeat(false);
+    setIsImportingLicenseCSV(false);
+    setEditingLicenseSeatId(null);
+    setTempLicenseSeatDocs([]);
+    setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier('');
+    setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate('');
+    setNewSeatDocs([]);
     setActiveTab('info');
     setIsAddingHistory(false);
     setEditingHistoryId(null);
@@ -584,7 +869,7 @@ export default function AssetDetailsModal({
     const rawTag = currentAssetDetail.assetTag || currentAssetDetail.sn || currentAssetDetail.name || "0";
     const barcodeDataString = rawTag.replace(/[^a-zA-Z0-9-]/g, "");
     
-    const qrDataString = `ASSET\nN:${currentAssetDetail.name || '-'}\nT:${currentAssetDetail.assetTag || '-'}\nS:${currentAssetDetail.sn || '-'}\nM:${currentAssetDetail.model || '-'}\nC:${currentAssetDetail.company || '-'}\nV:${currentAssetDetail.vendor || '-'}\nTy:${currentAssetDetail.type || '-'}\nPr:${currentAssetDetail.cost || '-'}\nPd:${currentAssetDetail.purchaseDate || '-'}\nWd:${currentAssetDetail.warrantyDate || '-'}\nOwn:${currentAssetDetail.assignedName || '-'}`;
+    const qrDataString = `https://it-asset-management-75aa8.web.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
 
     return (
       <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
@@ -683,11 +968,22 @@ export default function AssetDetailsModal({
                 {currentAssetDetail.type || 'ไม่ระบุประเภท'}
               </span>
               
-              {selectedAssetCategory !== 'accessories' && (
+              {selectedAssetCategory === 'assets' && (
                 <span className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm inline-flex items-center gap-1.5 ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span> 
+                  <span className={`w-1.5 h-1.5 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
                   {currentAssetDetail.status || 'พร้อมใช้งาน'}
                 </span>
+              )}
+              {selectedAssetCategory === 'licenses' && (
+                <>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm inline-flex items-center gap-1.5 ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
+                    {(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'ใช้งานเต็ม' : 'มีสิทธิ์ว่าง'}
+                  </span>
+                  <span className="px-3 py-1 bg-blue-50 text-[#1E487A] rounded-full text-xs font-bold border border-blue-200 shadow-sm">
+                    {currentAssetDetail.assignees?.length || 0} / {currentAssetDetail.quantity || 0} สิทธิ์
+                  </span>
+                </>
               )}
 
               {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
@@ -717,8 +1013,8 @@ export default function AssetDetailsModal({
             </button>
           )}
 
-          <button 
-            onClick={() => { setActiveTab('docs'); setIsAddingHistory(false); setEditingHistoryId(null); }} 
+          <button
+            onClick={() => { setActiveTab('docs'); setIsAddingHistory(false); setEditingHistoryId(null); }}
             className={`py-3.5 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'docs' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'}`}
           >
             เอกสารแนบ
@@ -732,7 +1028,7 @@ export default function AssetDetailsModal({
           {activeTab === 'info' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               
-              {selectedAssetCategory !== 'accessories' && currentAssetDetail.assignedName && (
+              {selectedAssetCategory === 'assets' && currentAssetDetail.assignedName && (
                 <div className="bg-blue-50 border border-blue-100 p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                    <div>
                      <span className="text-xs text-[#1E487A] font-bold tracking-wide uppercase">ผู้ครอบครองปัจจุบัน</span>
@@ -757,10 +1053,9 @@ export default function AssetDetailsModal({
                     <>
                       <div className="col-span-2 md:col-span-4"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
                       <DetailItem label="รหัสอ้างอิง Key" value={currentAssetDetail.keyCode} />
-                      <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
-                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
-                      <DetailItem label="อายุการใช้งาน" value={calculateAge(currentAssetDetail.purchaseDate)} />
-                      <DetailItem label="วันที่หมดอายุ" value={currentAssetDetail.expirationDate} />
+                      <DetailItem label="สิทธิ์ทั้งหมด" value={`${currentAssetDetail.quantity || 0} สิทธิ์`} />
+                      <DetailItem label="กำลังใช้งาน" value={`${currentAssetDetail.assignees?.length || 0} สิทธิ์`} />
+                      <DetailItem label="คงเหลือ" value={`${Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0))} สิทธิ์`} />
                     </>
                   ) : selectedAssetCategory === 'assets' ? (
                     <>
@@ -781,15 +1076,230 @@ export default function AssetDetailsModal({
                   )}
 
                   <div className="col-span-2 md:col-span-4 pt-4 mt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-medium text-slate-500">{selectedAssetCategory === 'accessories' ? 'มูลค่ารวม' : 'ราคาจัดซื้อ'}</span>
+                    <span className="text-xs font-medium text-slate-500">
+                      {selectedAssetCategory === 'accessories' ? 'มูลค่ารวม' : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาจัดซื้อ'}
+                    </span>
                     <span className="text-base font-bold text-slate-800">
-                      {selectedAssetCategory === 'accessories' 
-                        ? (totalAccessoriesCost > 0 ? `฿${totalAccessoriesCost.toLocaleString()}` : '-') 
-                        : (currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-')}
+                      {selectedAssetCategory === 'accessories'
+                        ? (totalAccessoriesCost > 0 ? `฿${totalAccessoriesCost.toLocaleString()}` : '-')
+                        : selectedAssetCategory === 'licenses'
+                          ? (totalLicenseCost > 0 ? `฿${totalLicenseCost.toLocaleString()}` : '-')
+                          : (currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-')}
                     </span>
                   </div>
                 </div>
               </div>
+
+              {/* รายการสิทธิ์ผู้ถือครอง (เฉพาะ licenses) */}
+              {selectedAssetCategory === 'licenses' && (
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 border-b border-slate-100 pb-4 gap-3">
+                    <h4 className="text-sm font-bold text-[#1E487A]">รายการผู้ถือสิทธิ์ ({licenseSeats.length})</h4>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {licenseSeats.length > 0 && (
+                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer mr-2">
+                          <input type="checkbox" checked={selectedLicenseSeatsForDelete.length === licenseSeats.length && licenseSeats.length > 0} onChange={handleSelectAllLicenseSeats} className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
+                          เลือกทั้งหมด
+                        </label>
+                      )}
+                      {selectedLicenseSeatsForDelete.length > 0 && (
+                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md border border-red-200 transition-colors disabled:opacity-50">
+                          ลบ ({selectedLicenseSeatsForDelete.length})
+                        </button>
+                      )}
+                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-md transition-colors">
+                        นำเข้า CSV
+                      </button>
+                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs text-white bg-[#1E487A] hover:bg-[#133257] px-3 py-1.5 rounded-md transition-colors">
+                        + เพิ่มสิทธิ์
+                      </button>
+                    </div>
+                  </div>
+
+                  {isImportingLicenseCSV && (
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
+                      <div className="flex flex-col sm:flex-row gap-4 mb-3">
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-slate-700 mb-2">1. ดาวน์โหลด Template</p>
+                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-slate-300 text-slate-700 text-xs rounded-md hover:bg-slate-50">ดาวน์โหลด .csv</button>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-slate-700 mb-2">2. อัปโหลดข้อมูล</p>
+                          <input type="file" accept=".csv" onChange={handleUploadLicenseSeatCSV} className="block w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 cursor-pointer" />
+                        </div>
+                      </div>
+                      <div className="text-right"><button onClick={() => setIsImportingLicenseCSV(false)} className="text-xs text-slate-500 hover:text-slate-700">ยกเลิก</button></div>
+                    </div>
+                  )}
+
+                  {isAddingNewLicenseSeat && (
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in space-y-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <input type="text" value={newSeatProductKey} onChange={e => setNewSeatProductKey(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full font-mono col-span-2" placeholder="Product Key" />
+                        <input type="text" value={newSeatKeyCode} onChange={e => setNewSeatKeyCode(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="รหัสอ้างอิง Key" />
+                        <input type="text" value={newSeatSupplier} onChange={e => setNewSeatSupplier(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="Supplier ที่ซื้อ" />
+                        <input type="number" value={newSeatCost} onChange={e => setNewSeatCost(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="ราคา (บาท)" />
+                        <input type="number" min="1" value={newSeatCount} onChange={e => setNewSeatCount(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="จำนวนสิทธิ์" />
+                        <input type="date" value={newSeatPurchaseDate} onChange={e => setNewSeatPurchaseDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันที่ซื้อ" />
+                        <input type="date" value={newSeatExpirationDate} onChange={e => setNewSeatExpirationDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันหมดอายุ" />
+                      </div>
+                      {/* ไฟล์แนบ */}
+                      <div className="pt-2 border-t border-slate-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
+                          <label className={`cursor-pointer text-[10px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                            + แนบไฟล์
+                            <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
+                          </label>
+                        </div>
+                        {newSeatDocs.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {newSeatDocs.map((d, i) => (
+                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[10px]">
+                                <span className="text-slate-600 truncate max-w-[100px]">{d.name}</span>
+                                <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => { setIsAddingNewLicenseSeat(false); setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier(''); setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate(''); setNewSeatDocs([]); }} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-md">ยกเลิก</button>
+                        <button onClick={handleAddLicenseSeats} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] hover:bg-[#133257] rounded-md disabled:opacity-50">บันทึก</button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="border border-slate-200 rounded-lg overflow-hidden divide-y divide-slate-100">
+                    {licenseSeats.map((seat, index) => (
+                      <div key={seat.id} className="bg-white transition-colors hover:bg-slate-50">
+                        <div onClick={() => setExpandedItem(expandedItem === `lic-${index}` ? null : `lic-${index}`)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <input type="checkbox" checked={selectedLicenseSeatsForDelete.includes(seat.id)} onChange={(e) => { e.stopPropagation(); handleSelectLicenseSeat(seat.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 shrink-0" />
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${seat.type === 'available' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                            {seat.type === 'available' ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-slate-600">สิทธิ์ว่าง</span>
+                                <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">พร้อมใช้งาน</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2.5 overflow-hidden">
+                                <div className="w-7 h-7 rounded-full bg-blue-100 text-[#1E487A] flex items-center justify-center font-bold text-xs border border-blue-200 shrink-0">
+                                  {seat.assignee.empName?.charAt(0) || '?'}
+                                </div>
+                                <div className="overflow-hidden">
+                                  <p className="text-xs font-semibold text-slate-800 truncate">{seat.assignee.empName}</p>
+                                  {seat.assignee.checkoutDate && <p className="text-[10px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {seat.type === 'available' ? (
+                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); }} className="text-[10px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded transition-colors">เบิกจ่าย</button>
+                            ) : (
+                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[10px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors">รับคืน</button>
+                            )}
+                            <svg className={`h-4 w-4 text-slate-400 transition-transform ${expandedItem === `lic-${index}` ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          </div>
+                        </div>
+
+                        {expandedItem === `lic-${index}` && (
+                          <div className="px-4 pb-4 pt-3 bg-slate-50 border-t border-slate-100 animate-in fade-in">
+                            {editingLicenseSeatId === seat.id ? (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                  <input type="text" value={tempLicenseProductKey} onChange={(e) => setTempLicenseProductKey(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full font-mono col-span-2 md:col-span-2" placeholder="Product Key" />
+                                  <input type="text" value={tempLicenseKeyCode} onChange={(e) => setTempLicenseKeyCode(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="รหัสอ้างอิง Key" />
+                                  <input type="text" value={tempLicenseSupplier} onChange={(e) => setTempLicenseSupplier(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="Supplier ที่ซื้อ" />
+                                  <input type="number" value={tempLicenseSeatCost} onChange={(e) => setTempLicenseSeatCost(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="ราคา (บาท)" />
+                                  <input type="date" value={tempLicensePurchaseDate} onChange={(e) => setTempLicensePurchaseDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันที่ซื้อ" />
+                                  <input type="date" value={tempLicenseExpirationDate} onChange={(e) => setTempLicenseExpirationDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันหมดอายุ" />
+                                </div>
+                                {/* ไฟล์แนบ */}
+                                <div className="pt-2 border-t border-slate-200">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
+                                    <label className={`cursor-pointer text-[10px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                                      + แนบไฟล์
+                                      <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
+                                    </label>
+                                  </div>
+                                  {tempLicenseSeatDocs.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {tempLicenseSeatDocs.map((d, i) => (
+                                        <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[10px]">
+                                          <span className="text-slate-600 truncate max-w-[100px]">{d.name}</span>
+                                          <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex justify-end gap-2 pt-2">
+                                  <button onClick={() => setEditingLicenseSeatId(null)} className="px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-100">ยกเลิก</button>
+                                  <button onClick={() => handleSaveLicenseSeatEdit(seat)} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] rounded-md hover:bg-[#133257] disabled:opacity-50">บันทึก</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                                <div className="space-y-2 text-xs flex-1">
+                                  {seat.productKey && (
+                                    <div>
+                                      <span className="text-slate-400 block text-[10px]">Product Key</span>
+                                      <span className="font-mono font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block text-[11px]">{seat.productKey}</span>
+                                    </div>
+                                  )}
+                                  <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2">
+                                    {seat.keyCode && <div><span className="text-slate-400 block text-[10px]">รหัสอ้างอิง Key</span><span className="font-medium text-slate-800">{seat.keyCode}</span></div>}
+                                    <div><span className="text-slate-400 block text-[10px]">Supplier ที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.supplier || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[10px]">ราคา</span><span className="font-medium text-slate-800">{seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[10px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.purchaseDate || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[10px]">อายุการใช้งาน</span><span className="font-medium text-slate-800">{calculateAge(currentAssetDetail.purchaseDate)}</span></div>
+                                    <div><span className="text-slate-400 block text-[10px]">วันหมดอายุ</span><span className="font-medium text-slate-800">{currentAssetDetail.expirationDate || '-'}</span></div>
+                                    {seat.type === 'assigned' && seat.assignee.remarks && <div><span className="text-slate-400 block text-[10px]">หมายเหตุ</span><span className="font-medium text-slate-800">{seat.assignee.remarks}</span></div>}
+                                  </div>
+                                  {seat.documents?.length > 0 && (
+                                    <div>
+                                      <span className="text-slate-400 block text-[10px] mb-1">ไฟล์แนบ</span>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {seat.documents.map((d, i) => (
+                                          <a key={i} href={d.data} download={d.name} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[10px] text-[#1E487A] hover:bg-blue-50 transition-colors">
+                                            <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                            <span className="truncate max-w-[100px]">{d.name}</span>
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setEditingLicenseSeatId(seat.id);
+                                    setTempLicenseProductKey(seat.productKey);
+                                    setTempLicenseKeyCode(seat.keyCode);
+                                    setTempLicenseSeatCost(seat.seatCost);
+                                    setTempLicenseSeatDocs(seat.documents || []);
+                                    setTempLicenseSupplier(currentAssetDetail.supplier || '');
+                                    setTempLicensePurchaseDate(currentAssetDetail.purchaseDate || '');
+                                    setTempLicenseExpirationDate(currentAssetDetail.expirationDate || '');
+                                  }}
+                                  className="text-[10px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap self-end"
+                                >
+                                  แก้ไขข้อมูล
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {licenseSeats.length === 0 && (
+                      <div className="p-6 text-center text-xs text-slate-400 bg-slate-50">ไม่มีข้อมูลสิทธิ์ กรุณาตั้งค่าจำนวนสิทธิ์ก่อน</div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* ส่วนจัดการชิ้นย่อย (เฉพาะอุปกรณ์เสริม) ยังคงอยู่และทำงานได้ 100% */}
               {selectedAssetCategory === 'accessories' && (
@@ -869,11 +1379,11 @@ export default function AssetDetailsModal({
                           
                           <div className="flex items-center gap-2 shrink-0">
                             {item.type === 'available' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[10px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded">เบิกจ่าย</button>
+                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemModel: item.model, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[10px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded">เบิกจ่าย</button>
                             ) : item.type === 'assigned' ? (
                               <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name }); }} className="text-[10px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">รับคืน</button>
                             ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[10px] font-semibold bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 px-2 py-1 rounded">เข้าคลัง</button>
+                              <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[10px] font-semibold bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 px-2 py-1 rounded">เข้าคลัง</button>
                             )}
                             <svg className={`h-4 w-4 text-slate-400 transition-transform ${expandedItem === index ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </div>
@@ -1108,11 +1618,11 @@ export default function AssetDetailsModal({
         
         {/* 🟢 Footer แถบปุ่มด้านล่าง (ใช้งานได้เหมือนเดิม 100%) */}
         <div className="px-6 py-4 bg-white flex flex-wrap justify-end gap-3 border-t border-slate-200 shrink-0 rounded-b-2xl">
-           {selectedAssetCategory !== 'accessories' && (
+           {selectedAssetCategory === 'assets' && (
              (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
                <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#133257] text-sm font-bold transition-colors sm:mr-auto shadow-md">เบิกจ่าย</button>
              ) : currentAssetDetail.status === 'ถูกใช้งาน' ? (
-               <button onClick={() => { handleCheckin(currentAssetDetail.id, selectedAssetCategory); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 text-sm font-bold transition-colors sm:mr-auto shadow-md">รับคืน</button>
+               <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 text-sm font-bold transition-colors sm:mr-auto shadow-md">รับคืน</button>
              ) : null
            )}
 

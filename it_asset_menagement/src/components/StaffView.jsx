@@ -262,7 +262,7 @@ export default function StaffView({
       if (handleStaffSubmitReplacement) {
         await handleStaffSubmitReplacement(replaceStatusForm, replaceReasonForm);
         // พิมพ์ฟอร์มหลังบันทึกสำเร็จ
-        const myAssets = assets.filter(item => item.assignedTo === currentStaff?.id);
+        const myAssets = assets.filter(item => item.assignedTo === currentStaff?.id && item.type === 'คอมพิวเตอร์');
         printReplacementForm({
           staff: currentStaff,
           currentStatus: replaceStatusForm,
@@ -632,7 +632,7 @@ export default function StaffView({
                                 staff: currentStaff,
                                 currentStatus: req.currentStatus,
                                 reason: req.reason,
-                                myAssets: assets.filter(a => a.assignedTo === currentStaff?.id)
+                                myAssets: assets.filter(a => a.assignedTo === currentStaff?.id && a.type === 'คอมพิวเตอร์')
                               })}
                               title="พิมพ์ฟอร์มซ้ำ"
                               className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-100 hover:border-blue-600 px-2.5 py-1.5 rounded-lg transition-all"

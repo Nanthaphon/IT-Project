@@ -378,7 +378,7 @@ function App() {
       } else {
         await addDoc(collection(db, collectionName), {
           name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
-          assignees: activeMenu === 'accessories' ? [] : undefined,
+          assignees: activeMenu === 'accessories' ? [] : null,
           department: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: activeMenu === 'assets' ? vendor : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
         });
       }

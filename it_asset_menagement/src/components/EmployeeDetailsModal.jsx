@@ -12,28 +12,28 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
   /* ── table helpers ── */
   const row = (cells, isHeader = false) =>
     `<tr>${cells.map(c => isHeader
-      ? `<th style="border:1px solid #94a3b8;padding:6px 10px;background:#e2e8f0;font-weight:700;font-size:12px;text-align:center;white-space:nowrap;color:#000">${c}</th>`
-      : `<td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;vertical-align:top;color:#000">${c ?? '-'}</td>`
+      ? `<th style="border:1px solid #94a3b8;padding:3px 7px;background:#e2e8f0;font-weight:700;font-size:10.5px;text-align:center;white-space:nowrap;color:#000">${c}</th>`
+      : `<td style="border:1px solid #cbd5e1;padding:3px 7px;font-size:10.5px;vertical-align:top;color:#000">${c ?? '-'}</td>`
     ).join('')}</tr>`;
 
   const table = (headers, rows, emptyText) => `
-    <table style="width:100%;border-collapse:collapse;margin-bottom:2px">
+    <table style="width:100%;border-collapse:collapse;margin-bottom:0">
       <thead>${row(headers, true)}</thead>
       <tbody>
         ${rows.length > 0
           ? rows.join('')
-          : `<tr><td colspan="${headers.length}" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">${emptyText}</td></tr>`
+          : `<tr><td colspan="${headers.length}" style="border:1px solid #cbd5e1;padding:5px;text-align:center;color:#64748b;font-size:10.5px">${emptyText}</td></tr>`
         }
       </tbody>
     </table>`;
 
   /* ── section title helper ── */
   const sectionTitle = (iconPath, label, count) =>
-    `<div style="font-size:13px;font-weight:700;color:#fff;background:#1E487A;padding:5px 12px;
-      border-radius:3px;margin-bottom:6px;display:flex;align-items:center;gap:6px">
-      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${iconPath}</svg>
+    `<div style="font-size:11px;font-weight:700;color:#fff;background:#1E487A;padding:3px 10px;
+      border-radius:3px;margin-bottom:3px;display:flex;align-items:center;gap:6px">
+      <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${iconPath}</svg>
       ${label}
-      <span style="margin-left:auto;background:rgba(255,255,255,0.2);border-radius:3px;padding:1px 8px;font-size:11px">${count} รายการ</span>
+      <span style="margin-left:auto;background:rgba(255,255,255,0.2);border-radius:3px;padding:0 6px;font-size:10px">${count} รายการ</span>
     </div>`;
 
   /* ── rows ── */
@@ -43,8 +43,10 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
   ]));
   const licenseRows = empLicenses.map((item, i) => row([
     i + 1, item.name || '-', item.type || '-',
-    item.licenseKey || item.productKey || '-', item.vendor || '-',
-    item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('th-TH') : 'ไม่มีวันหมดอายุ',
+    item.vendor || item.supplier || '-',
+    item.expiryDate || item.expirationDate
+      ? new Date(item.expiryDate || item.expirationDate).toLocaleDateString('th-TH')
+      : 'ไม่มีวันหมดอายุ',
   ]));
   const accessoryRows = empAccessories.map((item, i) => row([
     i + 1, item.name || '-', item.type || '-',
@@ -53,9 +55,9 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
 
   /* ── info cell (ใช้ใน 2-col grid) ── */
   const cell = (label, value) =>
-    `<div style="padding:4px 0">
-      <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">${label}</div>
-      <div style="font-size:13px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${value || '-'}</div>
+    `<div style="padding:2px 0">
+      <div style="font-size:9.5px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:1px">${label}</div>
+      <div style="font-size:11px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:2px">${value || '-'}</div>
     </div>`;
 
   const totalItems = empAssets.length + empLicenses.length + empAccessories.length;
@@ -68,11 +70,15 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     *  { box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; }
     body {
       font-family:'Sarabun','Prompt',sans-serif;
-      font-size:13px; color:#000; background:#fff;
-      padding:20px 28px;
+      font-size:12px; color:#000; background:#fff;
+      padding:16px 24px;
+      display:flex; flex-direction:column; min-height:100%;
     }
+    .content-top { flex:1; }
+    .footer-fixed { margin-top:auto; padding-top:8px; }
     @media print {
       body { padding:0; }
       .no-print { display:none !important; }
@@ -89,136 +95,109 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
     🖨️ พิมพ์เอกสาร / บันทึก PDF
   </button>
 
+  <div class="content-top">
+
   <!-- ════ HEADER ════ -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3px">
     <div>
-      <div style="font-size:19px;font-weight:700;color:#1E487A;line-height:1.2">ใบส่งมอบทรัพย์สิน IT</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">IT Asset Transfer Document</div>
+      <div style="font-size:16px;font-weight:700;color:#1E487A;line-height:1.2">ใบส่งมอบทรัพย์สิน IT</div>
+      <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Transfer Document</div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:11px;color:#000">วันที่ออกเอกสาร</div>
-      <div style="font-size:13px;font-weight:700;color:#000">${thDate}</div>
-      <div style="margin-top:3px;background:#eff6ff;color:#1E487A;border:1px solid #bfdbfe;
-        border-radius:3px;padding:2px 10px;font-size:12px;font-weight:700;display:inline-block">
+      <div style="font-size:9.5px;color:#000">วันที่ออกเอกสาร</div>
+      <div style="font-size:11px;font-weight:700;color:#000">${thDate}</div>
+      <div style="margin-top:2px;background:#eff6ff;color:#1E487A;border:1px solid #bfdbfe;
+        border-radius:3px;padding:1px 7px;font-size:10px;font-weight:700;display:inline-block">
         รวม ${totalItems} รายการ
       </div>
     </div>
   </div>
-  <div style="border-top:2px solid #1E487A;margin-bottom:10px"></div>
+  <div style="border-top:2px solid #1E487A;margin-bottom:5px"></div>
 
-  <!-- ════ ข้อมูลพนักงาน (2 columns) ════ -->
-  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:6px;
-    display:flex;align-items:center;gap:6px">
-    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-    </svg>
-    ข้อมูลผู้รับมอบ
-  </div>
-
-  <div style="border:1px solid #e2e8f0;border-radius:5px;padding:8px 10px;margin-bottom:8px">
-    <!-- แถว 1: ชื่อ TH | ชื่อ EN -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:4px">
+  <!-- ════ ข้อมูลพนักงาน ════ -->
+  <div style="border:1px solid #e2e8f0;border-radius:4px;padding:6px 10px;margin-bottom:6px">
+    <div style="font-size:11px;font-weight:700;color:#1E487A;margin-bottom:4px">ข้อมูลผู้รับมอบ</div>
+    <!-- แถว 1 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-bottom:4px">
       ${cell('ชื่อ-นามสกุล (TH)', employee.fullName)}
       ${cell('ชื่อ-นามสกุล (EN)', employee.fullNameEng)}
     </div>
-    <!-- แถว 2: รหัสพนักงาน | ตำแหน่ง -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:4px">
+    <!-- แถว 2 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-bottom:4px">
       ${cell('รหัสพนักงาน', employee.empId)}
       ${cell('ตำแหน่ง', employee.position)}
     </div>
-    <!-- แถว 3: แผนก | บริษัท -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:4px">
+    <!-- แถว 3 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-bottom:4px">
       ${cell('แผนก / ฝ่าย', employee.department)}
       ${cell('บริษัท', employee.company)}
     </div>
-    <!-- แถว 4: เบอร์โทร | หัวหน้างาน -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:4px">
+    <!-- แถว 4 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px">
       ${cell('เบอร์โทรศัพท์', employee.phone)}
       ${cell('หัวหน้างาน / ผู้บังคับบัญชา', employee.manager)}
     </div>
     ${(employee.m365Email || employee.m365Password) ? `
-    <!-- แถว 6: Microsoft 365 -->
-    <div style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:6px">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;margin-bottom:5px;display:flex;align-items:center;gap:4px">
-        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
-        </svg>
-        บัญชี Microsoft 365
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px">
-        ${cell('อีเมล Microsoft 365', employee.m365Email || '-')}
-        ${cell('รหัสผ่าน Microsoft 365', employee.m365Password || '-')}
-      </div>
+    <div style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px">
+      ${cell('อีเมล Microsoft 365', employee.m365Email || '-')}
+      ${cell('รหัสผ่าน Microsoft 365', employee.m365Password || '-')}
     </div>` : ''}
   </div>
 
   <!-- ════ ทรัพย์สินหลัก ════ -->
-  ${sectionTitle(
-    '<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
-    'ทรัพย์สินหลัก (Computers / Hardware)', empAssets.length
-  )}
-  ${table(
-    ['#', 'ชื่ออุปกรณ์', 'ประเภท', 'ยี่ห้อ / รุ่น', 'รหัสทรัพย์สิน', 'Serial Number', 'สถานะ'],
-    assetRows, 'ไม่มีทรัพย์สินหลัก'
-  )}
+  ${sectionTitle('<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>', 'ทรัพย์สินหลัก (Computers / Hardware)', empAssets.length)}
+  ${table(['#', 'ชื่ออุปกรณ์', 'ประเภท', 'ยี่ห้อ / รุ่น', 'รหัสทรัพย์สิน', 'Serial Number', 'สถานะ'], assetRows, 'ไม่มีทรัพย์สินหลัก')}
 
-  <div style="margin-top:7px"></div>
+  <div style="margin-top:4px"></div>
 
   <!-- ════ โปรแกรม/ใบอนุญาต ════ -->
-  ${sectionTitle(
-    '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>',
-    'โปรแกรม / ใบอนุญาต (Licenses)', empLicenses.length
-  )}
-  ${table(
-    ['#', 'ชื่อโปรแกรม', 'ประเภท', 'License Key', 'ผู้จัดจำหน่าย', 'วันหมดอายุ'],
-    licenseRows, 'ไม่มีโปรแกรม / ใบอนุญาต'
-  )}
+  ${sectionTitle('<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>', 'โปรแกรม / ใบอนุญาต (Licenses)', empLicenses.length)}
+  ${table(['#', 'ชื่อโปรแกรม', 'ประเภท', 'ผู้จัดจำหน่าย', 'วันหมดอายุ'], licenseRows, 'ไม่มีโปรแกรม / ใบอนุญาต')}
 
-  <div style="margin-top:7px"></div>
+  <div style="margin-top:4px"></div>
 
   <!-- ════ อุปกรณ์เสริม ════ -->
-  ${sectionTitle(
-    '<path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>',
-    'อุปกรณ์เสริม (Accessories)', empAccessories.length
-  )}
-  ${table(
-    ['#', 'ชื่ออุปกรณ์', 'ประเภท', 'Serial Number', 'ยี่ห้อ', 'จำนวน'],
-    accessoryRows, 'ไม่มีอุปกรณ์เสริม'
-  )}
+  ${sectionTitle('<path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>', 'อุปกรณ์เสริม (Accessories)', empAccessories.length)}
+  ${table(['#', 'ชื่ออุปกรณ์', 'ประเภท', 'Serial Number', 'ยี่ห้อ', 'จำนวน'], accessoryRows, 'ไม่มีอุปกรณ์เสริม')}
 
-  <div style="border-top:1px solid #000;margin:10px 0"></div>
+  </div><!-- end content-top -->
 
-  <!-- ════ เงื่อนไขการรับมอบ ════ -->
-  <div style="margin-bottom:12px">
-    <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:6px">เงื่อนไขการรับมอบทรัพย์สิน</div>
-    <div style="font-size:13px;color:#000;line-height:1.9">
-      <div>1. ผู้รับมอบยืนยันว่าได้รับทรัพย์สินครบถ้วนและอยู่ในสภาพสมบูรณ์</div>
-      <div>2. ต้องดูแลรักษาทรัพย์สินและใช้งานตามวัตถุประสงค์ที่กำหนดเท่านั้น</div>
-      <div>3. หากเกิดความเสียหายจากการใช้งานที่ไม่เหมาะสม ผู้รับมอบรับผิดชอบค่าทดแทน</div>
-      <div>4. เมื่อสิ้นสุดการใช้งาน ต้องส่งคืนทรัพย์สินในสภาพเรียบร้อยแก่ฝ่าย IT</div>
+  <!-- ════ ส่วนล่าง: เงื่อนไข + ลายเซ็น ชิดก้นหน้ากระดาษ ════ -->
+  <div class="footer-fixed">
+    <div style="border-top:1.5px solid #1E487A;margin-bottom:8px"></div>
+
+    <!-- เงื่อนไข -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:4px">เงื่อนไขการรับมอบทรัพย์สิน</div>
+      <div style="font-size:11.5px;color:#000;line-height:1.75">
+        <div>1. ผู้รับมอบยืนยันว่าได้รับทรัพย์สินครบถ้วนและอยู่ในสภาพสมบูรณ์</div>
+        <div>2. ต้องดูแลรักษาทรัพย์สินและใช้งานตามวัตถุประสงค์ที่กำหนดเท่านั้น</div>
+        <div>3. หากเกิดความเสียหายจากการใช้งานที่ไม่เหมาะสม ผู้รับมอบรับผิดชอบค่าทดแทน</div>
+        <div>4. เมื่อสิ้นสุดการใช้งาน ต้องส่งคืนทรัพย์สินในสภาพเรียบร้อยแก่ฝ่าย IT</div>
+      </div>
     </div>
-  </div>
 
-  <!-- ════ ลายเซ็น (ใต้กฏ) ════ -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
-    <div style="border:1px solid #000;border-radius:5px;padding:12px 16px;text-align:center">
-      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้รับมอบ (พนักงาน)</div>
-      <div style="border-bottom:1px solid #000;margin:36px 8px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(${employee.fullName})</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">${employee.position || '.....................................'}</div>
-      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ .....................................</div>
+    <!-- ลายเซ็น 2 ช่อง -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px">
+      <div style="border:1px solid #000;border-radius:5px;padding:10px 16px;text-align:center">
+        <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้รับมอบ (พนักงาน)</div>
+        <div style="border-bottom:1px solid #000;margin:36px 10px 10px"></div>
+        <div style="font-size:13px;font-weight:700;color:#000">(.....................................)</div>
+        <div style="font-size:12px;color:#000;margin-top:2px">.......................................</div>
+        <div style="font-size:12px;color:#000;margin-top:5px">วันที่ .....................................</div>
+      </div>
+      <div style="border:1px solid #000;border-radius:5px;padding:10px 16px;text-align:center">
+        <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้ส่งมอบ (เจ้าหน้าที่ IT)</div>
+        <div style="border-bottom:1px solid #000;margin:36px 10px 10px"></div>
+        <div style="font-size:13px;font-weight:700;color:#000">(.....................................)</div>
+        <div style="font-size:12px;color:#000;margin-top:2px">เจ้าหน้าที่ IT</div>
+        <div style="font-size:12px;color:#000;margin-top:5px">วันที่ .....................................</div>
+      </div>
     </div>
-    <div style="border:1px solid #000;border-radius:5px;padding:12px 16px;text-align:center">
-      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้ส่งมอบ (เจ้าหน้าที่ IT)</div>
-      <div style="border-bottom:1px solid #000;margin:36px 8px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(.....................................)</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">เจ้าหน้าที่ IT</div>
-      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ .....................................</div>
-    </div>
-  </div>
 
-  <div style="text-align:center;font-size:10px;color:#64748b;margin-top:10px">
-    ออกโดยระบบ IT Asset Management · ${thDate}
+    <div style="text-align:center;font-size:10px;color:#64748b">
+      ออกโดยระบบ IT Asset Management · ${thDate}
+    </div>
   </div>
 
 </body>

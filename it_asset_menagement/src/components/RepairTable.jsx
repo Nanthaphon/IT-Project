@@ -1,26 +1,9 @@
 import React from 'react';
+import { Trash2, Wrench, CheckCircle2 } from 'lucide-react';
+import { BRAND } from '../ui/theme.js';
 
-function IconTrash() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  );
-}
-function IconWrench() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-    </svg>
-  );
-}
-function IconEmpty() {
-  return (
-    <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
+const TH = 'px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-[0.08em]';
+const TD = 'px-5 py-3.5';
 
 export default function RepairTable({
   repairRequests,
@@ -32,83 +15,84 @@ export default function RepairTable({
   getUniqueMonths,
   formatMonthLabel,
   handleUpdateRepairRequestStatus,
-  handleDeleteRepairRequest
+  handleDeleteRepairRequest,
 }) {
   return (
-    <div className="h-full flex flex-col bg-white p-5 rounded-xl border border-slate-200">
+    <div className="h-full flex flex-col bg-white p-5 rounded-2xl ring-1 ring-slate-200/70 shadow-sm">
       {/* Header */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-5 gap-3 border-b border-slate-100 pb-5 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-blue-50 text-[#1E487A] rounded-lg flex items-center justify-center border border-blue-100">
-            <IconWrench />
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
+          >
+            <Wrench className="h-[18px] w-[18px]" strokeWidth={1.8} />
           </div>
-          <h3 className="text-sm font-semibold text-slate-700 whitespace-nowrap">คิวงานแจ้งปัญหาจากพนักงาน</h3>
+          <div>
+            <h3 className="text-[14px] font-semibold text-slate-800 tracking-tight">คิวงานแจ้งปัญหาจากพนักงาน</h3>
+            <p className="text-[11.5px] text-slate-500 mt-0.5">{currentRepairRequests.length} รายการในมุมมองนี้</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <select
+          <Filter
             value={repairFilterMonth}
-            onChange={(e) => setRepairFilterMonth(e.target.value)}
-            className="w-full sm:w-auto bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none transition cursor-pointer"
+            onChange={setRepairFilterMonth}
           >
             <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
             {getUniqueMonths(repairRequests).map(m => (
               <option key={m} value={m}>{formatMonthLabel(m)}</option>
             ))}
-          </select>
-          <select
+          </Filter>
+          <Filter
             value={repairFilterStatus}
-            onChange={(e) => setRepairFilterStatus(e.target.value)}
-            className="w-full sm:w-auto bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none transition cursor-pointer"
+            onChange={setRepairFilterStatus}
           >
             <option value="ทั้งหมด">สถานะ: ทั้งหมด</option>
             <option value="รอดำเนินการ">รอดำเนินการ</option>
             <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
             <option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option>
             <option value="ยกเลิก">ยกเลิก</option>
-          </select>
+          </Filter>
         </div>
       </div>
 
       {currentRepairRequests.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-300 py-16 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-          <IconEmpty />
-          <p className="font-semibold text-slate-400 mt-3">ไม่มีคิวงานในสถานะนี้</p>
-        </div>
+        <EmptyState />
       ) : (
-        <div className="overflow-x-auto flex-1 rounded-lg border border-slate-200 bg-white">
-          <table className="min-w-full text-left whitespace-nowrap text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+        <div className="overflow-x-auto flex-1 rounded-xl ring-1 ring-slate-200 bg-white">
+          <table className="min-w-full text-left whitespace-nowrap text-[13.5px]">
+            <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
               <tr>
-                <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">วันที่แจ้ง</th>
-                <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">ผู้แจ้ง</th>
-                <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">หัวข้อ / รายละเอียด</th>
-                <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider text-center">สถานะ</th>
-                <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider text-center">จัดการ</th>
+                <th className={TH}>วันที่แจ้ง</th>
+                <th className={TH}>ผู้แจ้ง</th>
+                <th className={TH}>หัวข้อ / รายละเอียด</th>
+                <th className={`${TH} text-center`}>สถานะ</th>
+                <th className={`${TH} text-center`}>จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {currentRepairRequests.map((req) => (
-                <tr key={req.id} className="hover:bg-blue-50/30 transition-colors bg-white group">
-                  <td className="px-5 py-3.5 text-slate-600 text-xs">
+                <tr key={req.id} className="hover:bg-slate-50/60 transition-colors group">
+                  <td className={`${TD} text-slate-500 text-[12px] tabular-nums`}>
                     {new Date(req.timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
                   </td>
-                  <td className="px-5 py-3.5">
-                    <div className="font-semibold text-[#1E487A] text-sm">{req.empName}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{req.empId} · {req.department || '-'}</div>
+                  <td className={TD}>
+                    <div className="font-medium text-[#1E487A] text-[13px]">{req.empName}</div>
+                    <div className="text-[11.5px] text-slate-400 mt-0.5">{req.empId} · {req.department || '-'}</div>
                   </td>
-                  <td className="px-5 py-3.5">
-                    <div className="font-semibold text-slate-800 text-sm">{req.assetName}</div>
-                    <div className="text-xs text-slate-400 mt-0.5 truncate max-w-[250px]" title={req.issue}>{req.issue}</div>
+                  <td className={TD}>
+                    <div className="font-medium text-slate-800">{req.assetName}</div>
+                    <div className="text-[12px] text-slate-500 mt-0.5 truncate max-w-[280px]" title={req.issue}>{req.issue}</div>
                   </td>
-                  <td className="px-5 py-3.5 text-center">
+                  <td className={`${TD} text-center`}>
                     <select
                       value={req.status}
                       onChange={(e) => handleUpdateRepairRequestStatus(req.id, e.target.value)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-semibold border outline-none cursor-pointer ${
-                        req.status === 'รอดำเนินการ'     ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                        req.status === 'กำลังดำเนินการ' ? 'bg-blue-50 text-[#1E487A] border-blue-200'  :
-                        req.status === 'ซ่อมเสร็จสิ้น'  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                           'bg-slate-100 text-slate-600 border-slate-200'
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium ring-1 ring-inset outline-none cursor-pointer transition-colors ${
+                        req.status === 'รอดำเนินการ'     ? 'bg-amber-50 text-amber-700 ring-amber-200' :
+                        req.status === 'กำลังดำเนินการ' ? 'bg-blue-50 text-[#1E487A] ring-blue-200'  :
+                        req.status === 'ซ่อมเสร็จสิ้น'  ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' :
+                                                           'bg-slate-100 text-slate-600 ring-slate-200'
                       }`}
                     >
                       <option value="รอดำเนินการ">รอดำเนินการ</option>
@@ -117,13 +101,13 @@ export default function RepairTable({
                       <option value="ยกเลิก">ยกเลิก</option>
                     </select>
                   </td>
-                  <td className="px-5 py-3.5 text-center">
+                  <td className={`${TD} text-center`}>
                     <button
                       onClick={() => handleDeleteRepairRequest(req.id)}
-                      className="inline-flex items-center justify-center w-7 h-7 text-red-500 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-300 rounded-md transition-all"
+                      className="inline-flex items-center justify-center w-7 h-7 text-rose-500 bg-white hover:bg-rose-50 ring-1 ring-inset ring-slate-200 hover:ring-rose-300 rounded-lg transition-colors"
                       title="ลบ"
                     >
-                      <IconTrash />
+                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
                     </button>
                   </td>
                 </tr>
@@ -132,6 +116,30 @@ export default function RepairTable({
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function Filter({ value, onChange, children }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full sm:w-auto bg-white ring-1 ring-slate-200 text-slate-700 px-3 py-2 rounded-lg text-[13px] font-medium outline-none transition-colors cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30"
+    >
+      {children}
+    </select>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center text-slate-300 py-16 bg-slate-50/50 rounded-xl ring-1 ring-dashed ring-slate-200">
+      <div className="w-14 h-14 rounded-full bg-white ring-1 ring-slate-200 flex items-center justify-center mb-3">
+        <CheckCircle2 className="h-7 w-7 text-emerald-400" strokeWidth={1.5} />
+      </div>
+      <p className="font-medium text-slate-500">ไม่มีคิวงานในสถานะนี้</p>
+      <p className="text-[12px] text-slate-400 mt-1">ทุกอย่างเรียบร้อยดี</p>
     </div>
   );
 }

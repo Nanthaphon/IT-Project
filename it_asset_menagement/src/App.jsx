@@ -892,12 +892,12 @@ function App() {
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#f4f7fe] text-slate-900 font-sans transition-colors duration-300">
+    <div className="flex flex-col md:flex-row h-screen bg-[#F1F5FA] text-slate-900 font-sans">
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} authRole={authRole} />
       
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
-        <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+        <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} />
 
         <div className="flex-1 overflow-auto p-4 md:p-8">
           {activeMenu === 'field_options' ? (
@@ -908,16 +908,28 @@ function App() {
             />
           ) : activeMenu === 'it_report' ? (
             <div className="flex flex-col items-center justify-center h-full gap-6">
-              <div className="text-center">
-                <div className="text-6xl mb-4">📊</div>
-                <h2 className="text-2xl font-bold text-slate-800">สร้าง IT Monthly Report</h2>
-                <p className="text-slate-500 mt-2 text-sm max-w-md">ระบบจะดึงข้อมูล Hardware, Software, Support จากระบบโดยอัตโนมัติ และ Export เป็นไฟล์ .pptx พร้อม Present</p>
+              <div className="text-center max-w-md">
+                <div
+                  className="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg shadow-[#1E487A]/20 ring-1 ring-white/50"
+                  style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
+                >
+                  <svg className="h-9 w-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                  </svg>
+                </div>
+                <h2 className="text-[22px] font-semibold text-slate-900 tracking-tight">สร้าง IT Monthly Report</h2>
+                <p className="text-slate-500 mt-2 text-[13.5px] leading-relaxed">
+                  ระบบจะดึงข้อมูล Hardware, Software, Support จากระบบโดยอัตโนมัติ และ Export เป็นไฟล์ .pptx พร้อม Present
+                </p>
               </div>
               <button
                 onClick={() => setIsITReportOpen(true)}
-                className="flex items-center gap-2 px-8 py-4 bg-[#1E487A] hover:bg-[#133257] text-white rounded-2xl font-bold text-base transition-all shadow-xl shadow-[#1E487A]/30"
+                className="flex items-center gap-2 px-7 py-3.5 bg-[#1E487A] hover:bg-[#163963] text-white rounded-xl font-semibold text-[14px] transition-all shadow-lg"
+                style={{ boxShadow: '0 8px 20px rgba(30,72,122,0.30)' }}
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 สร้างไฟล์ Report
               </button>
             </div>
@@ -935,7 +947,7 @@ function App() {
             />
           ) : (
             <div className="h-full flex flex-col">
-              <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col flex-1 transition-colors duration-300">
+              <div className="bg-white p-6 md:p-7 rounded-2xl shadow-sm ring-1 ring-slate-200/70 flex flex-col flex-1">
                 <ActionBar 
                   menuTitle={menuTitle} activeMenu={activeMenu} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showDeletedEmployees={showDeletedEmployees} setShowDeletedEmployees={setShowDeletedEmployees} setIsImportModalOpen={setIsImportModalOpen} handleExportEmployees={handleExportEmployees}
                   selectedEmployeeIds={selectedEmployeeIds} setConfirmDeleteModal={setConfirmDeleteModal} assetFilterDepartment={assetFilterDepartment} setAssetFilterDepartment={setAssetFilterDepartment} assetFilterType={assetFilterType} setAssetFilterType={setAssetFilterType} assetFilterStatus={assetFilterStatus} setAssetFilterStatus={setAssetFilterStatus} accFilterType={accFilterType} setAccFilterType={setAccFilterType}
@@ -945,9 +957,17 @@ function App() {
                 />
                 
                 {currentData.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12"><span className="text-5xl mb-4 opacity-50 drop-shadow-sm">📂</span><p className="font-bold text-lg text-slate-500">ไม่พบข้อมูลที่ค้นหา</p></div>
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
+                    <div className="w-16 h-16 rounded-full bg-slate-50 ring-1 ring-slate-200 flex items-center justify-center mb-3">
+                      <svg className="h-7 w-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                      </svg>
+                    </div>
+                    <p className="font-medium text-[14px] text-slate-500">ไม่พบข้อมูลที่ค้นหา</p>
+                    <p className="text-[12px] text-slate-400 mt-1">ลองเปลี่ยนคำค้นหาหรือปรับตัวกรอง</p>
+                  </div>
                 ) : (
-                  <div className="overflow-x-auto flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors duration-300">
+                  <div className="overflow-x-auto flex-1 rounded-xl ring-1 ring-slate-200 bg-white">
                     {activeMenu === 'employees' ? (
                       <EmployeeTable currentData={currentData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} />
                     ) : activeMenu === 'licenses' ? (

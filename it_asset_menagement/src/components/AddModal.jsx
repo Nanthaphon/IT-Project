@@ -1,16 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
+import { cls } from '../ui/theme.js';
 
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
   handleAddEmployee, empForm, handleEmpChange,
   handleAddLicense, licenseForm, handleLicenseChange, licenseImage, setLicenseImage,
-  handleAdd, name, setName, type, setType, cost, setCost, 
-  purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate, 
-  quantity, setQuantity, unit, setUnit, 
+  handleAdd, name, setName, type, setType, cost, setCost,
+  purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate,
+  quantity, setQuantity, unit, setUnit,
   assetImage, setAssetImage, assetDepartment, setAssetDepartment,
   sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor,
   employees = [],
-  fieldOptions = {}
+  fieldOptions = {},
 }) {
   const [isManagerDropdownOpen, setIsManagerDropdownOpen] = useState(false);
   const managerRef = useRef(null);
@@ -19,11 +22,13 @@ export default function AddModal({
     function handleClickOutside(event) {
       if (managerRef.current && !managerRef.current.contains(event.target)) setIsManagerDropdownOpen(false);
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   if (!isAddModalOpen) return null;
+
+  const close = () => setIsAddModalOpen(false);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -34,338 +39,358 @@ export default function AddModal({
     }
   };
 
+  const handleLicenseImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setLicenseImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const titleLabel =
+    activeMenu === 'employees'      ? 'พนักงาน' :
+    activeMenu === 'licenses'       ? 'โปรแกรม / ใบอนุญาต' :
+    activeMenu === 'accessories'    ? 'อุปกรณ์เสริม' :
+    activeMenu === 'office_supplies'? 'อุปกรณ์สำนักงาน' :
+    'ทรัพย์สินหลัก';
+
+  const subtitle = `กรอกข้อมูลรายการใหม่ให้ครบ จากนั้นกด "บันทึก" เพื่อเพิ่มเข้าสู่ระบบ`;
+
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] transition-opacity">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-        <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
-          <h3 className="font-bold text-lg flex items-center gap-2">
-            <span className="bg-white/20 p-1.5 rounded-lg text-sm">➕</span> 
-            เพิ่มรายการใหม่ ({activeMenu === 'employees' ? 'พนักงาน' : activeMenu === 'licenses' ? 'โปรแกรม/ใบอนุญาต' : activeMenu === 'accessories' ? 'อุปกรณ์เสริม' : activeMenu === 'office_supplies' ? 'อุปกรณ์สำนักงาน' : 'ทรัพย์สินหลัก'})
-          </h3>
-          <button onClick={() => setIsAddModalOpen(false)} className="text-blue-200 hover:text-white transition-colors focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-        <div className="p-6 md:p-8 overflow-y-auto flex-1">
-          
-          {activeMenu === 'employees' ? (
-            <form onSubmit={handleAddEmployee} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
-                  <input type="text" name="empId" value={empForm.empId || ''} onChange={handleEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เช่น EMP001" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสบัตรประชาชน (ใช้เข้าสู่ระบบ) <span className="text-red-500">*</span></label>
-                  <input type="password" name="nationalId" value={empForm.nationalId || ''} onChange={handleEmpChange} required maxLength="13" className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลข 13 หลัก" />
-                </div>
+    <Modal open={isAddModalOpen} onClose={close} size="xl">
+      <ModalHeader icon={Plus} title={`เพิ่ม${titleLabel}`} subtitle={subtitle} onClose={close} />
+
+      {activeMenu === 'employees' ? (
+        <form onSubmit={handleAddEmployee} className="flex flex-col flex-1 overflow-hidden">
+          <ModalBody className="space-y-7">
+            <section className="space-y-4">
+              <SectionHeader>ข้อมูลพื้นฐาน</SectionHeader>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="รหัสพนักงาน" required>
+                  <input type="text" name="empId" value={empForm.empId || ''} onChange={handleEmpChange} required className={cls.input} placeholder="เช่น EMP001" />
+                </Field>
+                <Field label="รหัสบัตรประชาชน (ใช้เข้าสู่ระบบ)" required>
+                  <input type="password" name="nationalId" value={empForm.nationalId || ''} onChange={handleEmpChange} required maxLength="13" className={cls.input} placeholder="เลข 13 หลัก" />
+                </Field>
+                <Field label="ชื่อ-นามสกุล (TH)" required>
+                  <input type="text" name="fullName" value={empForm.fullName || ''} onChange={handleEmpChange} required className={cls.input} placeholder="ชื่อ-นามสกุล" />
+                </Field>
+                <Field label="ชื่อ-นามสกุล (EN)">
+                  <input type="text" name="fullNameEng" value={empForm.fullNameEng || ''} onChange={handleEmpChange} className={cls.input} placeholder="Firstname Lastname" />
+                </Field>
+                <Field label="ชื่อเล่น">
+                  <input type="text" name="nickname" value={empForm.nickname || ''} onChange={handleEmpChange} className={cls.input} placeholder="ชื่อเล่น" />
+                </Field>
+                <Field label="เบอร์โทร">
+                  <input type="tel" name="phone" value={empForm.phone || ''} onChange={handleEmpChange} className={cls.input} placeholder="เบอร์โทรศัพท์" />
+                </Field>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
-                  <input type="text" name="fullName" value={empForm.fullName || ''} onChange={handleEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ชื่อ-นามสกุล" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
-                  <input type="text" name="fullNameEng" value={empForm.fullNameEng || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="Firstname Lastname" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
-                  <input type="text" name="nickname" value={empForm.nickname || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ชื่อเล่น" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
-                  <input type="tel" name="phone" value={empForm.phone || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เบอร์โทรศัพท์" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-                <input list="fo-companies-emp" type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ชื่อบริษัท" autoComplete="off" />
-                <datalist id="fo-companies-emp">{(fieldOptions.companies||[]).map(v=><option key={v} value={v}/>)}</datalist>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
-                  <input list="fo-departments-emp" type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="แผนก" autoComplete="off" />
-                  <datalist id="fo-departments-emp">{(fieldOptions.departments||[]).map(v=><option key={v} value={v}/>)}</datalist>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-                  <input list="fo-positions-emp" type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ตำแหน่งงาน" autoComplete="off" />
-                  <datalist id="fo-positions-emp">{(fieldOptions.positions||[]).map(v=><option key={v} value={v}/>)}</datalist>
-                </div>
+            </section>
+
+            <section className="space-y-4">
+              <SectionHeader>สังกัด</SectionHeader>
+              <Field label="บริษัท">
+                <input list="fo-companies-emp" type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className={cls.input} placeholder="ชื่อบริษัท" autoComplete="off" />
+                <datalist id="fo-companies-emp">{(fieldOptions.companies || []).map(v => <option key={v} value={v} />)}</datalist>
+              </Field>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="แผนก">
+                  <input list="fo-departments-emp" type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className={cls.input} placeholder="แผนก" autoComplete="off" />
+                  <datalist id="fo-departments-emp">{(fieldOptions.departments || []).map(v => <option key={v} value={v} />)}</datalist>
+                </Field>
+                <Field label="ตำแหน่ง">
+                  <input list="fo-positions-emp" type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className={cls.input} placeholder="ตำแหน่งงาน" autoComplete="off" />
+                  <datalist id="fo-positions-emp">{(fieldOptions.positions || []).map(v => <option key={v} value={v} />)}</datalist>
+                </Field>
               </div>
 
-              {/* 🟢 อัปเดตช่องเลือกหัวหน้างานให้เป็นแบบค้นหารายชื่อจากระบบ */}
-              <div ref={managerRef} className="relative">
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    name="manager" 
-                    value={empForm.manager || ''} 
-                    onChange={handleEmpChange} 
+              <Field label="ชื่อหัวหน้างาน">
+                <div ref={managerRef} className="relative">
+                  <input
+                    type="text"
+                    name="manager"
+                    value={empForm.manager || ''}
+                    onChange={handleEmpChange}
                     onFocus={() => setIsManagerDropdownOpen(true)}
-                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" 
-                    placeholder="ค้นหาและเลือกหัวหน้างาน..." 
+                    className={cls.input}
+                    placeholder="ค้นหาและเลือกหัวหน้างาน..."
                     autoComplete="off"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-                {isManagerDropdownOpen && (
-                  <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                    {employees.filter(emp => emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())).map(emp => (
-                      <div 
-                        key={emp.id} 
-                        className="px-4 py-2.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 flex justify-between items-center"
-                        onClick={() => {
-                          handleEmpChange({ target: { name: 'manager', value: emp.fullName } });
-                          setIsManagerDropdownOpen(false);
-                        }}
-                      >
-                        <div>
-                          <div className="font-bold text-slate-800">{emp.fullName}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                  {isManagerDropdownOpen && (
+                    <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 max-h-56 overflow-y-auto">
+                      {employees.filter(emp =>
+                        emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
+                        emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())
+                      ).map(emp => (
+                        <div
+                          key={emp.id}
+                          className="px-4 py-2.5 hover:bg-blue-50/60 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 transition-colors"
+                          onClick={() => {
+                            handleEmpChange({ target: { name: 'manager', value: emp.fullName } });
+                            setIsManagerDropdownOpen(false);
+                          }}
+                        >
+                          <div className="font-medium text-slate-800">{emp.fullName}</div>
+                          <div className="text-[11.5px] text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
                         </div>
-                      </div>
-                    ))}
-                    {employees.filter(emp => emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())).length === 0 && (
-                      <div className="p-3 text-center text-xs text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* ── Microsoft 365 ── */}
-              <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-4 space-y-3">
-                <p className="text-xs font-semibold text-[#1E487A] flex items-center gap-1.5">
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
-                  บัญชี Microsoft 365
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">อีเมล Microsoft 365</label>
-                    <input type="email" name="m365Email" value={empForm.m365Email || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm bg-white" placeholder="user@domain.com" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสผ่าน Microsoft 365</label>
-                    <input type="text" name="m365Password" value={empForm.m365Password || ''} onChange={handleEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm bg-white font-mono" placeholder="รหัสผ่าน" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button type="submit" className="w-full bg-[#1E487A] text-white font-bold py-3 px-4 rounded-xl hover:bg-[#133257] shadow-lg shadow-[#1E487A]/30 transition-all active:scale-[0.98]">
-                  บันทึกข้อมูลพนักงาน
-                </button>
-              </div>
-            </form>
-          ) : activeMenu === 'licenses' ? (
-            <form onSubmit={handleAddLicense} className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">รูปภาพโปรแกรม / ใบอนุญาต</label>
-                <div className="flex items-center gap-4">
-                  {licenseImage ? (
-                    <div className="relative">
-                      <img src={licenseImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
-                      <button type="button" onClick={() => setLicenseImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600">×</button>
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 border-dashed shrink-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      ))}
+                      {employees.filter(emp =>
+                        emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
+                        emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())
+                      ).length === 0 && (
+                        <div className="p-3 text-center text-[12px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                      )}
                     </div>
                   )}
-                  <input
-                    type="file" accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) { const reader = new FileReader(); reader.onloadend = () => setLicenseImage(reader.result); reader.readAsDataURL(file); }
-                    }}
-                    className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#1E487A] hover:file:bg-blue-100 cursor-pointer"
-                  />
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อโปรแกรม <span className="text-red-500">*</span></label>
-                  <input type="text" name="name" value={licenseForm.name || ''} onChange={handleLicenseChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ระบุชื่อโปรแกรม..." />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวนสิทธิ์ (Volume) <span className="text-red-500">*</span></label>
-                  <input type="number" min="1" name="quantity" value={licenseForm.quantity || 1} onChange={handleLicenseChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Product Key ใบอนุญาต</label>
-                <input type="text" name="productKey" value={licenseForm.productKey || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all font-mono shadow-sm" placeholder="เช่น A1B2-C3D4-E5F6" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสของ Product Key (อ้างอิง)</label>
-                <input type="text" name="keyCode" value={licenseForm.keyCode || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="รหัสอ้างอิงของ Key" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Supplier ที่ซื้อ</label>
-                <input type="text" name="supplier" value={licenseForm.supplier || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ชื่อร้านค้า/ตัวแทนจำหน่าย" />
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
-                  <input type="date" name="purchaseDate" value={licenseForm.purchaseDate || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมดอายุ</label>
-                  <input type="date" name="expirationDate" value={licenseForm.expirationDate || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                <input type="number" step="any" min="0" name="cost" value={licenseForm.cost || ''} onChange={handleLicenseChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="ระบุราคา..." />
-              </div>
-              <div className="pt-2">
-                <button type="submit" className="w-full bg-[#1E487A] text-white font-bold py-3 px-4 rounded-xl hover:bg-[#133257] shadow-lg shadow-[#1E487A]/30 transition-all active:scale-[0.98]">
-                  บันทึกข้อมูลใบอนุญาต
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleAdd} className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">รูปภาพอ้างอิง</label>
-                <div className="flex items-center gap-4">
-                  {assetImage ? (
-                    <img src={assetImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
-                  ) : (
-                    <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 border-dashed">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    </div>
-                  )}
-                  <input 
-                    type="file" accept="image/*" onChange={handleImageUpload} 
-                    className="flex-1 border border-slate-300 p-2 rounded-xl text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#1E487A] hover:file:bg-blue-100 cursor-pointer"
-                  />
-                </div>
-              </div>
+              </Field>
+            </section>
 
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่ออุปกรณ์ / รุ่น <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" value={name} onChange={(e) => setName(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all text-sm shadow-sm"
-                  placeholder="ระบุชื่ออุปกรณ์..." required
-                />
+            {/* Microsoft 365 */}
+            <section className="rounded-xl ring-1 ring-blue-100 bg-blue-50/40 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-[#1E487A]">
+                <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+                <p className="text-[12px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
               </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">ประเภท</label>
-                <select 
-                  value={type} onChange={(e) => setType(e.target.value)}
-                  className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none bg-white transition-all text-sm text-slate-700 shadow-sm cursor-pointer"
-                >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="อีเมล Microsoft 365">
+                  <input type="email" name="m365Email" value={empForm.m365Email || ''} onChange={handleEmpChange} className={cls.input} placeholder="user@domain.com" />
+                </Field>
+                <Field label="รหัสผ่าน Microsoft 365">
+                  <input type="text" name="m365Password" value={empForm.m365Password || ''} onChange={handleEmpChange} className={cls.inputMono} placeholder="รหัสผ่าน" />
+                </Field>
+              </div>
+            </section>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="secondary" onClick={close}>ยกเลิก</Button>
+            <Button type="submit">บันทึกข้อมูลพนักงาน</Button>
+          </ModalFooter>
+        </form>
+      ) : activeMenu === 'licenses' ? (
+        <form onSubmit={handleAddLicense} className="flex flex-col flex-1 overflow-hidden">
+          <ModalBody className="space-y-7">
+            <section className="space-y-3">
+              <SectionHeader>รูปภาพ</SectionHeader>
+              <ImagePicker image={licenseImage} onRemove={() => setLicenseImage(null)} onUpload={handleLicenseImageUpload} />
+            </section>
+
+            <section className="space-y-4">
+              <SectionHeader>ข้อมูลใบอนุญาต</SectionHeader>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="ชื่อโปรแกรม" required>
+                  <input type="text" name="name" value={licenseForm.name || ''} onChange={handleLicenseChange} required className={cls.input} placeholder="ระบุชื่อโปรแกรม..." />
+                </Field>
+                <Field label="จำนวนสิทธิ์ (Volume)" required>
+                  <input type="number" min="1" name="quantity" value={licenseForm.quantity || 1} onChange={handleLicenseChange} required className={cls.input} />
+                </Field>
+              </div>
+              <Field label="Product Key ใบอนุญาต">
+                <input type="text" name="productKey" value={licenseForm.productKey || ''} onChange={handleLicenseChange} className={cls.inputMono} placeholder="เช่น A1B2-C3D4-E5F6" />
+              </Field>
+              <Field label="รหัสของ Product Key (อ้างอิง)">
+                <input type="text" name="keyCode" value={licenseForm.keyCode || ''} onChange={handleLicenseChange} className={cls.input} placeholder="รหัสอ้างอิงของ Key" />
+              </Field>
+              <Field label="Supplier ที่ซื้อ">
+                <input type="text" name="supplier" value={licenseForm.supplier || ''} onChange={handleLicenseChange} className={cls.input} placeholder="ชื่อร้านค้า/ตัวแทนจำหน่าย" />
+              </Field>
+            </section>
+
+            <section className="space-y-4">
+              <SectionHeader>การจัดซื้อ</SectionHeader>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="วันที่ซื้อ">
+                  <input type="date" name="purchaseDate" value={licenseForm.purchaseDate || ''} onChange={handleLicenseChange} className={cls.input} />
+                </Field>
+                <Field label="วันที่หมดอายุ">
+                  <input type="date" name="expirationDate" value={licenseForm.expirationDate || ''} onChange={handleLicenseChange} className={cls.input} />
+                </Field>
+              </div>
+              <Field label="ราคา (บาท)">
+                <CostInput name="cost" value={licenseForm.cost || ''} onChange={handleLicenseChange} />
+              </Field>
+            </section>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="secondary" onClick={close}>ยกเลิก</Button>
+            <Button type="submit">บันทึกข้อมูลใบอนุญาต</Button>
+          </ModalFooter>
+        </form>
+      ) : (
+        <form onSubmit={handleAdd} className="flex flex-col flex-1 overflow-hidden">
+          <ModalBody className="space-y-7">
+            <section className="space-y-3">
+              <SectionHeader>รูปภาพอ้างอิง</SectionHeader>
+              <ImagePicker image={assetImage} onRemove={() => setAssetImage(null)} onUpload={handleImageUpload} />
+            </section>
+
+            <section className="space-y-4">
+              <SectionHeader>ข้อมูลทั่วไป</SectionHeader>
+              <Field label="ชื่ออุปกรณ์ / รุ่น" required>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={cls.input} placeholder="ระบุชื่ออุปกรณ์..." required />
+              </Field>
+              <Field label="ประเภท">
+                <select value={type} onChange={(e) => setType(e.target.value)} className={cls.select}>
                   {activeMenu === 'assets' ? (
-                    <><option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option><option value="หน้าจอ">หน้าจอ (Monitor)</option><option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option><option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option><option value="อื่นๆ">อื่นๆ</option></>
+                    <>
+                      <option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option>
+                      <option value="หน้าจอ">หน้าจอ (Monitor)</option>
+                      <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
+                      <option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option>
+                      <option value="อื่นๆ">อื่นๆ</option>
+                    </>
                   ) : activeMenu === 'office_supplies' ? (
-                    <><option value="เครื่องเขียน">เครื่องเขียน</option><option value="กระดาษ">กระดาษ</option><option value="แฟ้มและอุปกรณ์จัดเก็บ">แฟ้มและอุปกรณ์จัดเก็บ</option><option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option></>
+                    <>
+                      <option value="เครื่องเขียน">เครื่องเขียน</option>
+                      <option value="กระดาษ">กระดาษ</option>
+                      <option value="แฟ้มและอุปกรณ์จัดเก็บ">แฟ้มและอุปกรณ์จัดเก็บ</option>
+                      <option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option>
+                    </>
                   ) : (
-                    <><option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option><option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option><option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option><option value="หูฟัง (Headset)">หูฟัง (Headset)</option><option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option><option value="อื่นๆ">อื่นๆ</option></>
+                    <>
+                      <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
+                      <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option>
+                      <option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option>
+                      <option value="หูฟัง (Headset)">หูฟัง (Headset)</option>
+                      <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
+                      <option value="อื่นๆ">อื่นๆ</option>
+                    </>
                   )}
                 </select>
-              </div>
+              </Field>
+            </section>
 
-              {activeMenu === 'assets' && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสทรัพย์สิน</label>
-                      <input type="text" value={assetTag} onChange={(e) => setAssetTag(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm font-mono" placeholder="เช่น AST-001" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">Serial Number</label>
-                      <input type="text" value={sn} onChange={(e) => setSn(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm font-mono" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
-                      <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท / ผู้ผลิต</label>
-                      <input list="fo-companies-asset" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
-                      <datalist id="fo-companies-asset">{(fieldOptions.companies||[]).map(v=><option key={v} value={v}/>)}</datalist>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก <span className="text-red-500">*</span></label>
-                      <input list="fo-departments-asset" type="text" value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
-                      <datalist id="fo-departments-asset">{(fieldOptions.departments||[]).map(v=><option key={v} value={v}/>)}</datalist>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
-                      <input list="fo-vendors-asset" type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
-                      <datalist id="fo-vendors-asset">{(fieldOptions.vendors||[]).map(v=><option key={v} value={v}/>)}</datalist>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-5 mt-5">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่ซื้อ</label>
-                      <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">วันที่หมด Warranty</label>
-                      <input type="date" value={warrantyDate} onChange={(e) => setWarrantyDate(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all text-slate-600 shadow-sm" />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {activeMenu !== 'office_supplies' && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">ราคา (บาท)</label>
-                  <input type="number" step="any" min="0" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all text-sm shadow-sm" placeholder="ระบุราคา..." />
+            {activeMenu === 'assets' && (
+              <section className="space-y-4">
+                <SectionHeader>รายละเอียดทะเบียน</SectionHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="รหัสทรัพย์สิน">
+                    <input type="text" value={assetTag} onChange={(e) => setAssetTag(e.target.value)} className={cls.inputMono} placeholder="เช่น AST-001" />
+                  </Field>
+                  <Field label="Serial Number">
+                    <input type="text" value={sn} onChange={(e) => setSn(e.target.value)} className={cls.inputMono} />
+                  </Field>
+                  <Field label="ยี่ห้อ / รุ่น (Model)">
+                    <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className={cls.input} />
+                  </Field>
+                  <Field label="บริษัท / ผู้ผลิต">
+                    <input list="fo-companies-asset" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className={cls.input} placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                    <datalist id="fo-companies-asset">{(fieldOptions.companies || []).map(v => <option key={v} value={v} />)}</datalist>
+                  </Field>
+                  <Field label="แผนก" required>
+                    <input list="fo-departments-asset" type="text" value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)} className={cls.input} placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                    <datalist id="fo-departments-asset">{(fieldOptions.departments || []).map(v => <option key={v} value={v} />)}</datalist>
+                  </Field>
+                  <Field label="ผู้จัดจำหน่าย (Vendor)">
+                    <input list="fo-vendors-asset" type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} className={cls.input} placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
+                    <datalist id="fo-vendors-asset">{(fieldOptions.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
+                  </Field>
                 </div>
-              )}
+              </section>
+            )}
 
-              {activeMenu === 'office_supplies' ? (
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวนเริ่มต้น <span className="text-red-500">*</span></label>
-                    <input 
-                      type="number" min="0" value={quantity} onChange={(e) => setQuantity(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all text-sm shadow-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">หน่วยนับ <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" value={unit} onChange={(e) => setUnit(e.target.value)}
-                      className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all text-sm shadow-sm"
-                      placeholder="เช่น ชิ้น, กล่อง, ด้าม..." required
-                    />
-                  </div>
+            {activeMenu === 'assets' && (
+              <section className="space-y-4">
+                <SectionHeader>การจัดซื้อ</SectionHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="วันที่ซื้อ">
+                    <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} className={cls.input} />
+                  </Field>
+                  <Field label="วันที่หมด Warranty">
+                    <input type="date" value={warrantyDate} onChange={(e) => setWarrantyDate(e.target.value)} className={cls.input} />
+                  </Field>
                 </div>
-              ) : activeMenu === 'accessories' && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">จำนวน (ชิ้น) <span className="text-red-500">*</span></label>
-                  <input 
-                    type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none transition-all text-sm shadow-sm"
-                    placeholder="ระบุจำนวน..." required
-                  />
+              </section>
+            )}
+
+            {activeMenu !== 'office_supplies' && (
+              <section className="space-y-4">
+                {activeMenu !== 'assets' && <SectionHeader>ราคา / จำนวน</SectionHeader>}
+                <Field label="ราคา (บาท)">
+                  <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
+                </Field>
+              </section>
+            )}
+
+            {activeMenu === 'office_supplies' ? (
+              <section className="space-y-4">
+                <SectionHeader>สต็อก</SectionHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="จำนวนเริ่มต้น" required>
+                    <input type="number" min="0" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={cls.input} required />
+                  </Field>
+                  <Field label="หน่วยนับ" required>
+                    <input type="text" value={unit} onChange={(e) => setUnit(e.target.value)} className={cls.input} placeholder="เช่น ชิ้น, กล่อง, ด้าม..." required />
+                  </Field>
                 </div>
-              )}
-              
-              <div className="pt-2 shrink-0">
-                <button type="submit" className="w-full bg-[#1E487A] text-white font-bold py-3 px-4 rounded-xl hover:bg-[#133257] shadow-lg shadow-[#1E487A]/30 transition-all active:scale-[0.98]">
-                  บันทึกข้อมูล
-                </button>
-              </div>
-            </form>
-          )}
+              </section>
+            ) : activeMenu === 'accessories' && (
+              <Field label="จำนวน (ชิ้น)" required>
+                <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={cls.input} placeholder="ระบุจำนวน..." required />
+              </Field>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="secondary" onClick={close}>ยกเลิก</Button>
+            <Button type="submit">บันทึกข้อมูล</Button>
+          </ModalFooter>
+        </form>
+      )}
+    </Modal>
+  );
+}
+
+/* ── Helpers ── */
+function ImagePicker({ image, onRemove, onUpload }) {
+  return (
+    <div className="flex items-center gap-4">
+      {image ? (
+        <div className="relative shrink-0">
+          <img src={image} alt="Preview" className="w-20 h-20 rounded-xl object-cover ring-1 ring-slate-200" />
+          <button
+            type="button"
+            onClick={onRemove}
+            className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 ring-1 ring-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none shadow-sm"
+            title="ลบรูปภาพ"
+          >
+            <XIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="w-20 h-20 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 ring-1 ring-dashed ring-slate-300 shrink-0">
+          <ImageIcon className="h-7 w-7" strokeWidth={1.5} />
+        </div>
+      )}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={onUpload}
+        className="flex-1 min-w-0 text-sm text-slate-500
+          file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
+          file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700
+          hover:file:bg-slate-200 file:cursor-pointer file:transition-colors"
+      />
+    </div>
+  );
+}
+
+function CostInput({ value, onChange, name }) {
+  return (
+    <div className="relative">
+      <input
+        type="number"
+        step="any"
+        min="0"
+        name={name}
+        value={value}
+        onChange={onChange}
+        onWheel={(e) => e.target.blur()}
+        onKeyDown={(e) => (e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.preventDefault()}
+        className={cls.input + ' pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'}
+        placeholder="0.00"
+      />
+      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
     </div>
   );
 }

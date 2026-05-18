@@ -1,34 +1,9 @@
 import React from 'react';
+import { Pencil, Trash2, Monitor, User as UserIcon, LogIn, RotateCcw } from 'lucide-react';
+import { BRAND } from '../ui/theme.js';
 
-/* ── SVG icon helpers ── */
-function IconEdit() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-    </svg>
-  );
-}
-function IconTrash() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  );
-}
-function IconMonitor() {
-  return (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-  );
-}
-function IconUser() {
-  return (
-    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-    </svg>
-  );
-}
+const TH = 'px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-[0.08em]';
+const TD = 'px-5 py-3.5';
 
 export default function AssetTable({
   currentData,
@@ -38,139 +13,189 @@ export default function AssetTable({
   setReturnModal,
   openEditAssetModal,
   setConfirmDeleteModal,
-  visibleAssetColumns
+  visibleAssetColumns,
 }) {
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
-      <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
         <tr>
-          {visibleAssetColumns.name && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">ชื่ออุปกรณ์</th>}
-          {visibleAssetColumns.type && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">ประเภท</th>}
-          {visibleAssetColumns.department && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider text-center">แผนก</th>}
-          {visibleAssetColumns.assetTag && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">รหัสทรัพย์สิน</th>}
-          {visibleAssetColumns.sn && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Serial Number</th>}
-          {visibleAssetColumns.model && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">ยี่ห้อ/รุ่น</th>}
-          {visibleAssetColumns.vendor && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">ผู้จัดจำหน่าย</th>}
-          {visibleAssetColumns.company && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">บริษัท</th>}
-          {visibleAssetColumns.purchaseDate && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">วันที่ซื้อ</th>}
-          {visibleAssetColumns.warrantyDate && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">หมด Warranty</th>}
-          {visibleAssetColumns.cost && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">ราคา</th>}
-          {visibleAssetColumns.assignedName && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider text-center">ผู้ครอบครอง</th>}
-          {visibleAssetColumns.status && <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider text-center">สถานะ</th>}
-          <th className="px-5 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider text-center">จัดการ</th>
+          {visibleAssetColumns.name && <th className={TH}>ชื่ออุปกรณ์</th>}
+          {visibleAssetColumns.type && <th className={TH}>ประเภท</th>}
+          {visibleAssetColumns.department && <th className={`${TH} text-center`}>แผนก</th>}
+          {visibleAssetColumns.assetTag && <th className={TH}>รหัสทรัพย์สิน</th>}
+          {visibleAssetColumns.sn && <th className={TH}>Serial Number</th>}
+          {visibleAssetColumns.model && <th className={TH}>ยี่ห้อ/รุ่น</th>}
+          {visibleAssetColumns.vendor && <th className={TH}>ผู้จัดจำหน่าย</th>}
+          {visibleAssetColumns.company && <th className={TH}>บริษัท</th>}
+          {visibleAssetColumns.purchaseDate && <th className={TH}>วันที่ซื้อ</th>}
+          {visibleAssetColumns.warrantyDate && <th className={TH}>หมด Warranty</th>}
+          {visibleAssetColumns.cost && <th className={`${TH} text-right`}>ราคา</th>}
+          {visibleAssetColumns.assignedName && <th className={`${TH} text-center`}>ผู้ครอบครอง</th>}
+          {visibleAssetColumns.status && <th className={`${TH} text-center`}>สถานะ</th>}
+          <th className={`${TH} text-center`}>จัดการ</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-100 text-sm">
+      <tbody className="divide-y divide-slate-100 text-[13.5px] bg-white">
         {currentData.map((item) => (
-          <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group bg-white">
+          <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
             {visibleAssetColumns.name && (
-              <td className="px-5 py-3.5">
-                <button onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory('assets'); }} className="text-left flex items-center gap-3 group/link">
+              <td className={TD}>
+                <button
+                  onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory('assets'); }}
+                  className="text-left flex items-center gap-3 group/link"
+                >
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0" />
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-9 h-9 rounded-lg object-cover ring-1 ring-slate-200 shrink-0"
+                    />
                   ) : (
-                    <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200 text-slate-400 group-hover/link:bg-[#1E487A]/10 group-hover/link:text-[#1E487A] transition-colors">
-                      <IconMonitor />
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                      style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
+                    >
+                      <Monitor className="h-4 w-4" strokeWidth={1.7} />
                     </div>
                   )}
-                  <span className="font-semibold text-slate-800 group-hover/link:text-[#1E487A] transition-colors">{item.name}</span>
+                  <span className="font-medium text-slate-800 group-hover/link:text-[#1E487A] transition-colors">
+                    {item.name}
+                  </span>
                 </button>
               </td>
             )}
 
             {visibleAssetColumns.type && (
-              <td className="px-5 py-3.5">
-                <span className="bg-slate-100 text-slate-600 text-[11px] px-2.5 py-1 rounded-md font-semibold border border-slate-200">
+              <td className={TD}>
+                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[11px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
                   {item.type}
                 </span>
               </td>
             )}
 
-            {visibleAssetColumns.department && <td className="px-5 py-3.5 text-center font-semibold text-slate-700">{item.department || '-'}</td>}
-            {visibleAssetColumns.assetTag && <td className="px-5 py-3.5 font-mono text-slate-600 text-xs">{item.assetTag || '-'}</td>}
-            {visibleAssetColumns.sn && <td className="px-5 py-3.5 font-mono text-slate-600 text-xs">{item.sn || '-'}</td>}
-            {visibleAssetColumns.model && <td className="px-5 py-3.5 text-slate-700">{item.model || '-'}</td>}
-            {visibleAssetColumns.vendor && <td className="px-5 py-3.5 text-slate-700">{item.vendor || '-'}</td>}
-            {visibleAssetColumns.company && <td className="px-5 py-3.5 text-slate-700">{item.company || '-'}</td>}
-            {visibleAssetColumns.purchaseDate && <td className="px-5 py-3.5 text-slate-600">{item.purchaseDate || '-'}</td>}
-            {visibleAssetColumns.warrantyDate && <td className="px-5 py-3.5 text-slate-600">{item.warrantyDate || '-'}</td>}
-            {visibleAssetColumns.cost && <td className="px-5 py-3.5 font-semibold text-slate-700">{item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}</td>}
-
-            {visibleAssetColumns.assignedName && (
-              <td className="px-5 py-3.5 text-center font-semibold text-[#1E487A]">{item.assignedName || '-'}</td>
+            {visibleAssetColumns.department && (
+              <td className={`${TD} text-center font-medium text-slate-700`}>{item.department || '-'}</td>
             )}
-
-            {visibleAssetColumns.status && (
-              <td className="px-5 py-3.5 text-center">
-                {(!item.status || item.status === 'พร้อมใช้งาน') ? (
-                  <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-semibold border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    พร้อมใช้งาน
-                  </span>
-                ) : item.status === 'ถูกใช้งาน' ? (
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="inline-flex items-center gap-1.5 bg-blue-50 text-[#1E487A] px-2.5 py-1 rounded-md text-xs font-semibold border border-blue-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1E487A]" />
-                      ถูกใช้งาน
-                    </span>
-                    {item.assignedName && !visibleAssetColumns.assignedName && (
-                      <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                        <IconUser /> {item.assignedName}
-                      </span>
-                    )}
-                  </div>
-                ) : item.status === 'ชำรุดเสียหาย' ? (
-                  <span className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-2.5 py-1 rounded-md text-xs font-semibold border border-red-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                    ชำรุดเสียหาย
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-md text-xs font-semibold border border-amber-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    {item.status}
-                  </span>
-                )}
+            {visibleAssetColumns.assetTag && (
+              <td className={`${TD} font-mono text-slate-600 text-[12.5px]`}>{item.assetTag || '-'}</td>
+            )}
+            {visibleAssetColumns.sn && (
+              <td className={`${TD} font-mono text-slate-600 text-[12.5px]`}>{item.sn || '-'}</td>
+            )}
+            {visibleAssetColumns.model && <td className={`${TD} text-slate-700`}>{item.model || '-'}</td>}
+            {visibleAssetColumns.vendor && <td className={`${TD} text-slate-700`}>{item.vendor || '-'}</td>}
+            {visibleAssetColumns.company && <td className={`${TD} text-slate-700`}>{item.company || '-'}</td>}
+            {visibleAssetColumns.purchaseDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.purchaseDate || '-'}</td>}
+            {visibleAssetColumns.warrantyDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.warrantyDate || '-'}</td>}
+            {visibleAssetColumns.cost && (
+              <td className={`${TD} text-right font-medium text-slate-700 tabular-nums`}>
+                {item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}
               </td>
             )}
 
-            <td className="px-5 py-3.5 text-center">
+            {visibleAssetColumns.assignedName && (
+              <td className={`${TD} text-center font-medium`} style={{ color: BRAND.primary }}>
+                {item.assignedName || '-'}
+              </td>
+            )}
+
+            {visibleAssetColumns.status && (
+              <td className={`${TD} text-center`}>
+                <StatusBadge status={item.status} assignedName={item.assignedName} showAssignee={!visibleAssetColumns.assignedName} />
+              </td>
+            )}
+
+            <td className={`${TD} text-center`}>
               <div className="flex items-center justify-center gap-1.5">
                 {(!item.status || item.status === 'พร้อมใช้งาน') ? (
-                  <button
+                  <ActionBtn
                     onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'assets' })}
-                    className="px-2.5 py-1.5 bg-white text-[#1E487A] border border-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white rounded-md font-semibold transition-all text-xs"
-                    title="เบิกจ่าย"
+                    kind="primary"
+                    icon={LogIn}
                   >
                     เบิกจ่าย
-                  </button>
+                  </ActionBtn>
                 ) : item.status === 'ถูกใช้งาน' ? (
-                  <button
+                  <ActionBtn
                     onClick={() => setReturnModal({ isOpen: true, assetId: item.id, collectionName: 'assets', empId: item.assignedTo, empName: item.assignedName, assetName: item.name })}
-                    className="px-2.5 py-1.5 bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-500 hover:text-white rounded-md font-semibold transition-all text-xs"
-                    title="รับคืน"
+                    kind="success"
+                    icon={RotateCcw}
                   >
                     รับคืน
-                  </button>
+                  </ActionBtn>
                 ) : null}
-                <button
-                  onClick={() => openEditAssetModal(item, 'assets')}
-                  className="inline-flex items-center justify-center w-7 h-7 text-amber-600 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-md transition-all"
-                  title="แก้ไข"
-                >
-                  <IconEdit />
-                </button>
-                <button
-                  onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'assets' })}
-                  className="inline-flex items-center justify-center w-7 h-7 text-red-500 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-300 rounded-md transition-all"
-                  title="ลบ"
-                >
-                  <IconTrash />
-                </button>
+                <IconBtn onClick={() => openEditAssetModal(item, 'assets')} title="แก้ไข" kind="warning">
+                  <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                </IconBtn>
+                <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'assets' })} title="ลบ" kind="danger">
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                </IconBtn>
               </div>
             </td>
           </tr>
         ))}
       </tbody>
     </table>
+  );
+}
+
+/* ── Reusable bits ── */
+function StatusBadge({ status, assignedName, showAssignee }) {
+  const norm = !status || status === 'พร้อมใช้งาน' ? 'ready'
+    : status === 'ถูกใช้งาน' ? 'inuse'
+    : status === 'ชำรุดเสียหาย' ? 'broken'
+    : 'pending';
+
+  const meta = {
+    ready:  { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500 animate-pulse', label: 'พร้อมใช้งาน' },
+    inuse:  { cls: 'bg-blue-50 text-[#1E487A] ring-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
+    broken: { cls: 'bg-rose-50 text-rose-700 ring-rose-200', dot: 'bg-rose-500', label: 'ชำรุดเสียหาย' },
+    pending:{ cls: 'bg-amber-50 text-amber-700 ring-amber-200', dot: 'bg-amber-500', label: status },
+  }[norm];
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ring-1 ring-inset ${meta.cls}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+        {meta.label}
+      </span>
+      {norm === 'inuse' && showAssignee && assignedName && (
+        <span className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
+          <UserIcon className="h-3 w-3" strokeWidth={2} /> {assignedName}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ActionBtn({ onClick, kind, icon: Icon, children }) {
+  const map = {
+    primary: 'text-[#1E487A] ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A]',
+    success: 'text-emerald-600 ring-emerald-200 hover:bg-emerald-500 hover:text-white hover:ring-emerald-500',
+  }[kind];
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 px-2.5 py-1.5 bg-white ring-1 ring-inset rounded-lg font-semibold transition-colors text-[11.5px] ${map}`}
+    >
+      {Icon && <Icon className="h-3 w-3" strokeWidth={2.2} />}
+      {children}
+    </button>
+  );
+}
+
+function IconBtn({ onClick, title, children, kind }) {
+  const map = {
+    warning: 'text-amber-600 hover:bg-amber-50 hover:ring-amber-300',
+    danger:  'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
+  }[kind];
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className={`inline-flex items-center justify-center w-7 h-7 bg-white ring-1 ring-inset ring-slate-200 rounded-lg transition-colors ${map}`}
+    >
+      {children}
+    </button>
   );
 }

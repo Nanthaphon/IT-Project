@@ -59,56 +59,83 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
   const groups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
 
   return (
-    <aside className="w-full md:w-60 flex flex-col flex-shrink-0 h-screen"
-      style={{ background: 'linear-gradient(180deg, #1E487A 0%, #133257 100%)' }}>
+    <aside
+      className="w-full md:w-64 flex flex-col flex-shrink-0 h-screen relative text-slate-100"
+      style={{
+        background:
+          'radial-gradient(120% 80% at 0% 0%, #234e85 0%, #1b4174 35%, #112f57 100%)',
+      }}
+    >
+      {/* ขอบขวาบางๆ ให้เกิดเส้นแบ่งกับ content */}
+      <div className="absolute inset-y-0 right-0 w-px bg-white/8 pointer-events-none" />
 
-      {/* Logo */}
+      {/* Logo / Brand */}
       <div className="px-5 pt-6 pb-5 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/15 border border-white/20">
-            <img src="/gb_icon.svg" alt="Logo" className="w-5 h-5 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-black/20"
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #dbeafe 100%)',
+            }}
+          >
+            <img
+              src="/gb_icon.svg"
+              alt="Logo"
+              className="w-5 h-5 object-contain"
+              style={{
+                filter:
+                  'invert(20%) sepia(40%) saturate(1400%) hue-rotate(190deg) brightness(70%)',
+              }}
+            />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-bold text-white">IT Admin</p>
+            <p className="text-[15px] font-semibold text-white tracking-tight">IT Admin</p>
             <p className="text-[11px] text-blue-200/70 tracking-wide">Asset Management</p>
           </div>
         </div>
       </div>
 
-      <div className="mx-4 h-px bg-white/10 shrink-0" />
+      <div className="mx-5 h-px bg-white/10 shrink-0" />
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {groups.map((group) => (
           <div key={group.group}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-blue-200/50 px-3 mb-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-200/55 px-3 mb-2">
               {group.group}
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {group.items.map(({ id, label, icon: Icon }) => {
                 const active = activeMenu === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setActiveMenu(id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                    className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] transition-all duration-150 group
                       ${active
-                        ? 'bg-white text-[#1E487A] shadow-md'
-                        : 'text-blue-100/80 hover:bg-white/10 hover:text-white'
+                        ? 'bg-white text-[#1E487A] font-semibold shadow-lg shadow-black/10'
+                        : 'text-blue-100/80 hover:bg-white/8 hover:text-white font-medium'
                       }`}
                   >
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-150
-                      ${active
-                        ? 'bg-[#1E487A] text-white'
-                        : 'bg-white/10 text-blue-200 group-hover:bg-white/20 group-hover:text-white'
-                      }`}>
-                      <Icon className="h-3.5 w-3.5" />
-                    </span>
+                    {/* แถบสีตัวบ่งชี้ด้านซ้ายเฉพาะ active */}
+                    {active && (
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full"
+                        style={{ background: '#1E487A' }}
+                      />
+                    )}
+
+                    <Icon
+                      className={`h-[18px] w-[18px] shrink-0 transition-colors ${
+                        active ? 'text-[#1E487A]' : 'text-blue-200/80 group-hover:text-white'
+                      }`}
+                      strokeWidth={active ? 2.2 : 1.8}
+                    />
 
                     <span className="truncate">{label}</span>
 
                     {active && (
-                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#1E487A] shrink-0" />
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#1E487A]/80 shrink-0" />
                     )}
                   </button>
                 );
@@ -119,29 +146,35 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
 
         {/* บัญชี */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-blue-200/50 px-3 mb-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-200/55 px-3 mb-2">
             บัญชี
           </p>
           <button
             onClick={onResetPassword}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-blue-100/80 hover:bg-white/10 hover:text-white transition-all duration-150 group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-blue-100/80 hover:bg-white/8 hover:text-white transition-all duration-150 group"
           >
-            <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-white/10 text-blue-200 group-hover:bg-white/20 group-hover:text-white transition-colors">
-              <KeyRound className="h-3.5 w-3.5" />
-            </span>
+            <KeyRound
+              className="h-[18px] w-[18px] shrink-0 text-blue-200/80 group-hover:text-white transition-colors"
+              strokeWidth={1.8}
+            />
             <span className="truncate">เปลี่ยนรหัสผ่าน</span>
           </button>
         </div>
       </nav>
 
-      {/* Footer */}
+      {/* Footer — สถานะระบบ */}
       <div className="hidden md:block px-4 py-4 shrink-0 border-t border-white/10">
-        <div className="flex items-center gap-2 px-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-          </span>
-          <span className="text-xs text-blue-200/60 font-medium">ระบบออนไลน์</span>
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+            </span>
+            <span className="text-[11.5px] text-blue-200/70 font-medium tracking-wide">
+              ระบบออนไลน์
+            </span>
+          </div>
+          <span className="text-[10px] text-blue-200/40 font-mono">v1.0</span>
         </div>
       </div>
     </aside>

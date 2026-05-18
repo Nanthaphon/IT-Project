@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { generateITReport } from '../utils/generateITReport.js';
-import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin } from 'lucide-react';
+import { BRAND } from '../ui/theme.js';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
 const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸ On Hold'];
 
-const inputCls = 'w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A]';
-const labelCls = 'block text-xs font-bold text-slate-600 mb-1';
+const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]';
+const labelCls = 'block text-[12px] font-medium text-slate-600 mb-1';
 
 function SectionHeader({ title, children }) {
   return (
@@ -277,16 +278,30 @@ export default function ITReportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[92vh] border border-slate-100 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-4xl flex flex-col max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* Header */}
-        <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
-          <h3 className="font-bold text-xl flex items-center gap-2">
-            <span className="bg-white/20 p-1.5 rounded-lg">📊</span> สร้าง IT Monthly Report
-          </h3>
-          <button onClick={onClose} className="text-blue-200 hover:text-white bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl transition-colors">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        <div className="px-7 py-5 flex justify-between items-start border-b border-slate-100 shrink-0">
+          <div className="flex items-start gap-3.5">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
+            >
+              <BarChart3 className="h-5 w-5" strokeWidth={1.8} />
+            </div>
+            <div>
+              <h3 className="text-[17px] font-semibold text-slate-900 leading-tight">สร้าง IT Monthly Report</h3>
+              <p className="text-[12.5px] text-slate-500 mt-0.5">กรอกข้อมูล Issue/Project แล้ว Export เป็นไฟล์ .pptx</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors focus:outline-none"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -296,8 +311,10 @@ export default function ITReportModal({
           <div className="w-[55%] border-r border-slate-100 overflow-y-auto p-6 space-y-5">
 
             {/* Basic config */}
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-4">
-              <h4 className="text-sm font-bold text-[#1E487A]">⚙️ ตั้งค่าทั่วไป</h4>
+            <div className="bg-blue-50/40 ring-1 ring-inset ring-blue-200 rounded-xl p-4 space-y-4">
+              <h4 className="text-[13px] font-semibold text-[#1E487A] flex items-center gap-2">
+                <Settings className="h-4 w-4" strokeWidth={2} /> ตั้งค่าทั่วไป
+              </h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>เดือน</label>
@@ -411,22 +428,28 @@ export default function ITReportModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-white">
-          <p className="text-xs text-slate-500">
-            รายงานจะสร้างเป็นไฟล์ <strong>.pptx</strong> — สามารถแก้ไขใน PowerPoint ได้ต่อ
+        <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
+          <p className="text-[12px] text-slate-500">
+            รายงานจะสร้างเป็นไฟล์ <strong className="text-slate-700">.pptx</strong> — สามารถแก้ไขใน PowerPoint ได้ต่อ
           </p>
-          <div className="flex gap-3">
-            <button onClick={onClose} className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold text-sm transition-all">
+          <div className="flex gap-2.5">
+            <button
+              onClick={onClose}
+              className="px-4 py-2.5 bg-white ring-1 ring-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:ring-slate-300 font-medium text-[13.5px] transition-colors"
+            >
               ยกเลิก
             </button>
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg ${generating ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#1E487A] hover:bg-[#133257] text-white shadow-[#1E487A]/30'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[13.5px] transition-colors shadow-sm hover:shadow-md ${generating ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'text-white'}`}
+              style={!generating ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
+              onMouseEnter={(e) => !generating && (e.currentTarget.style.background = BRAND.primaryDark)}
+              onMouseLeave={(e) => !generating && (e.currentTarget.style.background = BRAND.primary)}
             >
               {generating
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้างไฟล์...</>
-                : <><FileDown className="h-4 w-4" /> Export .pptx</>
+                : <><FileDown className="h-4 w-4" strokeWidth={2} /> Export .pptx</>
               }
             </button>
           </div>

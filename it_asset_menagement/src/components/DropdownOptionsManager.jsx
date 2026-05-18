@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save } from 'lucide-react';
+import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save, CheckCircle2, AlertTriangle, SlidersHorizontal, Info } from 'lucide-react';
+import { BRAND } from '../ui/theme.js';
 
 const CATEGORIES = [
   {
@@ -45,11 +46,11 @@ const CATEGORIES = [
 ];
 
 const COLOR_MAP = {
-  blue:    { bg: 'bg-blue-50',   border: 'border-blue-200',   icon: 'text-blue-600',   chip: 'bg-blue-100 text-blue-800 border-blue-200',  btn: 'bg-blue-600 hover:bg-blue-700' },
-  violet:  { bg: 'bg-violet-50', border: 'border-violet-200', icon: 'text-violet-600', chip: 'bg-violet-100 text-violet-800 border-violet-200', btn: 'bg-violet-600 hover:bg-violet-700' },
-  emerald: { bg: 'bg-emerald-50',border: 'border-emerald-200',icon: 'text-emerald-600',chip: 'bg-emerald-100 text-emerald-800 border-emerald-200', btn: 'bg-emerald-600 hover:bg-emerald-700' },
-  amber:   { bg: 'bg-amber-50',  border: 'border-amber-200',  icon: 'text-amber-600',  chip: 'bg-amber-100 text-amber-800 border-amber-200',  btn: 'bg-amber-600 hover:bg-amber-700' },
-  rose:    { bg: 'bg-rose-50',   border: 'border-rose-200',   icon: 'text-rose-600',   chip: 'bg-rose-100 text-rose-800 border-rose-200',   btn: 'bg-rose-600 hover:bg-rose-700' },
+  blue:    { tint: '#EFF6FF', icon: 'text-blue-600',    chip: 'bg-blue-50 text-blue-700 ring-blue-200',       btn: 'bg-blue-600 hover:bg-blue-700' },
+  violet:  { tint: '#F5F3FF', icon: 'text-violet-600',  chip: 'bg-violet-50 text-violet-700 ring-violet-200', btn: 'bg-violet-600 hover:bg-violet-700' },
+  emerald: { tint: '#ECFDF5', icon: 'text-emerald-600', chip: 'bg-emerald-50 text-emerald-700 ring-emerald-200', btn: 'bg-emerald-600 hover:bg-emerald-700' },
+  amber:   { tint: '#FFFBEB', icon: 'text-amber-600',   chip: 'bg-amber-50 text-amber-700 ring-amber-200',    btn: 'bg-amber-600 hover:bg-amber-700' },
+  rose:    { tint: '#FFF1F2', icon: 'text-rose-600',    chip: 'bg-rose-50 text-rose-700 ring-rose-200',       btn: 'bg-rose-600 hover:bg-rose-700' },
 };
 
 function CategoryCard({ category, values, onAdd, onRemove, saving }) {
@@ -70,39 +71,42 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
   };
 
   return (
-    <div className={`rounded-2xl border-2 ${c.border} ${c.bg} p-5 flex flex-col gap-4`}>
+    <div className="rounded-2xl ring-1 ring-slate-200/70 bg-white p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex items-start gap-3">
-        <div className={`p-2 rounded-xl bg-white border ${c.border} shrink-0`}>
-          <Icon className={`h-5 w-5 ${c.icon}`} />
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: c.tint }}
+        >
+          <Icon className={`h-5 w-5 ${c.icon}`} strokeWidth={1.8} />
         </div>
-        <div>
-          <h3 className="font-bold text-slate-800 text-base leading-tight">{category.label}</h3>
-          <p className="text-xs text-slate-500 mt-0.5">{category.description}</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-slate-900 text-[14.5px] leading-tight tracking-tight">{category.label}</h3>
+          <p className="text-[11.5px] text-slate-500 mt-0.5">{category.description}</p>
         </div>
-        <span className="ml-auto text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 ring-1 ring-inset ring-slate-200 px-2 py-0.5 rounded-full shrink-0">
           {values.length} รายการ
         </span>
       </div>
 
       {/* Chips */}
-      <div className="flex flex-wrap gap-2 min-h-[36px]">
+      <div className="flex flex-wrap gap-1.5 min-h-[36px]">
         {values.length === 0 && (
-          <p className="text-xs text-slate-400 italic">ยังไม่มีตัวเลือก กรอกด้านล่างเพื่อเพิ่ม</p>
+          <p className="text-[12px] text-slate-400 italic">ยังไม่มีตัวเลือก กรอกด้านล่างเพื่อเพิ่ม</p>
         )}
         {values.map((val) => (
           <span
             key={val}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${c.chip}`}
+            className={`inline-flex items-center gap-1.5 text-[11.5px] font-medium px-2.5 py-1 rounded-full ring-1 ring-inset ${c.chip}`}
           >
             {val}
             <button
               type="button"
               onClick={() => onRemove(category.key, val)}
-              className="hover:text-red-600 transition-colors focus:outline-none"
+              className="hover:text-rose-600 transition-colors focus:outline-none"
               title="ลบ"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3" strokeWidth={2.5} />
             </button>
           </span>
         ))}
@@ -116,15 +120,15 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={category.placeholder}
-          className="flex-1 border border-slate-300 bg-white px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] shadow-sm"
+          className="flex-1 bg-white border border-slate-200 px-3 py-2 rounded-lg text-[13px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
         />
         <button
           type="button"
           onClick={handleAdd}
           disabled={!input.trim()}
-          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-sm font-semibold transition-all ${input.trim() ? `${c.btn} shadow-sm` : 'bg-slate-200 cursor-not-allowed text-slate-400'}`}
+          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-[13px] font-semibold transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-slate-200 cursor-not-allowed text-slate-400'}`}
         >
-          <Plus className="h-4 w-4" /> เพิ่ม
+          <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่ม
         </button>
       </div>
     </div>
@@ -170,28 +174,35 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <span className="text-2xl">🗂️</span> ตั้งค่าตัวเลือกฟิลด์
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            จัดการรายการตัวเลือกที่จะแสดงใน Dropdown ของฟอร์มต่างๆ
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-start gap-3.5">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
+          >
+            <SlidersHorizontal className="h-5 w-5" strokeWidth={1.8} />
+          </div>
+          <div>
+            <h1 className="text-[22px] font-semibold text-slate-900 tracking-tight leading-tight">ตั้งค่าตัวเลือกฟิลด์</h1>
+            <p className="text-sm text-slate-500 mt-1">จัดการรายการตัวเลือกที่จะแสดงใน Dropdown ของฟอร์มต่างๆ</p>
+          </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {savedAt && !dirty && (
-            <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <span className="text-[12px] text-emerald-600 font-semibold flex items-center gap-1">
+              <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
               บันทึกแล้ว
             </span>
           )}
           <button
             onClick={handleSave}
             disabled={!dirty || saving}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md ${dirty && !saving ? 'bg-[#1E487A] hover:bg-[#133257] text-white shadow-[#1E487A]/30' : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'}`}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[13.5px] transition-colors ${dirty && !saving ? 'text-white shadow-sm hover:shadow-md' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+            style={dirty && !saving ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
+            onMouseEnter={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primaryDark)}
+            onMouseLeave={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primary)}
           >
-            <Save className="h-4 w-4" />
+            <Save className="h-4 w-4" strokeWidth={2} />
             {saving ? 'กำลังบันทึก...' : 'บันทึก'}
           </button>
         </div>
@@ -199,16 +210,20 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
 
       {/* Unsaved banner */}
       {dirty && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2 text-amber-700 text-sm font-medium">
-          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div className="mb-5 bg-amber-50 ring-1 ring-inset ring-amber-200 rounded-xl px-4 py-3 flex items-center gap-2 text-amber-700 text-[13px] font-medium">
+          <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={2} />
           มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก กด "บันทึก" เพื่อใช้งาน
         </div>
       )}
 
       {/* How to use */}
-      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-blue-700 text-xs leading-relaxed">
-        <span className="font-bold">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด <kbd className="bg-blue-100 border border-blue-300 px-1.5 py-0.5 rounded font-mono">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
-        — ตัวเลือกจะปรากฏใน Dropdown ของฟอร์มเพิ่ม/แก้ไขรายการ (ยังพิมพ์เองได้เสมอ)
+      <div className="mb-6 bg-blue-50/60 ring-1 ring-inset ring-blue-200 rounded-xl px-4 py-3 text-blue-800 text-[12.5px] leading-relaxed flex items-start gap-2">
+        <Info className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
+        <div>
+          <span className="font-semibold">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด{' '}
+          <kbd className="bg-white ring-1 ring-blue-300 px-1.5 py-0.5 rounded font-mono text-[11px]">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
+          — ตัวเลือกจะปรากฏใน Dropdown ของฟอร์มเพิ่ม/แก้ไขรายการ (ยังพิมพ์เองได้เสมอ)
+        </div>
       </div>
 
       {/* Cards */}

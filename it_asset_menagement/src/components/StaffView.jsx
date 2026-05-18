@@ -346,17 +346,28 @@ export default function StaffView({
   ======================================== */
   if (!currentStaff) {
     return (
-      <div className="min-h-screen bg-[#F4F7FE] flex items-center justify-center p-4">
-        <div className="w-full max-w-sm">
+      <div
+        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+        style={{
+          background:
+            'radial-gradient(60% 50% at 50% 0%, rgba(30,72,122,0.10) 0%, rgba(30,72,122,0) 60%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F8 100%)',
+        }}
+      >
+        <div className="w-full max-w-sm relative z-10">
           {/* Logo */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 bg-[#1E487A] rounded-xl flex items-center justify-center text-white font-serif italic text-2xl mb-3 shadow-md">G</div>
-            <h1 className="text-xl font-bold text-[#1E487A]">พนักงานทั่วไป</h1>
-            <p className="text-sm text-slate-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
+          <div className="flex flex-col items-center mb-7">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-[#1E487A]/25 ring-1 ring-white/50"
+              style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
+            >
+              <img src="/gb_icon.svg" alt="Logo" className="w-7 h-7 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+            </div>
+            <h1 className="text-[20px] font-semibold text-[#1E487A] tracking-tight">พนักงานทั่วไป</h1>
+            <p className="text-[13px] text-slate-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-800 mb-6">เข้าสู่ระบบ</h2>
+          <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-7 shadow-xl shadow-slate-950/5">
+            <h2 className="text-[15px] font-semibold text-slate-800 mb-5 tracking-tight">เข้าสู่ระบบ</h2>
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className={labelCls}>รหัสพนักงาน</label>
@@ -375,9 +386,13 @@ export default function StaffView({
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
-                <span className="text-sm text-slate-500">จดจำฉันไว้ 30 วัน</span>
+                <span className="text-[13px] text-slate-500">จดจำฉันไว้ 30 วัน</span>
               </label>
-              <button type="submit" className="w-full py-2.5 bg-[#1E487A] hover:bg-[#133257] text-white text-sm font-semibold rounded-lg transition active:scale-[0.98] mt-2">
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[13.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1"
+                style={{ boxShadow: '0 4px 14px rgba(30,72,122,0.25)' }}
+              >
                 เข้าสู่ระบบ
               </button>
             </form>
@@ -385,7 +400,7 @@ export default function StaffView({
 
           <button
             onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-            className="w-full mt-4 text-sm text-slate-400 hover:text-slate-600 transition text-center"
+            className="w-full mt-5 text-[13px] text-slate-500 hover:text-[#1E487A] transition-colors text-center inline-flex items-center justify-center gap-1.5"
           >
             ← กลับไปหน้าเลือกบทบาท
           </button>
@@ -398,62 +413,71 @@ export default function StaffView({
      MAIN STAFF PORTAL
   ======================================== */
   return (
-    <div className="min-h-screen bg-[#F4F7FE] flex flex-col">
+    <div className="min-h-screen bg-[#F1F5FA] flex flex-col">
 
       {/* ── Header ── */}
-      <header className="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#1E487A] rounded-lg flex items-center justify-center text-white font-serif italic text-lg">G</div>
-          <span className="text-sm font-semibold text-slate-700 hidden sm:block">ระบบพนักงาน</span>
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shadow-[#1E487A]/20"
+            style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
+          >
+            <img src="/gb_icon.svg" alt="Logo" className="w-4 h-4 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+          </div>
+          <span className="text-[13.5px] font-semibold text-slate-700 hidden sm:block tracking-tight">ระบบพนักงาน</span>
         </div>
         <button
           onClick={() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-          className="text-xs font-semibold text-slate-500 hover:text-[#1E487A] border border-slate-200 hover:border-[#1E487A]/40 px-4 py-1.5 rounded-lg transition"
+          className="text-[12.5px] font-medium text-slate-600 hover:text-rose-600 ring-1 ring-slate-200 hover:ring-rose-300 hover:bg-rose-50 px-3.5 py-1.5 rounded-lg transition-colors"
         >
           ออกจากระบบ
         </button>
       </header>
 
-      <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 md:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 md:px-8 py-7 space-y-5">
 
         {/* ── Profile bar ── */}
-        <div className="bg-[#1E487A] rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-lg shrink-0">
+        <div
+          className="rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden shadow-lg shadow-[#1E487A]/15"
+          style={{ background: 'radial-gradient(100% 80% at 0% 0%, #2A5896 0%, #1E487A 50%, #163963 100%)' }}
+        >
+          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full border border-white/10 pointer-events-none" />
+          <div className="flex items-center gap-4 relative">
+            <div className="w-12 h-12 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center text-white font-semibold text-[18px] shrink-0">
               {currentStaff.fullName?.charAt(0) || '?'}
             </div>
             <div>
-              <p className="text-white font-semibold text-base leading-tight">
+              <p className="text-white font-semibold text-[15px] leading-tight tracking-tight">
                 {currentStaff.fullName}{currentStaff.nickname ? ` (${currentStaff.nickname})` : ''}
               </p>
-              <p className="text-blue-200 text-xs mt-0.5">
+              <p className="text-blue-200/85 text-[12px] mt-0.5">
                 {currentStaff.empId} · {currentStaff.department || 'ไม่ระบุแผนก'}
               </p>
             </div>
           </div>
           <button
             onClick={() => { setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-            className="text-xs text-blue-200 hover:text-white border border-white/20 hover:border-white/40 px-4 py-1.5 rounded-lg transition"
+            className="text-[12.5px] text-blue-200 hover:text-white ring-1 ring-white/20 hover:ring-white/40 hover:bg-white/10 px-3.5 py-1.5 rounded-lg transition-colors relative"
           >
             เปลี่ยนผู้ใช้
           </button>
         </div>
 
         {/* ── Tab bar ── */}
-        <div className="bg-white rounded-xl border border-slate-200 px-2 flex overflow-x-auto">
+        <div className="bg-white rounded-xl ring-1 ring-slate-200/70 shadow-sm px-2 flex overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-5 py-3.5 text-[13px] font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-[#1E487A] text-[#1E487A]'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.label}
-              <span className={`text-xs px-1.5 py-0.5 rounded-md font-semibold ${
-                activeTab === tab.id ? 'bg-[#1E487A]/10 text-[#1E487A]' : 'bg-slate-100 text-slate-400'
+              <span className={`text-[10.5px] px-1.5 py-0.5 rounded-full font-semibold tabular-nums ${
+                activeTab === tab.id ? 'bg-[#1E487A]/10 text-[#1E487A]' : 'bg-slate-100 text-slate-500'
               }`}>
                 {tab.count}
               </span>

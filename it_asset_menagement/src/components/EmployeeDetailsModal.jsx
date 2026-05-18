@@ -263,11 +263,9 @@ export default function EmployeeDetailsModal({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+      className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
     >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');`}</style>
-
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl flex flex-col max-h-[92vh] border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-4xl flex flex-col max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">

@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Pencil, ShieldCheck } from 'lucide-react';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
+import { cls } from '../ui/theme.js';
 
 export default function EditEmpModal({
   editEmpModal,
   setEditEmpModal,
   handleUpdateEmployee,
   handleEditEmpChange,
-  employees = [] // 🟢 รับข้อมูลพนักงานเข้ามาเพื่อใช้ใน Dropdown
+  employees = [],
 }) {
   const [isManagerDropdownOpen, setIsManagerDropdownOpen] = useState(false);
   const managerRef = useRef(null);
@@ -14,139 +17,124 @@ export default function EditEmpModal({
     function handleClickOutside(event) {
       if (managerRef.current && !managerRef.current.contains(event.target)) setIsManagerDropdownOpen(false);
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   if (!editEmpModal.isOpen || !editEmpModal.data) return null;
+  const data = editEmpModal.data;
+  const close = () => setEditEmpModal({ isOpen: false, data: null });
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh] border border-slate-100">
-        <div className="bg-[#1E487A] text-white px-6 py-5 flex justify-between items-center shrink-0">
-          <h3 className="font-bold text-lg flex items-center gap-2">
-            <span className="bg-white/20 p-1.5 rounded-lg text-sm">✏️</span> แก้ไขข้อมูลพนักงาน
-          </h3>
-          <button onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="text-blue-200 hover:text-white focus:outline-none bg-[#133257]/50 hover:bg-[#133257] p-1.5 rounded-xl transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-        <form onSubmit={handleUpdateEmployee} className="p-6 md:p-8 overflow-y-auto space-y-5 flex-1">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสพนักงาน <span className="text-red-500">*</span></label>
-              <input type="text" name="empId" value={editEmpModal.data.empId || ''} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
+    <Modal open={editEmpModal.isOpen} onClose={close} size="xl">
+      <ModalHeader
+        icon={Pencil}
+        title="แก้ไขข้อมูลพนักงาน"
+        subtitle="อัปเดตข้อมูลส่วนตัว สังกัด และบัญชี Microsoft 365"
+        onClose={close}
+      />
+      <form onSubmit={handleUpdateEmployee} className="flex flex-col flex-1 overflow-hidden">
+        <ModalBody className="space-y-7">
+          <section className="space-y-4">
+            <SectionHeader>ข้อมูลพื้นฐาน</SectionHeader>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="รหัสพนักงาน" required>
+                <input type="text" name="empId" value={data.empId || ''} onChange={handleEditEmpChange} required className={cls.input} />
+              </Field>
+              <Field label="รหัสบัตรประชาชน (ใช้เข้าสู่ระบบ)" required>
+                <input type="text" name="nationalId" value={data.nationalId || ''} onChange={handleEditEmpChange} required maxLength="13" className={cls.input} placeholder="เลข 13 หลัก" />
+              </Field>
+              <Field label="ชื่อ-นามสกุล (TH)" required>
+                <input type="text" name="fullName" value={data.fullName || ''} onChange={handleEditEmpChange} required className={cls.input} />
+              </Field>
+              <Field label="ชื่อ-นามสกุล (EN)">
+                <input type="text" name="fullNameEng" value={data.fullNameEng || ''} onChange={handleEditEmpChange} className={cls.input} />
+              </Field>
+              <Field label="ชื่อเล่น">
+                <input type="text" name="nickname" value={data.nickname || ''} onChange={handleEditEmpChange} className={cls.input} />
+              </Field>
+              <Field label="เบอร์โทร">
+                <input type="tel" name="phone" value={data.phone || ''} onChange={handleEditEmpChange} className={cls.input} />
+              </Field>
             </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสบัตรประชาชน (ใช้เข้าสู่ระบบ) <span className="text-red-500">*</span></label>
-              <input type="text" name="nationalId" value={editEmpModal.data.nationalId || ''} onChange={handleEditEmpChange} required maxLength="13" className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" placeholder="เลข 13 หลัก" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (TH) <span className="text-red-500">*</span></label>
-              <input type="text" name="fullName" value={editEmpModal.data.fullName || ''} onChange={handleEditEmpChange} required className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อ นามสกุล (EN)</label>
-              <input type="text" name="fullNameEng" value={editEmpModal.data.fullNameEng || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อเล่น</label>
-              <input type="text" name="nickname" value={editEmpModal.data.nickname || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">เบอร์โทร</label>
-              <input type="tel" name="phone" value={editEmpModal.data.phone || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">บริษัท</label>
-            <input type="text" name="company" value={editEmpModal.data.company || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-          </div>
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">แผนก</label>
-              <input type="text" name="department" value={editEmpModal.data.department || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">ตำแหน่ง</label>
-              <input type="text" name="position" value={editEmpModal.data.position || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" />
-            </div>
-          </div>
+          </section>
 
-          {/* 🟢 อัปเดตช่องเลือกหัวหน้างานให้เป็นแบบค้นหารายชื่อจากระบบ */}
-          <div ref={managerRef} className="relative">
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">ชื่อหัวหน้างาน</label>
-            <div className="relative">
-              <input 
-                type="text" 
-                name="manager" 
-                value={editEmpModal.data.manager || ''} 
-                onChange={handleEditEmpChange} 
-                onFocus={() => setIsManagerDropdownOpen(true)}
-                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm" 
-                placeholder="ค้นหาและเลือกหัวหน้างาน..." 
-                autoComplete="off"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </div>
+          <section className="space-y-4">
+            <SectionHeader>สังกัด</SectionHeader>
+            <Field label="บริษัท">
+              <input type="text" name="company" value={data.company || ''} onChange={handleEditEmpChange} className={cls.input} />
+            </Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="แผนก">
+                <input type="text" name="department" value={data.department || ''} onChange={handleEditEmpChange} className={cls.input} />
+              </Field>
+              <Field label="ตำแหน่ง">
+                <input type="text" name="position" value={data.position || ''} onChange={handleEditEmpChange} className={cls.input} />
+              </Field>
             </div>
-            {isManagerDropdownOpen && (
-              <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                {employees.filter(emp => emp.fullName?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase())).map(emp => (
-                  <div 
-                    key={emp.id} 
-                    className="px-4 py-2.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 flex justify-between items-center"
-                    onClick={() => {
-                      handleEditEmpChange({ target: { name: 'manager', value: emp.fullName } });
-                      setIsManagerDropdownOpen(false);
-                    }}
-                  >
-                    <div>
-                      <div className="font-bold text-slate-800">{emp.fullName}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
-                    </div>
+
+            <Field label="ชื่อหัวหน้างาน">
+              <div ref={managerRef} className="relative">
+                <input
+                  type="text"
+                  name="manager"
+                  value={data.manager || ''}
+                  onChange={handleEditEmpChange}
+                  onFocus={() => setIsManagerDropdownOpen(true)}
+                  className={cls.input}
+                  placeholder="ค้นหาและเลือกหัวหน้างาน..."
+                  autoComplete="off"
+                />
+                {isManagerDropdownOpen && (
+                  <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 max-h-56 overflow-y-auto">
+                    {employees.filter(emp =>
+                      emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
+                      emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())
+                    ).map(emp => (
+                      <div
+                        key={emp.id}
+                        className="px-4 py-2.5 hover:bg-blue-50/60 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 transition-colors"
+                        onClick={() => {
+                          handleEditEmpChange({ target: { name: 'manager', value: emp.fullName } });
+                          setIsManagerDropdownOpen(false);
+                        }}
+                      >
+                        <div className="font-medium text-slate-800">{emp.fullName}</div>
+                        <div className="text-[11.5px] text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                      </div>
+                    ))}
+                    {employees.filter(emp =>
+                      emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
+                      emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())
+                    ).length === 0 && (
+                      <div className="p-3 text-center text-[12px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                    )}
                   </div>
-                ))}
-                {employees.filter(emp => emp.fullName?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase()) || emp.empId?.toLowerCase().includes((editEmpModal.data.manager || '').toLowerCase())).length === 0 && (
-                  <div className="p-3 text-center text-xs text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
                 )}
               </div>
-            )}
-          </div>
+            </Field>
+          </section>
 
-          {/* ── Microsoft 365 ── */}
-          <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-4 space-y-3">
-            <p className="text-xs font-semibold text-[#1E487A] flex items-center gap-1.5">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
-              บัญชี Microsoft 365
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">อีเมล Microsoft 365</label>
-                <input type="email" name="m365Email" value={editEmpModal.data.m365Email || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm bg-white" placeholder="user@domain.com" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">รหัสผ่าน Microsoft 365</label>
-                <input type="text" name="m365Password" value={editEmpModal.data.m365Password || ''} onChange={handleEditEmpChange} className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-[#1E487A] focus:border-[#1E487A] outline-none text-sm transition-all shadow-sm bg-white font-mono" placeholder="รหัสผ่าน" />
-              </div>
+          <section className="rounded-xl ring-1 ring-blue-100 bg-blue-50/40 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-[#1E487A]">
+              <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+              <p className="text-[12px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
             </div>
-          </div>
-
-          <div className="flex gap-3 pt-5 border-t border-slate-100 mt-auto shrink-0">
-            <button type="button" onClick={() => setEditEmpModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold transition-all shadow-sm">
-              ยกเลิก
-            </button>
-            <button type="submit" className="flex-1 py-3 bg-[#1E487A] text-white rounded-xl hover:bg-[#133257] font-bold transition-all shadow-lg shadow-[#1E487A]/30">
-              บันทึกการแก้ไข
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="อีเมล Microsoft 365">
+                <input type="email" name="m365Email" value={data.m365Email || ''} onChange={handleEditEmpChange} className={cls.input} placeholder="user@domain.com" />
+              </Field>
+              <Field label="รหัสผ่าน Microsoft 365">
+                <input type="text" name="m365Password" value={data.m365Password || ''} onChange={handleEditEmpChange} className={cls.inputMono} placeholder="รหัสผ่าน" />
+              </Field>
+            </div>
+          </section>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={close}>ยกเลิก</Button>
+          <Button type="submit">บันทึกการแก้ไข</Button>
+        </ModalFooter>
+      </form>
+    </Modal>
   );
 }

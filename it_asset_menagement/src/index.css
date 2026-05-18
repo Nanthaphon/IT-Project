@@ -1,5 +1,11 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
 *, *::before, *::after {
-  font-family: 'Leelawadee UI', 'Leelawadee', sans-serif;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+}
+
+/* ยกเว้นฟอร์ม — ใช้ฟ้อนระบบเดิม */
+input, textarea, select {
+  font-family: inherit;
 }

@@ -59,28 +59,29 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
   const groups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
 
   return (
-    <aside className="w-full md:w-60 flex flex-col flex-shrink-0 h-screen bg-white border-r border-slate-100">
+    <aside className="w-full md:w-60 flex flex-col flex-shrink-0 h-screen"
+      style={{ background: 'linear-gradient(180deg, #1E487A 0%, #133257 100%)' }}>
 
       {/* Logo */}
       <div className="px-5 pt-6 pb-5 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#1E487A]">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/15 border border-white/20">
             <img src="/gb_icon.svg" alt="Logo" className="w-5 h-5 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-bold text-slate-800">IT Admin</p>
-            <p className="text-[11px] text-slate-400 tracking-wide">Asset Management</p>
+            <p className="text-sm font-bold text-white">IT Admin</p>
+            <p className="text-[11px] text-blue-200/70 tracking-wide">Asset Management</p>
           </div>
         </div>
       </div>
 
-      <div className="mx-4 h-px bg-slate-100 shrink-0" />
+      <div className="mx-4 h-px bg-white/10 shrink-0" />
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {groups.map((group) => (
           <div key={group.group}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 px-3 mb-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-blue-200/50 px-3 mb-1.5">
               {group.group}
             </p>
             <div className="space-y-0.5">
@@ -92,22 +93,20 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
                     onClick={() => setActiveMenu(id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
                       ${active
-                        ? 'bg-[#EFF6FF] text-[#1E487A]'
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                        ? 'bg-white text-[#1E487A] shadow-md'
+                        : 'text-blue-100/80 hover:bg-white/10 hover:text-white'
                       }`}
                   >
-                    {/* Icon */}
                     <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-150
                       ${active
                         ? 'bg-[#1E487A] text-white'
-                        : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500'
+                        : 'bg-white/10 text-blue-200 group-hover:bg-white/20 group-hover:text-white'
                       }`}>
                       <Icon className="h-3.5 w-3.5" />
                     </span>
 
                     <span className="truncate">{label}</span>
 
-                    {/* Active indicator dot */}
                     {active && (
                       <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#1E487A] shrink-0" />
                     )}
@@ -120,14 +119,14 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
 
         {/* บัญชี */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 px-3 mb-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-blue-200/50 px-3 mb-1.5">
             บัญชี
           </p>
           <button
             onClick={onResetPassword}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all duration-150 group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-blue-100/80 hover:bg-white/10 hover:text-white transition-all duration-150 group"
           >
-            <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500 transition-colors">
+            <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-white/10 text-blue-200 group-hover:bg-white/20 group-hover:text-white transition-colors">
               <KeyRound className="h-3.5 w-3.5" />
             </span>
             <span className="truncate">เปลี่ยนรหัสผ่าน</span>
@@ -136,13 +135,13 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
       </nav>
 
       {/* Footer */}
-      <div className="hidden md:block px-4 py-4 shrink-0 border-t border-slate-100">
+      <div className="hidden md:block px-4 py-4 shrink-0 border-t border-white/10">
         <div className="flex items-center gap-2 px-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
           </span>
-          <span className="text-xs text-slate-400 font-medium">ระบบออนไลน์</span>
+          <span className="text-xs text-blue-200/60 font-medium">ระบบออนไลน์</span>
         </div>
       </div>
     </aside>

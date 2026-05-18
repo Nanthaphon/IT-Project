@@ -41,6 +41,7 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
           sub={`ใช้งาน ${assetInUse} · ว่าง ${assetAvailable}`}
           icon={<IconMonitor />}
           accent="#1E487A"
+          bg="from-blue-50 to-white"
         />
         <KpiCard
           label="License / โปรแกรม"
@@ -48,7 +49,8 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
           unit="รายการ"
           sub={`ใช้งาน ${licInUse} · ว่าง ${licAvailable}`}
           icon={<IconDoc />}
-          accent="#1E487A"
+          accent="#7C3AED"
+          bg="from-violet-50 to-white"
         />
         <KpiCard
           label="อุปกรณ์เสริม"
@@ -56,7 +58,8 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
           unit="ชิ้น"
           sub={`คงเหลือ ${accRemain} · ใช้ ${accUsed}`}
           icon={<IconDevice />}
-          accent="#1E487A"
+          accent="#059669"
+          bg="from-emerald-50 to-white"
         />
         <KpiCard
           label="พนักงานในระบบ"
@@ -64,7 +67,8 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
           unit="คน"
           sub="ข้อมูลพนักงานทั้งหมด"
           icon={<IconUsers />}
-          accent="#1E487A"
+          accent="#D97706"
+          bg="from-amber-50 to-white"
         />
       </div>
 
@@ -216,12 +220,15 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
 }
 
 /* ── KPI Card ── */
-function KpiCard({ label, value, unit, sub, icon, accent }) {
+function KpiCard({ label, value, unit, sub, icon, accent, bg }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
+    <div className={`bg-gradient-to-br ${bg} rounded-xl border border-slate-200 p-4 flex flex-col gap-3 shadow-sm`}>
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-slate-500">{label}</p>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-100 text-slate-400">
+        <p className="text-xs font-semibold text-slate-500">{label}</p>
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm"
+          style={{ backgroundColor: accent }}
+        >
           {icon}
         </div>
       </div>
@@ -229,7 +236,10 @@ function KpiCard({ label, value, unit, sub, icon, accent }) {
         <p className="text-2xl font-bold text-slate-900">
           {value} <span className="text-sm font-medium text-slate-400">{unit}</span>
         </p>
-        <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+        <p className="text-xs mt-0.5" style={{ color: accent }}>{sub}</p>
+      </div>
+      <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-full w-2/3 rounded-full opacity-40" style={{ backgroundColor: accent }} />
       </div>
     </div>
   );

@@ -6,9 +6,10 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc 
 // Microsoft Teams Webhook URL
 const TEAMS_WEBHOOK_URL = 'https://defaultc172e49cae364c49b87c48a1df2152.f5.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cb2a94ff6c124f83bdf128c177a463e1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6tyj3Sp8-d7trIMuxPo6uMwg9th3a1I6mauD3x9xxBo';
 
-async function sendTeamsNotification({ title, color, facts }) {
+async function sendTeamsNotification({ title, color, facts, channel = 'IT' }) {
   const card = {
     type: 'message',
+    channel,  // 'IT' | 'HR' — ใช้ใน Power Automate switch routing
     attachments: [{
       contentType: 'application/vnd.microsoft.card.adaptive',
       content: {
@@ -43,11 +44,17 @@ async function sendTeamsNotification({ title, color, facts }) {
       }
     }]
   };
-  await fetch('https://itassetmenagement.vercel.app/api/notify-teams', {
+  console.log('[Teams] กำลังส่ง notification...', { channel, title });
+  const res = await fetch('https://itassetmenagement.vercel.app/api/notify-teams', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(card)
   });
+  const responseText = await res.text();
+  console.log('[Teams] Response status:', res.status, '| body:', responseText);
+  if (!res.ok) {
+    throw new Error(`Teams API failed: ${res.status} ${responseText}`);
+  }
 }
 
 import useFirebaseData from './hooks/useFirebaseData.jsx';
@@ -272,6 +279,7 @@ function App() {
         await sendTeamsNotification({
           title: '🔧 แจ้งปัญหา IT / แจ้งซ่อม',
           color: 'Accent',
+          channel: 'IT',
           facts: [
             { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
             { label: 'แผนก', value: currentStaff.department || '-' },
@@ -298,6 +306,7 @@ function App() {
         await sendTeamsNotification({
           title: '📦 คำขอเบิกอุปกรณ์สำนักงาน',
           color: 'Good',
+          channel: 'HR',
           facts: [
             { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
             { label: 'แผนก', value: currentStaff.department || '-' },
@@ -315,7 +324,7 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
 
-  // ฟังก์ชันบันทึกคำขอเปลี่ยนเครื่อง (ไม่ส่งอีเมล — พิมพ์ฟอร์มแทน)
+  // ฟังก์ชันบันทึกคำขอเปลี่ยนเครื่อง + แจ้งเตือน Teams IT channel
   const handleStaffSubmitReplacement = async (currentStatus, reason) => {
     if (!currentStaff) return;
     try {
@@ -330,6 +339,23 @@ function App() {
         timestamp: Date.now(),
         createdAt: serverTimestamp()
       });
+
+      try {
+        await sendTeamsNotification({
+          title: '🔄 คำขอเปลี่ยนเครื่องคอมพิวเตอร์',
+          color: 'Warning',
+          channel: 'IT',
+          facts: [
+            { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
+            { label: 'แผนก', value: currentStaff.department || '-' },
+            { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
+            { label: 'สถานะเครื่องปัจจุบัน', value: currentStatus },
+            { label: 'เหตุผลที่ขอเปลี่ยน', value: reason || '-' },
+          ]
+        });
+      } catch (teamsError) {
+        console.error('แจ้งเตือน Teams ไม่สำเร็จ:', teamsError);
+      }
 
       setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่องเรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
     } catch (error) {

@@ -1,4 +1,5 @@
 import React from 'react';
+import ComboBox from './ComboBox.jsx';
 
 const BRAND = '#1E487A';
 
@@ -233,49 +234,13 @@ export default function EditAssetModal({
                     />
                   </Field>
                   <Field label="บริษัท / ผู้ผลิต">
-                    <input
-                      list="fo-companies-edit"
-                      type="text"
-                      name="company"
-                      value={editAssetModal.data.company || ''}
-                      onChange={handleEditAssetChange}
-                      className={inputCls}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
-                      autoComplete="off"
-                    />
-                    <datalist id="fo-companies-edit">
-                      {(fieldOptions.companies || []).map(v => <option key={v} value={v} />)}
-                    </datalist>
+                    <ComboBox name="company" value={editAssetModal.data.company || ''} onChange={handleEditAssetChange} options={fieldOptions.companies || []} className={inputCls} />
                   </Field>
                   <Field label="แผนก" required>
-                    <input
-                      list="fo-departments-edit"
-                      type="text"
-                      name="department"
-                      value={editAssetModal.data.department || ''}
-                      onChange={handleEditAssetChange}
-                      className={inputCls}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
-                      autoComplete="off"
-                    />
-                    <datalist id="fo-departments-edit">
-                      {(fieldOptions.departments || []).map(v => <option key={v} value={v} />)}
-                    </datalist>
+                    <ComboBox name="department" value={editAssetModal.data.department || ''} onChange={handleEditAssetChange} options={fieldOptions.departments || []} className={inputCls} />
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
-                    <input
-                      list="fo-vendors-edit"
-                      type="text"
-                      name="vendor"
-                      value={editAssetModal.data.vendor || ''}
-                      onChange={handleEditAssetChange}
-                      className={inputCls}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
-                      autoComplete="off"
-                    />
-                    <datalist id="fo-vendors-edit">
-                      {(fieldOptions.vendors || []).map(v => <option key={v} value={v} />)}
-                    </datalist>
+                    <ComboBox name="vendor" value={editAssetModal.data.vendor || ''} onChange={handleEditAssetChange} options={fieldOptions.vendors || []} className={inputCls} />
                   </Field>
                 </div>
               </section>

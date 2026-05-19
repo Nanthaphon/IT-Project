@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import ComboBox from './ComboBox.jsx';
 
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
@@ -91,17 +92,14 @@ export default function AddModal({
             <section className="space-y-4">
               <SectionHeader>สังกัด</SectionHeader>
               <Field label="บริษัท">
-                <input list="fo-companies-emp" type="text" name="company" value={empForm.company || ''} onChange={handleEmpChange} className={cls.input} placeholder="ชื่อบริษัท" autoComplete="off" />
-                <datalist id="fo-companies-emp">{(fieldOptions.companies || []).map(v => <option key={v} value={v} />)}</datalist>
+                <ComboBox name="company" value={empForm.company || ''} onChange={handleEmpChange} options={fieldOptions.companies || []} className={cls.input} placeholder="ชื่อบริษัท" />
               </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="แผนก">
-                  <input list="fo-departments-emp" type="text" name="department" value={empForm.department || ''} onChange={handleEmpChange} className={cls.input} placeholder="แผนก" autoComplete="off" />
-                  <datalist id="fo-departments-emp">{(fieldOptions.departments || []).map(v => <option key={v} value={v} />)}</datalist>
+                  <ComboBox name="department" value={empForm.department || ''} onChange={handleEmpChange} options={fieldOptions.departments || []} className={cls.input} placeholder="แผนก" />
                 </Field>
                 <Field label="ตำแหน่ง">
-                  <input list="fo-positions-emp" type="text" name="position" value={empForm.position || ''} onChange={handleEmpChange} className={cls.input} placeholder="ตำแหน่งงาน" autoComplete="off" />
-                  <datalist id="fo-positions-emp">{(fieldOptions.positions || []).map(v => <option key={v} value={v} />)}</datalist>
+                  <ComboBox name="position" value={empForm.position || ''} onChange={handleEmpChange} options={fieldOptions.positions || []} className={cls.input} placeholder="ตำแหน่งงาน" />
                 </Field>
               </div>
 
@@ -275,16 +273,13 @@ export default function AddModal({
                     <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className={cls.input} />
                   </Field>
                   <Field label="บริษัท / ผู้ผลิต">
-                    <input list="fo-companies-asset" type="text" value={company} onChange={(e) => setCompany(e.target.value)} className={cls.input} placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
-                    <datalist id="fo-companies-asset">{(fieldOptions.companies || []).map(v => <option key={v} value={v} />)}</datalist>
+                    <ComboBox value={company} onChange={(e) => setCompany(e.target.value)} options={fieldOptions.companies || []} className={cls.input} />
                   </Field>
                   <Field label="แผนก" required>
-                    <input list="fo-departments-asset" type="text" value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)} className={cls.input} placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
-                    <datalist id="fo-departments-asset">{(fieldOptions.departments || []).map(v => <option key={v} value={v} />)}</datalist>
+                    <ComboBox value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)} options={fieldOptions.departments || []} className={cls.input} />
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
-                    <input list="fo-vendors-asset" type="text" value={vendor} onChange={(e) => setVendor(e.target.value)} className={cls.input} placeholder="เลือกหรือพิมพ์ใหม่" autoComplete="off" />
-                    <datalist id="fo-vendors-asset">{(fieldOptions.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
+                    <ComboBox value={vendor} onChange={(e) => setVendor(e.target.value)} options={fieldOptions.vendors || []} className={cls.input} />
                   </Field>
                 </div>
               </section>

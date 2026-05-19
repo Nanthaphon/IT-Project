@@ -897,21 +897,21 @@ export default function AssetDetailsModal({
           </div>
           
           <div className="p-10 flex justify-center items-center bg-slate-100/50 overflow-x-auto print:p-0 print:bg-transparent">
-            <div id="printable-label-container" className="bg-white border-[3px] border-slate-800 p-1 flex flex-col w-[180px] h-[80px] text-slate-800 shrink-0 relative box-border overflow-hidden">
-              <div className="flex gap-1.5 h-full mb-0.5 overflow-hidden">
-                <div className="w-[42px] h-[42px] shrink-0 border border-slate-200 p-0.5 bg-white flex items-center justify-center self-start">
+            <div id="printable-label-container" className="bg-white border-[3px] border-slate-800 p-1.5 flex flex-col w-[230px] h-[110px] text-slate-800 shrink-0 relative box-border overflow-hidden">
+              <div className="flex gap-2 mb-1 overflow-hidden">
+                <div className="w-[58px] h-[58px] shrink-0 border border-slate-200 p-0.5 bg-white flex items-center justify-center self-start">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
-                
-                <div className="flex flex-col text-[7.5px] leading-[1.05] font-bold w-full overflow-hidden justify-start pt-0.5">
-                  <div className="truncate">C: {currentAssetDetail.company || '-'}</div>
-                  <div className="truncate whitespace-normal line-clamp-2 mt-[0.5px]">N: {currentAssetDetail.name} {currentAssetDetail.model ? ` ${currentAssetDetail.model}` : ''}</div>
-                  <div className="truncate mt-[0.5px]">T: {currentAssetDetail.assetTag || '-'}</div>
-                  <div className="truncate mt-[0.5px]">S: {currentAssetDetail.sn || '-'}</div>
+
+                <div className="flex flex-col text-[9px] leading-[1.25] font-bold w-full min-w-0 overflow-hidden justify-start">
+                  <div className="truncate"><span className="text-slate-500 font-semibold">C:</span> {currentAssetDetail.company || '-'}</div>
+                  <div className="truncate"><span className="text-slate-500 font-semibold">N:</span> {currentAssetDetail.name || '-'}</div>
+                  <div className="truncate"><span className="text-slate-500 font-semibold">T:</span> {currentAssetDetail.assetTag || '-'}</div>
+                  <div className="truncate"><span className="text-slate-500 font-semibold">S:</span> {currentAssetDetail.sn || '-'}</div>
                 </div>
               </div>
-              
-              <div className="h-[18px] w-full mt-auto flex justify-center overflow-hidden">
+
+              <div className="h-[28px] w-full mt-auto flex justify-center overflow-hidden">
                 <img src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(barcodeDataString)}&code=Code128&hidehrt=True&unit=Fit`} alt="Barcode" className="w-full h-full object-fill" />
               </div>
             </div>
@@ -973,29 +973,29 @@ export default function AssetDetailsModal({
           )}
           <div className="flex-1 min-w-0">
             <h2 className="text-[15px] font-bold text-[#1E487A] leading-[1.5] truncate mb-1">{currentAssetDetail.name}</h2>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
                 {currentAssetDetail.type || 'ไม่ระบุประเภท'}
               </span>
               {selectedAssetCategory === 'assets' && (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium ring-1 ring-inset ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A] ring-blue-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500 animate-pulse' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A] ring-blue-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>
+                  <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500 animate-pulse' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : 'bg-amber-500'}`} />
                   {currentAssetDetail.status || 'พร้อมใช้งาน'}
                 </span>
               )}
               {selectedAssetCategory === 'licenses' && (
                 <>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium ring-1 ring-inset ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-50 text-amber-700 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-50 text-amber-700 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'}`}>
+                    <span className={`w-2 h-2 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
                     {(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'ใช้งานเต็ม' : 'มีสิทธิ์ว่าง'}
                   </span>
-                  <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 text-[#1E487A] rounded-full text-[10.5px] font-semibold ring-1 ring-inset ring-blue-200">
+                  <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-[#1E487A] rounded-full text-[12px] font-semibold ring-1 ring-inset ring-blue-200">
                     {currentAssetDetail.assignees?.length || 0} / {currentAssetDetail.quantity || 0} สิทธิ์
                   </span>
                 </>
               )}
               {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
-                <span className="inline-flex items-center px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full text-[10.5px] font-medium ring-1 ring-inset ring-purple-200">
+                <span className="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-[12px] font-medium ring-1 ring-inset ring-purple-200">
                   {currentAssetDetail.department}
                 </span>
               )}
@@ -1111,6 +1111,10 @@ export default function AssetDetailsModal({
                       <DetailItem label="สิทธิ์ทั้งหมด" value={`${currentAssetDetail.quantity || 0} สิทธิ์`} />
                       <DetailItem label="กำลังใช้งาน" value={`${currentAssetDetail.assignees?.length || 0} สิทธิ์`} />
                       <DetailItem label="คงเหลือ" value={`${Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0))} สิทธิ์`} />
+                      <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
+                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                      <DetailItem label="วันหมดอายุ" value={currentAssetDetail.expirationDate} />
+                      <DetailItem label="ราคา" value={currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'} />
                     </>
                   ) : selectedAssetCategory === 'assets' ? (
                     <>

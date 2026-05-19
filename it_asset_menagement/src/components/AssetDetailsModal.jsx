@@ -897,15 +897,15 @@ export default function AssetDetailsModal({
           </div>
           
           <div className="p-10 flex justify-center items-center bg-slate-100/50 overflow-x-auto print:p-0 print:bg-transparent">
-            <div id="printable-label-container" className="bg-white border-[3px] border-slate-800 p-1.5 flex flex-col w-[230px] h-[110px] text-slate-800 shrink-0 relative box-border overflow-hidden">
-              <div className="flex gap-2 mb-1 overflow-hidden">
+            <div id="printable-label-container" className="bg-white border-[3px] border-slate-800 p-1.5 flex flex-col w-[230px] min-h-[110px] text-slate-800 shrink-0 relative box-border overflow-hidden">
+              <div className="flex gap-2 mb-1">
                 <div className="w-[58px] h-[58px] shrink-0 border border-slate-200 p-0.5 bg-white flex items-center justify-center self-start">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
 
-                <div className="flex flex-col text-[9px] leading-[1.25] font-bold w-full min-w-0 overflow-hidden justify-start">
+                <div className="flex flex-col text-[9px] leading-[1.3] font-bold w-full min-w-0 justify-start">
                   <div className="truncate"><span className="text-slate-500 font-semibold">C:</span> {currentAssetDetail.company || '-'}</div>
-                  <div className="truncate"><span className="text-slate-500 font-semibold">N:</span> {currentAssetDetail.name || '-'}</div>
+                  <div className="break-words whitespace-normal"><span className="text-slate-500 font-semibold">N:</span> {currentAssetDetail.name || '-'}</div>
                   <div className="truncate"><span className="text-slate-500 font-semibold">T:</span> {currentAssetDetail.assetTag || '-'}</div>
                   <div className="truncate"><span className="text-slate-500 font-semibold">S:</span> {currentAssetDetail.sn || '-'}</div>
                 </div>

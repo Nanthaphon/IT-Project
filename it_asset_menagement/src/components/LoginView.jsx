@@ -51,7 +51,7 @@ export default function LoginView({
               title="พนักงานทั่วไป"
               description="เข้าสู่ระบบเพื่อสร้างรายการแจ้งปัญหา IT และติดตามสถานะ"
               hintIcon={IdCard}
-              hint="ใช้รหัสพนักงาน และรหัสบัตรประชาชน"
+              hint="ใช้รหัสพนักงาน"
               onClick={() => setAuthRole('staff')}
             />
             <RoleCard

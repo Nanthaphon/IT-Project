@@ -256,10 +256,10 @@ function App() {
 
   const handleStaffLogin = (e) => {
     e.preventDefault();
-    if (!staffEmpIdInput.trim() || !staffPasswordInput.trim()) return;
-    const foundEmp = employees.find(emp => emp.empId.toLowerCase() === staffEmpIdInput.trim().toLowerCase() && emp.nationalId === staffPasswordInput.trim());
-    if (foundEmp) { setCurrentStaff(foundEmp); setStaffEmpIdInput(''); setStaffPasswordInput(''); } 
-    else { setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'รหัสพนักงาน หรือ รหัสบัตรประชาชน ไม่ถูกต้อง', type: 'error' }); }
+    if (!staffEmpIdInput.trim()) return;
+    const foundEmp = employees.find(emp => emp.empId.toLowerCase() === staffEmpIdInput.trim().toLowerCase());
+    if (foundEmp) { setCurrentStaff(foundEmp); setStaffEmpIdInput(''); setStaffPasswordInput(''); }
+    else { setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'ไม่พบรหัสพนักงานนี้ในระบบ', type: 'error' }); }
   };
 
   // 🟢 ฟังก์ชันส่งแจ้งซ่อม + อีเมล

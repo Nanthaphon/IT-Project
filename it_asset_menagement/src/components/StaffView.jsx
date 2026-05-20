@@ -229,7 +229,7 @@ export default function StaffView({
         }
       }
     }
-  }, [currentStaff, setStaffEmpIdInput, setStaffPasswordInput]);
+  }, [currentStaff, setStaffEmpIdInput]);
 
   const filteredSupplies = officeSupplies.filter(supply =>
     supply.name?.toLowerCase().includes(supplySearchTerm.toLowerCase())
@@ -372,7 +372,7 @@ export default function StaffView({
                 <label className={labelCls}>รหัสพนักงาน</label>
                 <input
                   type="text" value={staffEmpIdInput} onChange={e => setStaffEmpIdInput(e.target.value)}
-                  className={inputCls} placeholder="เช่น EMP001" required
+                  className={inputCls} placeholder="เช่น EMP001" required autoFocus
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer select-none">

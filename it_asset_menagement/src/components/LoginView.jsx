@@ -1,6 +1,7 @@
-import React from 'react';
-import { User, ShieldCheck, IdCard, Lock, Mail, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, ShieldCheck, IdCard, Lock, Mail, ArrowRight, ArrowLeft, AlertCircle, KeyRound } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import ResetPasswordModal from './ResetPasswordModal.jsx';
 
 export default function LoginView({
   showAdminLogin,
@@ -13,6 +14,8 @@ export default function LoginView({
   setLoginError,
   loginLoading,
 }) {
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [alertMsg, setAlertMsg] = useState(null);
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
@@ -118,8 +121,40 @@ export default function LoginView({
                   </>
                 )}
               </button>
+
+              {/* ลืมรหัสผ่าน? */}
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setForgotOpen(true)}
+                  className="text-[12.5px] font-medium text-slate-500 hover:text-[#1E487A] transition-colors inline-flex items-center gap-1.5"
+                >
+                  <KeyRound className="h-3.5 w-3.5" strokeWidth={1.8} />
+                  ลืมรหัสผ่าน?
+                </button>
+              </div>
             </form>
           </div>
+
+          {/* alert จาก reset password */}
+          {alertMsg && (
+            <div className={`mt-4 px-4 py-3 rounded-xl text-[12.5px] font-medium ring-1 flex items-start gap-2 ${
+              alertMsg.type === 'success'
+                ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                : 'bg-rose-50 text-rose-700 ring-rose-200'
+            }`}>
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
+              <span>{alertMsg.text}</span>
+            </div>
+          )}
+
+          {/* forgot password modal */}
+          <ResetPasswordModal
+            isOpen={forgotOpen}
+            onClose={() => setForgotOpen(false)}
+            onSuccess={(msg) => setAlertMsg({ type: 'success', text: msg })}
+            onError={(msg)   => setAlertMsg({ type: 'error',   text: msg })}
+          />
 
           <div className="mt-6 text-center">
             <button

@@ -265,7 +265,7 @@ export default function EmployeeDetailsModal({
     <div
       className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
     >
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-4xl flex flex-col h-[90vh] ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-4xl flex flex-col h-[88vh] max-h-[88vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">

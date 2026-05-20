@@ -55,7 +55,7 @@ const NAV_ITEMS = {
   ],
 };
 
-export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, authRole }) {
+export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, authRole }) {
   const groups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
 
   return (
@@ -150,7 +150,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, onResetPassword, au
             บัญชี
           </p>
           <button
-            onClick={onResetPassword}
+            onClick={onChangePassword}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-blue-100/80 hover:bg-white/8 hover:text-white transition-all duration-150 group"
           >
             <KeyRound

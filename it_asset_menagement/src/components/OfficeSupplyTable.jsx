@@ -36,19 +36,19 @@ export default function OfficeSupplyTable({
               onChange={handleSelectAllOfficeSupplies}
             />
           </th>
-          <th className="px-4 py-3.5 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
             อุปกรณ์
           </th>
-          <th className="px-4 py-3.5 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-widest hidden sm:table-cell">
+          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em] hidden sm:table-cell">
             ประเภท
           </th>
-          <th className="px-4 py-3.5 text-center text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+          <th className="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
             สต็อกคงเหลือ
           </th>
-          <th className="px-4 py-3.5 text-center text-[11px] font-semibold text-slate-400 uppercase tracking-widest hidden md:table-cell">
+          <th className="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em] hidden md:table-cell">
             สถานะ
           </th>
-          <th className="px-4 py-3.5 text-center text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+          <th className="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
             จัดการ
           </th>
         </tr>
@@ -205,7 +205,7 @@ export default function OfficeSupplyTable({
 function ActionBtn({ onClick, title, children, kind }) {
   const styles = {
     edit:   'text-amber-500 hover:bg-amber-50 hover:text-amber-600 hover:ring-amber-300',
-    delete: 'text-slate-400 hover:bg-rose-50 hover:text-rose-500 hover:ring-rose-300',
+    delete: 'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
   }[kind];
 
   return (

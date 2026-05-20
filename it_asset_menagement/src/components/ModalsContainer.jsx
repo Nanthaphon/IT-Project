@@ -14,6 +14,7 @@ import RepairModal from './RepairModal.jsx';
 import ConfirmDeleteModal from './ConfirmDeleteModal.jsx';
 import ConfirmModal from './ConfirmModal.jsx';
 import ResetPasswordModal from './ResetPasswordModal.jsx';
+import ChangePasswordModal from './ChangePasswordModal.jsx';
 
 export default function ModalsContainer(props) {
   return (
@@ -40,11 +41,17 @@ export default function ModalsContainer(props) {
         onConfirm={props.handleConfirmModalOk} 
         onCancel={props.closeConfirmModal} 
       />
-      <ResetPasswordModal 
-        isOpen={props.resetPasswordModal} 
-        onClose={() => props.setResetPasswordModal(false)} 
-        onSuccess={(msg) => props.setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })} 
-        onError={(msg) => props.setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })} 
+      <ResetPasswordModal
+        isOpen={props.resetPasswordModal}
+        onClose={() => props.setResetPasswordModal(false)}
+        onSuccess={(msg) => props.setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })}
+        onError={(msg) => props.setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })}
+      />
+      <ChangePasswordModal
+        isOpen={props.changePasswordModal}
+        onClose={() => props.setChangePasswordModal(false)}
+        onSuccess={(msg) => props.setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })}
+        onError={(msg) => props.setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })}
       />
     </>
   );

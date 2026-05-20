@@ -148,6 +148,7 @@ function App() {
   const [confirmDeleteModal, setConfirmDeleteModal] = useState({ isOpen: false, id: null, collectionName: null });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: 'ยืนยัน', cancelText: 'ยกเลิก', icon: 'warning' });
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
+  const [changePasswordModal, setChangePasswordModal] = useState(false);
 
   const [visibleAssetColumns, setVisibleAssetColumns] = useState({
     name: true, type: true, department: true, cost: true, status: true,
@@ -895,7 +896,7 @@ function App() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#F1F5FA] text-slate-900 font-sans">
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
-      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onResetPassword={() => setResetPasswordModal(true)} authRole={authRole} />
+      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onChangePassword={() => setChangePasswordModal(true)} authRole={authRole} />
       
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} />
@@ -1015,6 +1016,7 @@ function App() {
         confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete}
         confirmModal={confirmModal} handleConfirmModalOk={handleConfirmModalOk} closeConfirmModal={closeConfirmModal}
         resetPasswordModal={resetPasswordModal} setResetPasswordModal={setResetPasswordModal}
+        changePasswordModal={changePasswordModal} setChangePasswordModal={setChangePasswordModal}
       />
       <ITReportModal
         isOpen={isITReportOpen}

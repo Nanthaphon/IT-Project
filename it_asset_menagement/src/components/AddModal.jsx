@@ -70,8 +70,8 @@ export default function AddModal({
                 <Field label="รหัสพนักงาน" required>
                   <input type="text" name="empId" value={empForm.empId || ''} onChange={handleEmpChange} required className={cls.input} placeholder="เช่น EMP001" />
                 </Field>
-                <Field label="รหัสบัตรประชาชน (ใช้เข้าสู่ระบบ)" required>
-                  <input type="password" name="nationalId" value={empForm.nationalId || ''} onChange={handleEmpChange} required maxLength="13" className={cls.input} placeholder="เลข 13 หลัก" />
+                <Field label="รหัสบัตรประชาชน">
+                  <input type="text" name="nationalId" value={empForm.nationalId || ''} onChange={handleEmpChange} maxLength="13" className={cls.input} placeholder="เลข 13 หลัก (ไม่บังคับ)" />
                 </Field>
                 <Field label="ชื่อ-นามสกุล (TH)" required>
                   <input type="text" name="fullName" value={empForm.fullName || ''} onChange={handleEmpChange} required className={cls.input} placeholder="ชื่อ-นามสกุล" />

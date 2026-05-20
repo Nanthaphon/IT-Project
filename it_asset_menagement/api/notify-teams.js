@@ -1,5 +1,6 @@
+// Power Automate Flow: "IT Asset Email Notifications" (ส่ง email ไป IT/HR ตาม notifyType)
 const TEAMS_WEBHOOK_URL =
-  'https://defaultc172e49cae364c49b87c48a1df2152.f5.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cb2a94ff6c124f83bdf128c177a463e1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6tyj3Sp8-d7trIMuxPo6uMwg9th3a1I6mauD3x9xxBo';
+  'https://defaultc172e49cae364c49b87c48a1df2152.f5.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/7ec69e61f94241089f5eb0bc5a9b3324/triggers/manual/paths/invoke?api-version=1';
 
 export default async function handler(req, res) {
   // Allow CORS from any origin

@@ -220,7 +220,6 @@ export default function StaffView({
           const parsed = JSON.parse(savedData);
           if (Date.now() < parsed.expiry) {
             setStaffEmpIdInput(parsed.empId || '');
-            if (setStaffPasswordInput) setStaffPasswordInput(parsed.password || '');
             setRememberMe(true);
           } else {
             localStorage.removeItem('staffRemember');
@@ -230,7 +229,7 @@ export default function StaffView({
         }
       }
     }
-  }, [currentStaff, setStaffEmpIdInput, setStaffPasswordInput]);
+  }, [currentStaff, setStaffEmpIdInput]);
 
   const filteredSupplies = officeSupplies.filter(supply =>
     supply.name?.toLowerCase().includes(supplySearchTerm.toLowerCase())
@@ -280,7 +279,7 @@ export default function StaffView({
   const handleLoginSubmit = (e) => {
     if (rememberMe) {
       const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput, password: staffPasswordInput, expiry }));
+      localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput, expiry }));
     } else {
       localStorage.removeItem('staffRemember');
     }
@@ -373,14 +372,7 @@ export default function StaffView({
                 <label className={labelCls}>รหัสพนักงาน</label>
                 <input
                   type="text" value={staffEmpIdInput} onChange={e => setStaffEmpIdInput(e.target.value)}
-                  className={inputCls} placeholder="เช่น EMP001" required
-                />
-              </div>
-              <div>
-                <label className={labelCls}>รหัสผ่าน (เลขบัตรประชาชน)</label>
-                <input
-                  type="password" maxLength="13" value={staffPasswordInput || ''} onChange={e => setStaffPasswordInput?.(e.target.value)}
-                  className={inputCls} placeholder="13 หลัก" required
+                  className={inputCls} placeholder="เช่น EMP001" required autoFocus
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer select-none">

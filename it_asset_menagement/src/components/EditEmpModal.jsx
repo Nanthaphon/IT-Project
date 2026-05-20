@@ -41,8 +41,8 @@ export default function EditEmpModal({
               <Field label="รหัสพนักงาน" required>
                 <input type="text" name="empId" value={data.empId || ''} onChange={handleEditEmpChange} required className={cls.input} />
               </Field>
-              <Field label="รหัสบัตรประชาชน (ใช้เข้าสู่ระบบ)" required>
-                <input type="text" name="nationalId" value={data.nationalId || ''} onChange={handleEditEmpChange} required maxLength="13" className={cls.input} placeholder="เลข 13 หลัก" />
+              <Field label="รหัสบัตรประชาชน">
+                <input type="text" name="nationalId" value={data.nationalId || ''} onChange={handleEditEmpChange} maxLength="13" className={cls.input} placeholder="เลข 13 หลัก (ไม่บังคับ)" />
               </Field>
               <Field label="ชื่อ-นามสกุล (TH)" required>
                 <input type="text" name="fullName" value={data.fullName || ''} onChange={handleEditEmpChange} required className={cls.input} />

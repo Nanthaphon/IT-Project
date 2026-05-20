@@ -59,7 +59,7 @@ export default function TopHeader({
               <Bell className="h-[18px] w-[18px]" strokeWidth={1.8} />
             )}
             {totalPendingCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center leading-none">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none shadow-sm pointer-events-none">
                 {totalPendingCount > 9 ? '9+' : totalPendingCount}
               </span>
             )}

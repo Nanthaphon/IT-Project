@@ -1111,6 +1111,10 @@ export default function AssetDetailsModal({
                       <DetailItem label="สิทธิ์ทั้งหมด" value={`${currentAssetDetail.quantity || 0} สิทธิ์`} />
                       <DetailItem label="กำลังใช้งาน" value={`${currentAssetDetail.assignees?.length || 0} สิทธิ์`} />
                       <DetailItem label="คงเหลือ" value={`${Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0))} สิทธิ์`} />
+                      <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
+                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                      <DetailItem label="วันที่หมดอายุ" value={currentAssetDetail.expirationDate} />
+                      <DetailItem label="ราคา (บาท)" value={currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'} />
                     </>
                   ) : selectedAssetCategory === 'assets' ? (
                     <>

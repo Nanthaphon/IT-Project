@@ -15,6 +15,7 @@ export default function AccessoryTable({
   setCheckoutModal,
   openEditAssetModal,
   setConfirmDeleteModal,
+  canEdit,
 }) {
   const totalQty    = currentData.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
   const totalRemain = currentData.reduce((s, i) => s + (Number(i.quantity || 0) - (i.assignees?.length || 0) - Number(i.brokenQuantity || 0)), 0);
@@ -71,10 +72,10 @@ export default function AccessoryTable({
                   className="text-left flex items-center gap-3 group/link"
                 >
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-9 h-9 rounded-lg object-cover ring-1 ring-slate-200 shrink-0" />
+                    <img src={item.image} alt={item.name} className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 shrink-0 shadow-sm" />
                   ) : (
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
                       style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
                     >
                       <Mouse className="h-4 w-4" strokeWidth={1.7} />
@@ -96,20 +97,26 @@ export default function AccessoryTable({
               <td className={`${TD} font-semibold text-center tabular-nums ${broken > 0 ? 'text-rose-500' : 'text-slate-400'}`}>{broken}</td>
               <td className={`${TD} text-center`}>
                 <div className="flex items-center justify-center gap-1.5">
-                  <button
-                    onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'accessories' })}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
-                    title="เบิกจ่าย"
-                  >
-                    <LogIn className="h-3 w-3" strokeWidth={2.2} />
-                    เบิกจ่าย
-                  </button>
-                  <IconBtn onClick={() => openEditAssetModal(item, 'accessories')} title="แก้ไข" kind="warning">
-                    <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                  </IconBtn>
-                  <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'accessories' })} title="ลบ" kind="danger">
-                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                  </IconBtn>
+                  {canEdit && (
+                    <button
+                      onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'accessories' })}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
+                      title="เบิกจ่าย"
+                    >
+                      <LogIn className="h-3 w-3" strokeWidth={2.2} />
+                      เบิกจ่าย
+                    </button>
+                  )}
+                  {canEdit && (
+                    <IconBtn onClick={() => openEditAssetModal(item, 'accessories')} title="แก้ไข" kind="warning">
+                      <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                    </IconBtn>
+                  )}
+                  {canEdit && (
+                    <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'accessories' })} title="ลบ" kind="danger">
+                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                    </IconBtn>
+                  )}
                 </div>
               </td>
             </tr>

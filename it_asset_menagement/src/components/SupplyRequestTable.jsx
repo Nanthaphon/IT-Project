@@ -24,18 +24,50 @@ const STATUS = {
   },
 };
 
+/* ─── Date helpers ───────────────────────────────────────── */
+const TH_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function getUniqueYears(data) {
+  const set = new Set();
+  (data || []).forEach(item => { if (item.timestamp) set.add(String(new Date(item.timestamp).getFullYear())); });
+  return Array.from(set).sort().reverse();
+}
+function getUniqueMonthsForYear(data, year) {
+  const set = new Set();
+  (data || []).forEach(item => {
+    if (!item.timestamp) return;
+    const d = new Date(item.timestamp);
+    if (year !== 'ทั้งหมด' && String(d.getFullYear()) !== year) return;
+    set.add(String(d.getMonth() + 1).padStart(2, '0'));
+  });
+  return Array.from(set).sort();
+}
+function getUniqueDays(data, year, month) {
+  const set = new Set();
+  (data || []).forEach(item => {
+    if (!item.timestamp) return;
+    const d = new Date(item.timestamp);
+    if (year  !== 'ทั้งหมด' && String(d.getFullYear()) !== year) return;
+    if (month !== 'ทั้งหมด' && String(d.getMonth() + 1).padStart(2, '0') !== month) return;
+    set.add(String(d.getDate()).padStart(2, '0'));
+  });
+  return Array.from(set).sort();
+}
+
 /* ─── Main component ─────────────────────────────────────── */
 export default function SupplyRequestTable({
   supplyRequests,
   currentSupplyRequests,
-  supplyFilterDate,
-  setSupplyFilterDate,
+  supplyFilterYear,
+  setSupplyFilterYear,
+  supplyFilterMonth,
+  setSupplyFilterMonth,
+  supplyFilterDay,
+  setSupplyFilterDay,
   supplyFilterStatus,
   setSupplyFilterStatus,
-  getUniqueDates,
-  formatDateLabel,
   handleUpdateSupplyRequestStatus,
   handleDelete,
+  canEdit,
 }) {
   const counts = {
     pending:  supplyRequests.filter(r => r.status === 'รอดำเนินการ').length,
@@ -75,17 +107,39 @@ export default function SupplyRequestTable({
             </div>
           </div>
 
-          {/* date picker */}
-          <select
-            value={supplyFilterDate}
-            onChange={(e) => setSupplyFilterDate(e.target.value)}
-            className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
-          >
-            <option value="ทั้งหมด">📅 วันที่: ทั้งหมด</option>
-            {getUniqueDates(supplyRequests).map(d => (
-              <option key={d} value={d}>{formatDateLabel(d)}</option>
-            ))}
-          </select>
+          {/* date filters — ปี / เดือน / วัน */}
+          <div className="flex items-center gap-2">
+            <select
+              value={supplyFilterYear}
+              onChange={(e) => { setSupplyFilterYear(e.target.value); setSupplyFilterMonth('ทั้งหมด'); setSupplyFilterDay('ทั้งหมด'); }}
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+            >
+              <option value="ทั้งหมด">ปี: ทั้งหมด</option>
+              {getUniqueYears(supplyRequests).map(y => (
+                <option key={y} value={y}>พ.ศ. {Number(y) + 543}</option>
+              ))}
+            </select>
+            <select
+              value={supplyFilterMonth}
+              onChange={(e) => { setSupplyFilterMonth(e.target.value); setSupplyFilterDay('ทั้งหมด'); }}
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+            >
+              <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
+              {getUniqueMonthsForYear(supplyRequests, supplyFilterYear).map(m => (
+                <option key={m} value={m}>{TH_MONTHS[Number(m)]}</option>
+              ))}
+            </select>
+            <select
+              value={supplyFilterDay}
+              onChange={(e) => setSupplyFilterDay(e.target.value)}
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+            >
+              <option value="ทั้งหมด">วัน: ทั้งหมด</option>
+              {getUniqueDays(supplyRequests, supplyFilterYear, supplyFilterMonth).map(d => (
+                <option key={d} value={d}>{Number(d)}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* KPI strip */}
@@ -141,6 +195,7 @@ export default function SupplyRequestTable({
                 req={req}
                 onUpdateStatus={handleUpdateSupplyRequestStatus}
                 onDelete={handleDelete}
+                canEdit={canEdit}
               />
             ))}
           </div>
@@ -151,7 +206,7 @@ export default function SupplyRequestTable({
 }
 
 /* ─── Request Card ───────────────────────────────────────── */
-function RequestCard({ req, onUpdateStatus, onDelete }) {
+function RequestCard({ req, onUpdateStatus, onDelete, canEdit }) {
   const cfg       = STATUS[req.status] ?? STATUS['รอดำเนินการ'];
   const StatusIcon = cfg.icon;
   const isPending  = req.status === 'รอดำเนินการ';
@@ -221,7 +276,7 @@ function RequestCard({ req, onUpdateStatus, onDelete }) {
       {/* ── action footer ── */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-t border-slate-100">
         <div className="flex items-center gap-1.5">
-          {isPending ? (
+          {canEdit && isPending ? (
             /* quick approve / reject */
             <>
               <button
@@ -239,7 +294,7 @@ function RequestCard({ req, onUpdateStatus, onDelete }) {
                 ปฏิเสธ
               </button>
             </>
-          ) : (
+          ) : canEdit && !isPending ? (
             /* change status dropdown */
             <select
               value={req.status}
@@ -250,17 +305,19 @@ function RequestCard({ req, onUpdateStatus, onDelete }) {
               <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
               <option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
             </select>
-          )}
+          ) : null}
         </div>
 
         {/* delete */}
-        <button
-          onClick={() => onDelete(req.id, 'supply_requests')}
-          className="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-500 hover:bg-rose-50 ring-1 ring-inset ring-slate-200 hover:ring-rose-200 rounded-lg transition-colors"
-          title="ลบ"
-        >
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => onDelete(req.id, 'supply_requests')}
+            className="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-500 hover:bg-rose-50 ring-1 ring-inset ring-slate-200 hover:ring-rose-200 rounded-lg transition-colors"
+            title="ลบ"
+          >
+            <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+        )}
       </div>
     </div>
   );

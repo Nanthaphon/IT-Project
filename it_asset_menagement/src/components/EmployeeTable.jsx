@@ -15,6 +15,7 @@ export default function EmployeeTable({
   handleRestoreEmployee,
   openEditEmpModal,
   setConfirmDeleteModal,
+  canEdit,
 }) {
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
@@ -69,20 +70,26 @@ export default function EmployeeTable({
             <td className={`${TD} text-center`}>
               <div className="flex items-center justify-center gap-1.5">
                 {showDeletedEmployees ? (
-                  <button
-                    onClick={() => handleRestoreEmployee(item)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
-                  >
-                    <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> กู้คืน
-                  </button>
+                  canEdit && (
+                    <button
+                      onClick={() => handleRestoreEmployee(item)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
+                    >
+                      <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> กู้คืน
+                    </button>
+                  )
                 ) : (
                   <>
-                    <IconBtn onClick={() => openEditEmpModal(item)} title="แก้ไข" kind="warning">
-                      <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                    </IconBtn>
-                    <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'employees' })} title="ลบ" kind="danger">
-                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                    </IconBtn>
+                    {canEdit && (
+                      <IconBtn onClick={() => openEditEmpModal(item)} title="แก้ไข" kind="warning">
+                        <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                      </IconBtn>
+                    )}
+                    {canEdit && (
+                      <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'employees' })} title="ลบ" kind="danger">
+                        <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                      </IconBtn>
+                    )}
                   </>
                 )}
               </div>

@@ -15,17 +15,49 @@ const STATUS = {
 };
 
 /* ─── Main component ─────────────────────────────────────── */
+const TH_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function getUniqueYears(data) {
+  const set = new Set();
+  (data || []).forEach(item => { if (item.timestamp) set.add(String(new Date(item.timestamp).getFullYear())); });
+  return Array.from(set).sort().reverse();
+}
+function getUniqueMonthsForYear(data, year) {
+  const set = new Set();
+  (data || []).forEach(item => {
+    if (!item.timestamp) return;
+    const d = new Date(item.timestamp);
+    if (year !== 'ทั้งหมด' && String(d.getFullYear()) !== year) return;
+    set.add(String(d.getMonth() + 1).padStart(2, '0'));
+  });
+  return Array.from(set).sort();
+}
+function getUniqueDays(data, year, month) {
+  const set = new Set();
+  (data || []).forEach(item => {
+    if (!item.timestamp) return;
+    const d = new Date(item.timestamp);
+    if (year  !== 'ทั้งหมด' && String(d.getFullYear()) !== year) return;
+    if (month !== 'ทั้งหมด' && String(d.getMonth() + 1).padStart(2, '0') !== month) return;
+    set.add(String(d.getDate()).padStart(2, '0'));
+  });
+  return Array.from(set).sort();
+}
+
 export default function RepairTable({
   repairRequests,
   currentRepairRequests,
+  repairFilterYear,
+  setRepairFilterYear,
   repairFilterMonth,
   setRepairFilterMonth,
+  repairFilterDay,
+  setRepairFilterDay,
   repairFilterStatus,
   setRepairFilterStatus,
-  getUniqueMonths,
-  formatMonthLabel,
   handleUpdateRepairRequestStatus,
   handleDeleteRepairRequest,
+  canEdit,
 }) {
   const counts = {
     pending:    repairRequests.filter(r => r.status === 'รอดำเนินการ').length,
@@ -67,17 +99,42 @@ export default function RepairTable({
             </div>
           </div>
 
-          {/* month picker */}
-          <select
-            value={repairFilterMonth}
-            onChange={(e) => setRepairFilterMonth(e.target.value)}
-            className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
-          >
-            <option value="ทั้งหมด">📅 เดือน: ทั้งหมด</option>
-            {getUniqueMonths(repairRequests).map(m => (
-              <option key={m} value={m}>{formatMonthLabel(m)}</option>
-            ))}
-          </select>
+          {/* date filters — ปี / เดือน / วัน */}
+          <div className="flex items-center gap-2">
+            {/* ปี */}
+            <select
+              value={repairFilterYear}
+              onChange={(e) => { setRepairFilterYear(e.target.value); setRepairFilterMonth('ทั้งหมด'); setRepairFilterDay('ทั้งหมด'); }}
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+            >
+              <option value="ทั้งหมด">ปี: ทั้งหมด</option>
+              {getUniqueYears(repairRequests).map(y => (
+                <option key={y} value={y}>พ.ศ. {Number(y) + 543}</option>
+              ))}
+            </select>
+            {/* เดือน */}
+            <select
+              value={repairFilterMonth}
+              onChange={(e) => { setRepairFilterMonth(e.target.value); setRepairFilterDay('ทั้งหมด'); }}
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+            >
+              <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
+              {getUniqueMonthsForYear(repairRequests, repairFilterYear).map(m => (
+                <option key={m} value={m}>{TH_MONTHS[Number(m)]}</option>
+              ))}
+            </select>
+            {/* วัน */}
+            <select
+              value={repairFilterDay}
+              onChange={(e) => setRepairFilterDay(e.target.value)}
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+            >
+              <option value="ทั้งหมด">วัน: ทั้งหมด</option>
+              {getUniqueDays(repairRequests, repairFilterYear, repairFilterMonth).map(d => (
+                <option key={d} value={d}>{Number(d)}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* KPI strip — 4 cards */}
@@ -131,6 +188,7 @@ export default function RepairTable({
                 req={req}
                 onUpdateStatus={handleUpdateRepairRequestStatus}
                 onDelete={handleDeleteRepairRequest}
+                canEdit={canEdit}
               />
             ))}
           </div>
@@ -141,7 +199,7 @@ export default function RepairTable({
 }
 
 /* ─── Repair Card ────────────────────────────────────────── */
-function RepairCard({ req, onUpdateStatus, onDelete }) {
+function RepairCard({ req, onUpdateStatus, onDelete, canEdit }) {
   const [expanded, setExpanded] = useState(false);
   const [evalOpen, setEvalOpen] = useState(false);
 
@@ -262,7 +320,7 @@ function RepairCard({ req, onUpdateStatus, onDelete }) {
       {/* ── action footer ── */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-t border-slate-100">
         <div className="flex items-center gap-1.5">
-          {showQuick ? (
+          {canEdit && showQuick ? (
             isPending ? (
               /* pending → เริ่มซ่อม */
               <button
@@ -284,27 +342,31 @@ function RepairCard({ req, onUpdateStatus, onDelete }) {
             )
           ) : null}
 
-          {/* always show dropdown to change status freely */}
-          <select
-            value={req.status}
-            onChange={(e) => onUpdateStatus(req.id, e.target.value)}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ring-1 ring-inset outline-none cursor-pointer transition-colors ${cfg.badge}`}
-          >
-            <option value="รอดำเนินการ">รอดำเนินการ</option>
-            <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
-            <option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option>
-            <option value="ยกเลิก">ยกเลิก</option>
-          </select>
+          {/* show status dropdown only if canEdit */}
+          {canEdit && (
+            <select
+              value={req.status}
+              onChange={(e) => onUpdateStatus(req.id, e.target.value)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ring-1 ring-inset outline-none cursor-pointer transition-colors ${cfg.badge}`}
+            >
+              <option value="รอดำเนินการ">รอดำเนินการ</option>
+              <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
+              <option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option>
+              <option value="ยกเลิก">ยกเลิก</option>
+            </select>
+          )}
         </div>
 
         {/* delete */}
-        <button
-          onClick={() => onDelete(req.id)}
-          className="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-500 hover:bg-rose-50 ring-1 ring-inset ring-slate-200 hover:ring-rose-200 rounded-lg transition-colors"
-          title="ลบ"
-        >
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => onDelete(req.id)}
+            className="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-500 hover:bg-rose-50 ring-1 ring-inset ring-slate-200 hover:ring-rose-200 rounded-lg transition-colors"
+            title="ลบ"
+          >
+            <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+        )}
       </div>
     </div>
   );

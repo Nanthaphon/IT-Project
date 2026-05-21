@@ -960,7 +960,7 @@ export default function AssetDetailsModal({
 
         {/* Profile band */}
         <div className="px-5 py-3 shrink-0 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
-          {currentAssetDetail.image && selectedAssetCategory !== 'licenses' ? (
+          {currentAssetDetail.image ? (
             <div className="w-11 h-11 rounded-xl shrink-0 ring-1 ring-slate-200 bg-white overflow-hidden flex items-center justify-center">
               <img src={currentAssetDetail.image} alt="" className="max-w-full max-h-full object-contain p-0.5" />
             </div>
@@ -974,9 +974,11 @@ export default function AssetDetailsModal({
           <div className="flex-1 min-w-0">
             <h2 className="text-[15px] font-bold text-[#1E487A] leading-[1.5] truncate mb-1">{currentAssetDetail.name}</h2>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
-                {currentAssetDetail.type || 'ไม่ระบุประเภท'}
-              </span>
+              {currentAssetDetail.type && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+                  {currentAssetDetail.type}
+                </span>
+              )}
               {selectedAssetCategory === 'assets' && (
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A] ring-blue-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>
                   <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500 animate-pulse' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : 'bg-amber-500'}`} />

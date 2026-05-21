@@ -34,6 +34,7 @@ export default function ActionBar({
   selectedLicenseIds,
   visibleLicenseColumns,
   setVisibleLicenseColumns,
+  canEdit,
 }) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = React.useState(false);
   const columnDropdownRef = React.useRef(null);
@@ -88,10 +89,12 @@ export default function ActionBar({
         {/* ── Employees ── */}
         {activeMenu === 'employees' && (
           <>
-            <Btn onClick={() => setShowDeletedEmployees(!showDeletedEmployees)} active={showDeletedEmployees}>
-              {showDeletedEmployees ? 'พนักงานปัจจุบัน' : 'ถังขยะ'}
-            </Btn>
-            {!showDeletedEmployees && (
+            {canEdit && (
+              <Btn onClick={() => setShowDeletedEmployees(!showDeletedEmployees)} active={showDeletedEmployees}>
+                {showDeletedEmployees ? 'พนักงานปัจจุบัน' : 'ถังขยะ'}
+              </Btn>
+            )}
+            {canEdit && !showDeletedEmployees && (
               <>
                 <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>
                 <Btn icon={Download} onClick={handleExportEmployees}>ส่งออก CSV</Btn>
@@ -142,8 +145,8 @@ export default function ActionBar({
               )}
             </div>
 
-            <Btn icon={Download} onClick={handleExportAssets}>ส่งออก CSV</Btn>
-            <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>
+            {canEdit && <Btn icon={Download} onClick={handleExportAssets}>ส่งออก CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
           </>
         )}
 
@@ -156,8 +159,8 @@ export default function ActionBar({
               <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด</option>
               <option value="อื่นๆ">อื่นๆ</option>
             </FilterSelect>
-            <Btn icon={Download} onClick={handleExportAccessories}>ส่งออก CSV</Btn>
-            {selectedAccessoryIds.length > 0 && (
+            {canEdit && <Btn icon={Download} onClick={handleExportAccessories}>ส่งออก CSV</Btn>}
+            {canEdit && selectedAccessoryIds.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedAccessoryIds, collectionName: 'accessories' })}>
                 ลบ ({selectedAccessoryIds.length})
               </DangerBtn>
@@ -174,7 +177,7 @@ export default function ActionBar({
               <option value="ใกล้หมด">ใกล้หมด (1–5)</option>
               <option value="หมดสต็อก">หมดสต็อก (0)</option>
             </FilterSelect>
-            {selectedOfficeSupplyIds.length > 0 && (
+            {canEdit && selectedOfficeSupplyIds.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })}>
                 ลบ ({selectedOfficeSupplyIds.length})
               </DangerBtn>
@@ -198,9 +201,9 @@ export default function ActionBar({
                 />
               )}
             </div>
-            <Btn icon={Download} onClick={handleExportLicenses}>ส่งออก CSV</Btn>
-            <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>
-            {selectedLicenseIds?.length > 0 && (
+            {canEdit && <Btn icon={Download} onClick={handleExportLicenses}>ส่งออก CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
+            {canEdit && selectedLicenseIds?.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedLicenseIds, collectionName: 'licenses' })}>
                 ลบ ({selectedLicenseIds.length})
               </DangerBtn>
@@ -209,7 +212,7 @@ export default function ActionBar({
         )}
 
         {/* Add button — brand primary */}
-        {!showDeletedEmployees && (
+        {canEdit && !showDeletedEmployees && (
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all whitespace-nowrap shadow-sm hover:shadow-md"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 
 // ═══════════════════════════════════════════════════════════════
@@ -36,6 +36,8 @@ async function sendNotification({ title, notifyType, facts }) {
 }
 
 import useFirebaseData from './hooks/useFirebaseData.jsx';
+import useAdminPermissions from './hooks/useAdminPermissions.jsx';
+import UserManagementPage from './components/UserManagementPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import TopHeader from './components/TopHeader.jsx';
 import DashboardStats from './components/DashboardStats.jsx';
@@ -60,6 +62,7 @@ import ReplacementRequestTable from './components/ReplacementRequestTable.jsx';
 function App() {
   const [authRole, setAuthRole] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [currentUid, setCurrentUid] = useState(null);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
@@ -92,6 +95,9 @@ function App() {
     repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
     fieldOptions,
   } = useFirebaseData();
+
+  const { isSuperAdmin, adminPermissions, permLoading } = useAdminPermissions(currentUid, authRole);
+  const canEdit = isSuperAdmin || adminPermissions?.level === 'full';
 
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]); 
@@ -181,28 +187,86 @@ function App() {
   const [assetFilterDepartment, setAssetFilterDepartment] = useState('ทั้งหมด');
   const [repairFilterStatus, setRepairFilterStatus] = useState('ทั้งหมด'); 
   const [supplyFilterStatus, setSupplyFilterStatus] = useState('ทั้งหมด');
-  const [repairFilterMonth, setRepairFilterMonth] = useState('ทั้งหมด'); 
-  const [supplyFilterDate, setSupplyFilterDate] = useState('ทั้งหมด');
+  const [repairFilterYear, setRepairFilterYear]   = useState('ทั้งหมด');
+  const [repairFilterMonth, setRepairFilterMonth] = useState('ทั้งหมด');
+  const [repairFilterDay, setRepairFilterDay]     = useState('ทั้งหมด');
+  const [supplyFilterYear, setSupplyFilterYear]   = useState('ทั้งหมด');
+  const [supplyFilterMonth, setSupplyFilterMonth] = useState('ทั้งหมด');
+  const [supplyFilterDay, setSupplyFilterDay]     = useState('ทั้งหมด');
   const [officeSupplyStockFilter, setOfficeSupplyStockFilter] = useState('ทั้งหมด');
   const [showDeletedEmployees, setShowDeletedEmployees] = useState(false); 
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        if (user.email && user.email.toLowerCase().startsWith('hr@')) {
+        setCurrentUid(user.uid);
+        // ถ้า user มี doc ใน admin_users = เป็น admin ที่จัดการสิทธิ์ผ่านระบบ RBAC
+        let isManagedAdmin = false;
+        try {
+          const adminSnap = await getDoc(doc(db, 'admin_users', user.uid));
+          isManagedAdmin = adminSnap.exists();
+        } catch (e) { /* ignore */ }
+        if (!isManagedAdmin && user.email && user.email.toLowerCase().startsWith('hr@')) {
           setAuthRole('hr');
           setActiveMenu('office_supplies');
         } else {
           setAuthRole('admin');
         }
       } else {
+        setCurrentUid(null);
         setAuthRole(prev => prev === 'staff' ? prev : null);
       }
       setAuthLoading(false);
     });
     return () => unsubAuth();
   }, []);
+
+  // ─── Redirect ออกจากเมนูที่ไม่ได้รับสิทธิ์ (กันค้างจาก session ก่อน) ───
+  useEffect(() => {
+    if (authRole !== 'admin' || permLoading) return;
+    if (isSuperAdmin) return; // SuperAdmin เข้าได้ทุกเมนู
+    const allowed = adminPermissions?.menus || [];
+    const canResetPw = adminPermissions?.canManagePasswords === true;
+    if (activeMenu === 'users') {
+      // admin ที่มีสิทธิ์จัดการรหัสผ่านเข้าหน้านี้ได้
+      if (!canResetPw) setActiveMenu(allowed[0] || 'dashboard');
+      return;
+    }
+    if (allowed.length > 0 && !allowed.includes(activeMenu)) {
+      setActiveMenu(allowed[0]);
+    }
+  }, [authRole, permLoading, isSuperAdmin, adminPermissions, activeMenu]);
+
+  // ─── แจ้งเตือน License ใกล้หมดอายุ (ส่ง email ครั้งเดียวต่อวัน) ───
+  useEffect(() => {
+    if (authRole !== 'admin' || licenses.length === 0) return;
+    // ต้องมีสิทธิ์เข้าถึงเมนู licenses เท่านั้นจึงจะส่ง email แจ้งเตือน
+    const hasLicensesAccess = isSuperAdmin || (adminPermissions?.menus || []).includes('licenses');
+    if (!hasLicensesAccess) return;
+    const todayKey = new Date().toISOString().split('T')[0];
+    const storageKey = `licenseExpiryAlertSent_${todayKey}`;
+    if (localStorage.getItem(storageKey)) return;
+
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const expiringSoon = licenses.filter(lic => {
+      if (!lic.expirationDate) return false;
+      const diff = Math.ceil((new Date(lic.expirationDate) - today) / (1000 * 60 * 60 * 24));
+      return diff >= 0 && diff <= 90;
+    });
+    if (expiringSoon.length === 0) return;
+
+    localStorage.setItem(storageKey, 'sent');
+    const facts = expiringSoon.map(lic => {
+      const diff = Math.ceil((new Date(lic.expirationDate) - today) / (1000 * 60 * 60 * 24));
+      return { label: lic.name, value: `หมดอายุ ${lic.expirationDate} (อีก ${diff} วัน)` };
+    });
+    sendNotification({
+      title: `⚠️ แจ้งเตือน: โปรแกรม/License ใกล้หมดอายุ ${expiringSoon.length} รายการ`,
+      notifyType: 'IT',
+      facts,
+    }).catch(err => console.error('License expiry email failed:', err));
+  }, [authRole, licenses, isSuperAdmin, adminPermissions]);
 
   useEffect(() => {
     if (!pendingAssetId || !authRole || authRole === 'staff') return;
@@ -222,7 +286,9 @@ function App() {
     setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด');
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
-    setRepairFilterMonth('ทั้งหมด'); setSupplyFilterDate('ทั้งหมด'); setOfficeSupplyStockFilter('ทั้งหมด');
+    setRepairFilterYear('ทั้งหมด'); setRepairFilterMonth('ทั้งหมด'); setRepairFilterDay('ทั้งหมด');
+    setSupplyFilterYear('ทั้งหมด'); setSupplyFilterMonth('ทั้งหมด'); setSupplyFilterDay('ทั้งหมด');
+    setOfficeSupplyStockFilter('ทั้งหมด');
     setShowDeletedEmployees(false); 
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]); setSelectedLicenseIds([]);
     if (activeMenu === 'assets') setType('คอมพิวเตอร์');
@@ -927,26 +993,24 @@ function App() {
 
   // ── Filter repair requests ──
   let currentRepairRequests = repairRequests.filter(req => {
-    // กรองตามสถานะ
     if (repairFilterStatus !== 'ทั้งหมด' && req.status !== repairFilterStatus) return false;
-    // กรองตามเดือน (รูปแบบ "YYYY-MM")
-    if (repairFilterMonth !== 'ทั้งหมด') {
+    if (req.timestamp) {
       const d = new Date(req.timestamp);
-      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      if (monthKey !== repairFilterMonth) return false;
+      if (repairFilterYear  !== 'ทั้งหมด' && String(d.getFullYear()) !== repairFilterYear) return false;
+      if (repairFilterMonth !== 'ทั้งหมด' && String(d.getMonth() + 1).padStart(2, '0') !== repairFilterMonth) return false;
+      if (repairFilterDay   !== 'ทั้งหมด' && String(d.getDate()).padStart(2, '0') !== repairFilterDay) return false;
     }
     return true;
   });
 
   // ── Filter supply requests ──
   let currentSupplyRequests = supplyRequests.filter(req => {
-    // กรองตามสถานะ
     if (supplyFilterStatus !== 'ทั้งหมด' && req.status !== supplyFilterStatus) return false;
-    // กรองตามวันที่ (รูปแบบ "YYYY-MM-DD")
-    if (supplyFilterDate !== 'ทั้งหมด') {
+    if (req.timestamp) {
       const d = new Date(req.timestamp);
-      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      if (dateKey !== supplyFilterDate) return false;
+      if (supplyFilterYear  !== 'ทั้งหมด' && String(d.getFullYear()) !== supplyFilterYear) return false;
+      if (supplyFilterMonth !== 'ทั้งหมด' && String(d.getMonth() + 1).padStart(2, '0') !== supplyFilterMonth) return false;
+      if (supplyFilterDay   !== 'ทั้งหมด' && String(d.getDate()).padStart(2, '0') !== supplyFilterDay) return false;
     }
     return true;
   });
@@ -975,20 +1039,22 @@ function App() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const expDate = new Date(expirationDate);
     const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return { isExpiring: true, statusText: 'หมดอายุแล้ว', colorClass: 'text-red-600 bg-red-50 border-red-200' };
-    else if (diffDays <= 30) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-amber-600 bg-amber-50 border-amber-200' };
+    if (diffDays < 0)   return { isExpiring: true, statusText: 'หมดอายุแล้ว',              colorClass: 'text-red-600 bg-red-50 ring-red-200' };
+    if (diffDays <= 30) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-red-600 bg-red-50 ring-red-200' };
+    if (diffDays <= 90) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-amber-600 bg-amber-50 ring-amber-200' };
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
   const pendingRepairsCount = authRole === 'admin' ? repairRequests.filter(req => req.status === 'รอดำเนินการ').length : 0;
   const pendingSuppliesCount = supplyRequests.filter(req => req.status === 'รอดำเนินการ').length;
-  const expiringLicensesCount = authRole === 'admin' ? licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length : 0;
+  const hasLicensesMenuAccess = isSuperAdmin || (adminPermissions?.menus || []).includes('licenses');
+  const expiringLicensesCount = (authRole === 'admin' && hasLicensesMenuAccess) ? licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length : 0;
   
   const totalPendingCount = pendingRepairsCount + pendingSuppliesCount + expiringLicensesCount;
   const totalSystemItems = assets.length + licenses.length + accessories.length + employees.length;
   const currentDataLength = currentData.length;
 
-  if (authLoading) return (<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-[#1E487A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>);
+  if (authLoading || (authRole === 'admin' && permLoading)) return (<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-[#1E487A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>);
   
   if (authRole === null) return (
     <React.Fragment>
@@ -1020,7 +1086,15 @@ function App() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#F1F5FA] text-slate-900 font-sans">
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
-      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} onChangePassword={() => setChangePasswordModal(true)} authRole={authRole} />
+      <Sidebar
+        activeMenu={activeMenu}
+        setActiveMenu={setActiveMenu}
+        onChangePassword={() => setChangePasswordModal(true)}
+        authRole={authRole}
+        isSuperAdmin={isSuperAdmin}
+        allowedMenus={isSuperAdmin ? null : adminPermissions?.menus || []}
+        canManageUsers={isSuperAdmin || adminPermissions?.canManagePasswords === true}
+      />
       
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} />
@@ -1064,24 +1138,30 @@ function App() {
           ) : activeMenu === 'kpi_dashboard' ? (
             <KpiDashboard repairRequests={repairRequests} />
           ) : activeMenu === 'repairs' ? (
-            <RepairTable repairRequests={repairRequests} currentRepairRequests={currentRepairRequests} repairFilterMonth={repairFilterMonth} setRepairFilterMonth={setRepairFilterMonth} repairFilterStatus={repairFilterStatus} setRepairFilterStatus={setRepairFilterStatus} getUniqueMonths={getUniqueMonths} formatMonthLabel={formatMonthLabel} handleUpdateRepairRequestStatus={handleUpdateRepairRequestStatus} handleDeleteRepairRequest={handleDeleteRepairRequest} />
+            <RepairTable repairRequests={repairRequests} currentRepairRequests={currentRepairRequests} repairFilterYear={repairFilterYear} setRepairFilterYear={setRepairFilterYear} repairFilterMonth={repairFilterMonth} setRepairFilterMonth={setRepairFilterMonth} repairFilterDay={repairFilterDay} setRepairFilterDay={setRepairFilterDay} repairFilterStatus={repairFilterStatus} setRepairFilterStatus={setRepairFilterStatus} handleUpdateRepairRequestStatus={handleUpdateRepairRequestStatus} handleDeleteRepairRequest={handleDeleteRepairRequest} canEdit={canEdit} />
           ) : activeMenu === 'supply_requests' ? (
-            <SupplyRequestTable supplyRequests={supplyRequests} currentSupplyRequests={currentSupplyRequests} supplyFilterDate={supplyFilterDate} setSupplyFilterDate={setSupplyFilterDate} supplyFilterStatus={supplyFilterStatus} setSupplyFilterStatus={setSupplyFilterStatus} getUniqueDates={getUniqueDates} formatDateLabel={formatDateLabel} handleUpdateSupplyRequestStatus={handleUpdateSupplyRequestStatus} handleDelete={handleDelete} />
+            <SupplyRequestTable supplyRequests={supplyRequests} currentSupplyRequests={currentSupplyRequests} supplyFilterYear={supplyFilterYear} setSupplyFilterYear={setSupplyFilterYear} supplyFilterMonth={supplyFilterMonth} setSupplyFilterMonth={setSupplyFilterMonth} supplyFilterDay={supplyFilterDay} setSupplyFilterDay={setSupplyFilterDay} supplyFilterStatus={supplyFilterStatus} setSupplyFilterStatus={setSupplyFilterStatus} handleUpdateSupplyRequestStatus={handleUpdateSupplyRequestStatus} handleDelete={handleDelete} canEdit={canEdit} />
           ) : activeMenu === 'replacement_requests' ? (
-            <ReplacementRequestTable 
+            <ReplacementRequestTable
               replacementRequests={replacementRequests}
               handleUpdateReplacementStatus={handleUpdateReplacementStatus}
               handleDeleteReplacement={handleDeleteReplacement}
             />
+          ) : activeMenu === 'users' ? (
+            <UserManagementPage
+              isSuperAdmin={isSuperAdmin}
+              canManagePasswords={adminPermissions?.canManagePasswords === true}
+            />
           ) : (
             <div className="h-full flex flex-col">
               <div className="bg-white p-6 md:p-7 rounded-2xl shadow-sm ring-1 ring-slate-200/70 flex flex-col flex-1">
-                <ActionBar 
+                <ActionBar
                   menuTitle={menuTitle} activeMenu={activeMenu} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showDeletedEmployees={showDeletedEmployees} setShowDeletedEmployees={setShowDeletedEmployees} setIsImportModalOpen={setIsImportModalOpen} handleExportEmployees={handleExportEmployees}
                   selectedEmployeeIds={selectedEmployeeIds} setConfirmDeleteModal={setConfirmDeleteModal} assetFilterDepartment={assetFilterDepartment} setAssetFilterDepartment={setAssetFilterDepartment} assetFilterType={assetFilterType} setAssetFilterType={setAssetFilterType} assetFilterStatus={assetFilterStatus} setAssetFilterStatus={setAssetFilterStatus} accFilterType={accFilterType} setAccFilterType={setAccFilterType}
                   handleExportAccessories={handleExportAccessories} selectedAccessoryIds={selectedAccessoryIds} officeSupplyStockFilter={officeSupplyStockFilter} setOfficeSupplyStockFilter={setOfficeSupplyStockFilter} selectedOfficeSupplyIds={selectedOfficeSupplyIds} setIsAddModalOpen={setIsAddModalOpen} handleExportAssets={handleExportAssets} visibleAssetColumns={visibleAssetColumns} setVisibleAssetColumns={setVisibleAssetColumns}
                   handleExportLicenses={handleExportLicenses} selectedLicenseIds={selectedLicenseIds}
                   visibleLicenseColumns={visibleLicenseColumns} setVisibleLicenseColumns={setVisibleLicenseColumns}
+                  canEdit={canEdit}
                 />
                 
                 {currentData.length === 0 ? (
@@ -1097,7 +1177,7 @@ function App() {
                 ) : (
                   <div className="overflow-x-auto flex-1 rounded-xl ring-1 ring-slate-200 bg-white">
                     {activeMenu === 'employees' ? (
-                      <EmployeeTable currentData={currentData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} />
+                      <EmployeeTable currentData={currentData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'licenses' ? (
                       <LicenseTable
                         currentData={currentData}
@@ -1112,13 +1192,14 @@ function App() {
                         openEditLicenseModal={openEditLicenseModal}
                         setConfirmDeleteModal={setConfirmDeleteModal}
                         visibleLicenseColumns={visibleLicenseColumns}
+                        canEdit={canEdit}
                       />
                     ) : activeMenu === 'office_supplies' ? (
-                      <OfficeSupplyTable currentData={currentData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} />
+                      <OfficeSupplyTable currentData={currentData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
                     ) : activeMenu === 'accessories' ? (
-                      <AccessoryTable currentData={currentData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} />
+                      <AccessoryTable currentData={currentData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} visibleAssetColumns={visibleAssetColumns} />
+                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} />
                     ) : null}
                   </div>
                 )}

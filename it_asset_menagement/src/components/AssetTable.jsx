@@ -14,6 +14,7 @@ export default function AssetTable({
   openEditAssetModal,
   setConfirmDeleteModal,
   visibleAssetColumns,
+  canEdit,
 }) {
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
@@ -48,11 +49,11 @@ export default function AssetTable({
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-9 h-9 rounded-lg object-cover ring-1 ring-slate-200 shrink-0"
+                      className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 shrink-0 shadow-sm"
                     />
                   ) : (
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-colors"
                       style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
                     >
                       <Monitor className="h-4 w-4" strokeWidth={1.7} />
@@ -107,7 +108,7 @@ export default function AssetTable({
 
             <td className={`${TD} text-center`}>
               <div className="flex items-center justify-center gap-1.5">
-                {(!item.status || item.status === 'พร้อมใช้งาน') ? (
+                {canEdit && (!item.status || item.status === 'พร้อมใช้งาน') ? (
                   <ActionBtn
                     onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'assets' })}
                     kind="primary"
@@ -115,7 +116,7 @@ export default function AssetTable({
                   >
                     เบิกจ่าย
                   </ActionBtn>
-                ) : item.status === 'ถูกใช้งาน' ? (
+                ) : canEdit && item.status === 'ถูกใช้งาน' ? (
                   <ActionBtn
                     onClick={() => setReturnModal({ isOpen: true, assetId: item.id, collectionName: 'assets', empId: item.assignedTo, empName: item.assignedName, assetName: item.name })}
                     kind="success"
@@ -124,12 +125,16 @@ export default function AssetTable({
                     รับคืน
                   </ActionBtn>
                 ) : null}
-                <IconBtn onClick={() => openEditAssetModal(item, 'assets')} title="แก้ไข" kind="warning">
-                  <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                </IconBtn>
-                <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'assets' })} title="ลบ" kind="danger">
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                </IconBtn>
+                {canEdit && (
+                  <IconBtn onClick={() => openEditAssetModal(item, 'assets')} title="แก้ไข" kind="warning">
+                    <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                  </IconBtn>
+                )}
+                {canEdit && (
+                  <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'assets' })} title="ลบ" kind="danger">
+                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                  </IconBtn>
+                )}
               </div>
             </td>
           </tr>

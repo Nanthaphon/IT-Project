@@ -18,6 +18,7 @@ export default function LicenseTable({
   openEditLicenseModal,
   setConfirmDeleteModal,
   visibleLicenseColumns,
+  canEdit,
 }) {
   const col = visibleLicenseColumns || {};
   const allSelected = currentData.length > 0 && currentData.every(item => selectedLicenseIds.includes(item.id));
@@ -66,10 +67,12 @@ export default function LicenseTable({
               {col.image && (
                 <td className={TD}>
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-9 h-9 rounded-lg object-cover ring-1 ring-slate-200 shrink-0" />
+                    <div className="w-10 h-10 rounded-xl bg-white ring-1 ring-slate-200 shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                      <img src={item.image} alt={item.name} className="w-9 h-9 object-contain" />
+                    </div>
                   ) : (
                     <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
                       style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
                     >
                       <FileText className="h-4 w-4" strokeWidth={1.7} />
@@ -153,14 +156,14 @@ export default function LicenseTable({
 
               <td className={`${TD} text-center`}>
                 <div className="flex items-center justify-center gap-1.5">
-                  {!item.status || item.status === 'พร้อมใช้งาน' ? (
+                  {canEdit && (!item.status || item.status === 'พร้อมใช้งาน') ? (
                     <button
                       onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'licenses' })}
                       className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
                     >
                       <LogIn className="h-3 w-3" strokeWidth={2.2} /> เบิกจ่าย
                     </button>
-                  ) : item.status === 'ถูกใช้งาน' ? (
+                  ) : canEdit && item.status === 'ถูกใช้งาน' ? (
                     <button
                       onClick={() => handleCheckin(item.id, 'licenses')}
                       className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-emerald-600 ring-1 ring-inset ring-emerald-200 hover:bg-emerald-500 hover:text-white hover:ring-emerald-500 rounded-lg font-semibold transition-colors text-[11.5px]"
@@ -168,12 +171,16 @@ export default function LicenseTable({
                       <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> รับคืน
                     </button>
                   ) : null}
-                  <IconBtn onClick={() => openEditLicenseModal(item)} title="แก้ไข" kind="warning">
-                    <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                  </IconBtn>
-                  <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'licenses' })} title="ลบ" kind="danger">
-                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                  </IconBtn>
+                  {canEdit && (
+                    <IconBtn onClick={() => openEditLicenseModal(item)} title="แก้ไข" kind="warning">
+                      <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                    </IconBtn>
+                  )}
+                  {canEdit && (
+                    <IconBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: 'licenses' })} title="ลบ" kind="danger">
+                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                    </IconBtn>
+                  )}
                 </div>
               </td>
             </tr>

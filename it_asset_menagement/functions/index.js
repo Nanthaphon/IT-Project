@@ -1,5 +1,9 @@
 const { setGlobalOptions } = require("firebase-functions");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
 
 setGlobalOptions({ maxInstances: 10, region: "asia-southeast1" });
 
@@ -92,3 +96,55 @@ exports.notifySupplyRequest = onDocumentCreated(
     ]);
   }
 );
+
+// ── ตั้ง/รีเซ็ตรหัสผ่านให้บัญชีผู้ใช้ (SuperAdmin หรือ admin ที่มีสิทธิ์จัดการรหัสผ่าน) ──
+exports.setUserPassword = onCall(async (request) => {
+  const callerUid = request.auth && request.auth.uid;
+  if (!callerUid) {
+    throw new HttpsError("unauthenticated", "ต้องเข้าสู่ระบบก่อน");
+  }
+
+  const { targetUid, newPassword } = request.data || {};
+  if (!targetUid || typeof newPassword !== "string" || newPassword.length < 6) {
+    throw new HttpsError(
+      "invalid-argument",
+      "ข้อมูลไม่ถูกต้อง (รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร)"
+    );
+  }
+
+  const dbRef = admin.firestore();
+
+  // ตรวจสิทธิ์ผู้เรียก
+  const callerSnap = await dbRef.collection("admin_users").doc(callerUid).get();
+  if (!callerSnap.exists) {
+    throw new HttpsError("permission-denied", "ไม่มีสิทธิ์ดำเนินการ");
+  }
+  const caller = callerSnap.data();
+  const callerIsSuperAdmin = caller.isSuperAdmin === true;
+  const callerCanManage =
+    callerIsSuperAdmin || (caller.permissions && caller.permissions.canManagePasswords === true);
+  if (!callerCanManage) {
+    throw new HttpsError("permission-denied", "ไม่มีสิทธิ์รีเซ็ตรหัสผ่าน");
+  }
+
+  // ห้าม admin ที่ไม่ใช่ SuperAdmin ไปรีเซ็ตรหัสผ่านของ SuperAdmin
+  const targetSnap = await dbRef.collection("admin_users").doc(targetUid).get();
+  if (
+    targetSnap.exists &&
+    targetSnap.data().isSuperAdmin === true &&
+    !callerIsSuperAdmin
+  ) {
+    throw new HttpsError(
+      "permission-denied",
+      "ไม่สามารถรีเซ็ตรหัสผ่านของ SuperAdmin ได้"
+    );
+  }
+
+  try {
+    await admin.auth().updateUser(targetUid, { password: newPassword });
+  } catch (err) {
+    throw new HttpsError("internal", "ตั้งรหัสผ่านไม่สำเร็จ: " + err.message);
+  }
+
+  return { success: true };
+});

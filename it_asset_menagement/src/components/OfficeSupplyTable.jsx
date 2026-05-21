@@ -4,10 +4,10 @@ import { BRAND } from '../ui/theme.js';
 
 /* ─── Stock config ───────────────────────────────────────── */
 function getStockMeta(qty) {
-  if (qty <= 0)  return { kind: 'out',    bar: 'bg-rose-400',    barW: 'w-0',    num: 'text-rose-600',   badge: 'bg-rose-50 text-rose-700 ring-rose-200',     label: 'หมดสต็อก', icon: XCircle,       accent: 'border-rose-400'   };
-  if (qty <= 5)  return { kind: 'low',    bar: 'bg-amber-400',   barW: 'w-1/4',  num: 'text-amber-600',  badge: 'bg-amber-50 text-amber-700 ring-amber-200',   label: 'ใกล้หมด',  icon: AlertTriangle, accent: 'border-amber-400'  };
-  if (qty <= 20) return { kind: 'medium', bar: 'bg-blue-400',    barW: 'w-1/2',  num: 'text-[#1E487A]',  badge: 'bg-blue-50 text-blue-700 ring-blue-200',      label: 'พอใช้',    icon: CheckCircle,   accent: 'border-blue-400'   };
-  return          { kind: 'normal', bar: 'bg-emerald-400', barW: 'w-full', num: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200', label: 'เพียงพอ',  icon: CheckCircle,   accent: 'border-emerald-400' };
+  if (qty <= 0)  return { kind: 'out',    bar: 'bg-rose-400',    barW: 'w-0',    num: 'text-rose-600',    badge: 'bg-rose-50 text-rose-700 ring-rose-200',       label: 'หมดสต็อก', icon: XCircle       };
+  if (qty <= 5)  return { kind: 'low',    bar: 'bg-amber-400',   barW: 'w-1/4',  num: 'text-amber-600',   badge: 'bg-amber-50 text-amber-700 ring-amber-200',     label: 'ใกล้หมด',  icon: AlertTriangle };
+  if (qty <= 20) return { kind: 'medium', bar: 'bg-blue-300',    barW: 'w-1/2',  num: 'text-blue-600',    badge: 'bg-blue-50 text-blue-700 ring-blue-200',        label: 'พอใช้',    icon: CheckCircle   };
+  return          { kind: 'normal', bar: 'bg-emerald-400', barW: 'w-full', num: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200', label: 'เพียงพอ',  icon: CheckCircle   };
 }
 
 /* ─── Main Table ─────────────────────────────────────────── */
@@ -19,6 +19,7 @@ export default function OfficeSupplyTable({
   openEditAssetModal,
   setConfirmDeleteModal,
   activeMenu,
+  canEdit,
 }) {
   const allSelected = currentData.length > 0 && selectedOfficeSupplyIds?.length === currentData.length;
 
@@ -74,10 +75,10 @@ export default function OfficeSupplyTable({
                 className="px-4 py-0 text-center w-10 relative"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* left accent bar */}
-                <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full transition-all duration-200 ${
-                  isSelected ? 'bg-[#1E487A]' : `${meta.accent} opacity-0 group-hover:opacity-100`
-                }`} />
+                {/* left accent bar — แสดงเฉพาะตอนเลือก */}
+                {isSelected && (
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full bg-[#1E487A]" />
+                )}
                 <input
                   type="checkbox"
                   className="w-4 h-4 cursor-pointer rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]"
@@ -159,20 +160,24 @@ export default function OfficeSupplyTable({
               {/* ── actions ── */}
               <td className="px-4 py-3.5 text-center">
                 <div className="flex items-center justify-center gap-1.5">
-                  <ActionBtn
-                    onClick={() => openEditAssetModal(item, activeMenu)}
-                    title="แก้ไข"
-                    kind="edit"
-                  >
-                    <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                  </ActionBtn>
-                  <ActionBtn
-                    onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: activeMenu })}
-                    title="ลบ"
-                    kind="delete"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                  </ActionBtn>
+                  {canEdit && (
+                    <ActionBtn
+                      onClick={() => openEditAssetModal(item, activeMenu)}
+                      title="แก้ไข"
+                      kind="edit"
+                    >
+                      <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                    </ActionBtn>
+                  )}
+                  {canEdit && (
+                    <ActionBtn
+                      onClick={() => setConfirmDeleteModal({ isOpen: true, id: item.id, collectionName: activeMenu })}
+                      title="ลบ"
+                      kind="delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                    </ActionBtn>
+                  )}
                 </div>
               </td>
             </tr>

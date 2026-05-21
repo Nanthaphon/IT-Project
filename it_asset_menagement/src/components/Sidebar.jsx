@@ -1,18 +1,19 @@
 import React from 'react';
 import {
   LayoutDashboard,
-  Server,
-  FileText,
-  Cpu,
+  Monitor,
+  AppWindow,
+  Cable,
   Package,
   ClipboardList,
   Users,
   Wrench,
-  RefreshCw,
+  ArrowLeftRight,
   KeyRound,
   SlidersHorizontal,
-  BarChart3,
+  FileBarChart2,
   TrendingUp,
+  ShieldCheck,
 } from 'lucide-react';
 
 const NAV_ITEMS = {
@@ -21,9 +22,9 @@ const NAV_ITEMS = {
       group: 'ทรัพย์สิน',
       items: [
         { id: 'dashboard',   label: 'แดชบอร์ด',         icon: LayoutDashboard },
-        { id: 'assets',      label: 'ทรัพย์สินหลัก',     icon: Server },
-        { id: 'licenses',    label: 'โปรแกรม / License', icon: FileText },
-        { id: 'accessories', label: 'อุปกรณ์เสริม',      icon: Cpu },
+        { id: 'assets',      label: 'ทรัพย์สินหลัก',     icon: Monitor },
+        { id: 'licenses',    label: 'โปรแกรม / License', icon: AppWindow },
+        { id: 'accessories', label: 'อุปกรณ์เสริม',      icon: Cable },
       ],
     },
     {
@@ -33,7 +34,7 @@ const NAV_ITEMS = {
         { id: 'supply_requests',      label: 'คำขอเบิกอุปกรณ์',  icon: ClipboardList },
         { id: 'employees',            label: 'ข้อมูลพนักงาน',    icon: Users },
         { id: 'repairs',              label: 'แจ้งซ่อม',         icon: Wrench },
-        { id: 'replacement_requests', label: 'ขอเปลี่ยนเครื่อง', icon: RefreshCw },
+        { id: 'replacement_requests', label: 'ขอเปลี่ยนเครื่อง', icon: ArrowLeftRight },
       ],
     },
     {
@@ -41,7 +42,7 @@ const NAV_ITEMS = {
       items: [
         { id: 'kpi_dashboard', label: 'รายงาน KPI',      icon: TrendingUp },
         { id: 'field_options', label: 'ตัวเลือกฟิลด์',   icon: SlidersHorizontal },
-        { id: 'it_report',     label: 'สร้าง IT Report', icon: BarChart3 },
+        { id: 'it_report',     label: 'สร้าง IT Report', icon: FileBarChart2 },
       ],
     },
   ],
@@ -57,8 +58,24 @@ const NAV_ITEMS = {
   ],
 };
 
-export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, authRole }) {
-  const groups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
+export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, authRole, isSuperAdmin, allowedMenus, canManageUsers }) {
+  const baseGroups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
+
+  // Filter groups by allowedMenus (null = show all, [] = show none)
+  const filteredGroups = baseGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item =>
+      !allowedMenus || allowedMenus.includes(item.id)
+    ),
+  })).filter(group => group.items.length > 0);
+
+  // Append admin group for SuperAdmin or admins allowed to manage users/passwords
+  const superAdminGroup = (isSuperAdmin || canManageUsers) ? [{
+    group: 'ผู้ดูแลระบบ',
+    items: [{ id: 'users', label: 'จัดการผู้ใช้', icon: ShieldCheck }],
+  }] : [];
+
+  const groups = [...filteredGroups, ...superAdminGroup];
 
   return (
     <aside

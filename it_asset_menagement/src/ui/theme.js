@@ -70,7 +70,7 @@ export const cls = {
 
   // Modal pieces
   modalOverlay:
-    'fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]',
+    'fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4',
 
   modalShell:
     'bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-slate-200/60',

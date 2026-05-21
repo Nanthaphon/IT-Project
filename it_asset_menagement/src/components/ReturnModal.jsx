@@ -21,7 +21,7 @@ export default function ReturnModal({
     : 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm hover:shadow-md focus:ring-rose-200';
 
   return (
-    <Modal open={returnModal.isOpen} onClose={close} size="md">
+    <Modal open={returnModal.isOpen} onClose={close} size="md" zIndexClass="z-[85]">
       <ModalHeader
         icon={Inbox}
         title={isLicense ? 'ยืนยันการรับคืนสิทธิ์' : 'ยืนยันการรับคืนอุปกรณ์'}

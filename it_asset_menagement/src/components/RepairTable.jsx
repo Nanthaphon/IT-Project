@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   Trash2, Wrench, CheckCircle2, Clock, Loader2,
   XCircle, AlertCircle, CalendarDays, Play, Check,
+  Star, MessageSquare, User,
 } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
@@ -142,6 +143,7 @@ export default function RepairTable({
 /* ─── Repair Card ────────────────────────────────────────── */
 function RepairCard({ req, onUpdateStatus, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const [evalOpen, setEvalOpen] = useState(false);
 
   const cfg        = STATUS[req.status] ?? STATUS['รอดำเนินการ'];
   const StatusIcon = cfg.icon;
@@ -223,6 +225,38 @@ function RepairCard({ req, onUpdateStatus, onDelete }) {
           <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
           {dateStr}
         </div>
+
+        {/* evaluation badge (ถ้ามี) */}
+        {req.evaluation && (
+          <button
+            onClick={() => setEvalOpen(v => !v)}
+            className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-50 via-orange-50/50 to-amber-50 ring-1 ring-amber-200 hover:from-amber-100 hover:to-amber-100 transition-all group/eval"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-0.5 shrink-0">
+                {[1, 2, 3, 4, 5].map(n => (
+                  <Star
+                    key={n}
+                    className={`h-3 w-3 ${n <= Math.round(req.evaluation.overallRating || 0) ? 'fill-amber-400 text-amber-400' : 'text-slate-300 fill-slate-100'}`}
+                    strokeWidth={1.6}
+                  />
+                ))}
+              </div>
+              <span className="text-[11px] font-bold text-amber-700 tabular-nums">
+                {Number(req.evaluation.overallRating || 0).toFixed(2)}
+                <span className="text-[9px] text-amber-500/70 ml-0.5">/5</span>
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-600/70 font-semibold group-hover/eval:text-amber-700">
+              {evalOpen ? 'ซ่อน ▲' : 'รายละเอียด ▼'}
+            </span>
+          </button>
+        )}
+
+        {/* evaluation detail (expandable) */}
+        {req.evaluation && evalOpen && (
+          <EvaluationDetail evaluation={req.evaluation} />
+        )}
       </div>
 
       {/* ── action footer ── */}
@@ -271,6 +305,64 @@ function RepairCard({ req, onUpdateStatus, onDelete }) {
         >
           <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Evaluation Detail ──────────────────────────────────── */
+function EvaluationDetail({ evaluation }) {
+  const items = [
+    { label: 'ความรวดเร็ว',          value: evaluation.speedRating   },
+    { label: 'คุณภาพการแก้ปัญหา',     value: evaluation.qualityRating },
+    { label: 'การให้บริการ/มารยาท',  value: evaluation.serviceRating },
+  ];
+
+  const dateStr = evaluation.evaluatedAt
+    ? new Date(evaluation.evaluatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })
+    : '';
+
+  return (
+    <div className="bg-slate-50 ring-1 ring-slate-100 rounded-xl px-3.5 py-3 space-y-2.5 animate-[fadeIn_0.18s_ease-out]">
+      {items.map((it, i) => (
+        <div key={i} className="flex items-center justify-between gap-2">
+          <span className="text-[11.5px] text-slate-600 font-medium">{it.label}</span>
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map(n => (
+                <Star
+                  key={n}
+                  className={`h-2.5 w-2.5 ${n <= Number(it.value || 0) ? 'fill-amber-400 text-amber-400' : 'text-slate-200 fill-slate-100'}`}
+                  strokeWidth={1.6}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] font-bold text-slate-700 tabular-nums w-3 text-right">
+              {it.value || 0}
+            </span>
+          </div>
+        </div>
+      ))}
+
+      {/* comment */}
+      {evaluation.comment && (
+        <div className="pt-2 border-t border-slate-200/60">
+          <div className="flex items-start gap-1.5">
+            <MessageSquare className="h-3 w-3 text-slate-400 shrink-0 mt-0.5" strokeWidth={2} />
+            <p className="text-[11.5px] text-slate-600 leading-relaxed italic">
+              "{evaluation.comment}"
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* meta */}
+      <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-400">
+        <span className="flex items-center gap-1">
+          <User className="h-2.5 w-2.5" strokeWidth={2} />
+          {evaluation.evaluatedByName || evaluation.evaluatedBy || '—'}
+        </span>
+        <span>{dateStr}</span>
       </div>
     </div>
   );

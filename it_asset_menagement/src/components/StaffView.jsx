@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Star, Sparkles } from 'lucide-react';
+import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 
 /* ════════════════════════════════════════════════
    พิมพ์ฟอร์มขอเปลี่ยนเครื่อง
@@ -176,8 +178,12 @@ export default function StaffView({
   staffRepairForm, setStaffRepairForm, handleSubmitRepairRequest, repairRequests, editStaffRepairModal, setEditStaffRepairModal, handleStaffUpdateRepair, handleStaffDeleteRepair,
   officeSupplies = [], supplyRequests = [], handleStaffSubmitSupplyRequest,
   assets = [], accessories = [], licenses = [],
-  replacementRequests = [], handleStaffSubmitReplacement
+  replacementRequests = [], handleStaffSubmitReplacement,
+  handleSubmitEvaluation,
 }) {
+  /* ── satisfaction survey state ── */
+  const [surveyModal, setSurveyModal] = useState({ isOpen: false, repair: null });
+  const [autoPopupShown, setAutoPopupShown] = useState(false);
   const [activeTab, setActiveTab] = useState('it_repair');
   const [supplyCart, setSupplyCart] = useState([]);
   const [supplySearchTerm, setSupplySearchTerm] = useState('');
@@ -307,6 +313,24 @@ export default function StaffView({
   const myRequests = repairRequests.filter(req => req.empId === currentStaff?.empId);
   const mySupplyReqs = supplyRequests.filter(req => req.empId === currentStaff?.empId);
   const myReplacementReqs = replacementRequests.filter(req => req.empId === currentStaff?.empId);
+
+  /* ── repairs ที่ซ่อมเสร็จและรอประเมิน ── */
+  const pendingEvaluations = myRequests.filter(
+    req => req.status === 'ซ่อมเสร็จสิ้น' && !req.evaluation
+  );
+
+  /* ── auto-popup ครั้งแรก/session ── */
+  useEffect(() => {
+    if (autoPopupShown) return;
+    if (!currentStaff) return;
+    if (pendingEvaluations.length === 0) return;
+    // เด้งหลัง 800ms ให้ผู้ใช้ตั้งตัวก่อน
+    const t = setTimeout(() => {
+      setSurveyModal({ isOpen: true, repair: pendingEvaluations[0] });
+      setAutoPopupShown(true);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [currentStaff, pendingEvaluations, autoPopupShown]);
 
   const totalRepairPages = Math.ceil(myRequests.length / ITEMS_PER_PAGE);
   const currentRepairRequests = myRequests.slice((repairPage - 1) * ITEMS_PER_PAGE, repairPage * ITEMS_PER_PAGE);
@@ -537,6 +561,7 @@ export default function StaffView({
                         <Th>อุปกรณ์</Th>
                         <Th>รายละเอียด</Th>
                         <Th center>สถานะ</Th>
+                        <Th center>ประเมิน</Th>
                         <Th center>จัดการ</Th>
                       </tr>
                     </thead>
@@ -547,6 +572,9 @@ export default function StaffView({
                           <Td bold>{req.assetName}</Td>
                           <Td muted truncate>{req.issue}</Td>
                           <td className="px-4 py-3 text-center"><span className={statusBadge(req.status)}>{req.status}</span></td>
+                          <td className="px-4 py-3 text-center">
+                            <EvaluationCell req={req} onOpen={() => setSurveyModal({ isOpen: true, repair: req })} />
+                          </td>
                           <td className="px-4 py-3 text-center">
                             {req.status === 'รอดำเนินการ' ? (
                               <div className="flex items-center justify-center gap-1.5">
@@ -918,7 +946,55 @@ export default function StaffView({
           </div>
         </div>
       )}
+
+      {/* ── Satisfaction Survey Modal ── */}
+      <SatisfactionSurveyModal
+        isOpen={surveyModal.isOpen}
+        onClose={() => setSurveyModal({ isOpen: false, repair: null })}
+        repair={surveyModal.repair}
+        onSubmit={async (evaluation) => {
+          if (!surveyModal.repair) return;
+          await handleSubmitEvaluation(surveyModal.repair.id, evaluation);
+          setSurveyModal({ isOpen: false, repair: null });
+        }}
+      />
     </div>
+  );
+}
+
+/* ─────── EvaluationCell — แสดงปุ่ม/คะแนน ในตาราง ─────── */
+function EvaluationCell({ req, onOpen }) {
+  // ถ้ายังไม่ซ่อมเสร็จ → ขีดกลาง
+  if (req.status !== 'ซ่อมเสร็จสิ้น') {
+    return <span className="text-[11px] text-slate-300">—</span>;
+  }
+
+  // ประเมินแล้ว → แสดงดาวคะแนน
+  if (req.evaluation) {
+    const score = Number(req.evaluation.overallRating) || 0;
+    const rounded = Math.round(score);
+    return (
+      <button
+        onClick={onOpen}
+        title="ดูแบบประเมิน"
+        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 ring-1 ring-amber-200 hover:bg-amber-100 transition cursor-pointer"
+      >
+        <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={1.6} />
+        <span className="text-[11.5px] font-bold text-amber-700 tabular-nums">{score.toFixed(2)}</span>
+        <span className="text-[10px] text-amber-500/70 font-medium">/{`5`}</span>
+      </button>
+    );
+  }
+
+  // ยังไม่ได้ประเมิน → ปุ่ม
+  return (
+    <button
+      onClick={onOpen}
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#1E487A] to-blue-600 hover:from-[#163963] hover:to-blue-700 text-white text-[10.5px] font-bold shadow-sm shadow-blue-500/30 active:scale-95 transition-all"
+    >
+      <Sparkles className="h-3 w-3" strokeWidth={2.2} />
+      ทำแบบประเมิน
+    </button>
   );
 }
 

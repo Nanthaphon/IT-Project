@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Pencil, ShieldCheck } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import FieldOptionSelect from './FieldOptionSelect.jsx';
 
 export default function EditEmpModal({
   editEmpModal,
@@ -9,6 +10,7 @@ export default function EditEmpModal({
   handleUpdateEmployee,
   handleEditEmpChange,
   employees = [],
+  fieldOptions = {},
 }) {
   const [isManagerDropdownOpen, setIsManagerDropdownOpen] = useState(false);
   const managerRef = useRef(null);
@@ -62,14 +64,32 @@ export default function EditEmpModal({
           <section className="space-y-4">
             <SectionHeader>สังกัด</SectionHeader>
             <Field label="บริษัท">
-              <input type="text" name="company" value={data.company || ''} onChange={handleEditEmpChange} className={cls.input} />
+              <FieldOptionSelect
+                name="company"
+                value={data.company || ''}
+                onChange={handleEditEmpChange}
+                options={fieldOptions.companies || []}
+                placeholder="เลือกหรือพิมพ์ใหม่"
+              />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="แผนก">
-                <input type="text" name="department" value={data.department || ''} onChange={handleEditEmpChange} className={cls.input} />
+                <FieldOptionSelect
+                  name="department"
+                  value={data.department || ''}
+                  onChange={handleEditEmpChange}
+                  options={fieldOptions.departments || []}
+                  placeholder="เลือกแผนก..."
+                />
               </Field>
               <Field label="ตำแหน่ง">
-                <input type="text" name="position" value={data.position || ''} onChange={handleEditEmpChange} className={cls.input} />
+                <FieldOptionSelect
+                  name="position"
+                  value={data.position || ''}
+                  onChange={handleEditEmpChange}
+                  options={fieldOptions.positions || []}
+                  placeholder="เลือกตำแหน่ง..."
+                />
               </Field>
             </div>
 

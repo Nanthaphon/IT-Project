@@ -1,4 +1,5 @@
 import React from 'react';
+import FieldOptionSelect from './FieldOptionSelect.jsx';
 
 const BRAND = '#1E487A';
 
@@ -162,38 +163,20 @@ export default function EditAssetModal({
               </Field>
 
               <Field label="ประเภท">
-                <select
+                <FieldOptionSelect
                   name="type"
                   value={editAssetModal.data.type || ''}
                   onChange={handleEditAssetChange}
-                  className={selectCls}
-                >
-                  {isAssets ? (
-                    <>
-                      <option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option>
-                      <option value="หน้าจอ">หน้าจอ (Monitor)</option>
-                      <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
-                      <option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option>
-                      <option value="อื่นๆ">อื่นๆ</option>
-                    </>
-                  ) : isSupplies ? (
-                    <>
-                      <option value="เครื่องเขียน">เครื่องเขียน</option>
-                      <option value="กระดาษ">กระดาษ</option>
-                      <option value="แฟ้มและอุปกรณ์จัดเก็บ">แฟ้มและอุปกรณ์จัดเก็บ</option>
-                      <option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
-                      <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option>
-                      <option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option>
-                      <option value="หูฟัง (Headset)">หูฟัง (Headset)</option>
-                      <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
-                      <option value="อื่นๆ">อื่นๆ</option>
-                    </>
-                  )}
-                </select>
+                  options={
+                    isAssets
+                      ? ['คอมพิวเตอร์', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
+                      : isSupplies
+                        ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
+                        : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
+                  }
+                  placeholder="เลือกประเภท..."
+                  allowCustom={false}
+                />
               </Field>
             </section>
 
@@ -233,49 +216,32 @@ export default function EditAssetModal({
                     />
                   </Field>
                   <Field label="บริษัท / ผู้ผลิต">
-                    <input
-                      list="fo-companies-edit"
-                      type="text"
+                    <FieldOptionSelect
                       name="company"
                       value={editAssetModal.data.company || ''}
                       onChange={handleEditAssetChange}
-                      className={inputCls}
+                      options={fieldOptions.companies || []}
                       placeholder="เลือกหรือพิมพ์ใหม่"
-                      autoComplete="off"
                     />
-                    <datalist id="fo-companies-edit">
-                      {(fieldOptions.companies || []).map(v => <option key={v} value={v} />)}
-                    </datalist>
                   </Field>
                   <Field label="แผนก" required>
-                    <input
-                      list="fo-departments-edit"
-                      type="text"
+                    <FieldOptionSelect
                       name="department"
                       value={editAssetModal.data.department || ''}
                       onChange={handleEditAssetChange}
-                      className={inputCls}
+                      options={fieldOptions.departments || []}
                       placeholder="เลือกหรือพิมพ์ใหม่"
-                      autoComplete="off"
+                      required
                     />
-                    <datalist id="fo-departments-edit">
-                      {(fieldOptions.departments || []).map(v => <option key={v} value={v} />)}
-                    </datalist>
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
-                    <input
-                      list="fo-vendors-edit"
-                      type="text"
+                    <FieldOptionSelect
                       name="vendor"
                       value={editAssetModal.data.vendor || ''}
                       onChange={handleEditAssetChange}
-                      className={inputCls}
+                      options={fieldOptions.vendors || []}
                       placeholder="เลือกหรือพิมพ์ใหม่"
-                      autoComplete="off"
                     />
-                    <datalist id="fo-vendors-edit">
-                      {(fieldOptions.vendors || []).map(v => <option key={v} value={v} />)}
-                    </datalist>
                   </Field>
                 </div>
               </section>
@@ -392,6 +358,43 @@ export default function EditAssetModal({
                     }
                     onChange={handleEditAssetChange}
                     className={inputCls}
+                  />
+                </Field>
+              </section>
+            )}
+
+            {/* accessories: vendor + note */}
+            {isAccessories && (
+              <section className="space-y-4">
+                <SectionHeader>ข้อมูลผู้จัดจำหน่ายและหมายเหตุ</SectionHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="ผู้จัดจำหน่าย (Vendor)" hint="ชื่อร้านค้าหรือบริษัทที่ซื้อมา">
+                    <FieldOptionSelect
+                      name="vendor"
+                      value={editAssetModal.data.vendor || ''}
+                      onChange={handleEditAssetChange}
+                      options={fieldOptions.vendors || []}
+                      placeholder="เลือกหรือพิมพ์ใหม่"
+                    />
+                  </Field>
+                  <Field label="วันที่ซื้อ">
+                    <input
+                      type="date"
+                      name="purchaseDate"
+                      value={editAssetModal.data.purchaseDate || ''}
+                      onChange={handleEditAssetChange}
+                      className={inputCls + ' text-slate-700'}
+                    />
+                  </Field>
+                </div>
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, เงื่อนไขพิเศษ, ผู้ติดต่อ ฯลฯ">
+                  <textarea
+                    name="note"
+                    value={editAssetModal.data.note || ''}
+                    onChange={handleEditAssetChange}
+                    rows={3}
+                    className={inputCls + ' resize-none'}
+                    placeholder="ใส่รายละเอียดที่ต้องการบันทึก..."
                   />
                 </Field>
               </section>

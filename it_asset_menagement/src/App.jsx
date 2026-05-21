@@ -39,6 +39,7 @@ import useFirebaseData from './hooks/useFirebaseData.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import TopHeader from './components/TopHeader.jsx';
 import DashboardStats from './components/DashboardStats.jsx';
+import KpiDashboard from './components/KpiDashboard.jsx';
 import ActionBar from './components/ActionBar.jsx';
 import CustomAlert from './components/CustomAlert.jsx';
 import LoginView from './components/LoginView.jsx';
@@ -112,6 +113,7 @@ function App() {
   const [assetTag, setAssetTag] = useState('');
   const [model, setModel] = useState('');
   const [vendor, setVendor] = useState('');
+  const [note, setNote] = useState('');
   const [assetDocument, setAssetDocument] = useState(null);
 
   const [empForm, setEmpForm] = useState({
@@ -217,8 +219,8 @@ function App() {
 
   useEffect(() => {
     setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX');
-    setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
-    setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด'); 
+    setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
+    setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด');
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
     setRepairFilterMonth('ทั้งหมด'); setSupplyFilterDate('ทั้งหมด'); setOfficeSupplyStockFilter('ทั้งหมด');
     setShowDeletedEmployees(false); 
@@ -353,7 +355,55 @@ function App() {
 
   const handleStaffDeleteRepair = (id) => { showConfirm('ยืนยันการยกเลิก', 'คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?', async () => { try { await deleteDoc(doc(db, 'repair_requests', id)); setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบรายการแจ้งปัญหาของคุณเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } }, { confirmText: 'ยืนยันลบ', icon: 'trash' }); };
   const handleStaffUpdateRepair = async (e) => { e.preventDefault(); try { await updateDoc(doc(db, 'repair_requests', editStaffRepairModal.data.id), { assetName: editStaffRepairModal.data.assetName, issue: editStaffRepairModal.data.issue }); setEditStaffRepairModal({ isOpen: false, data: null }); setCustomAlert({ isOpen: true, title: 'แก้ไขสำเร็จ!', message: 'อัปเดตข้อมูลแจ้งปัญหาเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } };
-  const handleUpdateRepairRequestStatus = async (id, newStatus) => { try { await updateDoc(doc(db, 'repair_requests', id), { status: newStatus }); } catch (error) { setCustomAlert({ isOpen: true, title: 'อัปเดตผิดพลาด', message: error.message, type: 'error' }); } };
+  const handleUpdateRepairRequestStatus = async (id, newStatus) => {
+    try {
+      const payload = { status: newStatus };
+      // track lifecycle timestamps for KPI (response time / repair time)
+      if (newStatus === 'กำลังซ่อม') {
+        payload.startedAt = Date.now();
+      } else if (newStatus === 'ซ่อมเสร็จสิ้น') {
+        payload.completedAt = Date.now();
+        // ถ้าไม่เคย "กำลังซ่อม" มาก่อน (เช่นปิดเคสเลย) ให้ set startedAt ด้วยเพื่อความสมบูรณ์
+        const req = repairRequests.find(r => r.id === id);
+        if (req && !req.startedAt) payload.startedAt = Date.now();
+      }
+      await updateDoc(doc(db, 'repair_requests', id), payload);
+    } catch (error) {
+      setCustomAlert({ isOpen: true, title: 'อัปเดตผิดพลาด', message: error.message, type: 'error' });
+    }
+  };
+
+  const handleSubmitEvaluation = async (repairId, evaluation) => {
+    if (!repairId || !evaluation || !currentStaff) return;
+    try {
+      await updateDoc(doc(db, 'repair_requests', repairId), {
+        evaluation: {
+          speedRating:   Number(evaluation.speedRating)   || 0,
+          qualityRating: Number(evaluation.qualityRating) || 0,
+          serviceRating: Number(evaluation.serviceRating) || 0,
+          overallRating: Number(evaluation.overallRating) || 0,
+          comment:       (evaluation.comment || '').trim(),
+          evaluatedAt:   Date.now(),
+          evaluatedBy:   currentStaff.empId,
+          evaluatedByName: currentStaff.fullName,
+        }
+      });
+      setCustomAlert({
+        isOpen: true,
+        title: 'ขอบคุณสำหรับการประเมิน! 🙏',
+        message: 'ความคิดเห็นของคุณจะช่วยให้ทีม IT พัฒนาบริการให้ดียิ่งขึ้น',
+        type: 'success',
+      });
+    } catch (error) {
+      setCustomAlert({
+        isOpen: true,
+        title: 'บันทึกแบบประเมินผิดพลาด',
+        message: error.message,
+        type: 'error',
+      });
+      throw error;
+    }
+  };
   const handleDeleteRepairRequest = (id) => { showConfirm('ยืนยันการลบ', 'คุณต้องการลบรายการนี้ออกจากระบบใช่หรือไม่?', async () => { try { await deleteDoc(doc(db, 'repair_requests', id)); } catch (error) { setCustomAlert({ isOpen: true, title: 'ลบผิดพลาด', message: error.message, type: 'error' }); } }, { confirmText: 'ยืนยันลบ', icon: 'trash' }); };
 
   const handleUpdateSupplyRequestStatus = async (req, newStatus) => {
@@ -381,10 +431,10 @@ function App() {
         await addDoc(collection(db, collectionName), {
           name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
           assignees: activeMenu === 'accessories' ? [] : null,
-          department: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: activeMenu === 'assets' ? vendor : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
+          department: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: activeMenu === 'accessories' ? note : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
         });
       }
-      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX'); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setAssetDocument(null);
+      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX'); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
       setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
@@ -662,7 +712,7 @@ function App() {
           empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       }
-      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined }); 
+      setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined });
       setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks('');
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
@@ -805,17 +855,66 @@ function App() {
     }
   };
 
-  const getUniqueMonths = (data) => { /* ... */ return []; };
-  const formatMonthLabel = (monthStr) => { /* ... */ };
-  const getUniqueDates = (data) => { /* ... */ return []; };
-  const formatDateLabel = (dateStr) => { /* ... */ };
+  // ── Helper: ชื่อเดือนภาษาไทยแบบสั้น ──
+  const TH_MONTHS_SHORT = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+  // ดึงรายการ "YYYY-MM" ที่ไม่ซ้ำ จากข้อมูล (เรียงใหม่→เก่า)
+  const getUniqueMonths = (data) => {
+    const set = new Set();
+    (data || []).forEach(item => {
+      if (!item.timestamp) return;
+      const d = new Date(item.timestamp);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      set.add(key);
+    });
+    return Array.from(set).sort().reverse();
+  };
+
+  // แปลง "2026-05" → "พ.ค. 2569"
+  const formatMonthLabel = (monthStr) => {
+    if (!monthStr || monthStr === 'ทั้งหมด') return monthStr || '';
+    const [y, m] = monthStr.split('-');
+    const year = Number(y) + 543; // ค.ศ. → พ.ศ.
+    const monthName = TH_MONTHS_SHORT[Number(m) - 1] || '';
+    return `${monthName} ${year}`;
+  };
+
+  // ดึงรายการ "YYYY-MM-DD" ที่ไม่ซ้ำ (เรียงใหม่→เก่า)
+  const getUniqueDates = (data) => {
+    const set = new Set();
+    (data || []).forEach(item => {
+      if (!item.timestamp) return;
+      const d = new Date(item.timestamp);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      set.add(key);
+    });
+    return Array.from(set).sort().reverse();
+  };
+
+  // แปลง "2026-05-21" → "21 พ.ค. 2569"
+  const formatDateLabel = (dateStr) => {
+    if (!dateStr || dateStr === 'ทั้งหมด') return dateStr || '';
+    const [y, m, d] = dateStr.split('-');
+    const year = Number(y) + 543;
+    const monthName = TH_MONTHS_SHORT[Number(m) - 1] || '';
+    return `${Number(d)} ${monthName} ${year}`;
+  };
 
   let baseData = [];
   if (activeMenu === 'assets') baseData = assets.filter(item => (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) && (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) && (assetFilterDepartment === 'ทั้งหมด' || item.department === assetFilterDepartment));
   else if (activeMenu === 'licenses') baseData = licenses;
   else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees;
   else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
-  else if (activeMenu === 'office_supplies') baseData = officeSupplies;
+  else if (activeMenu === 'office_supplies') {
+    baseData = officeSupplies.filter(item => {
+      if (officeSupplyStockFilter === 'ทั้งหมด') return true;
+      const qty = Number(item.quantity);
+      if (officeSupplyStockFilter === 'หมดสต็อก') return qty <= 0;
+      if (officeSupplyStockFilter === 'ใกล้หมด') return qty > 0 && qty <= 5;
+      if (officeSupplyStockFilter === 'ปกติ') return qty > 5;
+      return true;
+    });
+  }
 
   let currentData = baseData;
   if (searchTerm.trim() !== '') {
@@ -826,8 +925,31 @@ function App() {
     });
   }
 
-  let currentRepairRequests = repairRequests; 
-  let currentSupplyRequests = supplyRequests;
+  // ── Filter repair requests ──
+  let currentRepairRequests = repairRequests.filter(req => {
+    // กรองตามสถานะ
+    if (repairFilterStatus !== 'ทั้งหมด' && req.status !== repairFilterStatus) return false;
+    // กรองตามเดือน (รูปแบบ "YYYY-MM")
+    if (repairFilterMonth !== 'ทั้งหมด') {
+      const d = new Date(req.timestamp);
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (monthKey !== repairFilterMonth) return false;
+    }
+    return true;
+  });
+
+  // ── Filter supply requests ──
+  let currentSupplyRequests = supplyRequests.filter(req => {
+    // กรองตามสถานะ
+    if (supplyFilterStatus !== 'ทั้งหมด' && req.status !== supplyFilterStatus) return false;
+    // กรองตามวันที่ (รูปแบบ "YYYY-MM-DD")
+    if (supplyFilterDate !== 'ทั้งหมด') {
+      const d = new Date(req.timestamp);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (dateKey !== supplyFilterDate) return false;
+    }
+    return true;
+  });
 
   const handleSelectEmployee = (e, id) => e.target.checked ? setSelectedEmployeeIds(prev => [...prev, id]) : setSelectedEmployeeIds(prev => prev.filter(empId => empId !== id));
   const handleSelectAllEmployees = (e) => e.target.checked ? setSelectedEmployeeIds(currentData.map(emp => emp.id)) : setSelectedEmployeeIds([]);
@@ -838,8 +960,9 @@ function App() {
   const handleSelectLicense = (e, id) => e.target.checked ? setSelectedLicenseIds(prev => [...prev, id]) : setSelectedLicenseIds(prev => prev.filter(itemId => itemId !== id));
   const handleSelectAllLicenses = (e) => e.target.checked ? setSelectedLicenseIds(currentData.map(item => item.id)) : setSelectedLicenseIds([]);
 
-  const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวมระบบ (Dashboard)' : 
-                    activeMenu === 'assets' ? 'ทรัพย์สิน IT หลัก' : 
+  const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวมระบบ (Dashboard)' :
+                    activeMenu === 'kpi_dashboard' ? 'รายงาน KPI งานซ่อม &amp; ความพึงพอใจ' :
+                    activeMenu === 'assets' ? 'ทรัพย์สิน IT หลัก' :
                     activeMenu === 'licenses' ? 'โปรแกรม/ใบอนุญาต' : 
                     activeMenu === 'accessories' ? 'อุปกรณ์เสริม (Accessories)' : 
                     activeMenu === 'repairs' ? 'แจ้งปัญหา IT' : 
@@ -888,6 +1011,7 @@ function App() {
         assets={assets} accessories={accessories} licenses={licenses} 
         replacementRequests={replacementRequests}
         handleStaffSubmitReplacement={handleStaffSubmitReplacement}
+        handleSubmitEvaluation={handleSubmitEvaluation}
       />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </React.Fragment>
@@ -937,6 +1061,8 @@ function App() {
             </div>
           ) : activeMenu === 'dashboard' ? (
             <DashboardStats assets={assets} licenses={licenses} accessories={accessories} employees={employees} />
+          ) : activeMenu === 'kpi_dashboard' ? (
+            <KpiDashboard repairRequests={repairRequests} />
           ) : activeMenu === 'repairs' ? (
             <RepairTable repairRequests={repairRequests} currentRepairRequests={currentRepairRequests} repairFilterMonth={repairFilterMonth} setRepairFilterMonth={setRepairFilterMonth} repairFilterStatus={repairFilterStatus} setRepairFilterStatus={setRepairFilterStatus} getUniqueMonths={getUniqueMonths} formatMonthLabel={formatMonthLabel} handleUpdateRepairRequestStatus={handleUpdateRepairRequestStatus} handleDeleteRepairRequest={handleDeleteRepairRequest} />
           ) : activeMenu === 'supply_requests' ? (
@@ -1003,7 +1129,7 @@ function App() {
       </main>
       
       <ModalsContainer 
-        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} assetDocument={assetDocument} setAssetDocument={setAssetDocument} fieldOptions={fieldOptions}
+        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} assetDocument={assetDocument} setAssetDocument={setAssetDocument} fieldOptions={fieldOptions}
         checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}
         selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} showConfirm={showConfirm} setCustomAlert={setCustomAlert}

@@ -12,6 +12,7 @@ import {
   KeyRound,
   SlidersHorizontal,
   BarChart3,
+  TrendingUp,
 } from 'lucide-react';
 
 const NAV_ITEMS = {
@@ -38,6 +39,7 @@ const NAV_ITEMS = {
     {
       group: 'ตั้งค่า',
       items: [
+        { id: 'kpi_dashboard', label: 'รายงาน KPI',      icon: TrendingUp },
         { id: 'field_options', label: 'ตัวเลือกฟิลด์',   icon: SlidersHorizontal },
         { id: 'it_report',     label: 'สร้าง IT Report', icon: BarChart3 },
       ],

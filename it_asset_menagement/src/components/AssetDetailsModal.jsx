@@ -9,12 +9,12 @@ export default function AssetDetailsModal({
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
   const [editingItemId, setEditingItemId] = useState(null); 
-  const [tempSNValue, setTempSNValue] = useState(''); 
-  const [tempModelValue, setTempModelValue] = useState(''); 
-  const [tempCostValue, setTempCostValue] = useState(''); 
-  const [tempPurchaseDateValue, setTempPurchaseDateValue] = useState(''); 
-  const [tempWarrantyDateValue, setTempWarrantyDateValue] = useState(''); 
-  const [isSavingItem, setIsSavingItem] = useState(false); 
+  const [tempSNValue, setTempSNValue] = useState('');
+  const [tempModelValue, setTempModelValue] = useState('');
+  const [tempCostValue, setTempCostValue] = useState('');
+  const [tempPurchaseDateValue, setTempPurchaseDateValue] = useState('');
+  const [tempWarrantyDateValue, setTempWarrantyDateValue] = useState('');
+  const [isSavingItem, setIsSavingItem] = useState(false);
 
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newItemData, setNewItemData] = useState({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1 });
@@ -258,7 +258,7 @@ export default function AssetDetailsModal({
           newAssignees[idx].warrantyDate = tempWarrantyDateValue;
           await updateDoc(docRef, { assignees: newAssignees });
         }
-      } 
+      }
       else if (item.type === 'broken') {
         const idx = item.originalIndex;
         if (Array.isArray(currentAssetDetail.brokenItems)) {
@@ -872,7 +872,7 @@ export default function AssetDetailsModal({
     const qrDataString = `https://it-asset-management-75aa8.web.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
 
     return (
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
         <style>{`
           @media print {
             body * { visibility: hidden !important; }
@@ -903,11 +903,11 @@ export default function AssetDetailsModal({
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
 
-                <div className="flex flex-col text-[9px] leading-[1.3] font-bold w-full min-w-0 justify-start">
-                  <div className="truncate"><span className="text-slate-500 font-semibold">C:</span> {currentAssetDetail.company || '-'}</div>
-                  <div className="break-words whitespace-normal"><span className="text-slate-500 font-semibold">N:</span> {currentAssetDetail.name || '-'}</div>
-                  <div className="truncate"><span className="text-slate-500 font-semibold">T:</span> {currentAssetDetail.assetTag || '-'}</div>
-                  <div className="truncate"><span className="text-slate-500 font-semibold">S:</span> {currentAssetDetail.sn || '-'}</div>
+                <div className="flex flex-col text-[7px] leading-[1.18] font-bold w-full overflow-hidden justify-start pt-0.5 gap-[1px]">
+                  <div className="truncate">C: {currentAssetDetail.company || '-'}</div>
+                  <div className="line-clamp-2 break-words">N: {currentAssetDetail.name || '-'}</div>
+                  <div className="truncate">T: {currentAssetDetail.assetTag || '-'}</div>
+                  <div className="truncate">S: {currentAssetDetail.sn || '-'}</div>
                 </div>
               </div>
 
@@ -936,7 +936,7 @@ export default function AssetDetailsModal({
   );
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
       <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-5xl w-full flex flex-col h-[90vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* Header */}
@@ -1131,6 +1131,16 @@ export default function AssetDetailsModal({
                     <>
                       <DetailItem label="จำนวนทั้งหมด" value={`${currentAssetDetail.quantity || 0} ชิ้น`} />
                       <DetailItem label="คงเหลือ (เบิกได้)" value={`${currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : 0} ชิ้น`} />
+                      <DetailItem label="ผู้จัดจำหน่าย (Vendor)" value={currentAssetDetail.vendor} />
+                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                      {currentAssetDetail.note && (
+                        <div className="col-span-2 md:col-span-4">
+                          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
+                            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[12.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                   <div className="col-span-2 md:col-span-4 pt-3 border-t border-slate-100 flex items-center justify-between">

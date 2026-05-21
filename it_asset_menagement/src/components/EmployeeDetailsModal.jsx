@@ -213,7 +213,8 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
 ════════════════════════════════════════════════ */
 export default function EmployeeDetailsModal({
   selectedEmployee, setSelectedEmployee, empModalTab, setEmpModalTab,
-  assets, licenses, accessories, transactions, openEditEmpModal, handleCheckin, setReturnModal
+  assets, licenses, accessories, transactions, openEditEmpModal, handleCheckin, setReturnModal,
+  setSelectedAssetDetail, setSelectedAssetCategory,
 }) {
   const [historyFilter, setHistoryFilter] = useState('all');
   if (!selectedEmployee) return null;
@@ -377,10 +378,20 @@ export default function EmployeeDetailsModal({
                         ? 'bg-orange-50 text-orange-600 border-orange-100'
                         : 'bg-purple-50 text-purple-600 border-purple-100';
 
+                    const openAssetDetail = () => {
+                      if (!setSelectedAssetDetail || !setSelectedAssetCategory) return;
+                      setSelectedAssetCategory(category);
+                      setSelectedAssetDetail(item);
+                    };
+
                     return (
                       <div
                         key={item.uniqueKey || item.id}
-                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-slate-200 hover:border-[#1E487A]/30 hover:bg-slate-50/60 transition-all group"
+                        onClick={openAssetDetail}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAssetDetail(); } }}
+                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-slate-200 hover:border-[#1E487A]/40 hover:bg-blue-50/40 hover:shadow-sm cursor-pointer transition-all group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {item.image
@@ -402,24 +413,32 @@ export default function EmployeeDetailsModal({
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => {
-                            if (isAccessory) {
-                              setReturnModal({
-                                isOpen: true, assetId: item.id, checkoutId: item.checkoutId,
-                                empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name
-                              });
-                            } else {
-                              handleCheckin(item.id, category);
-                            }
-                          }}
-                          className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-all flex items-center gap-1.5"
-                        >
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* hint icon (เห็นชัดตอน hover) */}
+                          <svg className="h-3.5 w-3.5 text-slate-300 group-hover:text-[#1E487A] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M9 5l7 7-7 7" />
                           </svg>
-                          รับคืน
-                        </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // กันไม่ให้เปิด asset detail
+                              if (isAccessory) {
+                                setReturnModal({
+                                  isOpen: true, assetId: item.id, checkoutId: item.checkoutId,
+                                  empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name
+                                });
+                              } else {
+                                handleCheckin(item.id, category);
+                              }
+                            }}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-all flex items-center gap-1.5"
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                            รับคืน
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

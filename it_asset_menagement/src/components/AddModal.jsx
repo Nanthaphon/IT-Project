@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
-import ComboBox from './ComboBox.jsx';
+import FieldOptionSelect from './FieldOptionSelect.jsx';
 
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
@@ -12,7 +12,7 @@ export default function AddModal({
   purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate,
   quantity, setQuantity, unit, setUnit,
   assetImage, setAssetImage, assetDepartment, setAssetDepartment,
-  sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor,
+  sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor, note, setNote,
   employees = [],
   fieldOptions = {},
 }) {
@@ -92,14 +92,32 @@ export default function AddModal({
             <section className="space-y-4">
               <SectionHeader>สังกัด</SectionHeader>
               <Field label="บริษัท">
-                <ComboBox name="company" value={empForm.company || ''} onChange={handleEmpChange} options={fieldOptions.companies || []} className={cls.input} placeholder="ชื่อบริษัท" />
+                <FieldOptionSelect
+                  name="company"
+                  value={empForm.company || ''}
+                  onChange={handleEmpChange}
+                  options={fieldOptions.companies || []}
+                  placeholder="ชื่อบริษัท"
+                />
               </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="แผนก">
-                  <ComboBox name="department" value={empForm.department || ''} onChange={handleEmpChange} options={fieldOptions.departments || []} className={cls.input} placeholder="แผนก" />
+                  <FieldOptionSelect
+                    name="department"
+                    value={empForm.department || ''}
+                    onChange={handleEmpChange}
+                    options={fieldOptions.departments || []}
+                    placeholder="เลือกแผนก..."
+                  />
                 </Field>
                 <Field label="ตำแหน่ง">
-                  <ComboBox name="position" value={empForm.position || ''} onChange={handleEmpChange} options={fieldOptions.positions || []} className={cls.input} placeholder="ตำแหน่งงาน" />
+                  <FieldOptionSelect
+                    name="position"
+                    value={empForm.position || ''}
+                    onChange={handleEmpChange}
+                    options={fieldOptions.positions || []}
+                    placeholder="เลือกตำแหน่ง..."
+                  />
                 </Field>
               </div>
 
@@ -229,33 +247,19 @@ export default function AddModal({
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={cls.input} placeholder="ระบุชื่ออุปกรณ์..." required />
               </Field>
               <Field label="ประเภท">
-                <select value={type} onChange={(e) => setType(e.target.value)} className={cls.select}>
-                  {activeMenu === 'assets' ? (
-                    <>
-                      <option value="คอมพิวเตอร์">คอมพิวเตอร์ (PC/Laptop)</option>
-                      <option value="หน้าจอ">หน้าจอ (Monitor)</option>
-                      <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
-                      <option value="อุปกรณ์เครือข่าย">อุปกรณ์เครือข่าย (Network)</option>
-                      <option value="อื่นๆ">อื่นๆ</option>
-                    </>
-                  ) : activeMenu === 'office_supplies' ? (
-                    <>
-                      <option value="เครื่องเขียน">เครื่องเขียน</option>
-                      <option value="กระดาษ">กระดาษ</option>
-                      <option value="แฟ้มและอุปกรณ์จัดเก็บ">แฟ้มและอุปกรณ์จัดเก็บ</option>
-                      <option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="เมาส์ (Mouse)">เมาส์ (Mouse)</option>
-                      <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด (Keyboard)</option>
-                      <option value="สายชาร์จ (Adapter)">สายชาร์จ (Adapter)</option>
-                      <option value="หูฟัง (Headset)">หูฟัง (Headset)</option>
-                      <option value="กระเป๋า (Bag)">กระเป๋าใส่โน๊ตบุ๊ค</option>
-                      <option value="อื่นๆ">อื่นๆ</option>
-                    </>
-                  )}
-                </select>
+                <FieldOptionSelect
+                  value={type}
+                  onChange={setType}
+                  options={
+                    activeMenu === 'assets'
+                      ? ['คอมพิวเตอร์', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
+                      : activeMenu === 'office_supplies'
+                        ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
+                        : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
+                  }
+                  placeholder="เลือกประเภท..."
+                  allowCustom={false}
+                />
               </Field>
             </section>
 
@@ -273,13 +277,29 @@ export default function AddModal({
                     <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className={cls.input} />
                   </Field>
                   <Field label="บริษัท / ผู้ผลิต">
-                    <ComboBox value={company} onChange={(e) => setCompany(e.target.value)} options={fieldOptions.companies || []} className={cls.input} />
+                    <FieldOptionSelect
+                      value={company}
+                      onChange={setCompany}
+                      options={fieldOptions.companies || []}
+                      placeholder="เลือกหรือพิมพ์ใหม่"
+                    />
                   </Field>
                   <Field label="แผนก" required>
-                    <ComboBox value={assetDepartment} onChange={(e) => setAssetDepartment(e.target.value)} options={fieldOptions.departments || []} className={cls.input} />
+                    <FieldOptionSelect
+                      value={assetDepartment}
+                      onChange={setAssetDepartment}
+                      options={fieldOptions.departments || []}
+                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      required
+                    />
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
-                    <ComboBox value={vendor} onChange={(e) => setVendor(e.target.value)} options={fieldOptions.vendors || []} className={cls.input} />
+                    <FieldOptionSelect
+                      value={vendor}
+                      onChange={setVendor}
+                      options={fieldOptions.vendors || []}
+                      placeholder="เลือกหรือพิมพ์ใหม่"
+                    />
                   </Field>
                 </div>
               </section>
@@ -321,9 +341,27 @@ export default function AddModal({
                 </div>
               </section>
             ) : activeMenu === 'accessories' && (
-              <Field label="จำนวน (ชิ้น)" required>
-                <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={cls.input} placeholder="ระบุจำนวน..." required />
-              </Field>
+              <section className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="จำนวน (ชิ้น)" required>
+                    <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={cls.input} placeholder="ระบุจำนวน..." required />
+                  </Field>
+                  <Field label="วันที่ซื้อ">
+                    <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} className={cls.input + ' text-slate-700'} />
+                  </Field>
+                </div>
+                <Field label="ผู้จัดจำหน่าย (Vendor)" hint="ชื่อร้าน/บริษัทที่ซื้อมา">
+                  <FieldOptionSelect
+                    value={vendor || ''}
+                    onChange={setVendor}
+                    options={fieldOptions.vendors || []}
+                    placeholder="เลือกหรือพิมพ์ใหม่"
+                  />
+                </Field>
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, ผู้ติดต่อ ฯลฯ">
+                  <textarea value={note || ''} onChange={(e) => setNote(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่รายละเอียดที่ต้องการบันทึก..." />
+                </Field>
+              </section>
             )}
           </ModalBody>
           <ModalFooter>

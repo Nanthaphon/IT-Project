@@ -21,7 +21,7 @@ export default function RepairModal({
   };
 
   return (
-    <Modal open={repairModal.isOpen} onClose={close} size="md">
+    <Modal open={repairModal.isOpen} onClose={close} size="md" zIndexClass="z-[85]">
       <ModalHeader
         icon={Wrench}
         title="บันทึกนำอุปกรณ์กลับเข้าคลัง"

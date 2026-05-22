@@ -586,8 +586,30 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
   };
 
-  const handleExportEmployees = () => { /* ... */ };
-  const handleExportAccessories = () => { /* ... */ };
+  const handleExportEmployees = () => {
+    const rows = [['รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร', 'M365 Email']];
+    employees.forEach(emp => rows.push([
+      emp.empId || '', emp.fullName || '', emp.fullNameEng || '', emp.nickname || '',
+      emp.department || '', emp.company || '', emp.position || '', emp.manager || '',
+      emp.phone || '', emp.m365Email || '',
+    ]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'employees.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+  const handleExportAccessories = () => {
+    const filtered = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
+    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty', 'สถานะ']];
+    filtered.forEach(item => rows.push([
+      item.name || '', item.type || '', item.quantity || '', item.cost || '',
+      item.purchaseDate || '', item.warrantyDate || '', item.status || '',
+    ]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'accessories.csv'; a.click(); URL.revokeObjectURL(url);
+  };
   const handleExportLicenses = () => {
     const rows = [['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ', 'ราคา', 'จำนวนสิทธิ์', 'สถานะ']];
     licenses.forEach(l => rows.push([l.name || '', l.productKey || '', l.keyCode || '', l.supplier || '', l.purchaseDate || '', l.expirationDate || '', l.cost || '', l.quantity || '', l.status || '']));
@@ -621,7 +643,24 @@ function App() {
     URL.revokeObjectURL(url);
   };
   const handleImportEmployees = (e) => { /* ... */ };
-  const handleExportAssets = () => { /* ... */ }; 
+  const handleExportAssets = () => {
+    const filtered = assets.filter(item =>
+      (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) &&
+      (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) &&
+      (assetFilterDepartment === 'ทั้งหมด' || item.department === assetFilterDepartment)
+    );
+    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'แผนก', 'รหัสทรัพย์สิน', 'Serial Number', 'ยี่ห้อ/รุ่น', 'ผู้จัดจำหน่าย', 'บริษัท', 'วันที่ซื้อ', 'วันหมด Warranty', 'ราคา', 'ผู้ครอบครอง', 'สถานะ']];
+    filtered.forEach(item => rows.push([
+      item.name || '', item.type || '', item.department || '', item.assetTag || '',
+      item.sn || '', item.model || '', item.vendor || '', item.company || '',
+      item.purchaseDate || '', item.warrantyDate || '', item.cost || '',
+      item.assignedName || '', item.status || 'พร้อมใช้งาน',
+    ]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'assets.csv'; a.click(); URL.revokeObjectURL(url);
+  };
   
   const openEditEmpModal = (emp) => setEditEmpModal({ isOpen: true, data: { ...emp } });
   const handleEditEmpChange = (e) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));

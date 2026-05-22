@@ -621,13 +621,17 @@ function App() {
   const handleDownloadTemplate = () => {
     let headers, filename;
     if (activeMenu === 'assets') {
-      headers = ['ชื่ออุปกรณ์', 'ประเภท', 'รหัสทรัพย์สิน', 'Serial Number', 'ยี่ห้อ/รุ่น', 'บริษัท', 'ผู้จัดจำหน่าย', 'แผนก', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty'];
+      headers = [
+        'ชื่ออุปกรณ์', 'ประเภท', 'แผนก', 'รหัสทรัพย์สิน', 'Serial Number',
+        'ยี่ห้อ/รุ่น', 'บริษัท', 'ผู้จัดจำหน่าย', 'วันที่ซื้อ', 'วันหมด Warranty',
+        'ราคา', 'สถานะ',
+      ];
       filename = 'template_assets.csv';
     } else if (activeMenu === 'accessories') {
-      headers = ['ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty'];
+      headers = ['ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty'];
       filename = 'template_accessories.csv';
     } else if (activeMenu === 'licenses') {
-      headers = ['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'จำนวนสิทธิ์', 'ราคา', 'วันที่ซื้อ', 'วันหมดอายุ'];
+      headers = ['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ', 'ราคา', 'จำนวนสิทธิ์'];
       filename = 'template_licenses.csv';
     } else {
       headers = ['รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร', 'M365 Email'];
@@ -636,13 +640,110 @@ function App() {
     const csv = headers.map(h => `"${h}"`).join(',') + '\n';
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
   };
-  const handleImportEmployees = (e) => { /* ... */ };
+
+  const handleImportEmployees = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const text = evt.target.result.replace(/^﻿/, ''); // strip BOM
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) {
+          return setCustomAlert({ isOpen: true, title: 'ไฟล์ว่างเปล่า', message: 'ไม่พบข้อมูลในไฟล์ CSV', type: 'error' });
+        }
+
+        // CSV row parser — handles quoted fields with commas / newlines
+        const parseRow = (line) => {
+          const res = []; let cur = ''; let inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            if (line[i] === '"') {
+              if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else { inQ = !inQ; }
+            } else if (line[i] === ',' && !inQ) { res.push(cur.trim()); cur = ''; }
+            else { cur += line[i]; }
+          }
+          res.push(cur.trim()); return res;
+        };
+
+        const headers = parseRow(lines[0]);
+
+        // Header → Firestore field mappings per collection
+        const MAP = {
+          assets: {
+            'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'แผนก': 'department',
+            'รหัสทรัพย์สิน': 'assetTag', 'Serial Number': 'sn', 'ยี่ห้อ/รุ่น': 'model',
+            'บริษัท': 'company', 'ผู้จัดจำหน่าย': 'vendor',
+            'วันที่ซื้อ': 'purchaseDate', 'วันหมด Warranty': 'warrantyDate',
+            'ราคา': 'cost', 'สถานะ': 'status',
+          },
+          accessories: {
+            'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'จำนวนทั้งหมด': 'quantity',
+            'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'วันหมด Warranty': 'warrantyDate',
+          },
+          licenses: {
+            'ชื่อโปรแกรม': 'name', 'Product Key': 'productKey', 'รหัส Key': 'keyCode',
+            'Supplier': 'supplier', 'วันที่ซื้อ': 'purchaseDate', 'วันหมดอายุ': 'expirationDate',
+            'ราคา': 'cost', 'จำนวนสิทธิ์': 'quantity',
+          },
+          employees: {
+            'รหัสพนักงาน': 'empId', 'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
+            'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
+            'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
+            'M365 Email': 'm365Email',
+          },
+        };
+
+        const colName = activeMenu === 'assets' ? 'assets'
+          : activeMenu === 'accessories' ? 'accessories'
+          : activeMenu === 'licenses' ? 'licenses'
+          : 'employees';
+        const fieldMap = MAP[colName];
+
+        let count = 0;
+        for (let i = 1; i < lines.length; i++) {
+          const vals = parseRow(lines[i]);
+          if (vals.every(v => !v)) continue; // skip blank rows
+          const rec = {};
+          headers.forEach((h, idx) => { const f = fieldMap[h]; if (f) rec[f] = vals[idx] || ''; });
+          const hasName = rec.name || rec.fullName;
+          if (!hasName) continue;
+
+          // Defaults per collection
+          if (colName === 'assets') {
+            rec.status       = rec.status || 'พร้อมใช้งาน';
+            rec.quantity     = 1;
+            rec.brokenQuantity = 0;
+            rec.assignedTo   = null;
+            rec.assignedName = null;
+          } else if (colName === 'accessories') {
+            rec.quantity     = Number(rec.quantity) || 1;
+            rec.brokenQuantity = 0;
+            rec.status       = 'พร้อมใช้งาน';
+            rec.assignees    = [];
+          } else if (colName === 'licenses') {
+            rec.quantity     = Number(rec.quantity) || 1;
+            rec.status       = 'พร้อมใช้งาน';
+            rec.assignees    = [];
+            rec.assignedTo   = null;
+            rec.assignedName = null;
+          }
+          rec.createdAt = serverTimestamp();
+          await addDoc(collection(db, colName), rec);
+          count++;
+        }
+
+        setIsImportModalOpen(false);
+        setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: `นำเข้าข้อมูล ${count} รายการเรียบร้อยแล้ว`, type: 'success' });
+      } catch (err) {
+        setCustomAlert({ isOpen: true, title: 'นำเข้าไม่สำเร็จ', message: err.message, type: 'error' });
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
   const handleExportAssets = () => {
     const filtered = assets.filter(item =>
       (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) &&

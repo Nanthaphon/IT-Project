@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db, functions } from '../firebase.js';
+import { db, auth } from '../firebase.js';
 import {
   collection, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp,
 } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Plus, Pencil, Trash2, Users, Shield, Eye, CheckSquare, Square, X, KeyRound } from 'lucide-react';
@@ -11,12 +10,12 @@ import { cls, BRAND } from '../ui/theme.js';
 
 /* ── Firebase secondary app (to create users without logging out) ── */
 const firebaseConfig = {
-  apiKey: "AIzaSyCK7RPnZE8V-W_gDbWvxK8W40oJKA-8W5I",
-  authDomain: "it-asset-management-75aa8.firebaseapp.com",
-  projectId: "it-asset-management-75aa8",
-  storageBucket: "it-asset-management-75aa8.firebasestorage.app",
-  messagingSenderId: "1067954410010",
-  appId: "1:1067954410010:web:1ff6062e31844027f537a3",
+  apiKey: "AIzaSyAyOWP7fsCUYh2cevBPBpehP85p7tuy-hM",
+  authDomain: "it-asset-management-dc883.firebaseapp.com",
+  projectId: "it-asset-management-dc883",
+  storageBucket: "it-asset-management-dc883.firebasestorage.app",
+  messagingSenderId: "897937967642",
+  appId: "1:897937967642:web:9b0ccc5ca28a8c57f55fa3",
 };
 const secondaryApp = getApps().find(a => a.name === 'Secondary') || initializeApp(firebaseConfig, 'Secondary');
 const secondaryAuth = getAuth(secondaryApp);
@@ -126,8 +125,14 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
     setPwSaving(true);
     try {
-      const setUserPassword = httpsCallable(functions, 'setUserPassword');
-      await setUserPassword({ targetUid: pwUser.id, newPassword: pwValue });
+      const idToken = await auth.currentUser.getIdToken();
+      const resp = await fetch('/api/set-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, targetUid: pwUser.id, newPassword: pwValue }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'รีเซ็ตรหัสผ่านไม่สำเร็จ');
       setPwSuccess('ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว');
       setPwValue('');
       setPwConfirm('');

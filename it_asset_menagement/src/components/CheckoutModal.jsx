@@ -113,7 +113,7 @@ export default function CheckoutModal({
   const canSubmit = checkoutEmpId && !(needSelector && availableSlots.length === 0);
 
   return (
-    <Modal open={checkoutModal.isOpen} onClose={close} size="xl" zIndexClass="z-[85]">
+    <Modal open={checkoutModal.isOpen} onClose={close} size="xl">
       <ModalHeader
         icon={LogOut}
         title="ระบุพนักงานที่เบิกจ่าย"

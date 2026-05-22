@@ -4,12 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCK7RPnZE8V-W_gDbWvxK8W40oJKA-8W5I",
-  authDomain: "it-asset-management-75aa8.firebaseapp.com",
-  projectId: "it-asset-management-75aa8",
-  storageBucket: "it-asset-management-75aa8.firebasestorage.app",
-  messagingSenderId: "1067954410010",
-  appId: "1:1067954410010:web:1ff6062e31844027f537a3"
+  apiKey: "AIzaSyAyOWP7fsCUYh2cevBPBpehP85p7tuy-hM",
+  authDomain: "it-asset-management-dc883.firebaseapp.com",
+  projectId: "it-asset-management-dc883",
+  storageBucket: "it-asset-management-dc883.firebasestorage.app",
+  messagingSenderId: "897937967642",
+  appId: "1:897937967642:web:9b0ccc5ca28a8c57f55fa3"
 };
 
 const app = initializeApp(firebaseConfig);

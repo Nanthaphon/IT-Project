@@ -72,7 +72,7 @@ export function Card({ children, className = '', hoverable = false, padding = 'm
 }
 
 /* Modal shell — Overlay + box */
-export function Modal({ open, onClose, size = 'lg', children, zIndexClass = 'z-[70]' }) {
+export function Modal({ open, onClose, size = 'lg', children }) {
   if (!open) return null;
   const sizeCls =
     size === 'sm' ? 'max-w-md' :
@@ -81,7 +81,7 @@ export function Modal({ open, onClose, size = 'lg', children, zIndexClass = 'z-[
     size === '2xl' ? 'max-w-5xl' :
     'max-w-2xl';
   return (
-    <div className={`${cls.modalOverlay} ${zIndexClass}`} onClick={onClose}>
+    <div className={cls.modalOverlay} onClick={onClose}>
       <div className={`${cls.modalShell} ${sizeCls}`} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>

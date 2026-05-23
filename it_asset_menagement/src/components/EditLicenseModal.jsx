@@ -2,12 +2,14 @@ import React from 'react';
 import { Pencil, Image as ImageIcon, X as XIcon } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import FieldOptionSelect from './FieldOptionSelect.jsx';
 
 export default function EditLicenseModal({
   editLicenseModal,
   setEditLicenseModal,
   handleUpdateLicense,
   handleEditLicenseChange,
+  fieldOptions = {},
 }) {
   if (!editLicenseModal.isOpen || !editLicenseModal.data) return null;
 
@@ -72,8 +74,14 @@ export default function EditLicenseModal({
             <Field label="รหัสของ Product Key">
               <input type="text" name="keyCode" value={editLicenseModal.data.keyCode || ''} onChange={handleEditLicenseChange} className={cls.input} />
             </Field>
-            <Field label="Supplier ที่ซื้อ">
-              <input type="text" name="supplier" value={editLicenseModal.data.supplier || ''} onChange={handleEditLicenseChange} className={cls.input} />
+            <Field label="ผู้จัดจำหน่าย (Vendor)">
+              <FieldOptionSelect
+                name="supplier"
+                value={editLicenseModal.data.supplier || ''}
+                onChange={handleEditLicenseChange}
+                options={fieldOptions.vendors || []}
+                placeholder="เลือกหรือพิมพ์ใหม่"
+              />
             </Field>
           </section>
 

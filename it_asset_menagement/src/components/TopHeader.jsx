@@ -14,11 +14,15 @@ export default function TopHeader({
   setActiveMenu,
   handleLogout,
   authRole,
+  isSuperAdmin,
+  userName,
 }) {
   const roleLabel =
     authRole === 'admin' ? 'IT Admin' :
     authRole === 'hr'    ? 'HR' :
     authRole === 'staff' ? 'Staff' : '';
+  // แสดงชื่อ user ที่ login ถ้ามี — ถ้าไม่มีใช้ชื่อ role แทน
+  const badgeLabel = userName || roleLabel;
 
   return (
     <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-40 shrink-0">
@@ -31,8 +35,8 @@ export default function TopHeader({
 
       {/* Right actions */}
       <div className="flex items-center gap-2">
-        {/* Role badge */}
-        {roleLabel && (
+        {/* User badge — แสดงชื่อ user ที่ login */}
+        {badgeLabel && (
           <span
             className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-semibold ring-1 ring-inset mr-1"
             style={{
@@ -42,7 +46,7 @@ export default function TopHeader({
             }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-            {roleLabel}
+            {badgeLabel}
           </span>
         )}
 

@@ -334,7 +334,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   {/* จัดการ */}
                   <td className="px-5 py-3.5 text-center">
                     {(() => {
-                      const canReset = canFullManage || (canManagePasswords && !user.isSuperAdmin);
+                      const canReset = (canFullManage || canManagePasswords) && !user.isSuperAdmin;
                       const canEditDelete = canFullManage && !user.isSuperAdmin;
                       if (!canReset && !canEditDelete) {
                         return <span className="text-[11px] text-slate-400">-</span>;

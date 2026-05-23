@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 
 // ═══════════════════════════════════════════════════════════════
@@ -12,13 +12,15 @@ const EMAILJS_SERVICE_ID  = 'service_yaix4t9';
 const EMAILJS_TEMPLATE_ID = 'template_3aa0ng4';
 const EMAILJS_PUBLIC_KEY  = 'Y8fJ0JAEUhLQcq9ig';
 
-// Email ปลายทาง
-const IT_EMAIL = 'Nanthaphon.nay@globesyndicate.co.th';
-const HR_EMAIL = 'Tanat.nai@globesyndicate.co.th';
+// Email ปลายทาง (ค่าเริ่มต้น — ใช้เมื่อยังไม่ได้ตั้งค่าใน "ตั้งค่าระบบ")
+const DEFAULT_IT_EMAIL = 'Nanthaphon.nay@globesyndicate.co.th';
+const DEFAULT_HR_EMAIL = 'Tanat.nai@globesyndicate.co.th';
 // ═══════════════════════════════════════════════════════════════
 
-async function sendNotification({ title, notifyType, facts }) {
-  const toEmail = notifyType === 'HR' ? HR_EMAIL : IT_EMAIL;
+async function sendNotification({ title, notifyType, facts, settings }) {
+  const itEmail = settings?.itEmail?.trim() || DEFAULT_IT_EMAIL;
+  const hrEmail = settings?.hrEmail?.trim() || DEFAULT_HR_EMAIL;
+  const toEmail = notifyType === 'HR' ? hrEmail : itEmail;
   // จัดรูปแบบ facts ให้อ่านง่ายใน email
   const message = facts.map(f => `• ${f.label}: ${f.value}`).join('\n');
 
@@ -38,6 +40,7 @@ async function sendNotification({ title, notifyType, facts }) {
 import useFirebaseData from './hooks/useFirebaseData.jsx';
 import useAdminPermissions from './hooks/useAdminPermissions.jsx';
 import UserManagementPage from './components/UserManagementPage.jsx';
+import SystemSettingsPage from './components/SystemSettingsPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import TopHeader from './components/TopHeader.jsx';
 import DashboardStats from './components/DashboardStats.jsx';
@@ -96,8 +99,17 @@ function App() {
     fieldOptions,
   } = useFirebaseData();
 
-  const { isSuperAdmin, adminPermissions, permLoading } = useAdminPermissions(currentUid, authRole);
+  const { isSuperAdmin, adminPermissions, displayName: adminDisplayName, permLoading } = useAdminPermissions(currentUid, authRole);
   const canEdit = isSuperAdmin || adminPermissions?.level === 'full';
+
+  // ─── ตั้งค่าอีเมลแจ้งเตือน (โหลดจาก Firestore — แก้ได้ในเมนู "ตั้งค่าระบบ") ───
+  const [notifySettings, setNotifySettings] = useState({ itEmail: '', hrEmail: '' });
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'notifications'), (snap) => {
+      if (snap.exists()) setNotifySettings(snap.data());
+    });
+    return unsub;
+  }, []);
 
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]); 
@@ -265,6 +277,7 @@ function App() {
       title: `⚠️ แจ้งเตือน: โปรแกรม/License ใกล้หมดอายุ ${expiringSoon.length} รายการ`,
       notifyType: 'IT',
       facts,
+      settings: notifySettings,
     }).catch(err => console.error('License expiry email failed:', err));
   }, [authRole, licenses, isSuperAdmin, adminPermissions]);
 
@@ -326,6 +339,7 @@ function App() {
         await sendNotification({
           title: '🔧 แจ้งปัญหา IT / แจ้งซ่อม',
           notifyType: 'IT',
+          settings: notifySettings,
           facts: [
             { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
             { label: 'แผนก', value: currentStaff.department || '-' },
@@ -352,6 +366,7 @@ function App() {
         await sendNotification({
           title: '📦 คำขอเบิกอุปกรณ์สำนักงาน',
           notifyType: 'HR',
+          settings: notifySettings,
           facts: [
             { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
             { label: 'แผนก', value: currentStaff.department || '-' },
@@ -389,6 +404,7 @@ function App() {
         await sendNotification({
           title: '💻 คำขอเปลี่ยนเครื่อง',
           notifyType: 'IT',
+          settings: notifySettings,
           facts: [
             { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
             { label: 'แผนก', value: currentStaff.department || '-' },
@@ -1172,7 +1188,9 @@ function App() {
                     activeMenu === 'repairs' ? 'แจ้งปัญหา IT' : 
                     activeMenu === 'office_supplies' ? 'คลังอุปกรณ์สำนักงาน' : 
                     activeMenu === 'supply_requests' ? 'คำขอเบิกอุปกรณ์' : 
-                    activeMenu === 'replacement_requests' ? 'คำขอเปลี่ยนเครื่อง' : 'ข้อมูลพนักงาน';
+                    activeMenu === 'replacement_requests' ? 'คำขอเปลี่ยนเครื่อง' :
+                    activeMenu === 'users' ? 'จัดการผู้ใช้งานระบบ' :
+                    activeMenu === 'system_settings' ? 'ตั้งค่าระบบ' : 'ข้อมูลพนักงาน';
 
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };
@@ -1237,7 +1255,7 @@ function App() {
       />
       
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
-        <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} />
+        <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} />
 
         <div className="flex-1 overflow-auto p-4 md:p-8">
           {activeMenu === 'field_options' ? (
@@ -1292,6 +1310,8 @@ function App() {
               isSuperAdmin={isSuperAdmin}
               canManagePasswords={adminPermissions?.canManagePasswords === true}
             />
+          ) : activeMenu === 'system_settings' ? (
+            <SystemSettingsPage isSuperAdmin={isSuperAdmin} />
           ) : (
             <div className="h-full flex flex-col">
               <div className="bg-white p-6 md:p-7 rounded-2xl shadow-sm ring-1 ring-slate-200/70 flex flex-col flex-1">

@@ -14,6 +14,7 @@ import {
   FileBarChart2,
   TrendingUp,
   ShieldCheck,
+  Settings,
 } from 'lucide-react';
 
 const NAV_ITEMS = {
@@ -70,9 +71,16 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
   })).filter(group => group.items.length > 0);
 
   // Append admin group for SuperAdmin or admins allowed to manage users/passwords
-  const superAdminGroup = (isSuperAdmin || canManageUsers) ? [{
+  const adminItems = [];
+  if (isSuperAdmin || canManageUsers) {
+    adminItems.push({ id: 'users', label: 'จัดการผู้ใช้', icon: ShieldCheck });
+  }
+  if (isSuperAdmin) {
+    adminItems.push({ id: 'system_settings', label: 'ตั้งค่าระบบ', icon: Settings });
+  }
+  const superAdminGroup = adminItems.length > 0 ? [{
     group: 'ผู้ดูแลระบบ',
-    items: [{ id: 'users', label: 'จัดการผู้ใช้', icon: ShieldCheck }],
+    items: adminItems,
   }] : [];
 
   const groups = [...filteredGroups, ...superAdminGroup];

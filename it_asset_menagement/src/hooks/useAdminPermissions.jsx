@@ -13,12 +13,14 @@ export const ALL_MENU_IDS = [
 export default function useAdminPermissions(uid, authRole) {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [adminPermissions, setAdminPermissions] = useState(null);
+  const [displayName, setDisplayName] = useState('');
   const [permLoading, setPermLoading] = useState(true);
 
   useEffect(() => {
     if (authRole !== 'admin') {
       setIsSuperAdmin(false);
       setAdminPermissions(null);
+      setDisplayName('');
       setPermLoading(false);
       return;
     }
@@ -41,6 +43,7 @@ export default function useAdminPermissions(uid, authRole) {
           if (!cancelled) {
             setIsSuperAdmin(data.isSuperAdmin === true);
             setAdminPermissions(data.permissions || { menus: [], level: 'view' });
+            setDisplayName(data.displayName || '');
           }
         } else {
           // Check if the collection is empty
@@ -59,6 +62,7 @@ export default function useAdminPermissions(uid, authRole) {
             if (!cancelled) {
               setIsSuperAdmin(true);
               setAdminPermissions({ menus: ALL_MENU_IDS, level: 'full' });
+              setDisplayName('Super Admin');
             }
           } else {
             // Known collection but this user has no doc — no access
@@ -83,5 +87,5 @@ export default function useAdminPermissions(uid, authRole) {
     return () => { cancelled = true; };
   }, [uid, authRole]);
 
-  return { isSuperAdmin, adminPermissions, permLoading };
+  return { isSuperAdmin, adminPermissions, displayName, permLoading };
 }

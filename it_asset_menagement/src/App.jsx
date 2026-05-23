@@ -1203,9 +1203,12 @@ function App() {
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
-  const pendingRepairsCount = authRole === 'admin' ? repairRequests.filter(req => req.status === 'รอดำเนินการ').length : 0;
-  const pendingSuppliesCount = supplyRequests.filter(req => req.status === 'รอดำเนินการ').length;
+  // เช็คสิทธิ์เข้าถึงเมนู — ใช้กรองการแจ้งเตือนตามสิทธิ์ของ user
+  const hasRepairsMenuAccess  = isSuperAdmin || (adminPermissions?.menus || []).includes('repairs');
+  const hasSuppliesMenuAccess = isSuperAdmin || (adminPermissions?.menus || []).includes('supply_requests');
   const hasLicensesMenuAccess = isSuperAdmin || (adminPermissions?.menus || []).includes('licenses');
+  const pendingRepairsCount = (authRole === 'admin' && hasRepairsMenuAccess) ? repairRequests.filter(req => req.status === 'รอดำเนินการ').length : 0;
+  const pendingSuppliesCount = (authRole !== 'admin' || hasSuppliesMenuAccess) ? supplyRequests.filter(req => req.status === 'รอดำเนินการ').length : 0;
   const expiringLicensesCount = (authRole === 'admin' && hasLicensesMenuAccess) ? licenses.filter(lic => checkLicenseExpiration(lic.expirationDate).isExpiring).length : 0;
   
   const totalPendingCount = pendingRepairsCount + pendingSuppliesCount + expiringLicensesCount;

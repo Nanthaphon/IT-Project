@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 
 /* ════════════════════════════════════════════════
+   เลือก logo ตามบริษัทของพนักงาน
+════════════════════════════════════════════════ */
+function getCompanyLogo(company) {
+  if (!company) return '/gb_logo.webp';
+  const c = String(company).toLowerCase();
+  if (c.includes('best') || c.includes('hrm')) return '/besthrm_logo.webp';
+  return '/gb_logo.webp'; // default = Globe Syndicate
+}
+
+/* ════════════════════════════════════════════════
    ฟังก์ชันพิมพ์ใบส่งมอบทรัพย์สิน
 ════════════════════════════════════════════════ */
 function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) {
@@ -8,6 +18,7 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
   const thDate = today.toLocaleDateString('th-TH', {
     year: 'numeric', month: 'long', day: 'numeric',
   });
+  const logoUrl = getCompanyLogo(employee.company);
 
   /* ── table helpers ── */
   const row = (cells, isHeader = false) =>
@@ -97,13 +108,14 @@ function printTransferDoc({ employee, empAssets, empLicenses, empAccessories }) 
 
   <div class="content-top">
 
-  <!-- ════ HEADER ════ -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3px">
-    <div>
+  <!-- ════ HEADER (with company logo) ════ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:3px">
+    <img src="${logoUrl}" alt="logo" style="height:46px;width:auto;object-fit:contain;flex-shrink:0" />
+    <div style="flex:1">
       <div style="font-size:16px;font-weight:700;color:#1E487A;line-height:1.2">ใบส่งมอบทรัพย์สิน IT</div>
       <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Transfer Document</div>
     </div>
-    <div style="text-align:right">
+    <div style="text-align:right;flex-shrink:0">
       <div style="font-size:9.5px;color:#000">วันที่ออกเอกสาร</div>
       <div style="font-size:11px;font-weight:700;color:#000">${thDate}</div>
       <div style="margin-top:2px;background:#eff6ff;color:#1E487A;border:1px solid #bfdbfe;

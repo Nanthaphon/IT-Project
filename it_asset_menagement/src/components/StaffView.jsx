@@ -3,9 +3,20 @@ import { Star, Sparkles } from 'lucide-react';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 
 /* ════════════════════════════════════════════════
+   เลือก logo ตามบริษัทของพนักงาน
+════════════════════════════════════════════════ */
+function getCompanyLogo(company) {
+  if (!company) return '/gb_logo.webp';
+  const c = String(company).toLowerCase();
+  if (c.includes('best') || c.includes('hrm')) return '/besthrm_logo.webp';
+  return '/gb_logo.webp'; // default = Globe Syndicate
+}
+
+/* ════════════════════════════════════════════════
    พิมพ์ฟอร์มขอเปลี่ยนเครื่อง
 ════════════════════════════════════════════════ */
 function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
+  const logoUrl = getCompanyLogo(staff.company);
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -44,27 +55,29 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
     🖨️ พิมพ์ / บันทึก PDF
   </button>
 
-  <!-- Header -->
-  <div style="text-align:center;margin-bottom:12px">
-    <div style="font-size:20px;font-weight:700;color:#1E487A">ฟอร์มขอเปลี่ยนเครื่องคอมพิวเตอร์</div>
-    <div style="font-size:13px;color:#000;margin-top:3px">Computer Replacement Request Form</div>
+  <!-- Header with company logo + title + date (compact one-line layout) -->
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+    <img src="${logoUrl}" alt="logo" style="height:54px;width:auto;object-fit:contain;flex-shrink:0" />
+    <div style="flex:1;text-align:center">
+      <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.1">ฟอร์มขอเปลี่ยนเครื่องคอมพิวเตอร์</div>
+      <div style="font-size:11px;color:#000;margin-top:2px">Computer Replacement Request Form</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-size:9.5px;color:#475569">วันที่ยื่นคำขอ</div>
+      <div style="font-size:11px;font-weight:700;color:#000">${thDate}</div>
+    </div>
   </div>
-  <div style="border-top:2px solid #1E487A;margin-bottom:14px"></div>
-
-  <!-- วันที่ -->
-  <div style="text-align:right;font-size:12px;color:#000;margin-bottom:12px">
-    วันที่ยื่นคำขอ: <strong>${thDate}</strong>
-  </div>
+  <div style="border-top:2px solid #1E487A;margin-bottom:10px"></div>
 
   <!-- ข้อมูลพนักงาน -->
-  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:7px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#1E487A;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
     </svg>
     ข้อมูลผู้ยื่นคำขอ
   </div>
-  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:10px 14px;margin-bottom:14px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px">
+  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 18px">
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">ชื่อ-นามสกุล</div>
         <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.fullName || '-'}</div>
@@ -89,13 +102,13 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
   </div>
 
   <!-- เครื่องที่ถือครองปัจจุบัน -->
-  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:7px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#1E487A;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
     </svg>
     เครื่องคอมพิวเตอร์ที่ถือครองปัจจุบัน
   </div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+  <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
     <thead>
       <tr>
         <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center;white-space:nowrap">#</th>
@@ -109,14 +122,14 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
   </table>
 
   <!-- เหตุผลขอเปลี่ยน -->
-  <div style="font-size:13px;font-weight:700;color:#1E487A;margin-bottom:7px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#1E487A;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
     </svg>
     เหตุผลและรายละเอียดการขอเปลี่ยน
   </div>
-  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:10px 14px;margin-bottom:14px">
-    <div style="margin-bottom:8px">
+  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
+    <div style="margin-bottom:6px">
       <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">สถานะเครื่องปัจจุบัน</div>
       <div style="font-size:13px;font-weight:700;color:#000">${currentStatus}</div>
     </div>
@@ -127,8 +140,8 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
   </div>
 
   <!-- เงื่อนไข -->
-  <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:6px">เงื่อนไขและข้อตกลง</div>
-  <div style="font-size:12px;color:#000;line-height:1.9;margin-bottom:16px">
+  <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:4px">เงื่อนไขและข้อตกลง</div>
+  <div style="font-size:11px;color:#000;line-height:1.7;margin-bottom:10px">
     <div>1. ผู้ยื่นคำขอยืนยันว่าข้อมูลที่กรอกทั้งหมดเป็นความจริง</div>
     <div>2. เครื่องเดิมที่ส่งคืนต้องอยู่ในสภาพสมบูรณ์ที่สุดเท่าที่จะทำได้</div>
     <div>3. การอนุมัติขึ้นอยู่กับดุลยพินิจของหัวหน้างานและฝ่าย IT</div>

@@ -632,8 +632,90 @@ function App() {
     const a = document.createElement('a'); a.href = url; a.download = 'accessories.csv'; a.click(); URL.revokeObjectURL(url);
   };
   const handleExportLicenses = () => {
-    const rows = [['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ', 'ราคา', 'จำนวนสิทธิ์', 'สถานะ']];
-    licenses.forEach(l => rows.push([l.name || '', l.productKey || '', l.keyCode || '', l.supplier || '', l.purchaseDate || '', l.expirationDate || '', l.cost || '', l.quantity || '', l.status || '']));
+    // Export แบบ 1 บรรทัด = 1 สิทธิ์ (seat) — ข้อมูล license ใช้ซ้ำทุกบรรทัด
+    // เพื่อให้ข้อมูล nested (assignees, per-seat keys, costs) ครบในไฟล์เดียว
+    const rows = [[
+      // ─── ข้อมูล License (ซ้ำทุกบรรทัด) ───
+      'ชื่อโปรแกรม', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ',
+      'จำนวนสิทธิ์ทั้งหมด', 'ราคารวม (License)', 'สถานะ License',
+      // ─── ข้อมูลสิทธิ์ (แต่ละบรรทัด) ───
+      'ลำดับสิทธิ์', 'สถานะสิทธิ์', 'ผู้ใช้งาน', 'รหัสพนักงาน',
+      'วันที่เบิก', 'Product Key (สิทธิ์)', 'รหัส Key (สิทธิ์)',
+      'ราคา/สิทธิ์', 'หมายเหตุ',
+    ]];
+
+    licenses.forEach(l => {
+      const totalSeats = Number(l.quantity || 0) || 1;
+      const assignees = l.assignees || [];
+      const availKeys = l.availableKeys || [];
+      const availKeyCodes = l.availableKeyCodes || [];
+      const availSeatCosts = l.availableSeatCosts || [];
+
+      // ข้อมูล license ที่ใช้ซ้ำในทุกบรรทัด
+      const licCommon = [
+        l.name || '',
+        l.supplier || '',
+        l.purchaseDate || '',
+        l.expirationDate || '',
+        totalSeats,
+        l.cost || '',
+        l.status || '',
+      ];
+
+      let seatIdx = 0;
+
+      // 1) บรรทัดสำหรับสิทธิ์ที่ "ใช้งานอยู่" (assigned)
+      assignees.forEach(a => {
+        seatIdx++;
+        rows.push([
+          ...licCommon,
+          seatIdx,
+          'ใช้งาน',
+          a.empName || '',
+          a.empId || '',
+          a.checkoutDate || '',
+          a.productKey || l.productKey || '',
+          a.keyCode || l.keyCode || '',
+          a.seatCost || '',
+          a.remarks || '',
+        ]);
+      });
+
+      // 2) บรรทัดสำหรับสิทธิ์ที่ "ว่าง" (available)
+      const availCount = Math.max(0, totalSeats - assignees.length);
+      for (let i = 0; i < availCount; i++) {
+        seatIdx++;
+        rows.push([
+          ...licCommon,
+          seatIdx,
+          'ว่าง',
+          '',
+          '',
+          '',
+          availKeys[i] || l.productKey || '',
+          availKeyCodes[i] || l.keyCode || '',
+          availSeatCosts[i] || '',
+          '',
+        ]);
+      }
+
+      // 3) ถ้า license นี้ไม่มี seat เลย — ใส่ 1 บรรทัดเป็นข้อมูล license พื้นฐาน
+      if (assignees.length === 0 && availCount === 0) {
+        rows.push([
+          ...licCommon,
+          '',
+          '',
+          '',
+          '',
+          '',
+          l.productKey || '',
+          l.keyCode || '',
+          l.cost || '',
+          '',
+        ]);
+      }
+    });
+
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

@@ -425,9 +425,18 @@ export default function EmployeeDetailsModal({
                               if (isAccessory) {
                                 setReturnModal({
                                   isOpen: true, assetId: item.id, checkoutId: item.checkoutId,
-                                  empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name
+                                  empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name,
+                                  collectionName: 'accessories',
+                                });
+                              } else if (isAsset) {
+                                // asset — เปิด ReturnModal เพื่อกรอกรูป/checklist หลักฐานสภาพ
+                                setReturnModal({
+                                  isOpen: true, assetId: item.id, checkoutId: null,
+                                  empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name,
+                                  collectionName: 'assets',
                                 });
                               } else {
+                                // license — ไม่มีสภาพกายภาพ รับคืนทันที
                                 handleCheckin(item.id, category);
                               }
                             }}

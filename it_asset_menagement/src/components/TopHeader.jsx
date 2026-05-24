@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, BellRing, Wrench, Package, FileText, LogOut, ChevronRight } from 'lucide-react';
+import { Bell, BellRing, Wrench, Package, FileText, LogOut, ChevronRight, Menu } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
 export default function TopHeader({
@@ -16,6 +16,7 @@ export default function TopHeader({
   authRole,
   isSuperAdmin,
   userName,
+  onOpenSidebar,
 }) {
   const roleLabel =
     authRole === 'admin' ? 'IT Admin' :
@@ -25,10 +26,20 @@ export default function TopHeader({
   const badgeLabel = userName || roleLabel;
 
   return (
-    <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-40 shrink-0">
+    <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 md:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
       {/* Page title */}
-      <div className="flex items-center gap-3 min-w-0">
-        <h2 className="text-[15px] font-semibold text-slate-900 tracking-tight truncate">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        {/* Hamburger — แสดงเฉพาะมือถือ */}
+        {onOpenSidebar && (
+          <button
+            onClick={onOpenSidebar}
+            className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+            aria-label="เปิดเมนู"
+          >
+            <Menu className="h-5 w-5" strokeWidth={2} />
+          </button>
+        )}
+        <h2 className="text-[14px] md:text-[15px] font-semibold text-slate-900 tracking-tight truncate">
           {menuTitle}
         </h2>
       </div>
@@ -132,10 +143,11 @@ export default function TopHeader({
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-[12.5px] font-medium text-slate-600 hover:text-rose-600 px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+          className="flex items-center gap-1.5 text-[12.5px] font-medium text-slate-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+          aria-label="ออกจากระบบ"
         >
           <LogOut className="h-[15px] w-[15px]" strokeWidth={1.8} />
-          ออกจากระบบ
+          <span className="hidden sm:inline">ออกจากระบบ</span>
         </button>
       </div>
     </header>

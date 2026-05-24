@@ -26,7 +26,7 @@ const TH_MONTHS = [
 ];
 
 const F  = 'TH Sarabun New';   // Thai font
-const FE = 'Calibri';           // EN/number font
+const FE = 'TH Sarabun New';   // EN/number font — ใช้ TH Sarabun New เหมือนกันเพื่อความสม่ำเสมอ
 
 /* ─── pptxgenjs border object (all 4 sides) ─── */
 const bdr = (color = C.grayBorder, pt = 1) =>

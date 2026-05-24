@@ -59,7 +59,16 @@ const NAV_ITEMS = {
   ],
 };
 
-export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, authRole, isSuperAdmin, allowedMenus, canManageUsers }) {
+export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, authRole, isSuperAdmin, allowedMenus, canManageUsers, sidebarOpen, setSidebarOpen }) {
+  // wrapper handler: เลือกเมนูแล้วปิด sidebar บนมือถือ
+  const handleMenuClick = (id) => {
+    setActiveMenu(id);
+    if (setSidebarOpen) setSidebarOpen(false);
+  };
+  const handleChangePassword = () => {
+    onChangePassword();
+    if (setSidebarOpen) setSidebarOpen(false);
+  };
   const baseGroups = NAV_ITEMS[authRole] || NAV_ITEMS.hr;
 
   // Filter groups by allowedMenus (null = show all, [] = show none)
@@ -86,13 +95,24 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
   const groups = [...filteredGroups, ...superAdminGroup];
 
   return (
-    <aside
-      className="w-full md:w-64 flex flex-col flex-shrink-0 h-screen relative text-slate-100"
-      style={{
-        background:
-          'radial-gradient(120% 80% at 0% 0%, #234e85 0%, #1b4174 35%, #112f57 100%)',
-      }}
-    >
+    <>
+      {/* Backdrop overlay บนมือถือ — คลิกเพื่อปิด */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen && setSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 md:hidden"
+        />
+      )}
+
+      <aside
+        className={`w-64 flex flex-col flex-shrink-0 h-screen text-slate-100 transition-transform duration-300 ease-in-out
+          fixed md:static inset-y-0 left-0 z-50
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        style={{
+          background:
+            'radial-gradient(120% 80% at 0% 0%, #234e85 0%, #1b4174 35%, #112f57 100%)',
+        }}
+      >
       {/* ขอบขวาบางๆ ให้เกิดเส้นแบ่งกับ content */}
       <div className="absolute inset-y-0 right-0 w-px bg-white/8 pointer-events-none" />
 
@@ -137,7 +157,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
                 return (
                   <button
                     key={id}
-                    onClick={() => setActiveMenu(id)}
+                    onClick={() => handleMenuClick(id)}
                     className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] transition-all duration-150 group
                       ${active
                         ? 'bg-white text-[#1E487A] font-semibold shadow-lg shadow-black/10'
@@ -177,7 +197,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
             บัญชี
           </p>
           <button
-            onClick={onChangePassword}
+            onClick={handleChangePassword}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-blue-100/80 hover:bg-white/8 hover:text-white transition-all duration-150 group"
           >
             <KeyRound
@@ -205,5 +225,6 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
         </div>
       </div>
     </aside>
+    </>
   );
 }

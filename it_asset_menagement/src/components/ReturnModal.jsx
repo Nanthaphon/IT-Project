@@ -2,10 +2,12 @@ import React from 'react';
 import { Inbox, User, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import ConditionCapture from './ConditionCapture.jsx';
 
 export default function ReturnModal({
   returnModal, setReturnModal, returnCondition, setReturnCondition,
   returnRemarks, setReturnRemarks, handleConfirmReturn,
+  returnConditionData, setReturnConditionData,
 }) {
   if (!returnModal.isOpen) return null;
   const isLicense = returnModal.collectionName === 'licenses';
@@ -93,6 +95,19 @@ export default function ReturnModal({
                 rows="3"
               />
             </div>
+          )}
+
+          {/* Condition Capture — เก็บหลักฐานสภาพตอนรับคืน (assets/accessories) */}
+          {!isLicense && returnConditionData && setReturnConditionData && (
+            <ConditionCapture
+              mode="return"
+              photos={returnConditionData.photos}
+              setPhotos={(photos) => setReturnConditionData({ ...returnConditionData, photos })}
+              checklist={returnConditionData.checklist}
+              setChecklist={(checklist) => setReturnConditionData({ ...returnConditionData, checklist })}
+              notes={returnConditionData.notes}
+              setNotes={(notes) => setReturnConditionData({ ...returnConditionData, notes })}
+            />
           )}
         </ModalBody>
         <ModalFooter>

@@ -184,7 +184,7 @@ export default function StaffView({
   /* ── satisfaction survey state ── */
   const [surveyModal, setSurveyModal] = useState({ isOpen: false, repair: null });
   const [autoPopupShown, setAutoPopupShown] = useState(false);
-  const [activeTab, setActiveTab] = useState('it_repair');
+  const [activeTab, setActiveTab] = useState('profile');
   const [supplyCart, setSupplyCart] = useState([]);
   const [supplySearchTerm, setSupplySearchTerm] = useState('');
   const [isSupplyDropdownOpen, setIsSupplyDropdownOpen] = useState(false);
@@ -338,6 +338,7 @@ export default function StaffView({
   const currentSupplyRequests = mySupplyReqs.slice((supplyPage - 1) * ITEMS_PER_PAGE, supplyPage * ITEMS_PER_PAGE);
 
   const tabs = [
+    { id: 'profile',         label: 'ข้อมูลของฉัน' },
     { id: 'it_repair',       label: 'แจ้งปัญหา IT',     count: myRequests.length },
     { id: 'replacement',     label: 'ขอเปลี่ยนเครื่อง',  count: myReplacementReqs.length },
     { id: 'office_supplies', label: 'เบิกอุปกรณ์',       count: mySupplyReqs.length },
@@ -500,6 +501,45 @@ export default function StaffView({
             </button>
           ))}
         </div>
+
+        {/* ==================== TAB: ข้อมูลของฉัน ==================== */}
+        {activeTab === 'profile' && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+
+            <Section title="ข้อมูลส่วนตัวและตำแหน่ง">
+              <InfoGrid>
+                <InfoItem label="ชื่อ-นามสกุล (TH)" value={currentStaff.fullName} />
+                <InfoItem label="ชื่อ-นามสกุล (EN)" value={currentStaff.fullNameEng} />
+                <InfoItem label="ชื่อเล่น"          value={currentStaff.nickname} />
+                <InfoItem label="รหัสพนักงาน"      value={currentStaff.empId} mono />
+                <InfoItem label="เลขบัตรประชาชน"   value={currentStaff.nationalId} mono />
+                <InfoItem label="ตำแหน่ง"          value={currentStaff.position} />
+                <InfoItem label="แผนก"             value={currentStaff.department} />
+                <InfoItem label="บริษัท"           value={currentStaff.company} />
+              </InfoGrid>
+            </Section>
+
+            <Section title="ข้อมูลการติดต่อ">
+              <InfoGrid>
+                <InfoItem label="เบอร์โทรศัพท์" value={currentStaff.phone} />
+                <InfoItem label="หัวหน้างาน"   value={currentStaff.manager} />
+              </InfoGrid>
+            </Section>
+
+            {(currentStaff.m365Email || currentStaff.m365Password) && (
+              <Section title="บัญชี Microsoft 365">
+                <InfoGrid>
+                  <InfoItem label="อีเมล Microsoft 365"    value={currentStaff.m365Email}    accent />
+                  <InfoItem label="รหัสผ่าน Microsoft 365" value={currentStaff.m365Password} mono />
+                </InfoGrid>
+              </Section>
+            )}
+
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              * หากข้อมูลไม่ถูกต้อง กรุณาติดต่อฝ่าย IT หรือ HR เพื่อขอแก้ไข
+            </p>
+          </div>
+        )}
 
         {/* ==================== TAB: แจ้งปัญหา IT ==================== */}
         {activeTab === 'it_repair' && (
@@ -999,6 +1039,30 @@ function EvaluationCell({ req, onOpen }) {
 }
 
 /* ── Tiny helper components ── */
+
+function Section({ title, children }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
+      <div className="border border-slate-200 rounded-xl overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+function InfoGrid({ children }) {
+  return <div className="grid grid-cols-1 sm:grid-cols-2">{children}</div>;
+}
+
+function InfoItem({ label, value, accent, mono }) {
+  return (
+    <div className="flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0">
+      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
+      <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
+        {value || <span className="text-slate-300">—</span>}
+      </span>
+    </div>
+  );
+}
 
 function EmptyState({ label }) {
   return (

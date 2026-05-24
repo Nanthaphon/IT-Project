@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { LogOut, Search, Check, AlertCircle } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import ConditionCapture from './ConditionCapture.jsx';
 
 export default function CheckoutModal({
   checkoutModal, setCheckoutModal, handleCheckout,
@@ -9,6 +10,7 @@ export default function CheckoutModal({
   checkoutEmpId, setCheckoutEmpId, employees,
   checkoutRemarks, setCheckoutRemarks,
   licenses, accessories,
+  checkoutCondition, setCheckoutCondition,
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -241,6 +243,19 @@ export default function CheckoutModal({
               rows="2"
             />
           </Field>
+
+          {/* Condition Capture — เฉพาะ assets / accessories (ไม่ใช่ license) */}
+          {!isLicense && checkoutCondition && setCheckoutCondition && (
+            <ConditionCapture
+              mode="checkout"
+              photos={checkoutCondition.photos}
+              setPhotos={(photos) => setCheckoutCondition({ ...checkoutCondition, photos })}
+              checklist={checkoutCondition.checklist}
+              setChecklist={(checklist) => setCheckoutCondition({ ...checkoutCondition, checklist })}
+              notes={checkoutCondition.notes}
+              setNotes={(notes) => setCheckoutCondition({ ...checkoutCondition, notes })}
+            />
+          )}
         </ModalBody>
         <ModalFooter>
           <Button variant="secondary" onClick={close}>ยกเลิก</Button>

@@ -9,6 +9,8 @@ const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มี
 const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸ On Hold'];
 
 const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]';
+// select เพิ่ม pr-8 ให้ไม่ทับลูกศร native ของ browser
+const selectCls = inputCls + ' pr-8 truncate';
 const labelCls = 'block text-[12px] font-medium text-slate-600 mb-1';
 
 function SectionHeader({ title, children }) {
@@ -55,7 +57,7 @@ function BigIssuesEditor({ value, onChange }) {
             </div>
             <div>
               <label className={labelCls}>Status</label>
-              <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={inputCls}>
+              <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
                 {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -102,7 +104,7 @@ function RDEditor({ value, onChange }) {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className={labelCls}>Status</label>
-                <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={inputCls}>
+                <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -157,7 +159,7 @@ function FollowupEditor({ value, onChange }) {
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className={labelCls}>Status</label>
-              <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={inputCls}>
+              <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
                 {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>

@@ -42,6 +42,7 @@ import useAdminPermissions from './hooks/useAdminPermissions.jsx';
 import UserManagementPage from './components/UserManagementPage.jsx';
 import SystemSettingsPage from './components/SystemSettingsPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
+import { EMPTY_CHECKLIST } from './components/ConditionCapture.jsx';
 import TopHeader from './components/TopHeader.jsx';
 import DashboardStats from './components/DashboardStats.jsx';
 import KpiDashboard from './components/KpiDashboard.jsx';
@@ -77,6 +78,7 @@ function App() {
   const [editStaffRepairModal, setEditStaffRepairModal] = useState({ isOpen: false, data: null });
 
   const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar drawer
   const [pendingAssetId, setPendingAssetId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('asset') || null;
@@ -162,6 +164,9 @@ function App() {
   const [returnModal, setReturnModal] = useState({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
   const [returnCondition, setReturnCondition] = useState('good');
   const [returnRemarks, setReturnRemarks] = useState('');
+  // ─── หลักฐานสภาพอุปกรณ์ (รูป + checklist + หมายเหตุ) ───
+  const [checkoutCondition, setCheckoutCondition] = useState({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
+  const [returnConditionData, setReturnConditionData] = useState({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
   const [repairModal, setRepairModal] = useState({ isOpen: false, assetId: null, assetName: null, maxRepair: 0, brokenIndex: undefined });
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairRemarks, setRepairRemarks] = useState('');
@@ -863,8 +868,12 @@ function App() {
             availableItems: availItems,
           });
           await addDoc(collection(db, 'accessories_transactions'), {
-            empId: emp.id, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
-            condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now()
+            empId: emp.id, empName: newAssignee.empName, assetId: checkoutModal.assetId, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
+            condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now(),
+            checkoutPhotos: checkoutCondition.photos,
+            checkoutChecklist: checkoutCondition.checklist,
+            checkoutNotes: checkoutCondition.notes,
+            checkoutId: newAssignee.checkoutId,
           });
         } else {
           return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอ', type: 'error' });
@@ -930,12 +939,17 @@ function App() {
           status: 'ถูกใช้งาน', assignedTo: emp.id, assignedName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
         });
         const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
+        const empName = `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`;
         await addDoc(collection(db, 'assets_transactions'), {
-          empId: emp.id, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
+          empId: emp.id, empName, assetId: checkoutModal.assetId, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now(),
+          checkoutPhotos: checkoutCondition.photos,
+          checkoutChecklist: checkoutCondition.checklist,
+          checkoutNotes: checkoutCondition.notes,
         });
       }
       setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined });
       setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks('');
+      setCheckoutCondition({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
   };
@@ -1016,15 +1030,31 @@ function App() {
         }
         await updateDoc(doc(db, collectionName, returnModal.assetId), updateData);
         const txCollection = collectionName === 'accessories' ? 'accessories_transactions' : 'licenses_transactions';
-        await addDoc(collection(db, txCollection), { empId: returnModal.empId, empName: returnModal.empName, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน', condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ', remarks: returnRemarks.trim() || '-', timestamp: Date.now() });
+        await addDoc(collection(db, txCollection), {
+          empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน',
+          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+          remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
+          returnPhotos: returnConditionData.photos,
+          returnChecklist: returnConditionData.checklist,
+          returnNotes: returnConditionData.notes,
+          checkoutId: returnModal.checkoutId,
+        });
 
       } else {
         await updateDoc(doc(db, 'assets', returnModal.assetId), { status: returnCondition === 'broken' ? 'ชำรุดเสียหาย' : 'พร้อมใช้งาน', assignedTo: null, assignedName: null });
-        await addDoc(collection(db, 'assets_transactions'), { empId: returnModal.empId, empName: returnModal.empName, assetName: returnModal.assetName, category: 'assets', action: 'รับคืน', condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ', remarks: returnRemarks.trim() || '-', timestamp: Date.now() });
+        await addDoc(collection(db, 'assets_transactions'), {
+          empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: 'assets', action: 'รับคืน',
+          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+          remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
+          returnPhotos: returnConditionData.photos,
+          returnChecklist: returnConditionData.checklist,
+          returnNotes: returnConditionData.notes,
+        });
       }
 
       setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
       setReturnCondition('good'); setReturnRemarks('');
+      setReturnConditionData({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
       setCustomAlert({ isOpen: true, title: 'รับคืนสำเร็จ', message: 'รับคืนเข้าระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' }); }
   };
@@ -1245,7 +1275,7 @@ function App() {
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#F1F5FA] text-slate-900 font-sans">
+    <div className="flex h-screen bg-[#F1F5FA] text-slate-900 font-sans">
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar
         activeMenu={activeMenu}
@@ -1255,12 +1285,14 @@ function App() {
         isSuperAdmin={isSuperAdmin}
         allowedMenus={isSuperAdmin ? null : adminPermissions?.menus || []}
         canManageUsers={isSuperAdmin || adminPermissions?.canManagePasswords === true}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
       />
-      
-      <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
-        <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} />
 
-        <div className="flex-1 overflow-auto p-4 md:p-8">
+      <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
+        <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
+
+        <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-8">
           {activeMenu === 'field_options' ? (
             <DropdownOptionsManager
               fieldOptions={fieldOptions}
@@ -1374,14 +1406,14 @@ function App() {
       
       <ModalsContainer 
         isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} assetDocument={assetDocument} setAssetDocument={setAssetDocument} fieldOptions={fieldOptions}
-        checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks}
+        checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} checkoutCondition={checkoutCondition} setCheckoutCondition={setCheckoutCondition}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}
         selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} showConfirm={showConfirm} setCustomAlert={setCustomAlert}
         editEmpModal={editEmpModal} setEditEmpModal={setEditEmpModal} handleUpdateEmployee={handleUpdateEmployee} handleEditEmpChange={handleEditEmpChange}
         editAssetModal={editAssetModal} setEditAssetModal={setEditAssetModal} handleUpdateAsset={handleUpdateAsset} handleEditAssetChange={handleEditAssetChange}
         editLicenseModal={editLicenseModal} setEditLicenseModal={setEditLicenseModal} handleUpdateLicense={handleUpdateLicense} handleEditLicenseChange={handleEditLicenseChange}
         isImportModalOpen={isImportModalOpen} setIsImportModalOpen={setIsImportModalOpen} handleDownloadTemplate={handleDownloadTemplate} handleImportEmployees={handleImportEmployees} activeMenu={activeMenu}
-        returnModal={returnModal} returnCondition={returnCondition} setReturnCondition={setReturnCondition} returnRemarks={returnRemarks} setReturnRemarks={setReturnRemarks} handleConfirmReturn={handleConfirmReturn}
+        returnModal={returnModal} returnCondition={returnCondition} setReturnCondition={setReturnCondition} returnRemarks={returnRemarks} setReturnRemarks={setReturnRemarks} handleConfirmReturn={handleConfirmReturn} returnConditionData={returnConditionData} setReturnConditionData={setReturnConditionData}
         repairModal={repairModal} setRepairModal={setRepairModal} repairQuantity={repairQuantity} setRepairQuantity={setRepairQuantity} repairRemarks={repairRemarks} setRepairRemarks={setRepairRemarks} handleConfirmRepair={handleConfirmRepair}
         confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete}
         confirmModal={confirmModal} handleConfirmModalOk={handleConfirmModalOk} closeConfirmModal={closeConfirmModal}

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import OwnershipHistory from './OwnershipHistory.jsx';
 
 export default function AssetDetailsModal({
   selectedAssetDetail, setSelectedAssetDetail, selectedAssetCategory, setSelectedAssetCategory,
   accessories, assets, licenses, setCheckoutModal, setReturnModal, handleCheckin, openEditLicenseModal, openEditAssetModal,
-  setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert
+  setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert,
+  transactions = [],
 }) {
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
@@ -869,7 +871,7 @@ export default function AssetDetailsModal({
     const rawTag = currentAssetDetail.assetTag || currentAssetDetail.sn || currentAssetDetail.name || "0";
     const barcodeDataString = rawTag.replace(/[^a-zA-Z0-9-]/g, "");
     
-    const qrDataString = `https://it-asset-management-75aa8.web.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
+    const qrDataString = `https://itassetmenagement.vercel.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
 
     return (
       <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
@@ -1019,6 +1021,14 @@ export default function AssetDetailsModal({
               className={`py-3 px-5 text-[12.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'history' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
             >
               ประวัติจัดซื้อ ({purchaseHistory.length})
+            </button>
+          )}
+          {(selectedAssetCategory === 'assets' || selectedAssetCategory === 'accessories') && (
+            <button
+              onClick={() => { setActiveTab('ownership'); setIsAddingHistory(false); setEditingHistoryId(null); }}
+              className={`py-3 px-5 text-[12.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'ownership' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            >
+              ประวัติการครอบครอง
             </button>
           )}
           <button
@@ -1510,6 +1520,17 @@ export default function AssetDetailsModal({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: ประวัติการครอบครอง */}
+          {activeTab === 'ownership' && (selectedAssetCategory === 'assets' || selectedAssetCategory === 'accessories') && (
+            <div className="animate-in fade-in duration-200">
+              <OwnershipHistory
+                assetId={currentAssetDetail.id}
+                transactions={transactions}
+                currentHolder={currentAssetDetail.assignedName ? { empName: currentAssetDetail.assignedName } : null}
+              />
             </div>
           )}
 

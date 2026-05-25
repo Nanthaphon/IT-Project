@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Printer } from 'lucide-react';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
+import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -23,7 +25,30 @@ export default function EmployeeDetailsModal({
 }) {
   const [historyFilter, setHistoryFilter] = useState('all');
   const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
   if (!selectedEmployee) return null;
+
+  /* ── Helper: open return-form pre-print modal for a given return-tx row ── */
+  const openPrintReturn = (returnTx) => {
+    // 1. Find the matching checkout transaction (by checkoutId, or fallback empId+earlier-timestamp)
+    const allTx = transactions || [];
+    const matchedCheckout = allTx.find(t =>
+      t.action === 'เบิกจ่าย' && (
+        (returnTx.checkoutId && t.checkoutId === returnTx.checkoutId) ||
+        (!returnTx.checkoutId && t.empId === returnTx.empId &&
+         t.assetId === returnTx.assetId && t.timestamp < returnTx.timestamp)
+      )
+    );
+    // 2. Find the asset/accessory object (for Tier, model, etc.)
+    const allItems = [...(assets || []), ...(accessories || [])];
+    const matchedAsset = allItems.find(a => a.id === returnTx.assetId)
+      || { name: returnTx.assetName };
+    // 3. Open modal
+    setPrintReturnFor({
+      period: { checkout: matchedCheckout || returnTx, return: returnTx },
+      asset:  matchedAsset,
+    });
+  };
 
   /* ── derived data ── */
   const empAssets = assets.filter(i => i.assignedTo === selectedEmployee.id);
@@ -292,6 +317,7 @@ export default function EmployeeDetailsModal({
                           <Th center>การดำเนินการ</Th>
                           <Th center>สภาพ</Th>
                           <Th>หมายเหตุ</Th>
+                          <Th center>พิมพ์</Th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50 bg-white">
@@ -332,6 +358,21 @@ export default function EmployeeDetailsModal({
                               </td>
                               <td className="px-4 py-3 text-slate-400 text-xs max-w-[160px] truncate" title={rec.remarks}>
                                 {rec.remarks || '-'}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {/* พิมพ์ใบรับคืน — เฉพาะแถวที่เป็น "รับคืน" และไม่ใช่ license */}
+                                {!isCheckout && rec.category !== 'licenses' && rec.category !== 'license' ? (
+                                  <button
+                                    onClick={() => openPrintReturn(rec)}
+                                    title="พิมพ์ใบรับคืน (IT-FORM-002)"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11.5px] font-semibold text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 bg-white hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] transition"
+                                  >
+                                    <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
+                                    ใบรับคืน
+                                  </button>
+                                ) : (
+                                  <span className="text-slate-300 text-[12px]">—</span>
+                                )}
                               </td>
                             </tr>
                           );
@@ -394,6 +435,18 @@ export default function EmployeeDetailsModal({
         empLicenses={empLicenses}
         empAccessories={empAccessories}
       />
+
+      {/* ── Pre-Return Assessment Modal (พิมพ์ IT-FORM-002 จากแถว "รับคืน") ── */}
+      {printReturnFor && (
+        <PreReturnAssessmentModal
+          isOpen={true}
+          onClose={() => setPrintReturnFor(null)}
+          employee={selectedEmployee}
+          mainAsset={printReturnFor.asset}
+          handoverDate={printReturnFor.period.checkout?.timestamp}
+          returnDate={printReturnFor.period.return?.timestamp}
+        />
+      )}
     </div>
   );
 }

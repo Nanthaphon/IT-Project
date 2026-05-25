@@ -155,8 +155,17 @@ export function printHandoverForm({
     ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#1E487A;border:1px solid #1E487A;border-radius:2px;font-size:10px">✓</span>`
     : `<span style="display:inline-block;width:14px;height:14px;border:1.2px solid #94a3b8;border-radius:2px"></span>`;
 
-  /* ── Main computer in this handover (first asset, if any) ── */
-  const mainAsset = empAssets[0] || {};
+  /* ── ส่วน 2: ข้อมูลอุปกรณ์ — แสดงทุกตัวที่พนักงานถือครอง ── */
+  const assetRows = empAssets.map((a, i) => `
+    <tr>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${a.name || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${a.model || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${a.tier || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${a.assetTag || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${a.sn || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:right;font-size:11px;font-variant-numeric:tabular-nums">${a.cost ? fmtTHB(a.cost) : '-'}</td>
+    </tr>`).join('');
 
   /* ── ส่วน 3: ซอฟต์แวร์ ── */
   const softwareRows = empLicenses.map((l, i) => `
@@ -330,18 +339,24 @@ export function printHandoverForm({
       </div>
     </div>
 
-    <!-- ── 2. ข้อมูลอุปกรณ์ ── -->
-    ${sectionBar(2, 'ข้อมูลอุปกรณ์')}
-    <div style="border:1px solid #cbd5e1;padding:8px 12px;border-radius:3px">
-      <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr;gap:4px 18px">
-        ${ic('ชื่ออุปกรณ์', mainAsset.name || '')}
-        ${ic('รุ่น / Model', mainAsset.model || '')}
-        ${ic('Tier', mainAsset.tier || '')}
-        ${ic('Asset Tag', mainAsset.assetTag || '')}
-        ${ic('Serial Number', mainAsset.sn || '')}
-        ${ic('มูลค่า (THB)', fmtTHB(mainAsset.cost))}
-      </div>
-    </div>
+    <!-- ── 2. ข้อมูลอุปกรณ์ (รวมทุกชิ้นที่พนักงานถือครอง) ── -->
+    ${sectionBar(2, `ข้อมูลอุปกรณ์${empAssets.length > 1 ? ` (${empAssets.length} รายการ)` : ''}`)}
+    <table>
+      <thead>
+        <tr style="background:#e2e8f0">
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:34px">ลำดับ</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px">ชื่ออุปกรณ์</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px">รุ่น / Model</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:80px">Tier</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:130px">Asset Tag</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:110px">Serial Number</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:90px">มูลค่า (THB)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${assetRows || `<tr><td colspan="7" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#64748b;font-size:10.5px">ไม่มีทรัพย์สินหลักที่ผูกกับพนักงาน</td></tr>`}
+      </tbody>
+    </table>
 
     <!-- ── 3. ซอฟต์แวร์ ── -->
     ${sectionBar(3, 'ซอฟต์แวร์ที่ติดตั้ง')}

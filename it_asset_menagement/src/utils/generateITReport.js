@@ -79,6 +79,9 @@ const statusOpts = (s = '') => {
   return { color: C.grayText };
 };
 
+/* ─── Forward decl (assigned just below) ─── */
+let addHeader, addFooter;
+
 /* ─── Footer bar ─── */
 addFooter = (pptx, slide, pageNum, month, year, company) => {
   slide.addShape(pptx.ShapeType.rect, {
@@ -98,9 +101,6 @@ addFooter = (pptx, slide, pageNum, month, year, company) => {
 //   Subtract 1 for the header row that repeats on every slide.
 const rowsPerSlide = (rowH) =>
   Math.max(1, Math.floor(6.0 / rowH) - 1);
-
-/* ─── Forward decl (defined below) ─── */
-let addHeader, addFooter;
 
 /* ─── Render a (possibly multi-slide) table with auto-pagination ─── */
 //   Returns number of slides consumed so caller can keep page counter in sync.

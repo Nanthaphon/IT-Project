@@ -169,15 +169,15 @@ export function printReturnForm({
   }
   const damageRows = damageRowsArr.join('');
 
-  /* ── Photo cells ── */
+  /* ── Photo cells (compact heights so all sections fit one page) ── */
   const photoCell = (src, label, big = false) => `
-    <td style="border:1px solid #cbd5e1;padding:6px;vertical-align:top;width:${big ? '50%' : '33.33%'}">
-      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:4px;text-align:center">${label}</div>
+    <td style="border:1px solid #cbd5e1;padding:5px;vertical-align:top;width:${big ? '50%' : '33.33%'}">
+      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:3px;text-align:center">${label}</div>
       ${src
-        ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:${big ? '180px' : '140px'};overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
+        ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:${big ? '120px' : '100px'};overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
              <img src="${src}" alt="${label}" style="max-width:100%;max-height:100%;object-fit:contain"/>
            </div>`
-        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:${big ? '180px' : '140px'};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>`
+        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:${big ? '120px' : '100px'};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>`
       }
     </td>`;
 
@@ -374,37 +374,37 @@ export function printReturnForm({
 
     <!-- ── 6. เงื่อนไขรับคืน ── -->
     ${sectionBar(6, 'เงื่อนไขการรับคืนทรัพย์สิน')}
-    <div style="border:1px solid #cbd5e1;padding:10px 14px;border-radius:3px;font-size:11.5px;line-height:1.85">
-      <div style="font-weight:700;margin-bottom:4px">ข้อตกลงและเงื่อนไข</div>
+    <div style="border:1px solid #cbd5e1;padding:7px 12px;border-radius:3px;font-size:11px;line-height:1.6">
+      <div style="font-weight:700;margin-bottom:2px">ข้อตกลงและเงื่อนไข</div>
       <div>1. IT เจ้าหน้าที่และพนักงานรับทราบผลการประเมินสภาพตามที่บันทึกไว้ในเอกสารนี้</div>
       <div>2. ค่าปรับ (ถ้ามี) จะถูกหักจากเงินเดือนงวดสุดท้าย หรือตามข้อตกลงกับแผนกบุคคล (HR)</div>
       <div>3. อ้างอิงค่าปรับตามตาราง IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${tier}</div>
       <div>4. กรณีออกพนักงาน: แผนกบุคคลต้องลงนามรับทราบก่อนดำเนินการด้านเอกสารลาออก/เลิกจ้าง</div>
       <div>5. การโต้แย้งผลการประเมินต้องทำภายใน 3 วันทำการหลังลงนาม</div>
-      ${notes ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #cbd5e1"><b>หมายเหตุ:</b> ${notes.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+      ${notes ? `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #cbd5e1"><b>หมายเหตุ:</b> ${notes.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
     </div>
 
     <!-- ── 7. ลายมือชื่อ 3 ฝ่าย (IT / พนักงาน / HR) ── -->
     ${sectionBar(7, 'ลายมือชื่อ 3 ฝ่าย (IT / พนักงาน / แผนกบุคคล)')}
     <table>
       <tr>
-        <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
-          <div style="font-size:12px;font-weight:700;margin-bottom:6px">เจ้าหน้าที่ IT ผู้รับคืน</div>
-          <div style="border-bottom:1px solid #000;margin:40px 14px 8px"></div>
+        <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">เจ้าหน้าที่ IT ผู้รับคืน</div>
+          <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
-          <div style="font-size:11px;margin-top:8px">วันที่ .....................................</div>
+          <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
-        <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
-          <div style="font-size:12px;font-weight:700;margin-bottom:6px">พนักงานผู้ส่งคืน</div>
-          <div style="border-bottom:1px solid #000;margin:40px 14px 8px"></div>
+        <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">พนักงานผู้ส่งคืน</div>
+          <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
           <div style="font-size:11.5px;font-weight:700">( ${employee.fullName || '.....................................'} )</div>
-          <div style="font-size:11px;margin-top:8px">วันที่ .....................................</div>
+          <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
-        <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
-          <div style="font-size:12px;font-weight:700;margin-bottom:6px">แผนกบุคคล (HR) รับทราบ / อนุมัติ</div>
-          <div style="border-bottom:1px solid #000;margin:40px 14px 8px"></div>
+        <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">แผนกบุคคล (HR) รับทราบ / อนุมัติ</div>
+          <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
-          <div style="font-size:11px;margin-top:8px">วันที่ .....................................</div>
+          <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
       </tr>
     </table>

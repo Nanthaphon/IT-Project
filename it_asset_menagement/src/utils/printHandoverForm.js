@@ -224,17 +224,17 @@ export function printHandoverForm({
   }).join('');
   const grandTotalDisplay = grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(2);
 
-  /* ── Photo cell — render uploaded image or placeholder ── */
+  /* ── Photo cell — render uploaded image or placeholder (compact to fit page 3) ── */
   const photoCell = (key, label) => {
     const src = photos[key];
     return `
-    <td style="border:1px solid #cbd5e1;padding:6px;vertical-align:top;width:33.33%">
-      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:4px;text-align:center">${label}</div>
+    <td style="border:1px solid #cbd5e1;padding:5px;vertical-align:top;width:33.33%">
+      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:3px;text-align:center">${label}</div>
       ${src
-        ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:170px;overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
+        ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:130px;overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
              <img src="${src}" alt="${label}" style="max-width:100%;max-height:100%;object-fit:contain"/>
            </div>`
-        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:170px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>`
+        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:130px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>`
       }
     </td>`;
   };
@@ -422,37 +422,36 @@ export function printHandoverForm({
       </tbody>
     </table>
 
+  </div><!-- end page 2 (assessment alone) -->
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!--      หน้าที่ 3 — ตำหนิ + รูปภาพ + เงื่อนไข + ลายเซ็น  -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page">
+
     <!-- ── 6. บันทึกตำหนิที่มีอยู่แล้ว ── -->
     ${sectionBar(6, 'บันทึกตำหนิที่มีอยู่แล้ว')}
-    <div style="border:1px solid #cbd5e1;padding:8px 12px;border-radius:3px">
-      <div style="font-size:11px;color:#475569;margin-bottom:4px">บันทึกตำหนิ / ความเสียหายที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")</div>
-      <div style="font-size:11px;font-weight:600;margin-bottom:4px">บรรยาย:</div>
+    <div style="border:1px solid #cbd5e1;padding:6px 12px;border-radius:3px">
+      <div style="font-size:11px;color:#475569;margin-bottom:3px">บันทึกตำหนิ / ความเสียหายที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")</div>
       ${defectsNote
-        ? `<div style="font-size:11.5px;white-space:pre-wrap;line-height:1.7;padding:4px 0">${defectsNote.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
-        : `<div style="border-bottom:1px dotted #94a3b8;height:18px"></div>
-           <div style="border-bottom:1px dotted #94a3b8;height:18px;margin-top:4px"></div>
-           <div style="border-bottom:1px dotted #94a3b8;height:18px;margin-top:4px"></div>`
+        ? `<div style="font-size:11.5px;white-space:pre-wrap;line-height:1.6;padding:2px 0">${defectsNote.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+        : `<div style="border-bottom:1px dotted #94a3b8;height:16px"></div>
+           <div style="border-bottom:1px dotted #94a3b8;height:16px;margin-top:3px"></div>`
       }
     </div>
 
     <!-- ── 7. รูปภาพ 6 มุม ── -->
     ${sectionBar(7, 'รูปภาพสภาพอุปกรณ์ก่อนส่งมอบ')}
-    <div style="font-size:10.5px;color:#475569;margin-bottom:4px">แนบรูปภาพ 6 มุม: ฝา / ฐาน / ซ้าย / ขวา / จอ+คีย์บอร์ด / ตำหนิเดิม</div>
+    <div style="font-size:10.5px;color:#475569;margin-bottom:3px">แนบรูปภาพ 6 มุม: ฝา / ฐาน / ซ้าย / ขวา / จอ+คีย์บอร์ด / ตำหนิเดิม</div>
     <table>
       <tr>${photoCell('topLid', 'ฝาด้านบน')}${photoCell('base', 'ฐานเครื่อง')}${photoCell('left', 'ด้านซ้าย')}</tr>
       <tr>${photoCell('right', 'ด้านขวา')}${photoCell('screenKeyboard', 'จอ + คีย์บอร์ด')}${photoCell('existingDefect', 'ตำหนิเดิม')}</tr>
     </table>
 
-  </div><!-- end page 2 -->
-
-  <!-- ════════════════════════════════════════════════ -->
-  <!--          หน้าที่ 3 — เงื่อนไข + ลายเซ็น             -->
-  <!-- ════════════════════════════════════════════════ -->
-  <div class="page">
-
+    <!-- ── 8. เงื่อนไขรับมอบ ── -->
     ${sectionBar(8, 'เงื่อนไขการรับมอบทรัพย์สิน')}
-    <div style="border:1px solid #cbd5e1;padding:10px 14px;border-radius:3px;font-size:11.5px;line-height:1.85">
-      <div style="font-weight:700;margin-bottom:4px">ข้อตกลงและเงื่อนไข</div>
+    <div style="border:1px solid #cbd5e1;padding:7px 12px;border-radius:3px;font-size:11px;line-height:1.6">
+      <div style="font-weight:700;margin-bottom:2px">ข้อตกลงและเงื่อนไข</div>
       <div>1. พนักงานรับทราบและยืนยันว่าอุปกรณ์ที่รับมอบอยู่ในสภาพตามที่ระบุในเอกสารนี้</div>
       <div>2. พนักงานมีหน้าที่ดูแลรักษาอุปกรณ์ให้อยู่ในสภาพดีตลอดระยะเวลาการใช้งาน</div>
       <div>3. หากเกิดความเสียหายจากการใช้งานที่ผิดประเภทหรือความประมาท จะถูกหักค่าเสียหายตามตาราง IT-POL-LAP-001</div>
@@ -460,31 +459,32 @@ export function printHandoverForm({
       <div>5. อุปกรณ์เป็นทรัพย์สินของบริษัท ห้ามโอน ขาย ให้ยืมแก่บุคคลภายนอกโดยไม่ได้รับอนุญาต</div>
     </div>
 
+    <!-- ── 9. ลายเซ็น 3 ฝ่าย ── -->
     ${sectionBar(9, 'ลายมือชื่อ 3 ฝ่าย (พนักงาน / IT / ผู้บังคับบัญชา)')}
     <table>
       <tr>
-        <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
-          <div style="font-size:12px;font-weight:700;margin-bottom:6px">พนักงานผู้รับมอบ</div>
-          <div style="border-bottom:1px solid #000;margin:40px 14px 8px"></div>
+        <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">พนักงานผู้รับมอบ</div>
+          <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
           <div style="font-size:11.5px;font-weight:700">( ${employee.fullName || '.....................................'} )</div>
-          <div style="font-size:11px;margin-top:8px">วันที่ .....................................</div>
+          <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
-        <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
-          <div style="font-size:12px;font-weight:700;margin-bottom:6px">เจ้าหน้าที่ IT</div>
-          <div style="border-bottom:1px solid #000;margin:40px 14px 8px"></div>
+        <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">เจ้าหน้าที่ IT</div>
+          <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
-          <div style="font-size:11px;margin-top:8px">วันที่ .....................................</div>
+          <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
-        <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
-          <div style="font-size:12px;font-weight:700;margin-bottom:6px">ผู้บังคับบัญชา</div>
-          <div style="border-bottom:1px solid #000;margin:40px 14px 8px"></div>
+        <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">ผู้บังคับบัญชา</div>
+          <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
           <div style="font-size:11.5px;font-weight:700">( ${employee.manager || '.....................................'} )</div>
-          <div style="font-size:11px;margin-top:8px">วันที่ .....................................</div>
+          <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
       </tr>
     </table>
 
-  </div><!-- end page 3 -->
+  </div><!-- end page 3 (defects + photos + terms + signatures) -->
 
   ${renderAppendix({ employeeName: employee.fullName, docNo, thDate })}
 

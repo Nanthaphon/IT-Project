@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2, X } from 'lucide-react';
+import { User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2, X, Clock, Pencil, Trash2, Save } from 'lucide-react';
+import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase.js';
 import { CHECKLIST_FIELDS, FIELD_STATUS_LABELS } from './ConditionCapture.jsx';
 
 // helper: คืน label ของสถานะตามฟิลด์ (ถ้าไม่รู้จัก field ใช้ default)
@@ -12,6 +14,33 @@ const STATUS_COLOR = {
   broken:  'text-rose-700 bg-rose-50 ring-rose-200',
 };
 
+/* ── format duration as "X ปี Y เดือน Z วัน" (Thai friendly) ── */
+function formatDuration(fromTs, toTs) {
+  if (!fromTs) return '';
+  const ms = (toTs || Date.now()) - fromTs;
+  if (ms < 0) return '';
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  if (days === 0) {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    return hours <= 0 ? 'ไม่กี่นาที' : `${hours} ชั่วโมง`;
+  }
+  if (days < 30) return `${days} วัน`;
+  const years  = Math.floor(days / 365);
+  const months = Math.floor((days % 365) / 30);
+  const remDays = (days % 365) % 30;
+  const parts = [];
+  if (years)  parts.push(`${years} ปี`);
+  if (months) parts.push(`${months} เดือน`);
+  if (remDays && !years) parts.push(`${remDays} วัน`); // skip days when ≥ 1 year for compactness
+  return parts.join(' ') || `${days} วัน`;
+}
+
+/* ── tx collection name from category ── */
+const txCollectionOf = (category) =>
+  category === 'accessories' ? 'accessories_transactions'
+  : category === 'licenses' ? 'licenses_transactions'
+  : 'assets_transactions';
+
 /**
  * OwnershipHistory — แสดงประวัติการครอบครองทรัพย์สิน
  *
@@ -22,6 +51,8 @@ const STATUS_COLOR = {
  */
 export default function OwnershipHistory({ assetId, transactions = [], currentHolder = null }) {
   const [viewerImage, setViewerImage] = useState(null);
+  const [editPeriod, setEditPeriod] = useState(null);
+  const [deletePeriod, setDeletePeriod] = useState(null);
 
   // กรอง transactions ของ asset นี้ เรียงใหม่ → เก่า
   const relevant = transactions
@@ -62,6 +93,8 @@ export default function OwnershipHistory({ assetId, transactions = [], currentHo
               period={p}
               isCurrent={isCurrent}
               onPhotoClick={setViewerImage}
+              onEdit={() => setEditPeriod(p)}
+              onDelete={() => setDeletePeriod(p)}
             />
           );
         })}
@@ -87,16 +120,34 @@ export default function OwnershipHistory({ assetId, transactions = [], currentHo
           />
         </div>
       )}
+
+      {/* Edit modal */}
+      {editPeriod && (
+        <EditPeriodModal
+          period={editPeriod}
+          onClose={() => setEditPeriod(null)}
+        />
+      )}
+
+      {/* Delete confirm */}
+      {deletePeriod && (
+        <DeletePeriodConfirm
+          period={deletePeriod}
+          onClose={() => setDeletePeriod(null)}
+        />
+      )}
     </>
   );
 }
 
 /* ── Period Card ── */
-function PeriodCard({ period, isCurrent, onPhotoClick }) {
+function PeriodCard({ period, isCurrent, onPhotoClick, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
   const { checkout, return: ret } = period;
 
   const fmt = (ts) => ts ? new Date(ts).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+
+  const duration = formatDuration(checkout.timestamp, ret?.timestamp);
 
   // เช็คความเสียหาย: เทียบ checkout vs return checklist
   const damages = [];
@@ -116,26 +167,43 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
       isCurrent ? 'ring-[#1E487A]/30 bg-blue-50/40' : damages.length > 0 ? 'ring-rose-200 bg-rose-50/30' : 'ring-slate-200 bg-white'
     }`}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+      <div className="flex items-start justify-between gap-3 px-4 py-3">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
             isCurrent ? 'bg-[#1E487A] text-white' : 'bg-slate-100 text-slate-500'
           }`}>
             <User className="h-4 w-4" strokeWidth={2} />
           </div>
-          <div className="min-w-0">
-            <p className="text-[14px] font-semibold text-slate-800 truncate">
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold text-slate-800 truncate flex items-center gap-1.5 flex-wrap">
               {checkout.empName || '-'}
-              {isCurrent && <span className="ml-1.5 text-[11px] font-semibold text-[#1E487A] bg-[#1E487A]/10 px-1.5 py-0.5 rounded">ปัจจุบัน</span>}
+              {isCurrent && <span className="text-[11px] font-semibold text-[#1E487A] bg-[#1E487A]/10 px-1.5 py-0.5 rounded">ปัจจุบัน</span>}
             </p>
-            <p className="text-[12px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+            {/* Date range */}
+            <p className="text-[12px] text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
               <Calendar className="h-3 w-3" strokeWidth={2} />
-              {fmt(checkout.timestamp)}
-              {ret && <> <ArrowRight className="h-3 w-3" /> {fmt(ret.timestamp)}</>}
+              <span>{fmt(checkout.timestamp)}</span>
+              <ArrowRight className="h-3 w-3 text-slate-400" />
+              <span className={ret ? '' : 'text-[#1E487A] font-semibold'}>
+                {ret ? fmt(ret.timestamp) : 'ปัจจุบัน'}
+              </span>
             </p>
+            {/* Duration badge — NEW */}
+            {duration && (
+              <p className="text-[12px] mt-1 flex items-center gap-1.5">
+                <span className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-md ring-1 ring-inset ${
+                  isCurrent
+                    ? 'bg-[#1E487A]/8 text-[#1E487A] ring-[#1E487A]/20'
+                    : 'bg-slate-50 text-slate-700 ring-slate-200'
+                }`}>
+                  <Clock className="h-3 w-3" strokeWidth={2.4} />
+                  {isCurrent ? 'ครอบครองมาแล้ว' : 'ระยะเวลาใช้งาน'} {duration}
+                </span>
+              </p>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {damages.length > 0 && (
             <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200">
               <AlertTriangle className="h-3 w-3" strokeWidth={2.4} /> เสียหาย {damages.length} จุด
@@ -148,9 +216,24 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
           )}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-[12px] font-semibold text-[#1E487A] hover:underline shrink-0"
+            className="text-[12px] font-semibold text-[#1E487A] hover:underline shrink-0 px-1"
           >
             {expanded ? 'ย่อ' : 'รายละเอียด'}
+          </button>
+          {/* Edit / Delete buttons — NEW */}
+          <button
+            onClick={onEdit}
+            title="แก้ไขวันที่ / หมายเหตุ"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-amber-600 hover:bg-amber-50 hover:text-amber-700 ring-1 ring-inset ring-slate-200 hover:ring-amber-300 bg-white transition"
+          >
+            <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+          <button
+            onClick={onDelete}
+            title="ลบประวัติช่วงนี้"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-rose-500 hover:bg-rose-50 hover:text-rose-600 ring-1 ring-inset ring-slate-200 hover:ring-rose-300 bg-white transition"
+          >
+            <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -383,6 +466,217 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
           💬 {notes}
         </p>
       )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Edit Period Modal — แก้ไขวันที่ส่งมอบ/รับคืน + หมายเหตุ
+   ════════════════════════════════════════════════════════════════ */
+function EditPeriodModal({ period, onClose }) {
+  const { checkout, return: ret } = period;
+  const toInputDate = (ts) => ts ? new Date(ts).toISOString().slice(0, 16) : '';
+
+  const [checkoutDate,   setCheckoutDate]   = useState(toInputDate(checkout.timestamp));
+  const [checkoutNotes,  setCheckoutNotes]  = useState(checkout.checkoutNotes || '');
+  const [returnDate,     setReturnDate]     = useState(toInputDate(ret?.timestamp));
+  const [returnNotes,    setReturnNotes]    = useState(ret?.returnNotes || '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    setError('');
+    setSaving(true);
+    try {
+      // Update checkout
+      const coCol = txCollectionOf(checkout.category);
+      const coUpdates = { timestamp: new Date(checkoutDate).getTime() };
+      if (checkoutNotes !== (checkout.checkoutNotes || '')) coUpdates.checkoutNotes = checkoutNotes;
+      await updateDoc(doc(db, coCol, checkout.id), coUpdates);
+
+      // Update return (if exists)
+      if (ret && returnDate) {
+        const rCol = txCollectionOf(ret.category);
+        const rUpdates = { timestamp: new Date(returnDate).getTime() };
+        if (returnNotes !== (ret.returnNotes || '')) rUpdates.returnNotes = returnNotes;
+        await updateDoc(doc(db, rCol, ret.id), rUpdates);
+      }
+
+      onClose();
+    } catch (err) {
+      setError(err.message || 'บันทึกไม่สำเร็จ');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-lg ring-1 ring-slate-200/60 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Pencil className="h-4 w-4" strokeWidth={2} />
+            </div>
+            <div>
+              <h3 className="text-[16px] font-semibold text-slate-900">แก้ไขประวัติการครอบครอง</h3>
+              <p className="text-[12.5px] text-slate-500">{checkout.empName}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition">
+            <X className="h-5 w-5" strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-5">
+          {/* Checkout */}
+          <div className="rounded-xl ring-1 ring-blue-200 bg-blue-50/40 p-4">
+            <p className="text-[12px] font-bold text-blue-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} /> ตอนส่งมอบ
+            </p>
+            <label className="block text-[12.5px] font-medium text-slate-600 mb-1">วันและเวลา</label>
+            <input
+              type="datetime-local"
+              value={checkoutDate}
+              onChange={(e) => setCheckoutDate(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+            />
+            <label className="block text-[12.5px] font-medium text-slate-600 mb-1 mt-3">หมายเหตุ</label>
+            <textarea
+              rows={2}
+              value={checkoutNotes}
+              onChange={(e) => setCheckoutNotes(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
+              placeholder="หมายเหตุตอนส่งมอบ"
+            />
+          </div>
+
+          {/* Return */}
+          {ret ? (
+            <div className="rounded-xl ring-1 ring-emerald-200 bg-emerald-50/30 p-4">
+              <p className="text-[12px] font-bold text-emerald-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} /> ตอนรับคืน
+              </p>
+              <label className="block text-[12.5px] font-medium text-slate-600 mb-1">วันและเวลา</label>
+              <input
+                type="datetime-local"
+                value={returnDate}
+                onChange={(e) => setReturnDate(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+              />
+              <label className="block text-[12.5px] font-medium text-slate-600 mb-1 mt-3">หมายเหตุ</label>
+              <textarea
+                rows={2}
+                value={returnNotes}
+                onChange={(e) => setReturnNotes(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
+                placeholder="หมายเหตุตอนรับคืน"
+              />
+            </div>
+          ) : (
+            <div className="rounded-xl ring-1 ring-dashed ring-slate-300 bg-slate-50 p-4 text-center">
+              <p className="text-[12.5px] text-slate-500">— ยังไม่มีการรับคืน (พนักงานถือครองปัจจุบัน) —</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-[12.5px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex justify-end gap-2.5">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="px-5 py-2.5 text-[13.5px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition disabled:opacity-60"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-lg shadow-sm hover:shadow-md transition disabled:opacity-60"
+            style={{ background: '#1E487A' }}
+          >
+            {saving ? (
+              <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
+            ) : (
+              <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึก</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Delete confirm — ลบทั้งคู่ (checkout + return)
+   ════════════════════════════════════════════════════════════════ */
+function DeletePeriodConfirm({ period, onClose }) {
+  const { checkout, return: ret } = period;
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleDelete = async () => {
+    setError('');
+    setDeleting(true);
+    try {
+      await deleteDoc(doc(db, txCollectionOf(checkout.category), checkout.id));
+      if (ret) await deleteDoc(doc(db, txCollectionOf(ret.category), ret.id));
+      onClose();
+    } catch (err) {
+      setError(err.message || 'ลบไม่สำเร็จ');
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-md ring-1 ring-slate-200/60 overflow-hidden">
+        <div className="px-6 py-5 text-center">
+          <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+            <Trash2 className="h-6 w-6" strokeWidth={2} />
+          </div>
+          <h3 className="text-[17px] font-semibold text-slate-900 mb-1.5">ลบประวัติการครอบครอง</h3>
+          <p className="text-[13.5px] text-slate-500 leading-relaxed">
+            ลบช่วงครอบครองของ <span className="font-semibold text-slate-700">{checkout.empName}</span>?<br/>
+            {ret ? 'จะลบทั้งบันทึกการส่งมอบและการรับคืน' : 'จะลบบันทึกการส่งมอบ (ยังไม่มีการรับคืน)'}
+          </p>
+          <p className="text-[12px] text-rose-600 mt-2 font-medium">การลบไม่สามารถย้อนกลับได้</p>
+
+          {error && (
+            <div className="text-[12.5px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2 mt-3 text-left">
+              {error}
+            </div>
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex justify-end gap-2.5">
+          <button
+            onClick={onClose}
+            disabled={deleting}
+            className="px-5 py-2.5 text-[13.5px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition disabled:opacity-60"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm hover:shadow-md transition disabled:opacity-60"
+          >
+            {deleting ? (
+              <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังลบ...</>
+            ) : (
+              <><Trash2 className="h-3.5 w-3.5" strokeWidth={2.2} /> ยืนยันลบ</>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

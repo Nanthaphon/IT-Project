@@ -80,7 +80,7 @@ const statusOpts = (s = '') => {
 };
 
 /* ─── Footer bar ─── */
-const addFooter = (pptx, slide, pageNum, month, year, company) => {
+addFooter = (pptx, slide, pageNum, month, year, company) => {
   slide.addShape(pptx.ShapeType.rect, {
     x: 0, y: 7.15, w: 13.33, h: 0.06,
     fill: { color: C.blue }, line: { color: C.blue },
@@ -93,8 +93,45 @@ const addFooter = (pptx, slide, pageNum, month, year, company) => {
   );
 };
 
+/* ─── Pagination: max body rows per slide given row height ─── */
+//   Slide is 7.5" tall; usable area between table top (1.15") and footer (7.15") = 6.0".
+//   Subtract 1 for the header row that repeats on every slide.
+const rowsPerSlide = (rowH) =>
+  Math.max(1, Math.floor(6.0 / rowH) - 1);
+
+/* ─── Forward decl (defined below) ─── */
+let addHeader, addFooter;
+
+/* ─── Render a (possibly multi-slide) table with auto-pagination ─── */
+//   Returns number of slides consumed so caller can keep page counter in sync.
+function addPaginatedTableSlides(pptx, ctx, {
+  titleTh, titleEn, startPageNum,
+  hdr, rows, colW, rowH, tableY = 1.15,
+  emptyRow,           // optional fallback row when data is empty
+}) {
+  const all = (rows.length === 0 && emptyRow) ? [emptyRow] : rows;
+  const per = rowsPerSlide(rowH);
+  const chunks = [];
+  for (let i = 0; i < all.length; i += per) chunks.push(all.slice(i, i + per));
+  if (chunks.length === 0) chunks.push([]); // ensure at least one slide
+
+  chunks.forEach((chunk, p) => {
+    const s = pptx.addSlide();
+    s.background = { color: C.white };
+    const suffix = chunks.length > 1 ? `  (${p + 1}/${chunks.length})` : '';
+    addHeader(pptx, s, titleTh + suffix, titleEn);
+    s.addTable([hdr, ...chunk], {
+      x: 0.4, y: tableY, w: 12.53, colW, rowH,
+      border: bdr(C.grayBorder, 1),
+    });
+    addFooter(pptx, s, startPageNum + p, ctx.month, ctx.year, ctx.company);
+  });
+
+  return chunks.length;
+}
+
 /* ─── Header bar ─── */
-const addHeader = (pptx, slide, titleTh, titleEn = '') => {
+addHeader = (pptx, slide, titleTh, titleEn = '') => {
   // Background bar
   slide.addShape(pptx.ShapeType.rect, {
     x: 0, y: 0, w: 13.33, h: 1.0,
@@ -281,10 +318,8 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
 /* ═══════════════════════════════════
    SLIDE 4 – HARDWARE
 ═══════════════════════════════════ */
-function slide4(pptx, { month, year, company, assets, accessories }) {
-  const s = pptx.addSlide();
-  s.background = { color: C.white };
-  addHeader(pptx, s, 'สรุปผล Hardware', 'Hardware Inventory');
+function slide4(pptx, ctx, startPageNum) {
+  const { assets, accessories } = ctx;
 
   // Group assets by type
   const groups = {};
@@ -338,30 +373,26 @@ function slide4(pptx, { month, year, company, assets, accessories }) {
     ];
   });
 
-  if (rows.length === 0) {
-    rows.push([
-      cellC('–'), cell('ไม่มีข้อมูล',{ align:'left', color:C.grayText }),
-      cellC('–'), cellC('–'), cellC('–'), cellC('–'), cell('',{})
-    ]);
-  }
+  const emptyRow = [
+    cellC('–'), cell('ไม่มีข้อมูล',{ align:'left', color:C.grayText }),
+    cellC('–'), cellC('–'), cellC('–'), cellC('–'), cell('',{}),
+  ];
 
-  s.addTable([hdr, ...rows], {
-    x:0.4, y:1.15, w:12.53,
-    colW:[0.5, 3.0, 0.85, 0.95, 1.4, 0.85, 4.98],
-    rowH:0.62,
-    border: bdr(C.grayBorder, 1),
+  return addPaginatedTableSlides(pptx, ctx, {
+    titleTh: 'สรุปผล Hardware', titleEn: 'Hardware Inventory',
+    startPageNum,
+    hdr, rows,
+    colW: [0.5, 3.0, 0.85, 0.95, 1.4, 0.85, 4.98],
+    rowH: 0.62,
+    emptyRow,
   });
-
-  addFooter(pptx, s, 4, month, year, company);
 }
 
 /* ═══════════════════════════════════
    SLIDE 5 – SOFTWARE
 ═══════════════════════════════════ */
-function slide5(pptx, { month, year, company, licenses }) {
-  const s = pptx.addSlide();
-  s.background = { color: C.white };
-  addHeader(pptx, s, 'สรุปผล Software / License', 'Software Inventory');
+function slide5(pptx, ctx, startPageNum) {
+  const { licenses } = ctx;
 
   const hdr = [
     cellH('No',        {}),
@@ -387,27 +418,28 @@ function slide5(pptx, { month, year, company, licenses }) {
     ];
   });
 
-  if (rows.length === 0) {
-    rows.push([cellC('–'), cell('ไม่มีข้อมูล',{align:'left',color:C.grayText}), cellC('–'), cellC('–'), cellC('–'), cell('',{})]);
-  }
+  const emptyRow = [
+    cellC('–'),
+    cell('ไม่มีข้อมูล',{ align:'left', color:C.grayText }),
+    cellC('–'), cellC('–'), cellC('–'), cell('',{}),
+  ];
 
-  s.addTable([hdr, ...rows], {
-    x:0.4, y:1.15, w:12.53,
-    colW:[0.5, 3.0, 0.9, 0.9, 0.9, 6.33],
-    rowH:0.62,
-    border: bdr(C.grayBorder, 1),
+  return addPaginatedTableSlides(pptx, ctx, {
+    titleTh: 'สรุปผล Software / License', titleEn: 'Software Inventory',
+    startPageNum,
+    hdr, rows,
+    //   No , Software, Stock, Active, Inactive,  หมายเหตุ
+    colW: [0.5, 3.0,     0.95,  1.0,    1.05,     6.03],
+    rowH: 0.62,
+    emptyRow,
   });
-
-  addFooter(pptx, s, 5, month, year, company);
 }
 
 /* ═══════════════════════════════════
    SLIDE 6 – R&D
 ═══════════════════════════════════ */
-function slide6(pptx, { month, year, company, rdProjects }) {
-  const s = pptx.addSlide();
-  s.background = { color: C.white };
-  addHeader(pptx, s, 'สรุปภาพรวม สถานะโปรเจค', 'R&D Project Status');
+function slide6(pptx, ctx, startPageNum) {
+  const { rdProjects } = ctx;
 
   const hdr = [
     cellH('No',          {}),
@@ -431,27 +463,27 @@ function slide6(pptx, { month, year, company, rdProjects }) {
     ];
   });
 
-  if (rows.length === 0) {
-    rows.push([cellC('–'), cell('ยังไม่มีโปรเจค',{align:'left',color:C.grayText}), cell('',{}), cellC('–'), cellC('–'), cell('',{})]);
-  }
+  const emptyRow = [
+    cellC('–'),
+    cell('ยังไม่มีโปรเจค',{ align:'left', color:C.grayText }),
+    cell('',{}), cellC('–'), cellC('–'), cell('',{}),
+  ];
 
-  s.addTable([hdr, ...rows], {
-    x:0.4, y:1.15, w:12.53,
-    colW:[0.5, 2.5, 4.3, 1.5, 1.0, 2.73],
-    rowH:0.88,
-    border: bdr(C.grayBorder, 1),
+  return addPaginatedTableSlides(pptx, ctx, {
+    titleTh: 'สรุปภาพรวม สถานะโปรเจค', titleEn: 'R&D Project Status',
+    startPageNum,
+    hdr, rows,
+    colW: [0.5, 2.5, 4.3, 1.5, 1.0, 2.73],
+    rowH: 0.88,
+    emptyRow,
   });
-
-  addFooter(pptx, s, 6, month, year, company);
 }
 
 /* ═══════════════════════════════════
    SLIDE 7 – FOLLOW-UP
 ═══════════════════════════════════ */
-function slide7(pptx, { month, year, company, followUps }) {
-  const s = pptx.addSlide();
-  s.background = { color: C.white };
-  addHeader(pptx, s, 'วาระติดตาม', 'Follow-up Agenda');
+function slide7(pptx, ctx, startPageNum) {
+  const { followUps } = ctx;
 
   const hdr = [
     cellH('No',          {}),
@@ -473,18 +505,20 @@ function slide7(pptx, { month, year, company, followUps }) {
     ];
   });
 
-  if (rows.length === 0) {
-    rows.push([cellC('–'), cell('ไม่มีวาระติดตาม',{align:'left',color:C.grayText}), cellC('–'), cellC('–'), cell('',{})]);
-  }
+  const emptyRow = [
+    cellC('–'),
+    cell('ไม่มีวาระติดตาม',{ align:'left', color:C.grayText }),
+    cellC('–'), cellC('–'), cell('',{}),
+  ];
 
-  s.addTable([hdr, ...rows], {
-    x:0.4, y:1.15, w:12.53,
-    colW:[0.5, 5.5, 1.5, 1.0, 4.03],
-    rowH:0.88,
-    border: bdr(C.grayBorder, 1),
+  return addPaginatedTableSlides(pptx, ctx, {
+    titleTh: 'วาระติดตาม', titleEn: 'Follow-up Agenda',
+    startPageNum,
+    hdr, rows,
+    colW: [0.5, 5.5, 1.5, 1.0, 4.03],
+    rowH: 0.88,
+    emptyRow,
   });
-
-  addFooter(pptx, s, 7, month, year, company);
 }
 
 /* ═══════════════════════════════════
@@ -532,14 +566,16 @@ export async function generateITReport({
     bigIssues, rdProjects, followUps,
   };
 
-  slide1(pptx, ctx);
-  slide2(pptx, ctx);
-  slide3(pptx, ctx);
-  slide4(pptx, ctx);
-  slide5(pptx, ctx);
-  slide6(pptx, ctx);
-  slide7(pptx, ctx);
-  slide8(pptx, ctx);
+  slide1(pptx, ctx);        // page 1 (cover, no footer page-num shown)
+  slide2(pptx, ctx);        // page 2 (agenda)
+  let page = 3;
+  slide3(pptx, ctx);        // page 3 (support, fixed)
+  page = 4;
+  page += slide4(pptx, ctx, page); // hardware (1+ slides)
+  page += slide5(pptx, ctx, page); // software (1+ slides)
+  page += slide6(pptx, ctx, page); // R&D (1+ slides)
+  page += slide7(pptx, ctx, page); // follow-up (1+ slides)
+  slide8(pptx, ctx);        // thank you
 
   const fileName = `IT_Performance_${TH_MONTHS[month]}_${year + 543}.pptx`;
   await pptx.writeFile({ fileName });

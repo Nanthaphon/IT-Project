@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2, X, Clock, Pencil, Trash2, Save } from 'lucide-react';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { CHECKLIST_FIELDS, FIELD_STATUS_LABELS } from './ConditionCapture.jsx';
+import ConditionCapture, {
+  CHECKLIST_FIELDS, FIELD_STATUS_LABELS, EMPTY_FIELDS, flattenFields,
+} from './ConditionCapture.jsx';
 
 // helper: คืน label ของสถานะตามฟิลด์ (ถ้าไม่รู้จัก field ใช้ default)
 const labelOf = (fieldKey, value) =>
@@ -471,16 +473,43 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
 }
 
 /* ════════════════════════════════════════════════════════════════
-   Edit Period Modal — แก้ไขวันที่ส่งมอบ/รับคืน + หมายเหตุ
+   Edit Period Modal — แก้ไขทุกอย่าง: วันที่/หมายเหตุ/สถานะรายจุด/
+   รูปต่อหัวข้อ/ชื่อพนักงาน — ทั้ง checkout และ return
    ════════════════════════════════════════════════════════════════ */
 function EditPeriodModal({ period, onClose }) {
   const { checkout, return: ret } = period;
   const toInputDate = (ts) => ts ? new Date(ts).toISOString().slice(0, 16) : '';
 
+  // ── Build fields prop: prefer new shape, fall back to legacy checklist (no photos) ──
+  const buildFieldsFromLegacy = (checklist) => {
+    if (!checklist) return EMPTY_FIELDS;
+    const out = {};
+    CHECKLIST_FIELDS.forEach(f => {
+      out[f.key] = { status: checklist[f.key] || 'normal', photos: [] };
+    });
+    return out;
+  };
+
+  // ── Active tab inside the modal ──
+  const [activeTab, setActiveTab] = useState('checkout'); // 'checkout' | 'return'
+
+  // ── Common fields ──
+  const [empName, setEmpName] = useState(checkout.empName || '');
+
+  // ── Checkout state ──
   const [checkoutDate,   setCheckoutDate]   = useState(toInputDate(checkout.timestamp));
   const [checkoutNotes,  setCheckoutNotes]  = useState(checkout.checkoutNotes || '');
-  const [returnDate,     setReturnDate]     = useState(toInputDate(ret?.timestamp));
-  const [returnNotes,    setReturnNotes]    = useState(ret?.returnNotes || '');
+  const [checkoutFields, setCheckoutFields] = useState(() =>
+    checkout.checkoutFields || buildFieldsFromLegacy(checkout.checkoutChecklist)
+  );
+
+  // ── Return state (may be null) ──
+  const [returnDate,   setReturnDate]   = useState(toInputDate(ret?.timestamp));
+  const [returnNotes,  setReturnNotes]  = useState(ret?.returnNotes || '');
+  const [returnFields, setReturnFields] = useState(() =>
+    ret ? (ret.returnFields || buildFieldsFromLegacy(ret.returnChecklist)) : EMPTY_FIELDS
+  );
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -488,17 +517,31 @@ function EditPeriodModal({ period, onClose }) {
     setError('');
     setSaving(true);
     try {
-      // Update checkout
+      // ─── Update checkout ───
       const coCol = txCollectionOf(checkout.category);
-      const coUpdates = { timestamp: new Date(checkoutDate).getTime() };
-      if (checkoutNotes !== (checkout.checkoutNotes || '')) coUpdates.checkoutNotes = checkoutNotes;
+      const coFlat = flattenFields(checkoutFields);
+      const coUpdates = {
+        timestamp:         new Date(checkoutDate).getTime(),
+        empName:           empName,
+        checkoutNotes:     checkoutNotes,
+        checkoutFields:    checkoutFields,
+        checkoutPhotos:    coFlat.photos,
+        checkoutChecklist: coFlat.checklist,
+      };
       await updateDoc(doc(db, coCol, checkout.id), coUpdates);
 
-      // Update return (if exists)
-      if (ret && returnDate) {
+      // ─── Update return (if exists) ───
+      if (ret) {
         const rCol = txCollectionOf(ret.category);
-        const rUpdates = { timestamp: new Date(returnDate).getTime() };
-        if (returnNotes !== (ret.returnNotes || '')) rUpdates.returnNotes = returnNotes;
+        const rFlat = flattenFields(returnFields);
+        const rUpdates = {
+          timestamp:       returnDate ? new Date(returnDate).getTime() : ret.timestamp,
+          empName:         empName,
+          returnNotes:     returnNotes,
+          returnFields:    returnFields,
+          returnPhotos:    rFlat.photos,
+          returnChecklist: rFlat.checklist,
+        };
         await updateDoc(doc(db, rCol, ret.id), rUpdates);
       }
 
@@ -512,73 +555,109 @@ function EditPeriodModal({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-lg ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-3xl max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
               <Pencil className="h-4 w-4" strokeWidth={2} />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-[16px] font-semibold text-slate-900">แก้ไขประวัติการครอบครอง</h3>
-              <p className="text-[12.5px] text-slate-500">{checkout.empName}</p>
+              <p className="text-[12.5px] text-slate-500 truncate">{checkout.empName || '-'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition shrink-0">
             <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>
 
+        {/* Tab bar — choose between checkout / return */}
+        <div className="flex border-b border-slate-100 px-6 shrink-0 bg-white">
+          <TabBtn active={activeTab === 'checkout'} onClick={() => setActiveTab('checkout')} color="blue" Icon={ArrowRight}>
+            ตอนส่งมอบ
+          </TabBtn>
+          {ret ? (
+            <TabBtn active={activeTab === 'return'} onClick={() => setActiveTab('return')} color="emerald" Icon={ArrowLeft}>
+              ตอนรับคืน
+            </TabBtn>
+          ) : (
+            <span className="py-3 px-1 ml-6 text-[13px] text-slate-400 italic flex items-center gap-1.5">
+              <ArrowLeft className="h-3.5 w-3.5" /> ยังไม่มีการรับคืน
+            </span>
+          )}
+        </div>
+
         {/* Body */}
-        <div className="px-6 py-5 space-y-5">
-          {/* Checkout */}
-          <div className="rounded-xl ring-1 ring-blue-200 bg-blue-50/40 p-4">
-            <p className="text-[12px] font-bold text-blue-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} /> ตอนส่งมอบ
-            </p>
-            <label className="block text-[12.5px] font-medium text-slate-600 mb-1">วันและเวลา</label>
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 bg-slate-50/40">
+
+          {/* Common: employee name */}
+          <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+            <label className="block text-[12.5px] font-medium text-slate-600 mb-1">ชื่อพนักงาน</label>
             <input
-              type="datetime-local"
-              value={checkoutDate}
-              onChange={(e) => setCheckoutDate(e.target.value)}
+              type="text"
+              value={empName}
+              onChange={(e) => setEmpName(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+              placeholder="ชื่อ-นามสกุล (เปลี่ยนได้ทั้ง 2 ฝั่ง)"
             />
-            <label className="block text-[12.5px] font-medium text-slate-600 mb-1 mt-3">หมายเหตุ</label>
-            <textarea
-              rows={2}
-              value={checkoutNotes}
-              onChange={(e) => setCheckoutNotes(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
-              placeholder="หมายเหตุตอนส่งมอบ"
-            />
+            <p className="text-[11px] text-slate-400 mt-1">การเปลี่ยนชื่อจะมีผลกับทั้งบันทึกส่งมอบและรับคืน</p>
           </div>
 
-          {/* Return */}
-          {ret ? (
-            <div className="rounded-xl ring-1 ring-emerald-200 bg-emerald-50/30 p-4">
-              <p className="text-[12px] font-bold text-emerald-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} /> ตอนรับคืน
-              </p>
-              <label className="block text-[12.5px] font-medium text-slate-600 mb-1">วันและเวลา</label>
-              <input
-                type="datetime-local"
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+          {/* ─── TAB: Checkout ─── */}
+          {activeTab === 'checkout' && (
+            <>
+              <div className="bg-white ring-1 ring-blue-200 rounded-xl p-4 space-y-3">
+                <p className="text-[12px] font-bold text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการส่งมอบ
+                </p>
+                <div>
+                  <label className="block text-[12.5px] font-medium text-slate-600 mb-1">วันและเวลา</label>
+                  <input
+                    type="datetime-local"
+                    value={checkoutDate}
+                    onChange={(e) => setCheckoutDate(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+                  />
+                </div>
+              </div>
+
+              <ConditionCapture
+                mode="checkout"
+                fields={checkoutFields}
+                setFields={setCheckoutFields}
+                notes={checkoutNotes}
+                setNotes={setCheckoutNotes}
               />
-              <label className="block text-[12.5px] font-medium text-slate-600 mb-1 mt-3">หมายเหตุ</label>
-              <textarea
-                rows={2}
-                value={returnNotes}
-                onChange={(e) => setReturnNotes(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
-                placeholder="หมายเหตุตอนรับคืน"
+            </>
+          )}
+
+          {/* ─── TAB: Return ─── */}
+          {activeTab === 'return' && ret && (
+            <>
+              <div className="bg-white ring-1 ring-emerald-200 rounded-xl p-4 space-y-3">
+                <p className="text-[12px] font-bold text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
+                  <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการรับคืน
+                </p>
+                <div>
+                  <label className="block text-[12.5px] font-medium text-slate-600 mb-1">วันและเวลา</label>
+                  <input
+                    type="datetime-local"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+                  />
+                </div>
+              </div>
+
+              <ConditionCapture
+                mode="return"
+                fields={returnFields}
+                setFields={setReturnFields}
+                notes={returnNotes}
+                setNotes={setReturnNotes}
               />
-            </div>
-          ) : (
-            <div className="rounded-xl ring-1 ring-dashed ring-slate-300 bg-slate-50 p-4 text-center">
-              <p className="text-[12.5px] text-slate-500">— ยังไม่มีการรับคืน (พนักงานถือครองปัจจุบัน) —</p>
-            </div>
+            </>
           )}
 
           {error && (
@@ -589,7 +668,7 @@ function EditPeriodModal({ period, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex justify-end gap-2.5">
+        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-2.5 shrink-0">
           <button
             onClick={onClose}
             disabled={saving}
@@ -606,12 +685,29 @@ function EditPeriodModal({ period, onClose }) {
             {saving ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
             ) : (
-              <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึก</>
+              <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึกทุกการเปลี่ยนแปลง</>
             )}
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Tab button helper ── */
+function TabBtn({ active, onClick, color, Icon, children }) {
+  const colorCls = {
+    blue:    active ? 'border-blue-500 text-blue-700'         : 'border-transparent text-slate-400 hover:text-slate-700',
+    emerald: active ? 'border-emerald-500 text-emerald-700'   : 'border-transparent text-slate-400 hover:text-slate-700',
+  }[color];
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 py-3 px-1 mr-6 text-[13.5px] font-medium border-b-2 transition-colors whitespace-nowrap ${colorCls}`}
+    >
+      <Icon className="h-3.5 w-3.5" strokeWidth={2.2} />
+      {children}
+    </button>
   );
 }
 

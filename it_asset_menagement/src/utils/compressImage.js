@@ -1,6 +1,8 @@
 // บีบขนาดรูปภาพให้เล็กลงก่อนเก็บเป็น base64
-// max ~1024px ด้านยาวสุด, คุณภาพ 0.75 → ได้ขนาดประมาณ 100-200KB ต่อรูป
-export async function compressImage(file, { maxDim = 1024, quality = 0.75 } = {}) {
+// max ~800px ด้านยาวสุด, คุณภาพ 0.6 → ได้ขนาดประมาณ 40-80KB ต่อรูป
+// (ลดลงจาก 1024/0.75 เพราะ Firestore document จำกัด 1 MiB/doc และ
+//  เราเก็บได้สูงสุด ~14 รูปต่อ transaction หากมีหลายจุด)
+export async function compressImage(file, { maxDim = 800, quality = 0.6 } = {}) {
   if (!file) return null;
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

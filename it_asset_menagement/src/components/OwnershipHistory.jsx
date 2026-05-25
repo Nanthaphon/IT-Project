@@ -547,11 +547,34 @@ function EditPeriodModal({ period, onClose }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // ── Estimate document size (Firestore caps at 1,048,576 bytes / doc) ──
+  // Base64 strings make up almost all the weight; count their lengths in bytes.
+  const estimateBytes = (fields) =>
+    Object.values(fields || {}).reduce((sum, cell) => {
+      const photos = cell?.photos || [];
+      return sum + photos.reduce((s, b64) => s + (b64?.length || 0), 0);
+    }, 0);
+  const SOFT_LIMIT = 900_000;   // leave headroom for other fields
+  const HARD_LIMIT = 1_048_576; // Firestore hard limit
+  const coBytes = estimateBytes(checkoutFields);
+  const rBytes  = ret ? estimateBytes(returnFields) : 0;
+  const overSoftCO = coBytes > SOFT_LIMIT;
+  const overSoftR  = rBytes > SOFT_LIMIT;
+  const overHard   = coBytes > HARD_LIMIT || rBytes > HARD_LIMIT;
+
   const handleSave = async () => {
     setError('');
+    if (overHard) {
+      setError('รูปภาพรวมเกิน 1 MB ต่อบันทึก โปรดลบรูปบางส่วนออกก่อน (ระบบจำกัด 1 MiB ต่อรายการ)');
+      return;
+    }
     setSaving(true);
     try {
       // ─── Update checkout ───
+      // NOTE: photos are kept inside checkoutFields per-field; we do NOT also
+      // write a flat checkoutPhotos[] array (would double doc size and trip
+      // Firestore's 1 MiB-per-document limit). Only the small status-only
+      // checklist is stored for damage comparison.
       const coCol = txCollectionOf(checkout.category);
       const coFlat = flattenFields(checkoutFields);
       const coUpdates = {
@@ -559,8 +582,9 @@ function EditPeriodModal({ period, onClose }) {
         empName:           empName,
         checkoutNotes:     checkoutNotes,
         checkoutFields:    checkoutFields,
-        checkoutPhotos:    coFlat.photos,
         checkoutChecklist: coFlat.checklist,
+        // explicit removal of legacy flat photo array (delete tombstone)
+        checkoutPhotos:    null,
       };
       await updateDoc(doc(db, coCol, checkout.id), coUpdates);
 
@@ -573,8 +597,8 @@ function EditPeriodModal({ period, onClose }) {
           empName:         empName,
           returnNotes:     returnNotes,
           returnFields:    returnFields,
-          returnPhotos:    rFlat.photos,
           returnChecklist: rFlat.checklist,
+          returnPhotos:    null,  // clear legacy flat duplicate
         };
         await updateDoc(doc(db, rCol, ret.id), rUpdates);
       }
@@ -694,6 +718,20 @@ function EditPeriodModal({ period, onClose }) {
             </>
           )}
 
+          {/* Size indicator */}
+          {(overSoftCO || overSoftR) && (
+            <div className={`text-[12.5px] rounded-lg px-3 py-2 ring-1 ring-inset ${overHard ? 'text-rose-700 bg-rose-50 ring-rose-200' : 'text-amber-700 bg-amber-50 ring-amber-200'}`}>
+              <div className="font-semibold mb-0.5">
+                {overHard ? '⛔ ขนาดข้อมูลเกิน 1 MB — บันทึกไม่ได้' : '⚠️ ข้อมูลรูปภาพใกล้เต็มขีดจำกัด'}
+              </div>
+              <div>
+                ตอนส่งมอบ: {(coBytes / 1024).toFixed(0)} KB
+                {ret && <> · ตอนรับคืน: {(rBytes / 1024).toFixed(0)} KB</>}
+                &nbsp;(จำกัด 1,024 KB / รายการ) — โปรดลดจำนวนรูปลง
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="text-[12.5px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2">
               {error}
@@ -712,7 +750,7 @@ function EditPeriodModal({ period, onClose }) {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || overHard}
             className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-lg shadow-sm hover:shadow-md transition disabled:opacity-60"
             style={{ background: '#1E487A' }}
           >

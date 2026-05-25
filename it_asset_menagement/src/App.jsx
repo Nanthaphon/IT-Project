@@ -951,11 +951,13 @@ function App() {
           });
           {
             const flat = flattenFields(checkoutCondition.fields);
+            // NOTE: photos live in checkoutFields per-field; don't duplicate as flat
+            // checkoutPhotos[] (would double doc size and hit Firestore's 1 MiB limit).
+            // Only checklist (status-only, small) is kept for damage comparison.
             await addDoc(collection(db, 'accessories_transactions'), {
               empId: emp.id, empName: newAssignee.empName, assetId: checkoutModal.assetId, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
               condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now(),
               checkoutFields: checkoutCondition.fields,
-              checkoutPhotos: flat.photos,
               checkoutChecklist: flat.checklist,
               checkoutNotes: checkoutCondition.notes,
               checkoutId: newAssignee.checkoutId,
@@ -1031,7 +1033,6 @@ function App() {
           await addDoc(collection(db, 'assets_transactions'), {
             empId: emp.id, empName, assetId: checkoutModal.assetId, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now(),
             checkoutFields: checkoutCondition.fields,
-            checkoutPhotos: flat.photos,
             checkoutChecklist: flat.checklist,
             checkoutNotes: checkoutCondition.notes,
           });
@@ -1127,7 +1128,6 @@ function App() {
             condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
             remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
             returnFields: returnConditionData.fields,
-            returnPhotos: flat.photos,
             returnChecklist: flat.checklist,
             returnNotes: returnConditionData.notes,
             checkoutId: returnModal.checkoutId,
@@ -1143,7 +1143,6 @@ function App() {
             condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
             remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
             returnFields: returnConditionData.fields,
-            returnPhotos: flat.photos,
             returnChecklist: flat.checklist,
             returnNotes: returnConditionData.notes,
           });

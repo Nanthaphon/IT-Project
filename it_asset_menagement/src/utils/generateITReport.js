@@ -32,8 +32,8 @@ const F  = 'Sarabun';   // Thai font
 const FE = 'Sarabun';   // EN/number font (Sarabun has solid Latin glyphs too)
 
 /* ─── Base sizes (per user request: non-heading body text = 16) ─── */
-const BODY_SIZE   = 16;   // table body text
-const HEADER_SIZE = 16;   // table column header (kept = body, distinct via fill + bold)
+const BODY_SIZE   = 14;   // table body text
+const HEADER_SIZE = 14;   // table column header (kept = body, distinct via fill + bold)
 
 /* ─── pptxgenjs border object (all 4 sides) ─── */
 const bdr = (color = C.grayBorder, pt = 1) =>
@@ -325,16 +325,16 @@ function slide4(pptx, { month, year, company, assets, accessories }) {
   const rows = entries.map(([type, g], i) => {
     const f = rowFill(i);
     const brokenCell = g.broken > 0
-      ? { text: String(g.broken), options: { fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), ...f } }
-      : { text: '–',              options: { fontSize:16, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), ...f } };
+      ? { text: String(g.broken), options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), ...f } }
+      : { text: '–',              options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), ...f } };
     return [
-      { text:String(i+1),    options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:type,            options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:String(g.total), options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
-      { text:String(g.inUse), options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), ...f } },
+      { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:type,            options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
+      { text:String(g.total), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
+      { text:String(g.inUse), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), ...f } },
       brokenCell,
-      { text:'',              options:{ fontSize:16, fontFace:F, align:'left', valign:'middle', color:C.grayText, border:bdr(), ...f } },
+      { text:'',              options:{ fontSize:14, fontFace:F, align:'left', valign:'middle', color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -378,12 +378,12 @@ function slide5(pptx, { month, year, company, licenses }) {
     const inactive = Math.max(0, stock - active);
     const f = rowFill(i);
     return [
-      { text:String(i+1),      options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:lic.name||'–',    options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:String(stock),    options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
-      { text:String(active),   options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), ...f } },
-      { text:String(inactive), options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), ...f } },
-      { text:lic.remarks||'',  options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:lic.name||'–',    options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
+      { text:String(stock),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
+      { text:String(active),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), ...f } },
+      { text:String(inactive), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), ...f } },
+      { text:lic.remarks||'',  options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -422,12 +422,12 @@ function slide6(pptx, { month, year, company, rdProjects }) {
     const f = rowFill(i);
     const so = statusOpts(p.status||'');
     return [
-      { text:String(i+1),    options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:p.project||'–', options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:p.details||'',  options:{ fontSize:16, fontFace:F,  align:'left',   valign:'top',    border:bdr(), ...f } },
-      { text:p.status||'–',  options:{ fontSize:16, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
-      { text:p.due||'–',     options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:p.remarks||'',  options:{ fontSize:16, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:p.project||'–', options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
+      { text:p.details||'',  options:{ fontSize:14, fontFace:F,  align:'left',   valign:'top',    border:bdr(), ...f } },
+      { text:p.status||'–',  options:{ fontSize:14, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
+      { text:p.due||'–',     options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:p.remarks||'',  options:{ fontSize:14, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -465,11 +465,11 @@ function slide7(pptx, { month, year, company, followUps }) {
     const f = rowFill(i);
     const so = statusOpts(f2.status||'');
     return [
-      { text:String(i+1),      options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:f2.details||'',   options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', border:bdr(), ...f } },
-      { text:f2.status||'–',   options:{ fontSize:16, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
-      { text:f2.due||'–',      options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:f2.remarks||'',   options:{ fontSize:16, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:f2.details||'',   options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', border:bdr(), ...f } },
+      { text:f2.status||'–',   options:{ fontSize:14, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
+      { text:f2.due||'–',      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:f2.remarks||'',   options:{ fontSize:14, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
     ];
   });
 

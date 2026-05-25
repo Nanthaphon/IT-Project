@@ -327,7 +327,7 @@ export default function EmployeeDetailsModal({
             >
               {tab.label}
               {tab.count !== undefined && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
+                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${
                   empModalTab === tab.id ? 'bg-[#1E487A]/10 text-[#1E487A]' : 'bg-slate-100 text-slate-400'
                 }`}>
                   {tab.count}
@@ -415,11 +415,11 @@ export default function EmployeeDetailsModal({
                               {item.name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${catColor}`}>
+                              <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md border ${catColor}`}>
                                 {catLabel}
                               </span>
                               {item.type && (
-                                <span className="text-[10px] text-slate-400">{item.type}</span>
+                                <span className="text-[11px] text-slate-400">{item.type}</span>
                               )}
                             </div>
                           </div>
@@ -520,12 +520,12 @@ export default function EmployeeDetailsModal({
                               <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{date}</td>
                               <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">{rec.assetName}</td>
                               <td className="px-4 py-3 text-center">
-                                <span className="text-[10px] font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+                                <span className="text-[11px] font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
                                   {catNorm}
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-center">
-                                <span className={`text-[10px] font-semibold px-2 py-1 rounded-md border ${
+                                <span className={`text-[11px] font-semibold px-2 py-1 rounded-md border ${
                                   isCheckout
                                     ? 'bg-blue-50 text-blue-600 border-blue-100'
                                     : 'bg-teal-50 text-teal-600 border-teal-100'
@@ -534,7 +534,7 @@ export default function EmployeeDetailsModal({
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-center">
-                                <span className={`text-[10px] font-semibold px-2 py-1 rounded-md border ${
+                                <span className={`text-[11px] font-semibold px-2 py-1 rounded-md border ${
                                   rec.condition === 'ชำรุด'  ? 'bg-red-50 text-red-500 border-red-100'
                                   : rec.condition === 'ปกติ' ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                   : 'bg-slate-50 text-slate-400 border-slate-200'
@@ -569,7 +569,7 @@ export default function EmployeeDetailsModal({
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             พิมพ์ใบส่งมอบทรัพย์สิน
-            <span className="text-[10px] font-semibold bg-[#1E487A]/10 group-hover:bg-white/20 text-[#1E487A] group-hover:text-white px-1.5 py-0.5 rounded-md transition">
+            <span className="text-[11px] font-semibold bg-[#1E487A]/10 group-hover:bg-white/20 text-[#1E487A] group-hover:text-white px-1.5 py-0.5 rounded-md transition">
               {allHeld.length} รายการ
             </span>
           </button>
@@ -604,7 +604,7 @@ export default function EmployeeDetailsModal({
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
+      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
       <div className="border border-slate-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
@@ -617,7 +617,7 @@ function InfoGrid({ children }) {
 function InfoItem({ label, value, accent, span2, mono }) {
   return (
     <div className={`flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0 ${span2 ? 'sm:col-span-2' : ''}`}>
-      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
+      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
       <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
@@ -627,7 +627,7 @@ function InfoItem({ label, value, accent, span2, mono }) {
 
 function Th({ children, center }) {
   return (
-    <th className={`px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider ${center ? 'text-center' : 'text-left'}`}>
+    <th className={`px-4 py-2.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider ${center ? 'text-center' : 'text-left'}`}>
       {children}
     </th>
   );

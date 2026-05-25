@@ -103,14 +103,14 @@ export default function ConditionCapture({
     <div className="space-y-4 border border-slate-200 rounded-xl p-4 bg-slate-50/40">
       <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
         <Camera className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
-        <p className="text-[13px] font-semibold text-slate-700">
+        <p className="text-[14px] font-semibold text-slate-700">
           {isCheckout ? 'หลักฐานสภาพอุปกรณ์ตอนส่งมอบ' : 'หลักฐานสภาพอุปกรณ์ตอนรับคืน'}
         </p>
       </div>
 
       {/* ── Photos ── */}
       <div>
-        <label className="block text-[12px] font-medium text-slate-600 mb-2">
+        <label className="block text-[13px] font-medium text-slate-600 mb-2">
           📸 รูปภาพ ({photos.length}/{maxPhotos})
         </label>
 
@@ -143,7 +143,7 @@ export default function ConditionCapture({
               ) : (
                 <>
                   <Upload className="h-5 w-5" strokeWidth={1.8} />
-                  <span className="text-[10px] font-medium">เพิ่มรูป</span>
+                  <span className="text-[11px] font-medium">เพิ่มรูป</span>
                 </>
               )}
             </button>
@@ -159,14 +159,14 @@ export default function ConditionCapture({
           className="hidden"
         />
 
-        <p className="text-[10.5px] text-slate-400 mt-1.5">
+        <p className="text-[11.5px] text-slate-400 mt-1.5">
           แนะนำ: ถ่ายอย่างน้อย 4 รูป (หน้า, หลัง, ด้านข้าง, จอ/อุปกรณ์)
         </p>
       </div>
 
       {/* ── Checklist ── */}
       <div>
-        <label className="block text-[12px] font-medium text-slate-600 mb-2">
+        <label className="block text-[13px] font-medium text-slate-600 mb-2">
           ✅ Checklist สภาพ
         </label>
         <div className="space-y-1.5">
@@ -177,7 +177,7 @@ export default function ConditionCapture({
                 key={field.key}
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2.5 py-1.5 bg-white rounded-lg ring-1 ring-slate-200"
               >
-                <span className="text-[12.5px] text-slate-700 sm:flex-1 sm:truncate">{field.label}</span>
+                <span className="text-[13.5px] text-slate-700 sm:flex-1 sm:truncate">{field.label}</span>
                 <div className="flex gap-1 flex-wrap">
                   {STATUS_VALUES.map((value) => {
                     const selected = checklist[field.key] === value;
@@ -187,7 +187,7 @@ export default function ConditionCapture({
                         key={value}
                         type="button"
                         onClick={() => updateChecklist(field.key, value)}
-                        className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset transition whitespace-nowrap ${
+                        className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset transition whitespace-nowrap ${
                           selected
                             ? STATUS_COLOR_CLS[color] + ' ring-2'
                             : 'bg-white ring-slate-200 text-slate-500 hover:ring-slate-300'
@@ -206,13 +206,13 @@ export default function ConditionCapture({
 
       {/* ── Notes ── */}
       <div>
-        <label className="block text-[12px] font-medium text-slate-600 mb-1.5">
+        <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
           📝 หมายเหตุเพิ่มเติม
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
+          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
           placeholder={isCheckout ? 'เช่น มีรอยขีดเล็กที่ฝาหลัง...' : 'เช่น พบรอยใหม่บริเวณบอดี้...'}
           rows="2"
         />
@@ -222,7 +222,7 @@ export default function ConditionCapture({
       {!isCheckout && (
         <div className="flex items-start gap-2 px-3 py-2 bg-blue-50/60 ring-1 ring-inset ring-blue-200 rounded-lg">
           <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" strokeWidth={2} />
-          <p className="text-[11.5px] text-blue-700 leading-relaxed">
+          <p className="text-[12.5px] text-blue-700 leading-relaxed">
             กรุณาตรวจสภาพอุปกรณ์ให้ครบทุกจุด ถ้าพบความเสียหายที่ไม่มีตอนส่งมอบ ให้ระบุในหมายเหตุ
           </p>
         </div>

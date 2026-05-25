@@ -68,7 +68,7 @@ export default function ActionBar({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-slate-200 shrink-0">
       {/* Title */}
-      <p className="text-[13.5px] font-semibold text-slate-700 whitespace-nowrap tracking-tight">
+      <p className="text-[14.5px] font-semibold text-slate-700 whitespace-nowrap tracking-tight">
         รายการ{menuTitle}
       </p>
 
@@ -234,7 +234,7 @@ function Btn({ onClick, children, active, icon: Icon }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-colors whitespace-nowrap
+      className={`flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium rounded-lg transition-colors whitespace-nowrap
         ${active
           ? 'bg-[#1E487A] text-white ring-1 ring-[#1E487A]'
           : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300 hover:text-slate-900 hover:bg-slate-50'
@@ -250,7 +250,7 @@ function DangerBtn({ onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium rounded-lg ring-1 ring-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:ring-rose-600 transition-colors whitespace-nowrap"
+      className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium rounded-lg ring-1 ring-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:ring-rose-600 transition-colors whitespace-nowrap"
     >
       <Trash2 className="h-[14px] w-[14px]" strokeWidth={1.9} />
       {children}
@@ -264,7 +264,7 @@ function FilterSelect({ value, onChange, children }) {
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="appearance-none pl-3 pr-8 py-2 text-[13px] bg-white ring-1 ring-slate-200 rounded-lg text-slate-700 font-medium outline-none transition-colors cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 focus:ring-offset-0"
+        className="appearance-none pl-3 pr-8 py-2 text-[14px] bg-white ring-1 ring-slate-200 rounded-lg text-slate-700 font-medium outline-none transition-colors cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 focus:ring-offset-0"
       >
         {children}
       </select>
@@ -276,11 +276,11 @@ function FilterSelect({ value, onChange, children }) {
 function ColumnPicker({ labels, visible, onToggle, lockedKey }) {
   return (
     <div className="absolute right-0 mt-1.5 w-56 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 z-50 p-2 space-y-0.5 max-h-72 overflow-y-auto">
-      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-2 py-1">แสดงคอลัมน์</p>
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-2 py-1">แสดงคอลัมน์</p>
       {Object.keys(labels).map(col => (
         <label
           key={col}
-          className={`flex items-center gap-2.5 text-[13px] px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
+          className={`flex items-center gap-2.5 text-[14px] px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
             col === lockedKey ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'
           }`}
         >

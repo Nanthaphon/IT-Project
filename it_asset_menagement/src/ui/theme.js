@@ -38,7 +38,7 @@ export const cls = {
     "bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='2'><path d='M5 7l5 5 5-5'/></svg>\")]",
 
   label:
-    'block text-[13px] font-medium text-slate-600 mb-1.5',
+    'block text-[14px] font-medium text-slate-600 mb-1.5',
 
   // Buttons
   btnPrimary:
@@ -77,14 +77,14 @@ export const cls = {
 
   // Table
   tableHead:
-    'text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 bg-slate-50/80 border-b border-slate-200',
+    'text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500 bg-slate-50/80 border-b border-slate-200',
 
   tableRow:
     'border-b border-slate-100 hover:bg-slate-50/60 transition-colors',
 
   // Badges
   badge:
-    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-medium ring-1 ring-inset',
+    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12.5px] font-medium ring-1 ring-inset',
 };
 
 // Helper: status badge classNames given a STATUS key

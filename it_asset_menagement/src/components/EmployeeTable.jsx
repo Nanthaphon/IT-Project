@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pencil, Trash2, RotateCcw } from 'lucide-react';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-[0.08em]';
+const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-3.5';
 
 export default function EmployeeTable({
@@ -36,7 +36,7 @@ export default function EmployeeTable({
           <th className={`${TH} text-center`}>จัดการ</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-100 text-[13.5px] bg-white">
+      <tbody className="divide-y divide-slate-100 text-[14.5px] bg-white">
         {currentData.map((item) => (
           <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
             <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
@@ -47,24 +47,24 @@ export default function EmployeeTable({
                 onChange={(e) => handleSelectEmployee(e, item.id)}
               />
             </td>
-            <td className={`${TD} font-mono text-[12.5px] font-semibold text-[#1E487A]`}>{item.empId}</td>
+            <td className={`${TD} font-mono text-[13.5px] font-semibold text-[#1E487A]`}>{item.empId}</td>
             <td className={TD}>
               <button
                 onClick={() => { setSelectedEmployee(item); setEmpModalTab('info'); }}
                 className="text-left flex items-center gap-3"
               >
-                <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#1E487A] flex items-center justify-center font-semibold text-[13px] ring-1 ring-blue-100">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#1E487A] flex items-center justify-center font-semibold text-[14px] ring-1 ring-blue-100">
                   {item.fullName.charAt(0)}
                 </div>
                 <div>
                   <span className="font-medium text-slate-800 group-hover:text-[#1E487A] transition-colors">{item.fullName}</span>
-                  {item.nickname && <span className="text-slate-400 text-[12px] ml-2">({item.nickname})</span>}
+                  {item.nickname && <span className="text-slate-400 text-[13px] ml-2">({item.nickname})</span>}
                 </div>
               </button>
             </td>
             <td className={`${TD} text-slate-600`}>
-              <div className="text-[13px] font-medium text-slate-700">{item.department || '-'}</div>
-              <div className="text-[11.5px] text-slate-400 mt-0.5">{item.company || '-'}</div>
+              <div className="text-[14px] font-medium text-slate-700">{item.department || '-'}</div>
+              <div className="text-[12.5px] text-slate-400 mt-0.5">{item.company || '-'}</div>
             </td>
             <td className={`${TD} text-slate-600`}>{item.position || '-'}</td>
             <td className={`${TD} text-center`}>
@@ -73,7 +73,7 @@ export default function EmployeeTable({
                   canEdit && (
                     <button
                       onClick={() => handleRestoreEmployee(item)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
                     >
                       <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> กู้คืน
                     </button>

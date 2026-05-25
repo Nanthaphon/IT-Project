@@ -98,10 +98,10 @@ export default function SupplyRequestTable({
               <ClipboardList className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div>
-              <h3 className="text-[15px] font-bold text-slate-800 tracking-tight">
+              <h3 className="text-[16px] font-bold text-slate-800 tracking-tight">
                 คิวขอเบิกอุปกรณ์สำนักงาน
               </h3>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">
+              <p className="text-[12.5px] text-slate-400 mt-0.5">
                 {currentSupplyRequests.length} รายการในมุมมองนี้
               </p>
             </div>
@@ -112,7 +112,7 @@ export default function SupplyRequestTable({
             <select
               value={supplyFilterYear}
               onChange={(e) => { setSupplyFilterYear(e.target.value); setSupplyFilterMonth('ทั้งหมด'); setSupplyFilterDay('ทั้งหมด'); }}
-              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[13.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
             >
               <option value="ทั้งหมด">ปี: ทั้งหมด</option>
               {getUniqueYears(supplyRequests).map(y => (
@@ -122,7 +122,7 @@ export default function SupplyRequestTable({
             <select
               value={supplyFilterMonth}
               onChange={(e) => { setSupplyFilterMonth(e.target.value); setSupplyFilterDay('ทั้งหมด'); }}
-              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[13.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
             >
               <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
               {getUniqueMonthsForYear(supplyRequests, supplyFilterYear).map(m => (
@@ -132,7 +132,7 @@ export default function SupplyRequestTable({
             <select
               value={supplyFilterDay}
               onChange={(e) => setSupplyFilterDay(e.target.value)}
-              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[12.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[13.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
             >
               <option value="ทั้งหมด">วัน: ทั้งหมด</option>
               {getUniqueDays(supplyRequests, supplyFilterYear, supplyFilterMonth).map(d => (
@@ -155,14 +155,14 @@ export default function SupplyRequestTable({
             <button
               key={f.value}
               onClick={() => setSupplyFilterStatus(f.value)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold ring-1 ring-inset transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-semibold ring-1 ring-inset transition-all ${
                 supplyFilterStatus === f.value
                   ? 'bg-[#1E487A] text-white ring-[#1E487A] shadow-sm shadow-[#1E487A]/20'
                   : 'bg-white text-slate-500 ring-slate-200 hover:ring-slate-300 hover:text-slate-700'
               }`}
             >
               {f.label}
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
                 supplyFilterStatus === f.value
                   ? 'bg-white/20 text-white'
                   : 'bg-slate-100 text-slate-500'
@@ -183,8 +183,8 @@ export default function SupplyRequestTable({
             <div className="w-14 h-14 rounded-2xl bg-white ring-1 ring-slate-200 flex items-center justify-center mb-3 shadow-sm">
               <CheckCircle2 className="h-7 w-7 text-emerald-400" strokeWidth={1.5} />
             </div>
-            <p className="font-semibold text-slate-500 text-[14px]">ไม่มีคำขอในสถานะนี้</p>
-            <p className="text-[12px] text-slate-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
+            <p className="font-semibold text-slate-500 text-[15px]">ไม่มีคำขอในสถานะนี้</p>
+            <p className="text-[13px] text-slate-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
           /* card grid */
@@ -230,15 +230,15 @@ function RequestCard({ req, onUpdateStatus, onDelete, canEdit }) {
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-slate-800 text-[13.5px] truncate group-hover:text-[#1E487A] transition-colors">
+            <p className="font-semibold text-slate-800 text-[14.5px] truncate group-hover:text-[#1E487A] transition-colors">
               {req.empName}
             </p>
-            <p className="text-[11px] text-slate-400 truncate">
+            <p className="text-[12px] text-slate-400 truncate">
               {req.empId}{req.department ? ` · ${req.department}` : ''}
             </p>
           </div>
           {/* status badge */}
-          <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 ring-inset shrink-0 ${cfg.badge}`}>
+          <span className={`flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1 rounded-full ring-1 ring-inset shrink-0 ${cfg.badge}`}>
             <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
             {req.status}
           </span>
@@ -252,22 +252,22 @@ function RequestCard({ req, onUpdateStatus, onDelete, canEdit }) {
             <Package className="h-4 w-4 text-slate-500" strokeWidth={1.7} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-slate-800 text-[13px] truncate">{req.supplyName}</p>
+            <p className="font-semibold text-slate-800 text-[14px] truncate">{req.supplyName}</p>
             {req.note && (
-              <p className="text-[11.5px] text-slate-400 truncate mt-0.5">{req.note}</p>
+              <p className="text-[12.5px] text-slate-400 truncate mt-0.5">{req.note}</p>
             )}
           </div>
           {/* qty badge */}
           <div className="shrink-0 flex items-baseline gap-0.5 px-2.5 py-1 rounded-lg bg-blue-50 ring-1 ring-blue-100">
-            <span className="text-[15px] font-bold text-[#1E487A] tabular-nums leading-none">
+            <span className="text-[16px] font-bold text-[#1E487A] tabular-nums leading-none">
               {req.requestedQty}
             </span>
-            <span className="text-[10px] text-slate-400 font-medium ml-0.5">ชิ้น</span>
+            <span className="text-[11px] text-slate-400 font-medium ml-0.5">ชิ้น</span>
           </div>
         </div>
 
         {/* date */}
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+        <div className="flex items-center gap-1.5 text-[12px] text-slate-400">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
           {dateStr}
         </div>
@@ -281,14 +281,14 @@ function RequestCard({ req, onUpdateStatus, onDelete, canEdit }) {
             <>
               <button
                 onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all shadow-sm shadow-emerald-500/30"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all shadow-sm shadow-emerald-500/30"
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                 อนุมัติ
               </button>
               <button
                 onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-500 hover:text-white hover:ring-rose-500 active:scale-95 transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-500 hover:text-white hover:ring-rose-500 active:scale-95 transition-all"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                 ปฏิเสธ
@@ -299,7 +299,7 @@ function RequestCard({ req, onUpdateStatus, onDelete, canEdit }) {
             <select
               value={req.status}
               onChange={(e) => onUpdateStatus(req, e.target.value)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ring-1 ring-inset outline-none cursor-pointer transition-colors ${cfg.badge}`}
+              className={`px-2.5 py-1 rounded-full text-[12px] font-semibold ring-1 ring-inset outline-none cursor-pointer transition-colors ${cfg.badge}`}
             >
               <option value="รอดำเนินการ">รอดำเนินการ</option>
               <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
@@ -335,8 +335,8 @@ function KpiCard({ label, count, color }) {
     <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ring-1 ring-inset ${cfg.bg} ${cfg.ring}`}>
       <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${cfg.dot}`} />
       <div className="flex-1 min-w-0">
-        <p className={`text-[11px] font-semibold truncate ${cfg.text}`}>{label}</p>
-        <p className={`text-[22px] font-bold tabular-nums leading-tight ${cfg.num}`}>{count}</p>
+        <p className={`text-[12px] font-semibold truncate ${cfg.text}`}>{label}</p>
+        <p className={`text-[23px] font-bold tabular-nums leading-tight ${cfg.num}`}>{count}</p>
       </div>
     </div>
   );

@@ -34,12 +34,12 @@ export default function ReturnModal({
         <ModalBody className="space-y-5">
           {/* Asset card */}
           <div className="bg-slate-50/70 ring-1 ring-slate-200 p-5 rounded-xl">
-            <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wide mb-1">อุปกรณ์ที่รับคืน</p>
-            <p className="text-[15px] font-semibold text-slate-900">{returnModal.assetName}</p>
+            <p className="text-[12px] text-slate-500 font-semibold uppercase tracking-wide mb-1">อุปกรณ์ที่รับคืน</p>
+            <p className="text-[16px] font-semibold text-slate-900">{returnModal.assetName}</p>
 
             <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wide mb-1">รับคืนจาก</p>
-              <p className="text-[13.5px] font-semibold text-[#1E487A] flex items-center gap-1.5">
+              <p className="text-[12px] text-slate-500 font-semibold uppercase tracking-wide mb-1">รับคืนจาก</p>
+              <p className="text-[14.5px] font-semibold text-[#1E487A] flex items-center gap-1.5">
                 <User className="h-4 w-4" strokeWidth={2} />
                 {returnModal.empName}
               </p>
@@ -48,7 +48,7 @@ export default function ReturnModal({
 
           {!isLicense && (
             <div>
-              <p className="text-[13px] font-medium text-slate-600 mb-3">ระบุสภาพอุปกรณ์ที่รับคืน</p>
+              <p className="text-[14px] font-medium text-slate-600 mb-3">ระบุสภาพอุปกรณ์ที่รับคืน</p>
               <div className="space-y-2.5">
                 <ConditionOption
                   selected={returnCondition === 'good'}
@@ -69,7 +69,7 @@ export default function ReturnModal({
               </div>
 
               <div className={`transition-all duration-300 overflow-hidden ${returnCondition === 'broken' ? 'max-h-[220px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
-                <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+                <label className="block text-[14px] font-medium text-slate-600 mb-1.5">
                   หมายเหตุ <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -86,7 +86,7 @@ export default function ReturnModal({
 
           {isLicense && (
             <div>
-              <label className="block text-[13px] font-medium text-slate-600 mb-1.5">หมายเหตุ (ถ้ามี)</label>
+              <label className="block text-[14px] font-medium text-slate-600 mb-1.5">หมายเหตุ (ถ้ามี)</label>
               <textarea
                 value={returnRemarks}
                 onChange={(e) => setReturnRemarks(e.target.value)}
@@ -149,11 +149,11 @@ function ConditionOption({ selected, onClick, Icon, color, title, description })
         <Icon className="h-4 w-4" strokeWidth={2} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-semibold text-slate-800 flex items-center gap-2">
+        <div className="text-[15px] font-semibold text-slate-800 flex items-center gap-2">
           {selected && <span className={`w-1.5 h-1.5 rounded-full ${colorMap.dot}`} />}
           {title}
         </div>
-        <p className="text-[12.5px] text-slate-500 mt-0.5">{description}</p>
+        <p className="text-[13.5px] text-slate-500 mt-0.5">{description}</p>
       </div>
       {selected && (
         <div className={`w-5 h-5 rounded-full ${colorMap.iconBg} flex items-center justify-center shrink-0`}>

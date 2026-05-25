@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>คู่มือใช้งาน Git & GitHub — โปรเจกต์ IT Asset Management</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Sarabun', 'Segoe UI', sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    line-height: 1.6;
+  }
+  body { padding: 32px 20px; }
+  .page {
+    max-width: 880px;
+    margin: 0 auto 24px;
+    background: white;
+    padding: 48px 56px;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(15,23,42,0.08);
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* COVER */
+  .cover {
+    background: linear-gradient(135deg, #1e487a 0%, #2558a0 100%);
+    color: white;
+    text-align: center;
+    padding: 80px 56px;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+  .cover h1 {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+  .cover .subtitle {
+    font-size: 18px;
+    opacity: 0.9;
+    font-weight: 400;
+    margin-bottom: 48px;
+  }
+  .cover .project-name {
+    font-size: 14px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 12px 20px;
+    border-radius: 12px;
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cover .footer {
+    margin-top: 80px;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  /* SECTIONS */
+  h1.section-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1e487a;
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #1e487a;
+  }
+  .section-sub {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e487a;
+    margin: 32px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .num {
+    background: #1e487a;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #334155;
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 12px; color: #334155; font-size: 14px; }
+  .lead { font-size: 15px; color: #475569; }
+
+  /* CODE BLOCKS */
+  .code {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 13.5px;
+    margin: 12px 0;
+    overflow-x: auto;
+    border-left: 4px solid #38bdf8;
+    line-height: 1.7;
+  }
+  .code .comment { color: #64748b; font-style: italic; }
+  .code .cmd { color: #7dd3fc; font-weight: 500; }
+  .code .arg { color: #fde68a; }
+
+  /* CALLOUTS */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .callout-info { background: #dbeafe; border-left: 4px solid #2563eb; }
+  .callout-info .callout-icon { background: #2563eb; color: white; }
+  .callout-warn { background: #fef3c7; border-left: 4px solid #d97706; }
+  .callout-warn .callout-icon { background: #d97706; color: white; }
+  .callout-success { background: #dcfce7; border-left: 4px solid #16a34a; }
+  .callout-success .callout-icon { background: #16a34a; color: white; }
+  .callout-danger { background: #fee2e2; border-left: 4px solid #dc2626; }
+  .callout-danger .callout-icon { background: #dc2626; color: white; }
+  .callout-body { flex: 1; color: #1e293b; }
+  .callout-body strong { color: #0f172a; }
+
+  /* STEPS */
+  .step {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 14px 0;
+    border-left: 4px solid #1e487a;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .step-num {
+    background: #1e487a;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .step-desc {
+    font-size: 13.5px;
+    color: #475569;
+  }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  th {
+    background: #f1f5f9;
+    font-weight: 700;
+    color: #1e487a;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  tr:hover td { background: #f8fafc; }
+
+  /* WORKFLOW DIAGRAM */
+  .workflow {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+    border: 2px dashed #cbd5e1;
+  }
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .flow-box {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+    flex: 1;
+    min-width: 160px;
+    text-align: center;
+    border-top: 3px solid #1e487a;
+  }
+  .flow-box.local { border-top-color: #16a34a; }
+  .flow-box.github { border-top-color: #0f172a; }
+  .flow-box.remote { border-top-color: #f59e0b; }
+  .flow-box-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .flow-box-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  .flow-box-desc {
+    font-size: 11.5px;
+    color: #64748b;
+  }
+  .arrow {
+    font-size: 24px;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+
+  /* TOC */
+  .toc {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #cbd5e1;
+    font-size: 14px;
+  }
+  .toc-item:last-child { border-bottom: none; }
+  .toc-item .label { color: #1e487a; font-weight: 600; }
+  .toc-item .page-no { color: #64748b; font-weight: 600; }
+
+  /* PRINT */
+  @media print {
+    body { background: white; padding: 0; }
+    .page {
+      box-shadow: none;
+      border-radius: 0;
+      margin: 0;
+      max-width: none;
+      padding: 32px 40px;
+    }
+    .cover { padding: 60px 40px; }
+    @page { size: A4; margin: 0; }
+  }
+
+  .pill {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+  .footer-page {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .keyword { background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════ PAGE 1: COVER ════════════════════════ -->
+<div class="page cover">
+  <div class="badge">📘 คู่มือการใช้งาน</div>
+  <h1>Git &amp; GitHub<br/>สำหรับสลับเครื่องทำงาน</h1>
+  <p class="subtitle">วิธีนำโค้ดขึ้น GitHub และดึงไปทำต่อบนเครื่องอื่น</p>
+  <div class="project-name">📁 Project: IT-Project (Globe Syndicate)</div>
+  <div class="footer">
+    Repository: github.com/Nanthaphon/IT-Project<br/>
+    เวอร์ชั่น 1.0 • พฤษภาคม 2026
+  </div>
+</div>
+
+<!-- ════════════════════════ PAGE 2: TOC ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">สารบัญ</h1>
+  <p class="section-sub">เนื้อหาในคู่มือนี้</p>
+
+  <div class="toc">
+    <div class="toc-item"><span class="label">1. ภาพรวมการทำงาน (Workflow)</span><span class="page-no">หน้า 3</span></div>
+    <div class="toc-item"><span class="label">2. เครื่องนี้: เอาโค้ดขึ้น GitHub</span><span class="page-no">หน้า 4</span></div>
+    <div class="toc-item"><span class="label">3. เครื่องใหม่: โหลดโค้ดมาครั้งแรก</span><span class="page-no">หน้า 5</span></div>
+    <div class="toc-item"><span class="label">4. เครื่องที่มีโค้ดอยู่แล้ว: อัปเดตล่าสุด</span><span class="page-no">หน้า 6</span></div>
+    <div class="toc-item"><span class="label">5. ปัญหาที่พบบ่อย + วิธีแก้</span><span class="page-no">หน้า 7</span></div>
+    <div class="toc-item"><span class="label">6. คำสั่ง Git ที่ใช้บ่อย</span><span class="page-no">หน้า 8</span></div>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">i</span>
+    <div class="callout-body">
+      <strong>คำสั่งทั้งหมดในคู่มือนี้</strong> รันใน <span class="keyword">PowerShell</span> หรือ <span class="keyword">Command Prompt</span> บน Windows ได้ทันที
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ PAGE 3: WORKFLOW ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">1. ภาพรวมการทำงาน</h1>
+  <p class="section-sub">เข้าใจการทำงานก่อนลงมือทำ</p>
+
+  <p class="lead">การสลับเครื่องทำงานคือการใช้ <strong>GitHub เป็นสะพานกลาง</strong> โดยคุณ "ฝาก" โค้ดไว้บน GitHub แล้วเครื่องอื่นก็ "หยิบ" โค้ดมาทำต่อ</p>
+
+  <div class="workflow">
+    <div class="flow">
+      <div class="flow-box local">
+        <div class="flow-box-icon">💻</div>
+        <div class="flow-box-title">เครื่อง A</div>
+        <div class="flow-box-desc">ทำงาน + แก้โค้ด</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-box github">
+        <div class="flow-box-icon">☁️</div>
+        <div class="flow-box-title">GitHub</div>
+        <div class="flow-box-desc">เก็บโค้ดกลาง</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-box remote">
+        <div class="flow-box-icon">🖥️</div>
+        <div class="flow-box-title">เครื่อง B</div>
+        <div class="flow-box-desc">ดึงมาทำต่อ</div>
+      </div>
+    </div>
+  </div>
+
+  <h2><span class="num">A</span> เครื่อง A → GitHub (เรียกว่า PUSH)</h2>
+  <table>
+    <tr><th>คำสั่ง</th><th>ทำอะไร</th></tr>
+    <tr><td><span class="keyword">git add .</span></td><td>เลือกไฟล์ที่จะส่งขึ้น</td></tr>
+    <tr><td><span class="keyword">git commit -m "..."</span></td><td>สร้างจุดบันทึก + เขียนข้อความบอกว่าทำอะไร</td></tr>
+    <tr><td><span class="keyword">git push origin main</span></td><td>ส่งขึ้น GitHub</td></tr>
+  </table>
+
+  <h2><span class="num">B</span> GitHub → เครื่อง B (เรียกว่า PULL หรือ CLONE)</h2>
+  <table>
+    <tr><th>คำสั่ง</th><th>ใช้เมื่อ</th></tr>
+    <tr><td><span class="keyword">git clone &lt;url&gt;</span></td><td>ครั้งแรกที่เครื่องนั้นยังไม่มีโค้ด</td></tr>
+    <tr><td><span class="keyword">git pull origin main</span></td><td>มีโค้ดอยู่แล้ว แค่อัปเดตล่าสุด</td></tr>
+  </table>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>กฎทอง:</strong> ก่อนปิดเครื่องทุกครั้ง <span style="color:#dc2626;">ต้อง push ขึ้น GitHub</span> เสมอ ไม่งั้นเครื่องอื่นจะดึงโค้ดล่าสุดของคุณไม่ได้
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ PAGE 4: PUSH ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">2. เครื่องนี้: เอาโค้ดขึ้น GitHub</h1>
+  <p class="section-sub">ทำเมื่อ: แก้โค้ดเสร็จ และต้องการเก็บไว้บน GitHub</p>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1</span>
+      <div>
+        <div class="step-title">เปิด PowerShell ไปที่โฟลเดอร์โปรเจกต์</div>
+        <div class="step-desc">เปิด PowerShell แล้วใช้ cd ไปที่โฟลเดอร์</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">cd</span> <span class="arg">"C:\Users\IT\Desktop\IT Project"</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2</span>
+      <div>
+        <div class="step-title">เช็คว่ามีไฟล์อะไรเปลี่ยนบ้าง</div>
+        <div class="step-desc">ดูว่าแก้ไขไฟล์อะไรไปบ้าง</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">git</span> <span class="arg">status</span></div>
+    <p style="font-size:12.5px; color:#64748b; margin-top:8px;">→ ถ้าเห็น "modified:" หรือ "Untracked files:" แสดงว่ามีของให้ push</p>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3</span>
+      <div>
+        <div class="step-title">เพิ่มไฟล์ทั้งหมดเข้า staging</div>
+        <div class="step-desc">บอก Git ว่า "ฉันจะ commit ไฟล์เหล่านี้"</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">git</span> <span class="arg">add .</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4</span>
+      <div>
+        <div class="step-title">Commit พร้อมข้อความ</div>
+        <div class="step-desc">เขียนสั้นๆ ว่าทำอะไรไป (ภายในเครื่องหมาย " ")</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">git</span> <span class="arg">commit -m "เพิ่มฟีเจอร์ KPI Dashboard"</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5</span>
+      <div>
+        <div class="step-title">Push ขึ้น GitHub</div>
+        <div class="step-desc">ส่งโค้ดขึ้นไปบน GitHub branch ชื่อ main</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">git</span> <span class="arg">push origin main</span></div>
+  </div>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">✓</span>
+    <div class="callout-body">
+      <strong>สำเร็จเมื่อเห็น:</strong> <span class="keyword">main -> main</span> ที่บรรทัดสุดท้าย
+    </div>
+  </div>
+
+  <div class="footer-page">หน้า 4 • คู่มือ Git &amp; GitHub สำหรับ IT-Project</div>
+</div>
+
+<!-- ════════════════════════ PAGE 5: CLONE ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">3. เครื่องใหม่: โหลดโค้ดมาครั้งแรก</h1>
+  <p class="section-sub">ทำเมื่อ: เครื่องนั้นยังไม่เคยมีโค้ดเลย</p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">i</span>
+    <div class="callout-body">
+      <strong>ก่อนเริ่ม:</strong> เครื่องใหม่ต้องติดตั้ง <span class="keyword">Git</span> และ <span class="keyword">Node.js</span> ก่อน ดูได้ที่:<br/>
+      • Git → <span style="color:#2563eb;">git-scm.com/downloads</span><br/>
+      • Node.js → <span style="color:#2563eb;">nodejs.org</span> (เลือก LTS)
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1</span>
+      <div>
+        <div class="step-title">เปิด PowerShell ไปที่ Desktop</div>
+        <div class="step-desc">หรือโฟลเดอร์ที่ต้องการเก็บโปรเจกต์</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">cd</span> <span class="arg">C:\Users\YourName\Desktop</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2</span>
+      <div>
+        <div class="step-title">Clone โปรเจกต์มาจาก GitHub</div>
+        <div class="step-desc">ดาวน์โหลดทั้ง repo มาที่เครื่อง (รันครั้งเดียวเท่านั้น)</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">git</span> <span class="arg">clone https://github.com/Nanthaphon/IT-Project.git</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3</span>
+      <div>
+        <div class="step-title">เข้าไปในโฟลเดอร์โปรเจกต์</div>
+        <div class="step-desc">โค้ดจริงๆ อยู่ใน subfolder ชื่อ it_asset_menagement</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">cd</span> <span class="arg">IT-Project\it_asset_menagement</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4</span>
+      <div>
+        <div class="step-title">ติดตั้ง dependencies</div>
+        <div class="step-desc">npm install จะดาวน์โหลด library ทั้งหมดที่โปรเจกต์ต้องการ (รันครั้งแรก รอ 1-3 นาที)</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">npm</span> <span class="arg">install</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5</span>
+      <div>
+        <div class="step-title">รัน Development Server</div>
+        <div class="step-desc">เปิดเว็บที่ http://localhost:5173 เพื่อทดสอบ</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">npm</span> <span class="arg">run dev</span></div>
+  </div>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">✓</span>
+    <div class="callout-body">
+      <strong>เสร็จเรียบร้อย!</strong> ตอนนี้เครื่องใหม่พร้อมแก้โค้ดและ push ขึ้น GitHub ได้แล้ว
+    </div>
+  </div>
+
+  <div class="footer-page">หน้า 5 • คู่มือ Git &amp; GitHub สำหรับ IT-Project</div>
+</div>
+
+<!-- ════════════════════════ PAGE 6: PULL ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">4. เครื่องที่มีโค้ดอยู่แล้ว: อัปเดตล่าสุด</h1>
+  <p class="section-sub">ทำเมื่อ: เครื่องนั้นเคย clone แล้ว แค่อยากดึงโค้ดใหม่</p>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1</span>
+      <div>
+        <div class="step-title">เปิด PowerShell ไปที่โฟลเดอร์โปรเจกต์</div>
+        <div class="step-desc">โฟลเดอร์ที่เคย clone ไว้</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">cd</span> <span class="arg">C:\path\to\IT-Project</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2</span>
+      <div>
+        <div class="step-title">Pull โค้ดล่าสุดจาก GitHub</div>
+        <div class="step-desc">ดึงการเปลี่ยนแปลงใหม่ๆ มาทับโค้ดเก่า</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">git</span> <span class="arg">pull origin main</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3</span>
+      <div>
+        <div class="step-title">ติดตั้ง dependencies เพิ่ม (ถ้ามี)</div>
+        <div class="step-desc">ทำเฉพาะเมื่อ package.json มีการเปลี่ยนแปลง (มี library ใหม่)</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">cd</span> <span class="arg">it_asset_menagement</span>
+<span class="cmd">npm</span> <span class="arg">install</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4</span>
+      <div>
+        <div class="step-title">รัน Development Server</div>
+        <div class="step-desc">พร้อมทำงานต่อแล้ว</div>
+      </div>
+    </div>
+    <div class="code"><span class="cmd">npm</span> <span class="arg">run dev</span></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>ข้อควรระวัง:</strong> ก่อน pull ถ้าเครื่องนี้แก้ไฟล์ค้างไว้ (ยังไม่ commit) Git จะเตือน — ให้ <span class="keyword">git commit</span> ก่อน หรือใช้ <span class="keyword">git stash</span> เพื่อพักไว้ชั่วคราว
+    </div>
+  </div>
+
+  <div class="footer-page">หน้า 6 • คู่มือ Git &amp; GitHub สำหรับ IT-Project</div>
+</div>
+
+<!-- ════════════════════════ PAGE 7: TROUBLESHOOT ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">5. ปัญหาที่พบบ่อย + วิธีแก้</h1>
+  <p class="section-sub">เจอ error ไม่ต้องตกใจ ดูตารางนี้</p>
+
+  <h3>❌ "Please enter a commit message to explain why this merge is necessary"</h3>
+  <p>เกิดเมื่อ pull แล้วโค้ดท้องถิ่นกับ remote ขัดกัน Git เปิด vim editor</p>
+  <div class="code"><span class="comment"># กด Esc แล้วพิมพ์:</span>
+:wq</div>
+
+  <h3>❌ "Your local changes would be overwritten by merge"</h3>
+  <p>คุณแก้โค้ดค้างไว้ แต่ยังไม่ commit — Git ไม่ยอม pull ทับ</p>
+  <div class="code"><span class="comment"># ทางเลือกที่ 1: commit ก่อน</span>
+<span class="cmd">git</span> <span class="arg">add .</span>
+<span class="cmd">git</span> <span class="arg">commit -m "บันทึกชั่วคราว"</span>
+<span class="cmd">git</span> <span class="arg">pull origin main</span>
+
+<span class="comment"># ทางเลือกที่ 2: stash (พักไว้ชั่วคราว)</span>
+<span class="cmd">git</span> <span class="arg">stash</span>
+<span class="cmd">git</span> <span class="arg">pull origin main</span>
+<span class="cmd">git</span> <span class="arg">stash pop</span></div>
+
+  <h3>❌ "Updates were rejected because the remote contains work that you do not have locally"</h3>
+  <p>เครื่องอื่น push ขึ้นไปแล้ว — เครื่องนี้ต้อง pull ก่อน push ใหม่</p>
+  <div class="code"><span class="cmd">git</span> <span class="arg">pull origin main</span>
+<span class="cmd">git</span> <span class="arg">push origin main</span></div>
+
+  <h3>❌ "fatal: not a git repository"</h3>
+  <p>อยู่ผิดโฟลเดอร์ — Git command ทำงานได้เฉพาะโฟลเดอร์ที่มี .git ซ่อนอยู่</p>
+  <div class="code"><span class="cmd">cd</span> <span class="arg">"C:\Users\IT\Desktop\IT Project"</span>  <span class="comment"># กลับไปโฟลเดอร์โปรเจกต์</span></div>
+
+  <h3>❌ "Permission denied (publickey)"</h3>
+  <p>ใช้ SSH URL แต่ยังไม่ได้ตั้งค่า — ใช้ HTTPS URL แทน</p>
+  <div class="code"><span class="cmd">git</span> <span class="arg">remote set-url origin https://github.com/Nanthaphon/IT-Project.git</span></div>
+
+  <div class="footer-page">หน้า 7 • คู่มือ Git &amp; GitHub สำหรับ IT-Project</div>
+</div>
+
+<!-- ════════════════════════ PAGE 8: CHEATSHEET ════════════════════════ -->
+<div class="page">
+  <h1 class="section-title">6. คำสั่ง Git ที่ใช้บ่อย</h1>
+  <p class="section-sub">เก็บไว้เป็น cheatsheet</p>
+
+  <table>
+    <tr><th style="width:38%">คำสั่ง</th><th>ความหมาย</th></tr>
+    <tr><td><span class="keyword">git status</span></td><td>ดูสถานะ มีไฟล์ไหนแก้ไป / staged / untracked</td></tr>
+    <tr><td><span class="keyword">git add .</span></td><td>เพิ่มทุกไฟล์ที่แก้เข้า staging</td></tr>
+    <tr><td><span class="keyword">git add &lt;file&gt;</span></td><td>เพิ่มเฉพาะไฟล์ที่ระบุ</td></tr>
+    <tr><td><span class="keyword">git commit -m "msg"</span></td><td>บันทึก commit พร้อมข้อความ</td></tr>
+    <tr><td><span class="keyword">git push origin main</span></td><td>ส่ง commit ขึ้น GitHub</td></tr>
+    <tr><td><span class="keyword">git pull origin main</span></td><td>ดึงโค้ดล่าสุดจาก GitHub</td></tr>
+    <tr><td><span class="keyword">git clone &lt;url&gt;</span></td><td>โหลด repo ทั้งหมดมาเครื่อง (ครั้งแรก)</td></tr>
+    <tr><td><span class="keyword">git log --oneline -10</span></td><td>ดูประวัติ commit 10 รายการล่าสุด</td></tr>
+    <tr><td><span class="keyword">git diff</span></td><td>ดูว่าแก้อะไรไปบ้างเทียบกับ commit ก่อน</td></tr>
+    <tr><td><span class="keyword">git stash</span></td><td>พักการแก้ไขชั่วคราว (เก็บไว้ก่อน)</td></tr>
+    <tr><td><span class="keyword">git stash pop</span></td><td>เอาการแก้ไขที่พักไว้กลับมา</td></tr>
+    <tr><td><span class="keyword">git restore &lt;file&gt;</span></td><td>คืนค่าไฟล์กลับเป็นแบบใน commit ล่าสุด</td></tr>
+    <tr><td><span class="keyword">git branch</span></td><td>ดูว่าตอนนี้อยู่ branch อะไร</td></tr>
+  </table>
+
+  <h2><span class="num">⚡</span> สรุปขั้นตอนสลับเครื่อง (ฉบับสั้นที่สุด)</h2>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">A</span>
+    <div class="callout-body">
+      <strong>ก่อนปิดเครื่องนี้:</strong><br/>
+      <code style="font-family:'JetBrains Mono'; font-size:13px;">git add . &amp;&amp; git commit -m "ทำอะไรไปบ้าง" &amp;&amp; git push origin main</code>
+    </div>
+  </div>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">B</span>
+    <div class="callout-body">
+      <strong>เปิดเครื่องอีกตัวมาทำต่อ:</strong><br/>
+      <code style="font-family:'JetBrains Mono'; font-size:13px;">git pull origin main</code>
+    </div>
+  </div>
+
+  <div class="callout callout-danger">
+    <span class="callout-icon">!</span>
+    <div class="callout-body">
+      <strong>ห้ามลืม!</strong> ก่อนเปลี่ยนเครื่อง — push ก่อนเสมอ ไม่งั้นอีกเครื่องจะเอาโค้ดล่าสุดของคุณไปต่อไม่ได้ และอาจเกิดความขัดแย้งของไฟล์ภายหลัง
+    </div>
+  </div>
+
+  <div class="footer-page">หน้า 8 • คู่มือ Git &amp; GitHub สำหรับ IT-Project • จบ</div>
+</div>
+
+</body>
+</html>

@@ -115,8 +115,8 @@ export default function SatisfactionSurveyModal({
               <Sparkles className="h-5 w-5" strokeWidth={2} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-[17px] font-bold tracking-tight">ประเมินความพึงพอใจ</h3>
-              <p className="text-[12.5px] text-blue-100/90 mt-0.5">
+              <h3 className="text-[18px] font-bold tracking-tight">ประเมินความพึงพอใจ</h3>
+              <p className="text-[13.5px] text-blue-100/90 mt-0.5">
                 หลังการแก้ไขปัญหา IT — ใช้เวลาเพียงไม่กี่วินาที 🙏
               </p>
             </div>
@@ -124,7 +124,7 @@ export default function SatisfactionSurveyModal({
         </div>
 
         {/* ── Repair info ── */}
-        <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100/60 flex items-center gap-3 text-[12.5px]">
+        <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100/60 flex items-center gap-3 text-[13.5px]">
           <Wrench className="h-3.5 w-3.5 text-[#1E487A] shrink-0" strokeWidth={2} />
           <span className="font-semibold text-slate-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
           <span className="text-slate-300">·</span>
@@ -153,10 +153,10 @@ export default function SatisfactionSurveyModal({
           {/* comment */}
           <div className="border-t border-slate-100 pt-5">
             <label className="block">
-              <span className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-700 mb-2">
+              <span className="flex items-center gap-1.5 text-[14px] font-semibold text-slate-700 mb-2">
                 <MessageSquare className="h-3.5 w-3.5 text-slate-400" strokeWidth={1.9} />
                 ความคิดเห็นเพิ่มเติม
-                <span className="text-[10.5px] text-slate-400 font-normal">(ไม่บังคับ)</span>
+                <span className="text-[11.5px] text-slate-400 font-normal">(ไม่บังคับ)</span>
               </span>
               <textarea
                 value={comment}
@@ -164,9 +164,9 @@ export default function SatisfactionSurveyModal({
                 placeholder="เช่น ขอบคุณทีม IT ที่แก้ปัญหาเร็วครับ..."
                 rows={3}
                 maxLength={500}
-                className="w-full bg-slate-50/70 border border-slate-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all text-[13px] text-slate-800 placeholder:text-slate-400 resize-none"
+                className="w-full bg-slate-50/70 border border-slate-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all text-[14px] text-slate-800 placeholder:text-slate-400 resize-none"
               />
-              <p className="text-[10.5px] text-slate-400 mt-1 text-right">{comment.length}/500</p>
+              <p className="text-[11.5px] text-slate-400 mt-1 text-right">{comment.length}/500</p>
             </label>
           </div>
 
@@ -174,9 +174,9 @@ export default function SatisfactionSurveyModal({
           {allRated && (
             <div className="bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 ring-1 ring-blue-100 rounded-2xl px-5 py-4 flex items-center justify-between">
               <div>
-                <p className="text-[11.5px] text-slate-500 font-medium">คะแนนเฉลี่ยรวม</p>
-                <p className="text-[26px] font-black text-[#1E487A] leading-none mt-1 tabular-nums">
-                  {overall.toFixed(2)} <span className="text-[14px] text-slate-400 font-medium">/ 5.00</span>
+                <p className="text-[12.5px] text-slate-500 font-medium">คะแนนเฉลี่ยรวม</p>
+                <p className="text-[27px] font-black text-[#1E487A] leading-none mt-1 tabular-nums">
+                  {overall.toFixed(2)} <span className="text-[15px] text-slate-400 font-medium">/ 5.00</span>
                 </p>
               </div>
               <div className="flex items-center gap-1">
@@ -197,7 +197,7 @@ export default function SatisfactionSurveyModal({
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-2.5 rounded-xl text-[13px] font-medium text-slate-500 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2.5 rounded-xl text-[14px] font-medium text-slate-500 hover:bg-slate-100 transition-colors"
           >
             ข้ามไปก่อน
           </button>
@@ -205,7 +205,7 @@ export default function SatisfactionSurveyModal({
             type="button"
             onClick={handleSubmit}
             disabled={!allRated || isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[14px] font-bold text-white transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95"
             style={{ background: BRAND.primary, boxShadow: `0 8px 20px ${BRAND.primary}40` }}
           >
             {isSubmitting ? (
@@ -235,12 +235,12 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
   return (
     <div>
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-6 h-6 rounded-full bg-[#1E487A]/10 text-[#1E487A] flex items-center justify-center text-[11.5px] font-bold shrink-0 mt-0.5">
+        <div className="w-6 h-6 rounded-full bg-[#1E487A]/10 text-[#1E487A] flex items-center justify-center text-[12.5px] font-bold shrink-0 mt-0.5">
           {index}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[13.5px] font-semibold text-slate-800 leading-snug">{label}</p>
-          <p className="text-[11.5px] text-slate-400 mt-0.5 leading-snug">{desc}</p>
+          <p className="text-[14.5px] font-semibold text-slate-800 leading-snug">{label}</p>
+          <p className="text-[12.5px] text-slate-400 mt-0.5 leading-snug">{desc}</p>
         </div>
       </div>
 
@@ -271,7 +271,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
         </div>
 
         {/* label */}
-        <span className={`text-[12px] font-semibold transition-colors ${labelColor}`}>
+        <span className={`text-[13px] font-semibold transition-colors ${labelColor}`}>
           {labelText}
         </span>
       </div>

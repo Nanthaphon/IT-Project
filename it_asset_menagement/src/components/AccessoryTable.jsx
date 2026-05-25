@@ -2,7 +2,7 @@ import React from 'react';
 import { Pencil, Trash2, Mouse, LogIn } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-[0.08em]';
+const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-3.5';
 
 export default function AccessoryTable({
@@ -36,7 +36,7 @@ export default function AccessoryTable({
           </th>
           <th className={TH}>ชื่ออุปกรณ์</th>
           <th className={TH}>ประเภท</th>
-          <th className={`px-5 py-3 font-semibold text-slate-700 text-[11px] uppercase tracking-[0.08em] text-center bg-slate-100/60`}>
+          <th className={`px-5 py-3 font-semibold text-slate-700 text-[12px] uppercase tracking-[0.08em] text-center bg-slate-100/60`}>
             รวมทั้งหมด <span style={{ color: BRAND.primary }} className="ml-1 tabular-nums">({totalQty})</span>
           </th>
           <th className={`${TH} text-center`}>
@@ -51,7 +51,7 @@ export default function AccessoryTable({
           <th className={`${TH} text-center`}>จัดการ</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-100 text-[13.5px] bg-white">
+      <tbody className="divide-y divide-slate-100 text-[14.5px] bg-white">
         {currentData.map((item) => {
           const remain = Number(item.quantity || 0) - (item.assignees?.length || 0) - Number(item.brokenQuantity || 0);
           const used   = item.assignees?.length || 0;
@@ -85,7 +85,7 @@ export default function AccessoryTable({
                 </button>
               </td>
               <td className={TD}>
-                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[11px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
+                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[12px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
                   {item.type}
                 </span>
               </td>
@@ -100,7 +100,7 @@ export default function AccessoryTable({
                   {canEdit && (
                     <button
                       onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'accessories' })}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
                       title="เบิกจ่าย"
                     >
                       <LogIn className="h-3 w-3" strokeWidth={2.2} />

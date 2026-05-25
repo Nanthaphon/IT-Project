@@ -39,7 +39,7 @@ export default function TopHeader({
             <Menu className="h-5 w-5" strokeWidth={2} />
           </button>
         )}
-        <h2 className="text-[14px] md:text-[15px] font-semibold text-slate-900 tracking-tight truncate">
+        <h2 className="text-[15px] md:text-[16px] font-semibold text-slate-900 tracking-tight truncate">
           {menuTitle}
         </h2>
       </div>
@@ -49,7 +49,7 @@ export default function TopHeader({
         {/* User badge — แสดงชื่อ user ที่ login */}
         {badgeLabel && (
           <span
-            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-semibold ring-1 ring-inset mr-1"
+            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12.5px] font-semibold ring-1 ring-inset mr-1"
             style={{
               backgroundColor: `${BRAND.primary}10`,
               color: BRAND.primary,
@@ -74,7 +74,7 @@ export default function TopHeader({
               <Bell className="h-[18px] w-[18px]" strokeWidth={1.8} />
             )}
             {totalPendingCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none shadow-sm pointer-events-none">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[11px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none shadow-sm pointer-events-none">
                 {totalPendingCount > 9 ? '9+' : totalPendingCount}
               </span>
             )}
@@ -84,9 +84,9 @@ export default function TopHeader({
           {isNotifOpen && (
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl shadow-slate-950/15 ring-1 ring-slate-200/70 overflow-hidden z-50">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                <p className="text-[13px] font-semibold text-slate-800 tracking-tight">การแจ้งเตือน</p>
+                <p className="text-[14px] font-semibold text-slate-800 tracking-tight">การแจ้งเตือน</p>
                 {totalPendingCount > 0 && (
-                  <span className="text-[11px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200 px-2 py-0.5 rounded-full">
+                  <span className="text-[12px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200 px-2 py-0.5 rounded-full">
                     {totalPendingCount} รายการ
                   </span>
                 )}
@@ -99,7 +99,7 @@ export default function TopHeader({
                       <Bell className="h-5 w-5 text-slate-300" strokeWidth={1.5} />
                     </div>
                     <p className="text-sm text-slate-500 font-medium">ไม่มีรายการรอดำเนินการ</p>
-                    <p className="text-[11.5px] text-slate-400 mt-1">ทุกอย่างเรียบร้อยดี</p>
+                    <p className="text-[12.5px] text-slate-400 mt-1">ทุกอย่างเรียบร้อยดี</p>
                   </div>
                 ) : (
                   <div className="py-1.5">
@@ -143,7 +143,7 @@ export default function TopHeader({
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-[12.5px] font-medium text-slate-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+          className="flex items-center gap-1.5 text-[13.5px] font-medium text-slate-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
           aria-label="ออกจากระบบ"
         >
           <LogOut className="h-[15px] w-[15px]" strokeWidth={1.8} />
@@ -170,9 +170,9 @@ function NotifItem({ label, count, kind, Icon, onClick }) {
         <Icon className="h-4 w-4" strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-slate-800 truncate">{label}</p>
+        <p className="text-[14px] font-medium text-slate-800 truncate">{label}</p>
       </div>
-      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${kindCls.badge} shrink-0`}>
+      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${kindCls.badge} shrink-0`}>
         {count}
       </span>
       <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />

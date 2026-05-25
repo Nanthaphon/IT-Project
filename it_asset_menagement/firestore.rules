@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. อนุญาตให้ทุกคนอ่านข้อมูลได้ เพื่อดึงข้อมูลมาแสดงผล
+    match /{document=**} {
+      allow read: if true;
+    }
+
+    // 2. ให้เฉพาะคนที่ล็อกอินผ่านอีเมล (Admin/HR) เขียน/แก้ไข/ลบ ข้อมูลหลักได้
+    match /{document=**} {
+      allow write: if request.auth != null;
+    }
+
+    // 3. อนุญาตให้พนักงานทั่วไป (ไม่ได้ล็อกอินอีเมล) สร้าง/แก้ไขใบคำขอต่างๆ ได้
+    match /repair_requests/{document} {
+      allow write: if true;
+    }
+    match /supply_requests/{document} {
+      allow write: if true;
+    }
+    match /replacement_requests/{document} {
+      allow write: if true;
+    }
+
+  }
+}

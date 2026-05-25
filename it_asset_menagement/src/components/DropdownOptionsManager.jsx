@@ -81,10 +81,10 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           <Icon className={`h-5 w-5 ${c.icon}`} strokeWidth={1.8} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-slate-900 text-[14.5px] leading-tight tracking-tight">{category.label}</h3>
-          <p className="text-[11.5px] text-slate-500 mt-0.5">{category.description}</p>
+          <h3 className="font-semibold text-slate-900 text-[15.5px] leading-tight tracking-tight">{category.label}</h3>
+          <p className="text-[12.5px] text-slate-500 mt-0.5">{category.description}</p>
         </div>
-        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 ring-1 ring-inset ring-slate-200 px-2 py-0.5 rounded-full shrink-0">
+        <span className="text-[12px] font-semibold text-slate-600 bg-slate-100 ring-1 ring-inset ring-slate-200 px-2 py-0.5 rounded-full shrink-0">
           {values.length} รายการ
         </span>
       </div>
@@ -92,12 +92,12 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
       {/* Chips */}
       <div className="flex flex-wrap gap-1.5 min-h-[36px]">
         {values.length === 0 && (
-          <p className="text-[12px] text-slate-400 italic">ยังไม่มีตัวเลือก กรอกด้านล่างเพื่อเพิ่ม</p>
+          <p className="text-[13px] text-slate-400 italic">ยังไม่มีตัวเลือก กรอกด้านล่างเพื่อเพิ่ม</p>
         )}
         {values.map((val) => (
           <span
             key={val}
-            className={`inline-flex items-center gap-1.5 text-[11.5px] font-medium px-2.5 py-1 rounded-full ring-1 ring-inset ${c.chip}`}
+            className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium px-2.5 py-1 rounded-full ring-1 ring-inset ${c.chip}`}
           >
             {val}
             <button
@@ -120,13 +120,13 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={category.placeholder}
-          className="flex-1 bg-white border border-slate-200 px-3 py-2 rounded-lg text-[13px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+          className="flex-1 bg-white border border-slate-200 px-3 py-2 rounded-lg text-[14px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
         />
         <button
           type="button"
           onClick={handleAdd}
           disabled={!input.trim()}
-          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-[13px] font-semibold transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-slate-200 cursor-not-allowed text-slate-400'}`}
+          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-[14px] font-semibold transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-slate-200 cursor-not-allowed text-slate-400'}`}
         >
           <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่ม
         </button>
@@ -183,13 +183,13 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
             <SlidersHorizontal className="h-5 w-5" strokeWidth={1.8} />
           </div>
           <div>
-            <h1 className="text-[22px] font-semibold text-slate-900 tracking-tight leading-tight">ตั้งค่าตัวเลือกฟิลด์</h1>
+            <h1 className="text-[23px] font-semibold text-slate-900 tracking-tight leading-tight">ตั้งค่าตัวเลือกฟิลด์</h1>
             <p className="text-sm text-slate-500 mt-1">จัดการรายการตัวเลือกที่จะแสดงใน Dropdown ของฟอร์มต่างๆ</p>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {savedAt && !dirty && (
-            <span className="text-[12px] text-emerald-600 font-semibold flex items-center gap-1">
+            <span className="text-[13px] text-emerald-600 font-semibold flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
               บันทึกแล้ว
             </span>
@@ -197,7 +197,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
           <button
             onClick={handleSave}
             disabled={!dirty || saving}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[13.5px] transition-colors ${dirty && !saving ? 'text-white shadow-sm hover:shadow-md' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14.5px] transition-colors ${dirty && !saving ? 'text-white shadow-sm hover:shadow-md' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
             style={dirty && !saving ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
             onMouseEnter={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primary)}
@@ -210,18 +210,18 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
 
       {/* Unsaved banner */}
       {dirty && (
-        <div className="mb-5 bg-amber-50 ring-1 ring-inset ring-amber-200 rounded-xl px-4 py-3 flex items-center gap-2 text-amber-700 text-[13px] font-medium">
+        <div className="mb-5 bg-amber-50 ring-1 ring-inset ring-amber-200 rounded-xl px-4 py-3 flex items-center gap-2 text-amber-700 text-[14px] font-medium">
           <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={2} />
           มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก กด "บันทึก" เพื่อใช้งาน
         </div>
       )}
 
       {/* How to use */}
-      <div className="mb-6 bg-blue-50/60 ring-1 ring-inset ring-blue-200 rounded-xl px-4 py-3 text-blue-800 text-[12.5px] leading-relaxed flex items-start gap-2">
+      <div className="mb-6 bg-blue-50/60 ring-1 ring-inset ring-blue-200 rounded-xl px-4 py-3 text-blue-800 text-[13.5px] leading-relaxed flex items-start gap-2">
         <Info className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
         <div>
           <span className="font-semibold">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด{' '}
-          <kbd className="bg-white ring-1 ring-blue-300 px-1.5 py-0.5 rounded font-mono text-[11px]">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
+          <kbd className="bg-white ring-1 ring-blue-300 px-1.5 py-0.5 rounded font-mono text-[12px]">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
           — ตัวเลือกจะปรากฏใน Dropdown ของฟอร์มเพิ่ม/แก้ไขรายการ (ยังพิมพ์เองได้เสมอ)
         </div>
       </div>

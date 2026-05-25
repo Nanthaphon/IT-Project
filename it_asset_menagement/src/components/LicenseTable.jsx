@@ -2,7 +2,7 @@ import React from 'react';
 import { Pencil, Trash2, FileText, AlertTriangle, LogIn, RotateCcw } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-[0.08em]';
+const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-3.5';
 
 export default function LicenseTable({
@@ -47,7 +47,7 @@ export default function LicenseTable({
           <th className={`${TH} text-center`}>จัดการ</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-100 text-[13.5px] bg-white">
+      <tbody className="divide-y divide-slate-100 text-[14.5px] bg-white">
         {currentData.map((item) => {
           const isSelected = selectedLicenseIds.includes(item.id);
           return (
@@ -94,10 +94,10 @@ export default function LicenseTable({
 
               {col.productKey && (
                 <td className={TD}>
-                  <div className="text-[12px] font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg w-fit ring-1 ring-inset ring-slate-200 font-semibold tracking-tight">
+                  <div className="text-[13px] font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg w-fit ring-1 ring-inset ring-slate-200 font-semibold tracking-tight">
                     {item.productKey || '-'}
                   </div>
-                  {item.keyCode && <div className="text-[11px] text-slate-400 mt-1 font-mono">{item.keyCode}</div>}
+                  {item.keyCode && <div className="text-[12px] text-slate-400 mt-1 font-mono">{item.keyCode}</div>}
                 </td>
               )}
 
@@ -111,7 +111,7 @@ export default function LicenseTable({
                     {(() => {
                       const exp = checkLicenseExpiration(item.expirationDate);
                       return exp.isExpiring ? (
-                        <span className={`inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${exp.colorClass}`}>
+                        <span className={`inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${exp.colorClass}`}>
                           <AlertTriangle className="h-3 w-3" strokeWidth={2} /> {exp.statusText}
                         </span>
                       ) : null;
@@ -133,7 +133,7 @@ export default function LicenseTable({
 
               {col.quantity && (
                 <td className={`${TD} text-center`}>
-                  <span className="text-[13px] font-semibold text-slate-800 tabular-nums">
+                  <span className="text-[14px] font-semibold text-slate-800 tabular-nums">
                     {item.assignees?.length ?? 0}
                     <span className="text-slate-400 font-normal"> / {item.quantity ?? '-'}</span>
                   </span>
@@ -143,11 +143,11 @@ export default function LicenseTable({
               {col.status && (
                 <td className={TD}>
                   {!item.status || item.status === 'พร้อมใช้งาน' ? (
-                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-[11px] font-medium ring-1 ring-inset ring-emerald-200">
+                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ring-emerald-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> พร้อมใช้งาน
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 bg-blue-50 text-[#1E487A] px-2.5 py-1 rounded-full text-[11px] font-medium ring-1 ring-inset ring-blue-200">
+                    <span className="inline-flex items-center gap-1.5 bg-blue-50 text-[#1E487A] px-2.5 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ring-blue-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#1E487A]" /> {item.status}
                     </span>
                   )}
@@ -159,14 +159,14 @@ export default function LicenseTable({
                   {canEdit && (!item.status || item.status === 'พร้อมใช้งาน') ? (
                     <button
                       onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'licenses' })}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[11.5px]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
                     >
                       <LogIn className="h-3 w-3" strokeWidth={2.2} /> เบิกจ่าย
                     </button>
                   ) : canEdit && item.status === 'ถูกใช้งาน' ? (
                     <button
                       onClick={() => handleCheckin(item.id, 'licenses')}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-emerald-600 ring-1 ring-inset ring-emerald-200 hover:bg-emerald-500 hover:text-white hover:ring-emerald-500 rounded-lg font-semibold transition-colors text-[11.5px]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-emerald-600 ring-1 ring-inset ring-emerald-200 hover:bg-emerald-500 hover:text-white hover:ring-emerald-500 rounded-lg font-semibold transition-colors text-[12.5px]"
                     >
                       <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> รับคืน
                     </button>

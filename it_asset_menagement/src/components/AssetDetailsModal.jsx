@@ -905,7 +905,7 @@ export default function AssetDetailsModal({
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
 
-                <div className="flex flex-col text-[11px] leading-[1.3] font-bold w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
+                <div className="flex flex-col text-[12px] leading-[1.3] font-bold w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
                   <div className="truncate">C: {currentAssetDetail.company || '-'}</div>
                   <div className="line-clamp-2 break-words">N: {currentAssetDetail.name || '-'}</div>
                   <div className="truncate">T: {currentAssetDetail.assetTag || '-'}</div>
@@ -930,8 +930,8 @@ export default function AssetDetailsModal({
 
   const DetailItem = ({ label, value, isMono = false }) => (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10.5px] font-medium text-slate-400 leading-[1.5]">{label}</span>
-      <span className={`text-[13px] font-semibold text-slate-800 leading-[1.6] ${isMono ? 'font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 w-fit text-[11.5px]' : ''}`}>
+      <span className="text-[11.5px] font-medium text-slate-400 leading-[1.5]">{label}</span>
+      <span className={`text-[14px] font-semibold text-slate-800 leading-[1.6] ${isMono ? 'font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 w-fit text-[12.5px]' : ''}`}>
         {value || '-'}
       </span>
     </div>
@@ -949,7 +949,7 @@ export default function AssetDetailsModal({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
               </svg>
             </div>
-            <h3 className="text-[13.5px] font-semibold text-slate-700 leading-[1.5]">
+            <h3 className="text-[14.5px] font-semibold text-slate-700 leading-[1.5]">
               รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม / License'}
             </h3>
           </div>
@@ -974,32 +974,32 @@ export default function AssetDetailsModal({
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-[15px] font-bold text-[#1E487A] leading-[1.5] truncate mb-1">{currentAssetDetail.name}</h2>
+            <h2 className="text-[16px] font-bold text-[#1E487A] leading-[1.5] truncate mb-1">{currentAssetDetail.name}</h2>
             <div className="flex flex-wrap items-center gap-2">
               {currentAssetDetail.type && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-[13px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
                   {currentAssetDetail.type}
                 </span>
               )}
               {selectedAssetCategory === 'assets' && (
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A] ring-blue-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-medium ring-1 ring-inset ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A] ring-blue-200' : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>
                   <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500 animate-pulse' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : 'bg-amber-500'}`} />
                   {currentAssetDetail.status || 'พร้อมใช้งาน'}
                 </span>
               )}
               {selectedAssetCategory === 'licenses' && (
                 <>
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-50 text-amber-700 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-medium ring-1 ring-inset ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-50 text-amber-700 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'}`}>
                     <span className={`w-2 h-2 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
                     {(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'ใช้งานเต็ม' : 'มีสิทธิ์ว่าง'}
                   </span>
-                  <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-[#1E487A] rounded-full text-[12px] font-semibold ring-1 ring-inset ring-blue-200">
+                  <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-[#1E487A] rounded-full text-[13px] font-semibold ring-1 ring-inset ring-blue-200">
                     {currentAssetDetail.assignees?.length || 0} / {currentAssetDetail.quantity || 0} สิทธิ์
                   </span>
                 </>
               )}
               {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
-                <span className="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-[12px] font-medium ring-1 ring-inset ring-purple-200">
+                <span className="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-[13px] font-medium ring-1 ring-inset ring-purple-200">
                   {currentAssetDetail.department}
                 </span>
               )}
@@ -1011,14 +1011,14 @@ export default function AssetDetailsModal({
         <div className="px-5 border-b border-slate-100 flex gap-2 shrink-0 bg-white flex-wrap">
           <button
             onClick={() => { setActiveTab('info'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-            className={`py-3 px-5 text-[12.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'info' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'info' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
           >
             ข้อมูลทั่วไป
           </button>
           {selectedAssetCategory === 'assets' && (
             <button
               onClick={() => setActiveTab('history')}
-              className={`py-3 px-5 text-[12.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'history' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'history' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
             >
               ประวัติจัดซื้อ ({purchaseHistory.length})
             </button>
@@ -1026,14 +1026,14 @@ export default function AssetDetailsModal({
           {(selectedAssetCategory === 'assets' || selectedAssetCategory === 'accessories') && (
             <button
               onClick={() => { setActiveTab('ownership'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-              className={`py-3 px-5 text-[12.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'ownership' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'ownership' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
             >
               ประวัติการครอบครอง
             </button>
           )}
           <button
             onClick={() => { setActiveTab('docs'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-            className={`py-3 px-5 text-[12.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'docs' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'docs' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
           >
             เอกสารแนบ
           </button>
@@ -1051,18 +1051,18 @@ export default function AssetDetailsModal({
                 <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1E487A] to-[#2558a0] px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-white/15 ring-1 ring-white/20 text-white font-bold text-[13px] flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-white/15 ring-1 ring-white/20 text-white font-bold text-[14px] flex items-center justify-center shrink-0">
                         {currentAssetDetail.assignedName.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] text-blue-200 font-semibold tracking-widest uppercase leading-[1.5]">ผู้ครอบครองปัจจุบัน</p>
-                        <p className="text-[14px] font-bold text-white leading-[1.5] truncate">{currentAssetDetail.assignedName}</p>
-                        {currentAssetDetail.department && <p className="text-[11px] text-blue-200 leading-[1.5]">{currentAssetDetail.department}</p>}
+                        <p className="text-[11px] text-blue-200 font-semibold tracking-widest uppercase leading-[1.5]">ผู้ครอบครองปัจจุบัน</p>
+                        <p className="text-[15px] font-bold text-white leading-[1.5] truncate">{currentAssetDetail.assignedName}</p>
+                        {currentAssetDetail.department && <p className="text-[12px] text-blue-200 leading-[1.5]">{currentAssetDetail.department}</p>}
                       </div>
                     </div>
                     <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 rounded-full ring-1 ring-white/15">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse shrink-0" />
-                      <span className="text-[11px] font-medium text-white whitespace-nowrap">กำลังถูกใช้งาน</span>
+                      <span className="text-[12px] font-medium text-white whitespace-nowrap">กำลังถูกใช้งาน</span>
                     </div>
                   </div>
                 </div>
@@ -1076,8 +1076,8 @@ export default function AssetDetailsModal({
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">สถานะ</p>
-                      <p className="text-[13px] font-semibold text-slate-800 leading-[1.5]">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">สถานะ</p>
+                      <p className="text-[14px] font-semibold text-slate-800 leading-[1.5]">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
                     </div>
                   </div>
                   <div className="bg-white rounded-xl ring-1 ring-slate-200/60 px-4 py-3 flex items-start gap-3">
@@ -1085,8 +1085,8 @@ export default function AssetDetailsModal({
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">ราคาจัดซื้อ</p>
-                      <p className="text-[13px] font-bold text-[#1E487A] leading-[1.5]">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">ราคาจัดซื้อ</p>
+                      <p className="text-[14px] font-bold text-[#1E487A] leading-[1.5]">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
                     </div>
                   </div>
                   <div className="bg-white rounded-xl ring-1 ring-slate-200/60 px-4 py-3 flex items-start gap-3">
@@ -1094,8 +1094,8 @@ export default function AssetDetailsModal({
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">อายุใช้งาน</p>
-                      <p className="text-[13px] font-semibold text-slate-800 leading-[1.5]">{calculateAge(currentAssetDetail.purchaseDate)}</p>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">อายุใช้งาน</p>
+                      <p className="text-[14px] font-semibold text-slate-800 leading-[1.5]">{calculateAge(currentAssetDetail.purchaseDate)}</p>
                     </div>
                   </div>
                   <div className="bg-white rounded-xl ring-1 ring-slate-200/60 px-4 py-3 flex items-start gap-3">
@@ -1103,8 +1103,8 @@ export default function AssetDetailsModal({
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">หมดประกัน</p>
-                      <p className={`text-[13px] font-semibold leading-[1.5] ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-red-500' : 'text-slate-800'}`}>{currentAssetDetail.warrantyDate || 'ไม่ระบุ'}</p>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">หมดประกัน</p>
+                      <p className={`text-[14px] font-semibold leading-[1.5] ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-red-500' : 'text-slate-800'}`}>{currentAssetDetail.warrantyDate || 'ไม่ระบุ'}</p>
                     </div>
                   </div>
                 </div>
@@ -1113,7 +1113,7 @@ export default function AssetDetailsModal({
               <div className="bg-white rounded-2xl ring-1 ring-slate-200/60 shadow-sm overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                   <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                  <h4 className="text-[12.5px] font-semibold text-slate-600">ข้อมูลจำเพาะ</h4>
+                  <h4 className="text-[13.5px] font-semibold text-slate-600">ข้อมูลจำเพาะ</h4>
                 </div>
                 <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
                   {selectedAssetCategory === 'licenses' ? (
@@ -1148,18 +1148,18 @@ export default function AssetDetailsModal({
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
-                            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[12.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
                     </>
                   )}
                   <div className="col-span-2 md:col-span-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[12px] font-medium text-slate-500 leading-[1.5]">
+                    <span className="text-[13px] font-medium text-slate-500 leading-[1.5]">
                       {selectedAssetCategory === 'accessories' ? 'มูลค่ารวม' : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาจัดซื้อ'}
                     </span>
-                    <span className="text-[14px] font-bold text-slate-800">
+                    <span className="text-[15px] font-bold text-slate-800">
                       {selectedAssetCategory === 'accessories'
                         ? (totalAccessoriesCost > 0 ? `฿${totalAccessoriesCost.toLocaleString()}` : '-')
                         : selectedAssetCategory === 'licenses'
@@ -1176,7 +1176,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[12.5px] font-semibold text-slate-600">รายการผู้ถือสิทธิ์ ({licenseSeats.length})</h4>
+                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการผู้ถือสิทธิ์ ({licenseSeats.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {licenseSeats.length > 0 && (
@@ -1230,8 +1230,8 @@ export default function AssetDetailsModal({
                       {/* ไฟล์แนบ */}
                       <div className="pt-2 border-t border-slate-200">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
-                          <label className={`cursor-pointer text-[10px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
+                          <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
                             + แนบไฟล์
                             <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
                           </label>
@@ -1239,7 +1239,7 @@ export default function AssetDetailsModal({
                         {newSeatDocs.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {newSeatDocs.map((d, i) => (
-                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[10px]">
+                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
                                 <span className="text-slate-600 truncate max-w-[100px]">{d.name}</span>
                                 <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
                               </div>
@@ -1264,7 +1264,7 @@ export default function AssetDetailsModal({
                             {seat.type === 'available' ? (
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-semibold text-slate-600">สิทธิ์ว่าง</span>
-                                <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">พร้อมใช้งาน</span>
+                                <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">พร้อมใช้งาน</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-2.5 overflow-hidden">
@@ -1273,16 +1273,16 @@ export default function AssetDetailsModal({
                                 </div>
                                 <div className="overflow-hidden">
                                   <p className="text-xs font-semibold text-slate-800 truncate">{seat.assignee.empName}</p>
-                                  {seat.assignee.checkoutDate && <p className="text-[10px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>}
+                                  {seat.assignee.checkoutDate && <p className="text-[11px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>}
                                 </div>
                               </div>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {seat.type === 'available' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); }} className="text-[10px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded transition-colors">เบิกจ่าย</button>
+                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded transition-colors">เบิกจ่าย</button>
                             ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[10px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors">รับคืน</button>
+                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors">รับคืน</button>
                             )}
                             <svg className={`h-4 w-4 text-slate-400 transition-transform ${expandedItem === `lic-${index}` ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </div>
@@ -1303,8 +1303,8 @@ export default function AssetDetailsModal({
                                 {/* ไฟล์แนบ */}
                                 <div className="pt-2 border-t border-slate-200">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
-                                    <label className={`cursor-pointer text-[10px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
+                                    <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
                                       + แนบไฟล์
                                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
                                     </label>
@@ -1312,7 +1312,7 @@ export default function AssetDetailsModal({
                                   {tempLicenseSeatDocs.length > 0 && (
                                     <div className="flex flex-wrap gap-1.5">
                                       {tempLicenseSeatDocs.map((d, i) => (
-                                        <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[10px]">
+                                        <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
                                           <span className="text-slate-600 truncate max-w-[100px]">{d.name}</span>
                                           <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
                                         </div>
@@ -1330,25 +1330,25 @@ export default function AssetDetailsModal({
                                 <div className="space-y-2 text-xs flex-1">
                                   {seat.productKey && (
                                     <div>
-                                      <span className="text-slate-400 block text-[10px]">Product Key</span>
-                                      <span className="font-mono font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block text-[11px]">{seat.productKey}</span>
+                                      <span className="text-slate-400 block text-[11px]">Product Key</span>
+                                      <span className="font-mono font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block text-[12px]">{seat.productKey}</span>
                                     </div>
                                   )}
                                   <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2">
-                                    {seat.keyCode && <div><span className="text-slate-400 block text-[10px]">รหัสอ้างอิง Key</span><span className="font-medium text-slate-800">{seat.keyCode}</span></div>}
-                                    <div><span className="text-slate-400 block text-[10px]">Supplier ที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.supplier || '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[10px]">ราคา</span><span className="font-medium text-slate-800">{seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[10px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.purchaseDate || '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[10px]">อายุการใช้งาน</span><span className="font-medium text-slate-800">{calculateAge(currentAssetDetail.purchaseDate)}</span></div>
-                                    <div><span className="text-slate-400 block text-[10px]">วันหมดอายุ</span><span className="font-medium text-slate-800">{currentAssetDetail.expirationDate || '-'}</span></div>
-                                    {seat.type === 'assigned' && seat.assignee.remarks && <div><span className="text-slate-400 block text-[10px]">หมายเหตุ</span><span className="font-medium text-slate-800">{seat.assignee.remarks}</span></div>}
+                                    {seat.keyCode && <div><span className="text-slate-400 block text-[11px]">รหัสอ้างอิง Key</span><span className="font-medium text-slate-800">{seat.keyCode}</span></div>}
+                                    <div><span className="text-slate-400 block text-[11px]">Supplier ที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.supplier || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">ราคา</span><span className="font-medium text-slate-800">{seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.purchaseDate || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">อายุการใช้งาน</span><span className="font-medium text-slate-800">{calculateAge(currentAssetDetail.purchaseDate)}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">วันหมดอายุ</span><span className="font-medium text-slate-800">{currentAssetDetail.expirationDate || '-'}</span></div>
+                                    {seat.type === 'assigned' && seat.assignee.remarks && <div><span className="text-slate-400 block text-[11px]">หมายเหตุ</span><span className="font-medium text-slate-800">{seat.assignee.remarks}</span></div>}
                                   </div>
                                   {seat.documents?.length > 0 && (
                                     <div>
-                                      <span className="text-slate-400 block text-[10px] mb-1">ไฟล์แนบ</span>
+                                      <span className="text-slate-400 block text-[11px] mb-1">ไฟล์แนบ</span>
                                       <div className="flex flex-wrap gap-1.5">
                                         {seat.documents.map((d, i) => (
-                                          <a key={i} href={d.data} download={d.name} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[10px] text-[#1E487A] hover:bg-blue-50 transition-colors">
+                                          <a key={i} href={d.data} download={d.name} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px] text-[#1E487A] hover:bg-blue-50 transition-colors">
                                             <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                                             <span className="truncate max-w-[100px]">{d.name}</span>
                                           </a>
@@ -1368,7 +1368,7 @@ export default function AssetDetailsModal({
                                     setTempLicensePurchaseDate(currentAssetDetail.purchaseDate || '');
                                     setTempLicenseExpirationDate(currentAssetDetail.expirationDate || '');
                                   }}
-                                  className="text-[10px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap self-end"
+                                  className="text-[11px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap self-end"
                                 >
                                   แก้ไขข้อมูล
                                 </button>
@@ -1379,7 +1379,7 @@ export default function AssetDetailsModal({
                       </div>
                     ))}
                     {licenseSeats.length === 0 && (
-                      <div className="py-8 text-center text-[12px] text-slate-400 bg-slate-50 rounded-xl">
+                      <div className="py-8 text-center text-[13px] text-slate-400 bg-slate-50 rounded-xl">
                         ไม่มีข้อมูลสิทธิ์ กรุณาตั้งค่าจำนวนสิทธิ์ก่อน
                       </div>
                     )}
@@ -1394,7 +1394,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[12.5px] font-semibold text-slate-600">รายการชิ้นย่อย ({individualItems.length})</h4>
+                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการชิ้นย่อย ({individualItems.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {individualItems.length > 0 && (
@@ -1464,17 +1464,17 @@ export default function AssetDetailsModal({
                               <span className="text-xs font-semibold text-slate-800 truncate">
                                 {item.type === 'assigned' ? `ผู้ถือครอง: ${item.assignee.empName}` : `ชิ้นที่ ${index + 1}`}
                               </span>
-                              {item.sn && <span className="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 rounded border border-slate-200 truncate">SN: {item.sn}</span>}
+                              {item.sn && <span className="text-[11px] text-slate-500 font-mono bg-slate-100 px-1.5 rounded border border-slate-200 truncate">SN: {item.sn}</span>}
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-2 shrink-0">
                             {item.type === 'available' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemModel: item.model, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[10px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded">เบิกจ่าย</button>
+                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemModel: item.model, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[11px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded">เบิกจ่าย</button>
                             ) : item.type === 'assigned' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name }); }} className="text-[10px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">รับคืน</button>
+                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name }); }} className="text-[11px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">รับคืน</button>
                             ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[10px] font-semibold bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 px-2 py-1 rounded">เข้าคลัง</button>
+                              <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-semibold bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 px-2 py-1 rounded">เข้าคลัง</button>
                             )}
                             <svg className={`h-4 w-4 text-slate-400 transition-transform ${expandedItem === index ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </div>
@@ -1499,12 +1499,12 @@ export default function AssetDetailsModal({
                             ) : (
                               <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
                                 <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2 text-xs">
-                                  <div><span className="text-slate-400 block text-[10px]">รุ่น/โมเดล</span><span className="font-medium text-slate-800">{item.model || '-'}</span></div>
-                                  <div><span className="text-slate-400 block text-[10px]">ราคา/ชิ้น</span><span className="font-medium text-slate-800">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
-                                  <div><span className="text-slate-400 block text-[10px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{item.purchaseDate || '-'}</span></div>
-                                  <div><span className="text-slate-400 block text-[10px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{item.warrantyDate || '-'}</span></div>
+                                  <div><span className="text-slate-400 block text-[11px]">รุ่น/โมเดล</span><span className="font-medium text-slate-800">{item.model || '-'}</span></div>
+                                  <div><span className="text-slate-400 block text-[11px]">ราคา/ชิ้น</span><span className="font-medium text-slate-800">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
+                                  <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{item.purchaseDate || '-'}</span></div>
+                                  <div><span className="text-slate-400 block text-[11px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{item.warrantyDate || '-'}</span></div>
                                 </div>
-                                <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); }} className="text-[10px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap">
+                                <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); }} className="text-[11px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap">
                                   แก้ไขข้อมูล
                                 </button>
                               </div>
@@ -1514,7 +1514,7 @@ export default function AssetDetailsModal({
                       </div>
                     ))}
                     {individualItems.length === 0 && (
-                      <div className="py-8 text-center text-[12px] text-slate-400 bg-slate-50 rounded-xl">ไม่มีข้อมูลชิ้นย่อย</div>
+                      <div className="py-8 text-center text-[13px] text-slate-400 bg-slate-50 rounded-xl">ไม่มีข้อมูลชิ้นย่อย</div>
                     )}
                   </div>
                   </div>
@@ -1543,14 +1543,14 @@ export default function AssetDetailsModal({
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[12px] font-semibold text-slate-600">ประวัติการจัดซื้อ ({purchaseHistory.length} ครั้ง)</h4>
+                      <h4 className="text-[13px] font-semibold text-slate-600">ประวัติการจัดซื้อ ({purchaseHistory.length} ครั้ง)</h4>
                     </div>
                     <button
                       onClick={() => {
                         setIsAddingHistory(true);
                         setHistoryForm({ purchaseDate: '', cost: '', vendor: '', model: currentAssetDetail.model || '', note: '', documents: [] });
                       }}
-                      className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold bg-[#1E487A] text-white px-3.5 py-2 rounded-lg hover:bg-[#163963] transition-colors shadow-sm"
+                      className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-[#1E487A] text-white px-3.5 py-2 rounded-lg hover:bg-[#163963] transition-colors shadow-sm"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                       เพิ่มประวัติจัดซื้อ
@@ -1562,8 +1562,8 @@ export default function AssetDetailsModal({
                       <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                       </div>
-                      <p className="text-[13px] font-semibold text-slate-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
-                      <p className="text-[11.5px] text-slate-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
+                      <p className="text-[14px] font-semibold text-slate-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
+                      <p className="text-[12.5px] text-slate-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -1572,18 +1572,18 @@ export default function AssetDetailsModal({
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5 min-w-0">
                               {index === 0 && (
-                                <span className="bg-blue-50 text-[#1E487A] px-2 py-0.5 rounded-full text-[9.5px] font-semibold ring-1 ring-inset ring-blue-200 shrink-0">ล่าสุด</span>
+                                <span className="bg-blue-50 text-[#1E487A] px-2 py-0.5 rounded-full text-[10.5px] font-semibold ring-1 ring-inset ring-blue-200 shrink-0">ล่าสุด</span>
                               )}
-                              <span className="text-[12px] text-slate-500 font-medium shrink-0">
+                              <span className="text-[13px] text-slate-500 font-medium shrink-0">
                                 {hist.purchaseDate ? new Date(hist.purchaseDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : 'ไม่ระบุวันที่'}
                               </span>
                             </div>
-                            <div className="text-[15px] font-bold text-[#1E487A] shrink-0">
+                            <div className="text-[16px] font-bold text-[#1E487A] shrink-0">
                               {hist.cost ? `฿${Number(hist.cost).toLocaleString()}` : '-'}
                             </div>
                             <div className="flex-1 min-w-0 hidden sm:block">
-                              <p className="text-[12px] text-slate-600 truncate"><span className="text-slate-400">Vendor:</span> {hist.vendor || '-'}</p>
-                              <p className="text-[12px] text-slate-600 truncate"><span className="text-slate-400">Model:</span> {hist.model || '-'}</p>
+                              <p className="text-[13px] text-slate-600 truncate"><span className="text-slate-400">Vendor:</span> {hist.vendor || '-'}</p>
+                              <p className="text-[13px] text-slate-600 truncate"><span className="text-slate-400">Model:</span> {hist.model || '-'}</p>
                             </div>
                             <div className="flex gap-1.5 shrink-0">
                               <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-white ring-1 ring-slate-200 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors">
@@ -1596,9 +1596,9 @@ export default function AssetDetailsModal({
                           </div>
                           {(hist.note || (hist.documents && hist.documents.length > 0)) && (
                             <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2 items-start">
-                              {hist.note && <p className="text-[12px] text-slate-500 flex-1">{hist.note}</p>}
+                              {hist.note && <p className="text-[13px] text-slate-500 flex-1">{hist.note}</p>}
                               {hist.documents?.map((docItem, idx) => (
-                                <a key={idx} href={docItem.data} download={docItem.name} className="flex items-center gap-1 text-[11px] bg-slate-50 text-slate-500 ring-1 ring-slate-200 py-1 px-2.5 rounded-full hover:bg-blue-50 hover:text-[#1E487A] hover:ring-blue-200 transition-colors max-w-[160px] truncate">
+                                <a key={idx} href={docItem.data} download={docItem.name} className="flex items-center gap-1 text-[12px] bg-slate-50 text-slate-500 ring-1 ring-slate-200 py-1 px-2.5 rounded-full hover:bg-blue-50 hover:text-[#1E487A] hover:ring-blue-200 transition-colors max-w-[160px] truncate">
                                   <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                                   <span className="truncate">{docItem.name}</span>
                                 </a>
@@ -1614,7 +1614,7 @@ export default function AssetDetailsModal({
                 <div className="bg-white ring-1 ring-slate-200/60 p-6 rounded-2xl shadow-sm">
                   <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100">
                     <div className="w-1 h-5 rounded-full bg-[#1E487A]" />
-                    <h4 className="text-[13px] font-semibold text-slate-700">
+                    <h4 className="text-[14px] font-semibold text-slate-700">
                       {editingHistoryId ? 'แก้ไขประวัติการจัดซื้อ' : 'เพิ่มประวัติการจัดซื้อใหม่'}
                     </h4>
                   </div>
@@ -1622,35 +1622,35 @@ export default function AssetDetailsModal({
                   <form onSubmit={handleSaveHistory} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[12.5px] font-medium text-slate-600 mb-1.5">วันที่จัดซื้อ</label>
+                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">วันที่จัดซื้อ</label>
                         <input type="date" value={historyForm.purchaseDate} onChange={(e) => setHistoryForm({...historyForm, purchaseDate: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[12.5px] font-medium text-slate-600 mb-1.5">ราคา (บาท)</label>
+                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ราคา (บาท)</label>
                         <input type="number" step="any" value={historyForm.cost} onChange={(e) => setHistoryForm({...historyForm, cost: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" placeholder="ยอดรวมหรือต่อชิ้น" />
                       </div>
                       <div>
-                        <label className="block text-[12.5px] font-medium text-slate-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
+                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
                         <input type="text" value={historyForm.vendor} onChange={(e) => setHistoryForm({...historyForm, vendor: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" placeholder="ชื่อร้าน/บริษัท" />
                       </div>
                       <div>
-                        <label className="block text-[12.5px] font-medium text-slate-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
+                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
                         <input type="text" value={historyForm.model} onChange={(e) => setHistoryForm({...historyForm, model: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-[12.5px] font-medium text-slate-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
+                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
                         <textarea value={historyForm.note} onChange={(e) => setHistoryForm({...historyForm, note: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all resize-none" rows="2" placeholder="เช่น จัดซื้อทดแทนเครื่องเดิม..."></textarea>
                       </div>
                     </div>
 
                     <div className="pt-3 border-t border-slate-100">
-                      <label className="block text-[12.5px] font-medium text-slate-600 mb-3">เอกสารแนบการจัดซื้อ</label>
+                      <label className="block text-[13.5px] font-medium text-slate-600 mb-3">เอกสารแนบการจัดซื้อ</label>
 
                       {historyForm.documents && historyForm.documents.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                           {historyForm.documents.map((docItem, idx) => (
                             <div key={idx} className="flex items-center justify-between bg-slate-50 ring-1 ring-slate-200 p-2.5 rounded-lg">
-                              <span className="text-[12px] font-medium text-slate-600 truncate max-w-[180px]">{docItem.name}</span>
+                              <span className="text-[13px] font-medium text-slate-600 truncate max-w-[180px]">{docItem.name}</span>
                               <button type="button" onClick={() => handleRemoveHistoryDoc(idx)} className="text-slate-400 hover:text-red-500 bg-white ring-1 ring-slate-200 w-6 h-6 rounded-md flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
@@ -1658,7 +1658,7 @@ export default function AssetDetailsModal({
                           ))}
                         </div>
                       )}
-                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[12px] font-semibold py-2 px-3.5 rounded-lg ring-1 transition-colors ${isSavingItem ? 'ring-slate-200 bg-slate-50 text-slate-400' : 'ring-blue-200 bg-white text-[#1E487A] hover:bg-blue-50'}`}>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-semibold py-2 px-3.5 rounded-lg ring-1 transition-colors ${isSavingItem ? 'ring-slate-200 bg-slate-50 text-slate-400' : 'ring-blue-200 bg-white text-[#1E487A] hover:bg-blue-50'}`}>
                         {isSavingItem ? 'กำลังอัปโหลด...' : (
                           <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>แนบไฟล์</>
                         )}
@@ -1682,7 +1682,7 @@ export default function AssetDetailsModal({
               <div className="bg-white p-4 rounded-2xl ring-1 ring-slate-200/60 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                  <h4 className="text-[12px] font-semibold text-slate-600">จัดการเอกสารแนบ</h4>
+                  <h4 className="text-[13px] font-semibold text-slate-600">จัดการเอกสารแนบ</h4>
                 </div>
                 
                 <div className="flex flex-col gap-4">
@@ -1695,7 +1695,7 @@ export default function AssetDetailsModal({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {docs.map((docItem, idx) => (
                           <div key={idx} className="flex items-center justify-between bg-slate-50 ring-1 ring-slate-200/60 p-3 rounded-xl overflow-hidden">
-                            <a href={docItem.data} download={docItem.name} className="flex items-center gap-3 text-[12.5px] text-[#1E487A] font-medium hover:underline truncate mr-3 min-w-0">
+                            <a href={docItem.data} download={docItem.name} className="flex items-center gap-3 text-[13.5px] text-[#1E487A] font-medium hover:underline truncate mr-3 min-w-0">
                               <div className="w-8 h-8 rounded-lg bg-blue-50 ring-1 ring-blue-100 flex items-center justify-center shrink-0">
                                 <svg className="w-4 h-4 text-[#1E487A]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                               </div>
@@ -1712,14 +1712,14 @@ export default function AssetDetailsModal({
                         <div className="w-11 h-11 mx-auto mb-3 rounded-full bg-white ring-1 ring-slate-200 flex items-center justify-center text-slate-300">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
                         </div>
-                        <p className="text-[13px] font-semibold text-slate-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
-                        <p className="text-[11.5px] text-slate-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
+                        <p className="text-[14px] font-semibold text-slate-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
+                        <p className="text-[12.5px] text-slate-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
                       </div>
                     );
                   })()}
 
                   <div className="mt-3 flex justify-center">
-                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[12.5px] font-semibold py-2.5 px-5 rounded-xl ring-1 transition-colors ${isSavingItem ? 'ring-slate-200 bg-slate-50 text-slate-400' : 'ring-blue-200 bg-white text-[#1E487A] hover:bg-blue-50'}`}>
+                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13.5px] font-semibold py-2.5 px-5 rounded-xl ring-1 transition-colors ${isSavingItem ? 'ring-slate-200 bg-slate-50 text-slate-400' : 'ring-blue-200 bg-white text-[#1E487A] hover:bg-blue-50'}`}>
                       {isSavingItem ? (
                         <><div className="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                       ) : (
@@ -1739,20 +1739,20 @@ export default function AssetDetailsModal({
         <div className="px-5 py-3 bg-white flex flex-wrap justify-end items-center gap-2 border-t border-slate-100 shrink-0 rounded-b-2xl">
           {selectedAssetCategory === 'assets' && (
             (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-              <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#163963] text-[13px] font-semibold transition-colors sm:mr-auto shadow-sm">เบิกจ่าย</button>
+              <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto shadow-sm">เบิกจ่าย</button>
             ) : currentAssetDetail.status === 'ถูกใช้งาน' ? (
-              <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 text-[13px] font-semibold transition-colors sm:mr-auto shadow-sm">รับคืน</button>
+              <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 text-[14px] font-semibold transition-colors sm:mr-auto shadow-sm">รับคืน</button>
             ) : null
           )}
 
           {selectedAssetCategory === 'assets' && (
-            <button onClick={() => setShowLabelPreview(true)} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 ring-1 ring-slate-200 rounded-xl hover:bg-slate-50 text-[13px] font-semibold transition-colors">
+            <button onClick={() => setShowLabelPreview(true)} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 ring-1 ring-slate-200 rounded-xl hover:bg-slate-50 text-[14px] font-semibold transition-colors">
               พิมพ์ป้าย
             </button>
           )}
 
-          <button onClick={() => { if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 ring-1 ring-slate-200 rounded-xl hover:bg-slate-50 text-[13px] font-semibold transition-colors">แก้ไขข้อมูล</button>
-          <button onClick={closeAll} className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 text-[13px] font-semibold transition-colors">ปิด</button>
+          <button onClick={() => { if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 ring-1 ring-slate-200 rounded-xl hover:bg-slate-50 text-[14px] font-semibold transition-colors">แก้ไขข้อมูล</button>
+          <button onClick={closeAll} className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 text-[14px] font-semibold transition-colors">ปิด</button>
         </div>
       </div>
     </div>

@@ -106,7 +106,7 @@ export default function ComboBox({
                     e.preventDefault();
                     handleSelect(opt);
                   }}
-                  className={`w-full text-left px-4 py-2.5 text-[13px] flex items-center gap-2.5 transition-colors ${
+                  className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center gap-2.5 transition-colors ${
                     opt === value
                       ? 'bg-[#1E487A]/[.07] text-[#1E487A] font-semibold'
                       : 'text-slate-700 hover:bg-slate-50'
@@ -122,7 +122,7 @@ export default function ComboBox({
                 </button>
               ))
             ) : (
-              <div className="px-4 py-3 text-[12px] text-slate-400 text-center italic">
+              <div className="px-4 py-3 text-[13px] text-slate-400 text-center italic">
                 ไม่พบตัวเลือก — พิมพ์เพื่อเพิ่มใหม่
               </div>
             )}

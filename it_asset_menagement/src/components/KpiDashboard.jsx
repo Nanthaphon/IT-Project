@@ -173,8 +173,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <BarChart3 className="h-5 w-5" style={{ color: BRAND.primary }} strokeWidth={2.2} />
           </div>
           <div>
-            <h2 className="text-[16px] font-bold text-slate-800 tracking-tight">รายงาน KPI</h2>
-            <p className="text-[12px] text-slate-500">สรุปผลงานแจ้งซ่อม &amp; ความพึงพอใจ</p>
+            <h2 className="text-[17px] font-bold text-slate-800 tracking-tight">รายงาน KPI</h2>
+            <p className="text-[13px] text-slate-500">สรุปผลงานแจ้งซ่อม &amp; ความพึงพอใจ</p>
           </div>
         </div>
 
@@ -185,7 +185,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <select
               value={rangeValue}
               onChange={(e) => setRangeValue(e.target.value)}
-              className="appearance-none bg-slate-50 border border-slate-200 pl-9 pr-9 py-2.5 rounded-xl text-[13px] text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all"
+              className="appearance-none bg-slate-50 border border-slate-200 pl-9 pr-9 py-2.5 rounded-xl text-[14px] text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all"
             >
               {RANGE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -198,7 +198,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
           <button
             onClick={handleExport}
             disabled={isExporting || k.total === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             style={{ background: BRAND.primary, boxShadow: `0 6px 16px ${BRAND.primary}40` }}
           >
             {isExporting ? (
@@ -222,8 +222,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
           <div className="w-16 h-16 rounded-full bg-slate-50 ring-1 ring-slate-200 flex items-center justify-center mx-auto mb-3">
             <BarChart3 className="h-7 w-7 text-slate-300" strokeWidth={1.5} />
           </div>
-          <p className="font-medium text-[14px] text-slate-500">ไม่มีข้อมูลในช่วงเวลาที่เลือก</p>
-          <p className="text-[12px] text-slate-400 mt-1">ลองเลือกช่วงเวลาอื่น</p>
+          <p className="font-medium text-[15px] text-slate-500">ไม่มีข้อมูลในช่วงเวลาที่เลือก</p>
+          <p className="text-[13px] text-slate-400 mt-1">ลองเลือกช่วงเวลาอื่น</p>
         </div>
       )}
 
@@ -231,7 +231,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
         <>
           {/* ── Row 1: KPI Cards (งานซ่อม) ── */}
           <div>
-            <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3 px-1">🔧 งานแจ้งซ่อม</h3>
+            <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3 px-1">🔧 งานแจ้งซ่อม</h3>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
                 icon={Wrench}
@@ -274,20 +274,20 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
           {/* ── Row 2: KPI Cards (ความพึงพอใจ) ── */}
           <div>
-            <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3 px-1">⭐ ความพึงพอใจ</h3>
+            <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3 px-1">⭐ ความพึงพอใจ</h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* คะแนนรวม (ขนาดใหญ่) */}
               <div className="lg:col-span-1 bg-gradient-to-br from-amber-50 via-orange-50/40 to-amber-50 ring-1 ring-amber-200/60 rounded-2xl p-5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-semibold text-amber-700/80 tracking-wide">คะแนนเฉลี่ยรวม</p>
+                  <p className="text-[13px] font-semibold text-amber-700/80 tracking-wide">คะแนนเฉลี่ยรวม</p>
                   <div className="w-9 h-9 rounded-lg bg-white/70 flex items-center justify-center">
                     <Award className="h-4.5 w-4.5 text-amber-500" strokeWidth={2.2} />
                   </div>
                 </div>
                 <div className="my-2">
-                  <p className="text-[44px] font-black text-amber-700 leading-none tabular-nums">
+                  <p className="text-[46px] font-black text-amber-700 leading-none tabular-nums">
                     {k.avgOverall.toFixed(2)}
-                    <span className="text-[18px] font-medium text-amber-600/60"> / 5.00</span>
+                    <span className="text-[19px] font-medium text-amber-600/60"> / 5.00</span>
                   </p>
                   <div className="flex items-center gap-0.5 mt-2">
                     {[1, 2, 3, 4, 5].map(n => (
@@ -299,14 +299,14 @@ export default function KpiDashboard({ repairRequests = [] }) {
                     ))}
                   </div>
                 </div>
-                <p className="text-[11.5px] text-amber-700/70 font-medium">
+                <p className="text-[12.5px] text-amber-700/70 font-medium">
                   จาก {k.evaluated} ผู้ประเมิน
                 </p>
               </div>
 
               {/* คะแนนแยกหมวด */}
               <div className="lg:col-span-2 bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
-                <p className="text-[12px] font-semibold text-slate-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
+                <p className="text-[13px] font-semibold text-slate-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
                 <div className="space-y-3">
                   <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#3B82F6" />
                   <RatingBar label="คุณภาพการแก้ปัญหา" value={k.avgQuality} color="#10B981" />
@@ -315,9 +315,9 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5 text-slate-400" strokeWidth={1.9} />
-                    <span className="text-[11.5px] text-slate-500">อัตราการประเมิน</span>
+                    <span className="text-[12.5px] text-slate-500">อัตราการประเมิน</span>
                   </div>
-                  <span className="text-[12px] font-bold text-slate-700 tabular-nums">
+                  <span className="text-[13px] font-bold text-slate-700 tabular-nums">
                     {k.responseRate.toFixed(1)}%
                     <span className="text-slate-400 font-normal ml-1">({k.evaluated}/{k.done})</span>
                   </span>
@@ -332,8 +332,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <div className="lg:col-span-2 bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-[13.5px] font-bold text-slate-800">แนวโน้มรายเดือน</p>
-                  <p className="text-[11.5px] text-slate-400">เคสซ่อม &amp; คะแนนเฉลี่ย — 6 เดือนล่าสุด</p>
+                  <p className="text-[14.5px] font-bold text-slate-800">แนวโน้มรายเดือน</p>
+                  <p className="text-[12.5px] text-slate-400">เคสซ่อม &amp; คะแนนเฉลี่ย — 6 เดือนล่าสุด</p>
                 </div>
                 <TrendingUp className="h-4 w-4 text-slate-400" strokeWidth={1.9} />
               </div>
@@ -342,8 +342,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
             {/* Rating distribution */}
             <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
-              <p className="text-[13.5px] font-bold text-slate-800 mb-1">การกระจายคะแนน</p>
-              <p className="text-[11.5px] text-slate-400 mb-4">Rating Distribution</p>
+              <p className="text-[14.5px] font-bold text-slate-800 mb-1">การกระจายคะแนน</p>
+              <p className="text-[12.5px] text-slate-400 mb-4">Rating Distribution</p>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map(star => {
                   const d = k.distribution.find(x => x.star === star);
@@ -351,7 +351,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                   return (
                     <div key={star} className="flex items-center gap-2">
                       <div className="flex items-center gap-0.5 w-12">
-                        <span className="text-[12px] font-bold text-slate-700 tabular-nums">{star}</span>
+                        <span className="text-[13px] font-bold text-slate-700 tabular-nums">{star}</span>
                         <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={1.6} />
                       </div>
                       <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -360,7 +360,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                           style={{ width: `${pct}%`, background: starColor(star) }}
                         />
                       </div>
-                      <span className="text-[11.5px] text-slate-500 font-semibold tabular-nums w-10 text-right">
+                      <span className="text-[12.5px] text-slate-500 font-semibold tabular-nums w-10 text-right">
                         {d.count}
                       </span>
                     </div>
@@ -375,11 +375,11 @@ export default function KpiDashboard({ repairRequests = [] }) {
             {/* Top depts */}
             <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-[13.5px] font-bold text-slate-800">แผนกที่แจ้งซ่อมมากที่สุด</p>
-                <span className="text-[11px] text-slate-400 font-medium">Top 5</span>
+                <p className="text-[14.5px] font-bold text-slate-800">แผนกที่แจ้งซ่อมมากที่สุด</p>
+                <span className="text-[12px] text-slate-400 font-medium">Top 5</span>
               </div>
               {k.topDepts.length === 0 ? (
-                <p className="text-[12px] text-slate-400 text-center py-6">ไม่มีข้อมูล</p>
+                <p className="text-[13px] text-slate-400 text-center py-6">ไม่มีข้อมูล</p>
               ) : (
                 <div className="space-y-2.5">
                   {k.topDepts.map(([dept, count], idx) => {
@@ -387,11 +387,11 @@ export default function KpiDashboard({ repairRequests = [] }) {
                     const pct = max > 0 ? (count / max) * 100 : 0;
                     return (
                       <div key={dept} className="flex items-center gap-3">
-                        <span className="text-[11px] font-bold text-slate-400 w-5">#{idx + 1}</span>
+                        <span className="text-[12px] font-bold text-slate-400 w-5">#{idx + 1}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[12.5px] font-semibold text-slate-700 truncate">{dept}</span>
-                            <span className="text-[12px] font-bold text-slate-600 tabular-nums">{count}</span>
+                            <span className="text-[13.5px] font-semibold text-slate-700 truncate">{dept}</span>
+                            <span className="text-[13px] font-bold text-slate-600 tabular-nums">{count}</span>
                           </div>
                           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div className="h-full rounded-full" style={{ width: `${pct}%`, background: BRAND.primary }} />
@@ -412,7 +412,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               >
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-slate-400" strokeWidth={1.9} />
-                  <p className="text-[13.5px] font-bold text-slate-800">ความเห็นล่าสุด</p>
+                  <p className="text-[14.5px] font-bold text-slate-800">ความเห็นล่าสุด</p>
                 </div>
                 <ChevronDown
                   className={`h-4 w-4 text-slate-400 transition-transform ${openComments ? 'rotate-180' : ''}`}
@@ -421,13 +421,13 @@ export default function KpiDashboard({ repairRequests = [] }) {
               </button>
 
               {k.recentComments.length === 0 ? (
-                <p className="text-[12px] text-slate-400 text-center py-6">ยังไม่มีความเห็น</p>
+                <p className="text-[13px] text-slate-400 text-center py-6">ยังไม่มีความเห็น</p>
               ) : (
                 <div className={`space-y-2.5 overflow-hidden transition-all ${openComments ? 'max-h-[600px]' : 'max-h-[180px]'}`}>
                   {k.recentComments.map((r, idx) => (
                     <div key={idx} className="bg-slate-50/70 ring-1 ring-slate-100 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11.5px] font-semibold text-slate-600 truncate">
+                        <span className="text-[12.5px] font-semibold text-slate-600 truncate">
                           {r.evaluation.evaluatedByName || r.empName || 'ไม่ระบุ'}
                         </span>
                         <div className="flex items-center gap-0.5 shrink-0">
@@ -440,7 +440,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                           ))}
                         </div>
                       </div>
-                      <p className="text-[12px] text-slate-600 leading-snug line-clamp-2">{r.evaluation.comment}</p>
+                      <p className="text-[13px] text-slate-600 leading-snug line-clamp-2">{r.evaluation.comment}</p>
                     </div>
                   ))}
                 </div>
@@ -458,17 +458,17 @@ function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
   return (
     <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-4 flex flex-col gap-2.5 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
-        <p className="text-[11.5px] font-semibold text-slate-500 tracking-wide">{label}</p>
+        <p className="text-[12.5px] font-semibold text-slate-500 tracking-wide">{label}</p>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: tint }}>
           <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2.2} />
         </div>
       </div>
       <div>
-        <p className="text-[26px] font-black text-slate-800 leading-none tabular-nums">
+        <p className="text-[27px] font-black text-slate-800 leading-none tabular-nums">
           {value}
-          {unit && <span className="text-[12px] text-slate-400 font-medium ml-1.5">{unit}</span>}
+          {unit && <span className="text-[13px] text-slate-400 font-medium ml-1.5">{unit}</span>}
         </p>
-        {sub && <p className="text-[11px] text-slate-400 mt-1.5">{sub}</p>}
+        {sub && <p className="text-[12px] text-slate-400 mt-1.5">{sub}</p>}
       </div>
     </div>
   );
@@ -479,10 +479,10 @@ function RatingBar({ label, value, color }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[12px] font-semibold text-slate-600">{label}</span>
-        <span className="text-[12px] font-bold tabular-nums" style={{ color }}>
+        <span className="text-[13px] font-semibold text-slate-600">{label}</span>
+        <span className="text-[13px] font-bold tabular-nums" style={{ color }}>
           {value.toFixed(2)}
-          <span className="text-slate-400 font-normal text-[10.5px]"> / 5.00</span>
+          <span className="text-slate-400 font-normal text-[11.5px]"> / 5.00</span>
         </span>
       </div>
       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -511,13 +511,13 @@ function MonthlyTrend({ data }) {
                     background: `linear-gradient(180deg, ${BRAND.primary} 0%, ${BRAND.primary}AA 100%)`,
                   }}
                 >
-                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10.5px] font-bold text-slate-600 tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[11.5px] font-bold text-slate-600 tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     {d.cases} เคส
                   </span>
                 </div>
               </div>
-              <span className="text-[10.5px] text-slate-500 font-medium truncate w-full text-center">{d.label}</span>
-              <span className="text-[10.5px] font-bold text-slate-700 tabular-nums">{d.cases}</span>
+              <span className="text-[11.5px] text-slate-500 font-medium truncate w-full text-center">{d.label}</span>
+              <span className="text-[11.5px] font-bold text-slate-700 tabular-nums">{d.cases}</span>
             </div>
           );
         })}
@@ -525,13 +525,13 @@ function MonthlyTrend({ data }) {
 
       {/* Avg rating per month */}
       <div className="pt-3 border-t border-slate-100">
-        <p className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider mb-2">คะแนนเฉลี่ยรายเดือน</p>
+        <p className="text-[11.5px] font-semibold text-slate-400 uppercase tracking-wider mb-2">คะแนนเฉลี่ยรายเดือน</p>
         <div className="flex items-center justify-between gap-2">
           {data.map((d, idx) => (
             <div key={idx} className="flex-1 text-center">
               <div className="flex items-center justify-center gap-0.5">
                 <Star className={`h-3 w-3 ${d.rating > 0 ? 'fill-amber-400 text-amber-400' : 'text-slate-200 fill-slate-100'}`} strokeWidth={1.6} />
-                <span className="text-[11px] font-bold text-slate-600 tabular-nums">
+                <span className="text-[12px] font-bold text-slate-600 tabular-nums">
                   {d.rating > 0 ? d.rating.toFixed(1) : '-'}
                 </span>
               </div>

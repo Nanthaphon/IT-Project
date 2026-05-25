@@ -120,14 +120,14 @@ export default function EditEmpModal({
                         }}
                       >
                         <div className="font-medium text-slate-800">{emp.fullName}</div>
-                        <div className="text-[11.5px] text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                        <div className="text-[12.5px] text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
                       </div>
                     ))}
                     {employees.filter(emp =>
                       emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
                       emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())
                     ).length === 0 && (
-                      <div className="p-3 text-center text-[12px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                      <div className="p-3 text-center text-[13px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
                     )}
                   </div>
                 )}
@@ -138,7 +138,7 @@ export default function EditEmpModal({
           <section className="rounded-xl ring-1 ring-blue-100 bg-blue-50/40 p-4 space-y-3">
             <div className="flex items-center gap-2 text-[#1E487A]">
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
-              <p className="text-[12px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
+              <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="อีเมล Microsoft 365">

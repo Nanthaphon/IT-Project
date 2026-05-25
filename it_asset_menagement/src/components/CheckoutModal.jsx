@@ -153,20 +153,20 @@ export default function CheckoutModal({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[12.5px] font-semibold text-slate-700">{slot.label}</span>
+                          <span className="text-[13.5px] font-semibold text-slate-700">{slot.label}</span>
                           {slot.cost && (
-                            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-200 px-2 py-0.5 rounded-full tabular-nums">
+                            <span className="text-[12px] font-semibold text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-200 px-2 py-0.5 rounded-full tabular-nums">
                               ฿{Number(slot.cost).toLocaleString()}
                             </span>
                           )}
                         </div>
                         {slot.sub && (
-                          <div className={`mt-1.5 text-[12px] truncate ${isLicense ? 'font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded-lg ring-1 ring-inset ring-slate-200' : 'text-slate-500'}`}>
+                          <div className={`mt-1.5 text-[13px] truncate ${isLicense ? 'font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded-lg ring-1 ring-inset ring-slate-200' : 'text-slate-500'}`}>
                             {slot.sub}
                           </div>
                         )}
-                        {slot.sub2 && <div className="mt-0.5 text-[11.5px] text-slate-400 truncate">{slot.sub2}</div>}
-                        {!slot.sub && !slot.cost && <div className="mt-0.5 text-[11.5px] text-slate-400">ไม่มีข้อมูลเพิ่มเติม</div>}
+                        {slot.sub2 && <div className="mt-0.5 text-[12.5px] text-slate-400 truncate">{slot.sub2}</div>}
+                        {!slot.sub && !slot.cost && <div className="mt-0.5 text-[12.5px] text-slate-400">ไม่มีข้อมูลเพิ่มเติม</div>}
                       </div>
                     </label>
                   );
@@ -176,7 +176,7 @@ export default function CheckoutModal({
           )}
 
           {needSelector && availableSlots.length === 0 && (
-            <div className="bg-rose-50 ring-1 ring-inset ring-rose-200 text-rose-700 text-[13px] font-medium px-4 py-3 rounded-xl flex items-start gap-2">
+            <div className="bg-rose-50 ring-1 ring-inset ring-rose-200 text-rose-700 text-[14px] font-medium px-4 py-3 rounded-xl flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={2} />
               ไม่มีรายการที่พร้อมเบิกจ่าย
             </div>
@@ -192,7 +192,7 @@ export default function CheckoutModal({
                 value={checkoutSearchTerm}
                 onChange={(e) => { setCheckoutSearchTerm(e.target.value); setCheckoutEmpId(''); setIsDropdownOpen(true); }}
                 onFocus={() => setIsDropdownOpen(true)}
-                className={`w-full pl-10 pr-4 py-3 text-[14px] bg-white border rounded-lg outline-none transition-all ${
+                className={`w-full pl-10 pr-4 py-3 text-[15px] bg-white border rounded-lg outline-none transition-all ${
                   !checkoutEmpId && checkoutSearchTerm
                     ? 'border-amber-300 focus:ring-2 focus:ring-amber-200 focus:border-amber-400'
                     : 'border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'
@@ -213,20 +213,20 @@ export default function CheckoutModal({
                           setIsDropdownOpen(false);
                         }}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 text-[#1E487A] flex items-center justify-center font-semibold text-[14px] shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 text-[#1E487A] flex items-center justify-center font-semibold text-[15px] shrink-0">
                           {emp.fullName?.charAt(0) || '?'}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-slate-800 truncate">
                             {emp.fullName} {emp.nickname ? <span className="text-slate-400">({emp.nickname})</span> : null}
                           </div>
-                          <div className="text-[12px] text-slate-500 truncate">{emp.empId} • {emp.department || '-'}</div>
+                          <div className="text-[13px] text-slate-500 truncate">{emp.empId} • {emp.department || '-'}</div>
                         </div>
                         {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-[#1E487A] shrink-0" strokeWidth={2.4} />}
                       </div>
                     ))
                   ) : (
-                    <div className="p-5 text-center text-[13px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
+                    <div className="p-5 text-center text-[14px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
                   )}
                 </div>
               )}

@@ -38,10 +38,10 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
         >
           <KeyRound className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-[19px] font-semibold mb-2 tracking-tight" style={{ color: BRAND.primary }}>
+        <h3 className="text-[20px] font-semibold mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           รีเซ็ตรหัสผ่าน
         </h3>
-        <p className="text-[13.5px] text-slate-500 mb-6 leading-relaxed">
+        <p className="text-[14.5px] text-slate-500 mb-6 leading-relaxed">
           กรุณาระบุอีเมลที่ใช้ในระบบ
           <br />
           เพื่อรับลิงก์สำหรับตั้งรหัสผ่านใหม่
@@ -59,14 +59,14 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-[13.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
               onMouseEnter={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primaryDark)}
               onMouseLeave={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primary)}

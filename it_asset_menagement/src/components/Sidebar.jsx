@@ -136,8 +136,8 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
             />
           </div>
           <div className="leading-tight">
-            <p className="text-[15px] font-semibold text-white tracking-tight">IT Admin</p>
-            <p className="text-[11px] text-blue-200/70 tracking-wide">Asset Management</p>
+            <p className="text-[16px] font-semibold text-white tracking-tight">IT Admin</p>
+            <p className="text-[12px] text-blue-200/70 tracking-wide">Asset Management</p>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {groups.map((group) => (
           <div key={group.group}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-200/55 px-3 mb-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-200/55 px-3 mb-2">
               {group.group}
             </p>
             <div className="space-y-1">
@@ -158,7 +158,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
                   <button
                     key={id}
                     onClick={() => handleMenuClick(id)}
-                    className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] transition-all duration-150 group
+                    className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14.5px] transition-all duration-150 group
                       ${active
                         ? 'bg-white text-[#1E487A] font-semibold shadow-lg shadow-black/10'
                         : 'text-blue-100/80 hover:bg-white/8 hover:text-white font-medium'
@@ -193,12 +193,12 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
 
         {/* บัญชี */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-200/55 px-3 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-200/55 px-3 mb-2">
             บัญชี
           </p>
           <button
             onClick={handleChangePassword}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-blue-100/80 hover:bg-white/8 hover:text-white transition-all duration-150 group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14.5px] font-medium text-blue-100/80 hover:bg-white/8 hover:text-white transition-all duration-150 group"
           >
             <KeyRound
               className="h-[18px] w-[18px] shrink-0 text-blue-200/80 group-hover:text-white transition-colors"
@@ -217,11 +217,11 @@ export default function Sidebar({ activeMenu, setActiveMenu, onChangePassword, a
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
             </span>
-            <span className="text-[11.5px] text-blue-200/70 font-medium tracking-wide">
+            <span className="text-[12.5px] text-blue-200/70 font-medium tracking-wide">
               ระบบออนไลน์
             </span>
           </div>
-          <span className="text-[10px] text-blue-200/40 font-mono">v1.0</span>
+          <span className="text-[11px] text-blue-200/40 font-mono">v1.0</span>
         </div>
       </div>
     </aside>

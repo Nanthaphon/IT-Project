@@ -12,8 +12,8 @@ export function Field({ label, required, hint, error, children, className = '' }
         </label>
       )}
       {children}
-      {hint && !error && <p className="text-[11px] text-slate-400 mt-1.5 leading-snug">{hint}</p>}
-      {error && <p className="text-[11px] text-rose-500 mt-1.5 leading-snug">{error}</p>}
+      {hint && !error && <p className="text-[12px] text-slate-400 mt-1.5 leading-snug">{hint}</p>}
+      {error && <p className="text-[12px] text-rose-500 mt-1.5 leading-snug">{error}</p>}
     </div>
   );
 }
@@ -22,7 +22,7 @@ export function Field({ label, required, hint, error, children, className = '' }
 export function SectionHeader({ children, action }) {
   return (
     <div className="flex items-center gap-3 first:pt-0">
-      <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-500 uppercase shrink-0">
+      <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase shrink-0">
         {children}
       </span>
       <span className="flex-1 h-px bg-slate-200/80" />
@@ -47,8 +47,8 @@ export function Button({
     cls.btnPrimary;
 
   const sizeCls =
-    size === 'sm' ? 'px-3 py-1.5 text-[13px]' :
-    size === 'lg' ? 'px-5 py-3 text-[15px]' : '';
+    size === 'sm' ? 'px-3 py-1.5 text-[14px]' :
+    size === 'lg' ? 'px-5 py-3 text-[16px]' : '';
 
   return (
     <button type={type} className={`${variantCls} ${sizeCls} ${className}`} {...rest}>
@@ -103,8 +103,8 @@ export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
           </div>
         )}
         <div>
-          <h3 className="text-[17px] font-semibold text-slate-900 leading-tight">{title}</h3>
-          {subtitle && <p className="text-[12.5px] text-slate-500 mt-0.5">{subtitle}</p>}
+          <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">{title}</h3>
+          {subtitle && <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
       </div>
       {onClose && (
@@ -168,7 +168,7 @@ export function PageHeader({ icon: Icon, title, subtitle, action }) {
           </div>
         )}
         <div>
-          <h1 className="text-[22px] font-semibold text-slate-900 leading-tight tracking-tight">{title}</h1>
+          <h1 className="text-[23px] font-semibold text-slate-900 leading-tight tracking-tight">{title}</h1>
           {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
         </div>
       </div>

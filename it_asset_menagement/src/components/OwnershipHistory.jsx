@@ -124,11 +124,11 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
             <User className="h-4 w-4" strokeWidth={2} />
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-slate-800 truncate">
+            <p className="text-[14px] font-semibold text-slate-800 truncate">
               {checkout.empName || '-'}
-              {isCurrent && <span className="ml-1.5 text-[10px] font-semibold text-[#1E487A] bg-[#1E487A]/10 px-1.5 py-0.5 rounded">ปัจจุบัน</span>}
+              {isCurrent && <span className="ml-1.5 text-[11px] font-semibold text-[#1E487A] bg-[#1E487A]/10 px-1.5 py-0.5 rounded">ปัจจุบัน</span>}
             </p>
-            <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+            <p className="text-[12px] text-slate-500 flex items-center gap-1.5 mt-0.5">
               <Calendar className="h-3 w-3" strokeWidth={2} />
               {fmt(checkout.timestamp)}
               {ret && <> <ArrowRight className="h-3 w-3" /> {fmt(ret.timestamp)}</>}
@@ -137,18 +137,18 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {damages.length > 0 && (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200">
+            <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200">
               <AlertTriangle className="h-3 w-3" strokeWidth={2.4} /> เสียหาย {damages.length} จุด
             </span>
           )}
           {!damages.length && ret && (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
+            <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
               <CheckCircle2 className="h-3 w-3" strokeWidth={2.4} /> คืนปกติ
             </span>
           )}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-[11px] font-semibold text-[#1E487A] hover:underline shrink-0"
+            className="text-[12px] font-semibold text-[#1E487A] hover:underline shrink-0"
           >
             {expanded ? 'ย่อ' : 'รายละเอียด'}
           </button>
@@ -185,13 +185,13 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
           {/* Damage summary */}
           {damages.length > 0 && (
             <div className="rounded-lg bg-rose-50 ring-1 ring-rose-200 p-3">
-              <p className="text-[12px] font-bold text-rose-800 mb-1.5 flex items-center gap-1.5">
+              <p className="text-[13px] font-bold text-rose-800 mb-1.5 flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2} />
                 ความเสียหายที่พบเทียบกับตอนส่งมอบ
               </p>
               <ul className="space-y-1">
                 {damages.map((d, i) => (
-                  <li key={i} className="text-[11.5px] text-rose-700">
+                  <li key={i} className="text-[12.5px] text-rose-700">
                     • <span className="font-semibold">{d.field}:</span> {labelOf(d.fieldKey, d.before)} → {labelOf(d.fieldKey, d.after)}
                   </li>
                 ))}
@@ -217,7 +217,7 @@ function ConditionSnapshot({ label, Icon, color, photos = [], checklist = {}, no
 
   return (
     <div>
-      <p className={`inline-flex items-center gap-1.5 text-[11.5px] font-bold px-2.5 py-1 rounded-full ring-1 ring-inset mb-2 ${colorCls}`}>
+      <p className={`inline-flex items-center gap-1.5 text-[12.5px] font-bold px-2.5 py-1 rounded-full ring-1 ring-inset mb-2 ${colorCls}`}>
         <Icon className="h-3 w-3" strokeWidth={2.4} />
         {label}
       </p>
@@ -237,7 +237,7 @@ function ConditionSnapshot({ label, Icon, color, photos = [], checklist = {}, no
           ))}
         </div>
       ) : (
-        <p className="text-[11px] text-slate-400 italic mb-3 flex items-center gap-1">
+        <p className="text-[12px] text-slate-400 italic mb-3 flex items-center gap-1">
           <Camera className="h-3 w-3" /> ไม่ได้บันทึกรูป
         </p>
       )}
@@ -250,7 +250,7 @@ function ConditionSnapshot({ label, Icon, color, photos = [], checklist = {}, no
             return (
               <span
                 key={f.key}
-                className={`text-[10px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${STATUS_COLOR[v]}`}
+                className={`text-[11px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${STATUS_COLOR[v]}`}
               >
                 {f.label}: {labelOf(f.key, v)}
               </span>
@@ -261,7 +261,7 @@ function ConditionSnapshot({ label, Icon, color, photos = [], checklist = {}, no
 
       {/* Notes */}
       {notes && (
-        <p className="text-[11.5px] text-slate-600 bg-slate-50 ring-1 ring-slate-200 rounded px-2 py-1.5 mt-1">
+        <p className="text-[12.5px] text-slate-600 bg-slate-50 ring-1 ring-slate-200 rounded px-2 py-1.5 mt-1">
           💬 {notes}
         </p>
       )}

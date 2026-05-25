@@ -93,9 +93,9 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
               <div key={s.label} className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
-                  <span className="text-[10px] text-slate-400 font-medium">{s.label}</span>
+                  <span className="text-[11px] text-slate-400 font-medium">{s.label}</span>
                 </div>
-                <p className="text-[17px] font-semibold text-slate-800 tabular-nums">{s.value}</p>
+                <p className="text-[18px] font-semibold text-slate-800 tabular-nums">{s.value}</p>
               </div>
             ))}
           </div>
@@ -121,8 +121,8 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
                 )}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[15px] font-semibold text-slate-800 tabular-nums">{accTotal}</span>
-                <span className="text-[9px] text-slate-400">ทั้งหมด</span>
+                <span className="text-[16px] font-semibold text-slate-800 tabular-nums">{accTotal}</span>
+                <span className="text-[10px] text-slate-400">ทั้งหมด</span>
               </div>
             </div>
 
@@ -135,9 +135,9 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
                 <div key={s.label} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-                    <span className="text-[12.5px] text-slate-500">{s.label}</span>
+                    <span className="text-[13.5px] text-slate-500">{s.label}</span>
                   </div>
-                  <span className="text-[13.5px] font-semibold text-slate-800 tabular-nums">{s.value}</span>
+                  <span className="text-[14.5px] font-semibold text-slate-800 tabular-nums">{s.value}</span>
                 </div>
               ))}
             </div>
@@ -161,9 +161,9 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
 
           <div className="flex items-center gap-2 mb-1 relative">
             <Wallet className="h-3.5 w-3.5 text-blue-200" strokeWidth={2} />
-            <p className="text-[11px] font-semibold text-blue-200 uppercase tracking-[0.14em]">มูลค่าทรัพย์สินรวม</p>
+            <p className="text-[12px] font-semibold text-blue-200 uppercase tracking-[0.14em]">มูลค่าทรัพย์สินรวม</p>
           </div>
-          <p className="text-[32px] font-bold text-white mb-5 tabular-nums leading-tight relative">{fmt(totalValue)}</p>
+          <p className="text-[33px] font-bold text-white mb-5 tabular-nums leading-tight relative">{fmt(totalValue)}</p>
 
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/15 relative">
             {[
@@ -172,8 +172,8 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
               { label: 'อุปกรณ์เสริม',  value: fmt(accValue)   },
             ].map(item => (
               <div key={item.label}>
-                <p className="text-[10.5px] text-blue-200/80 font-medium mb-1 tracking-wide">{item.label}</p>
-                <p className="text-[13.5px] font-semibold text-white tabular-nums">{item.value}</p>
+                <p className="text-[11.5px] text-blue-200/80 font-medium mb-1 tracking-wide">{item.label}</p>
+                <p className="text-[14.5px] font-semibold text-white tabular-nums">{item.value}</p>
               </div>
             ))}
           </div>
@@ -184,9 +184,9 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
           <div>
             <div className="flex items-center gap-2 mb-1">
               <FileText className="h-3.5 w-3.5 text-violet-500" strokeWidth={2} />
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.14em]">การจัดสรร License</p>
+              <p className="text-[12px] font-semibold text-slate-500 uppercase tracking-[0.14em]">การจัดสรร License</p>
             </div>
-            <p className="text-[28px] font-bold text-slate-900 mb-1 tabular-nums leading-tight">
+            <p className="text-[29px] font-bold text-slate-900 mb-1 tabular-nums leading-tight">
               {totalLicenses} <span className="text-sm font-medium text-slate-400">รายการ</span>
             </p>
           </div>
@@ -202,16 +202,16 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
               <div className="bg-slate-50/70 rounded-lg px-3 py-2.5 ring-1 ring-slate-100">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span className="text-[10.5px] text-slate-500 font-medium">ว่าง</span>
+                  <span className="text-[11.5px] text-slate-500 font-medium">ว่าง</span>
                 </div>
-                <p className="text-[17px] font-semibold text-slate-800 tabular-nums">{licAvailable}</p>
+                <p className="text-[18px] font-semibold text-slate-800 tabular-nums">{licAvailable}</p>
               </div>
               <div className="bg-slate-50/70 rounded-lg px-3 py-2.5 ring-1 ring-slate-100">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: BRAND.primary }} />
-                  <span className="text-[10.5px] text-slate-500 font-medium">ถูกใช้</span>
+                  <span className="text-[11.5px] text-slate-500 font-medium">ถูกใช้</span>
                 </div>
-                <p className="text-[17px] font-semibold text-slate-800 tabular-nums">{licInUse}</p>
+                <p className="text-[18px] font-semibold text-slate-800 tabular-nums">{licInUse}</p>
               </div>
             </div>
           </div>
@@ -226,7 +226,7 @@ function KpiCard({ label, value, unit, sub, icon: Icon, accent, tint }) {
   return (
     <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md hover:ring-slate-300/70 transition-all">
       <div className="flex items-start justify-between">
-        <p className="text-[11.5px] font-semibold text-slate-500 uppercase tracking-[0.1em]">{label}</p>
+        <p className="text-[12.5px] font-semibold text-slate-500 uppercase tracking-[0.1em]">{label}</p>
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: tint, color: accent }}
@@ -235,11 +235,11 @@ function KpiCard({ label, value, unit, sub, icon: Icon, accent, tint }) {
         </div>
       </div>
       <div>
-        <p className="text-[26px] font-bold text-slate-900 tabular-nums leading-tight">
+        <p className="text-[27px] font-bold text-slate-900 tabular-nums leading-tight">
           {value}
-          <span className="text-[13px] font-medium text-slate-400 ml-1.5">{unit}</span>
+          <span className="text-[14px] font-medium text-slate-400 ml-1.5">{unit}</span>
         </p>
-        <p className="text-[12px] mt-1 font-medium" style={{ color: accent }}>{sub}</p>
+        <p className="text-[13px] mt-1 font-medium" style={{ color: accent }}>{sub}</p>
       </div>
       <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
         <div className="h-full w-2/3 rounded-full opacity-50" style={{ backgroundColor: accent }} />
@@ -253,8 +253,8 @@ function ChartCard({ title, subtitle, children }) {
   return (
     <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm p-5">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-[13.5px] font-semibold text-slate-800 tracking-tight">{title}</p>
-        <span className="text-[11.5px] text-slate-400 font-medium tabular-nums">{subtitle}</span>
+        <p className="text-[14.5px] font-semibold text-slate-800 tracking-tight">{title}</p>
+        <span className="text-[12.5px] text-slate-400 font-medium tabular-nums">{subtitle}</span>
       </div>
       {children}
     </div>

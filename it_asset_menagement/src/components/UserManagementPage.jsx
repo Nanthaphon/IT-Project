@@ -238,8 +238,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
             <Users className="h-5 w-5" strokeWidth={1.8} />
           </div>
           <div>
-            <h1 className="text-[18px] font-bold text-slate-800 tracking-tight">จัดการผู้ใช้งานระบบ</h1>
-            <p className="text-[12px] text-slate-400 mt-0.5">{users.length} บัญชีในระบบ</p>
+            <h1 className="text-[19px] font-bold text-slate-800 tracking-tight">จัดการผู้ใช้งานระบบ</h1>
+            <p className="text-[13px] text-slate-400 mt-0.5">{users.length} บัญชีในระบบ</p>
           </div>
         </div>
 
@@ -263,15 +263,15 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
           <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
             <thead className="bg-slate-50/80 border-b border-slate-200">
               <tr>
-                <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">ชื่อ</th>
-                <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Email</th>
-                <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 text-center">สิทธิ์</th>
-                <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 text-center">เมนูที่เข้าถึงได้</th>
-                <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">วันที่สร้าง</th>
-                <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 text-center">จัดการ</th>
+                <th className="px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500">ชื่อ</th>
+                <th className="px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500">Email</th>
+                <th className="px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500 text-center">สิทธิ์</th>
+                <th className="px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500 text-center">เมนูที่เข้าถึงได้</th>
+                <th className="px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500">วันที่สร้าง</th>
+                <th className="px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-slate-500 text-center">จัดการ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-[13.5px] bg-white">
+            <tbody className="divide-y divide-slate-100 text-[14.5px] bg-white">
               {users.map(user => (
                 <tr key={user.id} className="hover:bg-slate-50/60 transition-colors group">
 
@@ -279,7 +279,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-[14px] shrink-0 shadow-sm"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-[15px] shrink-0 shadow-sm"
                         style={{ background: user.isSuperAdmin ? `${BRAND.primary}20` : '#f1f5f9', color: user.isSuperAdmin ? BRAND.primary : '#64748b' }}
                       >
                         {(user.displayName || '?').charAt(0).toUpperCase()}
@@ -287,7 +287,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       <div>
                         <p className="font-semibold text-slate-800">{user.displayName || '-'}</p>
                         {user.isSuperAdmin && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1E487A]/10 text-[#1E487A] mt-0.5">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#1E487A]/10 text-[#1E487A] mt-0.5">
                             <Shield className="h-2.5 w-2.5" strokeWidth={2.2} />
                             SuperAdmin
                           </span>
@@ -297,20 +297,20 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   </td>
 
                   {/* Email */}
-                  <td className="px-5 py-3.5 text-slate-600 font-mono text-[12.5px]">{user.email || '-'}</td>
+                  <td className="px-5 py-3.5 text-slate-600 font-mono text-[13.5px]">{user.email || '-'}</td>
 
                   {/* สิทธิ์ */}
                   <td className="px-5 py-3.5 text-center">
                     {user.isSuperAdmin ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#1E487A] text-white ring-1 ring-[#1E487A]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#1E487A] text-white ring-1 ring-[#1E487A]">
                         Full
                       </span>
                     ) : user.permissions?.level === 'full' ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
                         แก้ไขได้
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
                         <Eye className="h-3 w-3" strokeWidth={2} />
                         ดูอย่างเดียว
                       </span>
@@ -320,16 +320,16 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   {/* เมนูที่เข้าถึง */}
                   <td className="px-5 py-3.5 text-center">
                     {user.isSuperAdmin ? (
-                      <span className="text-[13px] font-semibold text-[#1E487A]">ทั้งหมด ({ALL_MENU_IDS.length})</span>
+                      <span className="text-[14px] font-semibold text-[#1E487A]">ทั้งหมด ({ALL_MENU_IDS.length})</span>
                     ) : (
-                      <span className="text-[13px] font-semibold text-slate-700">
+                      <span className="text-[14px] font-semibold text-slate-700">
                         {(user.permissions?.menus || []).length} / {ALL_MENU_IDS.length}
                       </span>
                     )}
                   </td>
 
                   {/* วันที่สร้าง */}
-                  <td className="px-5 py-3.5 text-slate-500 text-[12.5px]">{fmtDate(user.createdAt)}</td>
+                  <td className="px-5 py-3.5 text-slate-500 text-[13.5px]">{fmtDate(user.createdAt)}</td>
 
                   {/* จัดการ */}
                   <td className="px-5 py-3.5 text-center">
@@ -337,7 +337,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       const canReset = (canFullManage || canManagePasswords) && !user.isSuperAdmin;
                       const canEditDelete = canFullManage && !user.isSuperAdmin;
                       if (!canReset && !canEditDelete) {
-                        return <span className="text-[11px] text-slate-400">-</span>;
+                        return <span className="text-[12px] text-slate-400">-</span>;
                       }
                       return (
                         <div className="flex items-center justify-center gap-1.5">
@@ -365,7 +365,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400 text-[13px]">
+                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400 text-[14px]">
                     ยังไม่มีผู้ใช้งานในระบบ
                   </td>
                 </tr>
@@ -386,7 +386,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}>
                   <Users className="h-4 w-4" strokeWidth={1.8} />
                 </div>
-                <h2 className="text-[15px] font-bold text-slate-800">
+                <h2 className="text-[16px] font-bold text-slate-800">
                   {editingUser ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
                 </h2>
               </div>
@@ -457,7 +457,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       onChange={() => setForm(prev => ({ ...prev, level: 'view' }))}
                       className="w-4 h-4 text-[#1E487A] border-slate-300 focus:ring-[#1E487A]"
                     />
-                    <span className="text-[13.5px] text-slate-700 font-medium group-hover:text-slate-900 select-none">
+                    <span className="text-[14.5px] text-slate-700 font-medium group-hover:text-slate-900 select-none">
                       ดูอย่างเดียว
                     </span>
                   </label>
@@ -470,7 +470,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       onChange={() => setForm(prev => ({ ...prev, level: 'full' }))}
                       className="w-4 h-4 text-[#1E487A] border-slate-300 focus:ring-[#1E487A]"
                     />
-                    <span className="text-[13.5px] text-slate-700 font-medium group-hover:text-slate-900 select-none">
+                    <span className="text-[14.5px] text-slate-700 font-medium group-hover:text-slate-900 select-none">
                       แก้ไขได้ทุกอย่าง
                     </span>
                   </label>
@@ -485,7 +485,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     <button
                       type="button"
                       onClick={selectAll}
-                      className="text-[12px] text-[#1E487A] font-semibold hover:underline flex items-center gap-1"
+                      className="text-[13px] text-[#1E487A] font-semibold hover:underline flex items-center gap-1"
                     >
                       <CheckSquare className="h-3 w-3" strokeWidth={2} />
                       เลือกทั้งหมด
@@ -494,7 +494,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     <button
                       type="button"
                       onClick={clearAll}
-                      className="text-[12px] text-slate-500 font-semibold hover:underline flex items-center gap-1"
+                      className="text-[13px] text-slate-500 font-semibold hover:underline flex items-center gap-1"
                     >
                       <Square className="h-3 w-3" strokeWidth={2} />
                       ล้างทั้งหมด
@@ -514,7 +514,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                         onChange={() => toggleMenu(id)}
                         className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A] focus:ring-offset-0"
                       />
-                      <span className="text-[12.5px] text-slate-700 font-medium truncate">
+                      <span className="text-[13.5px] text-slate-700 font-medium truncate">
                         {MENU_LABELS[id]}
                       </span>
                     </label>
@@ -533,8 +533,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A] focus:ring-offset-0"
                   />
                   <div>
-                    <p className="text-[13px] font-semibold text-slate-700">อนุญาตให้รีเซ็ตรหัสผ่านผู้ใช้อื่น</p>
-                    <p className="text-[11.5px] text-slate-400 mt-0.5">
+                    <p className="text-[14px] font-semibold text-slate-700">อนุญาตให้รีเซ็ตรหัสผ่านผู้ใช้อื่น</p>
+                    <p className="text-[12.5px] text-slate-400 mt-0.5">
                       ผู้ใช้คนนี้จะเข้าหน้าจัดการผู้ใช้ และตั้งรหัสผ่านใหม่ให้บัญชีอื่นได้
                     </p>
                   </div>
@@ -543,7 +543,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
               {/* Error */}
               {error && (
-                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[13px] font-medium rounded-xl ring-1 ring-rose-200">
+                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl ring-1 ring-rose-200">
                   {error}
                 </div>
               )}
@@ -585,8 +585,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
               <div className="w-12 h-12 rounded-2xl bg-rose-50 ring-1 ring-rose-200 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
               </div>
-              <h3 className="text-[15px] font-bold text-slate-800 text-center mb-1">ยืนยันการลบผู้ใช้</h3>
-              <p className="text-[13px] text-slate-500 text-center">
+              <h3 className="text-[16px] font-bold text-slate-800 text-center mb-1">ยืนยันการลบผู้ใช้</h3>
+              <p className="text-[14px] text-slate-500 text-center">
                 คุณต้องการลบ <span className="font-semibold text-slate-700">{confirmDelete.displayName}</span> ออกจากระบบใช่หรือไม่?
                 ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้อีกต่อไป
               </p>
@@ -620,7 +620,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}>
                   <KeyRound className="h-4 w-4" strokeWidth={1.8} />
                 </div>
-                <h2 className="text-[15px] font-bold text-slate-800">รีเซ็ตรหัสผ่าน</h2>
+                <h2 className="text-[16px] font-bold text-slate-800">รีเซ็ตรหัสผ่าน</h2>
               </div>
               <button
                 onClick={() => setPwUser(null)}
@@ -632,7 +632,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
             {/* body */}
             <form onSubmit={handleResetPassword} className="px-6 py-5 space-y-4">
-              <p className="text-[13px] text-slate-500">
+              <p className="text-[14px] text-slate-500">
                 ตั้งรหัสผ่านใหม่ให้ <span className="font-semibold text-slate-700">{pwUser.displayName}</span>
                 {pwUser.email && <span className="text-slate-400"> ({pwUser.email})</span>}
               </p>
@@ -659,12 +659,12 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 />
               </div>
               {pwError && (
-                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[13px] font-medium rounded-xl ring-1 ring-rose-200">
+                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl ring-1 ring-rose-200">
                   {pwError}
                 </div>
               )}
               {pwSuccess && (
-                <div className="px-3.5 py-2.5 bg-emerald-50 text-emerald-700 text-[13px] font-medium rounded-xl ring-1 ring-emerald-200">
+                <div className="px-3.5 py-2.5 bg-emerald-50 text-emerald-700 text-[14px] font-medium rounded-xl ring-1 ring-emerald-200">
                   {pwSuccess}
                 </div>
               )}

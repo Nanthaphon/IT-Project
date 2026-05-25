@@ -64,8 +64,8 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
         <div className="w-14 h-14 rounded-2xl bg-rose-50 ring-1 ring-rose-200 flex items-center justify-center">
           <ShieldAlert className="h-6 w-6 text-rose-500" strokeWidth={1.8} />
         </div>
-        <p className="font-semibold text-slate-600 text-[14px]">ไม่มีสิทธิ์เข้าถึง</p>
-        <p className="text-[12px] text-slate-400">หน้านี้สำหรับผู้ดูแลระบบสูงสุด (SuperAdmin) เท่านั้น</p>
+        <p className="font-semibold text-slate-600 text-[15px]">ไม่มีสิทธิ์เข้าถึง</p>
+        <p className="text-[13px] text-slate-400">หน้านี้สำหรับผู้ดูแลระบบสูงสุด (SuperAdmin) เท่านั้น</p>
       </div>
     );
   }
@@ -90,8 +90,8 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
           <Settings className="h-5 w-5" strokeWidth={1.8} />
         </div>
         <div>
-          <h1 className="text-[18px] font-bold text-slate-800 tracking-tight">ตั้งค่าระบบ</h1>
-          <p className="text-[12px] text-slate-400 mt-0.5">กำหนดอีเมลปลายทางสำหรับการแจ้งเตือน</p>
+          <h1 className="text-[19px] font-bold text-slate-800 tracking-tight">ตั้งค่าระบบ</h1>
+          <p className="text-[13px] text-slate-400 mt-0.5">กำหนดอีเมลปลายทางสำหรับการแจ้งเตือน</p>
         </div>
       </div>
 
@@ -100,12 +100,12 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
 
         <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2.5">
           <Mail className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
-          <h2 className="text-[14px] font-bold text-slate-800">อีเมลแจ้งเตือน</h2>
+          <h2 className="text-[15px] font-bold text-slate-800">อีเมลแจ้งเตือน</h2>
         </div>
 
         <div className="px-6 py-5 space-y-5">
 
-          <p className="text-[12.5px] text-slate-500 leading-relaxed bg-slate-50 rounded-xl px-3.5 py-3 ring-1 ring-slate-200">
+          <p className="text-[13.5px] text-slate-500 leading-relaxed bg-slate-50 rounded-xl px-3.5 py-3 ring-1 ring-slate-200">
             เมื่อมีการเปลี่ยนผู้รับผิดชอบ สามารถแก้อีเมลที่นี่ได้เลย — มีผลทันทีโดยไม่ต้องแก้โค้ดหรือ deploy ใหม่
           </p>
 
@@ -124,7 +124,7 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
               value={itEmail}
               onChange={e => setItEmail(e.target.value)}
             />
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[12px] text-slate-400 mt-1">
               รับแจ้งเตือน: แจ้งซ่อม / ปัญหา IT, ขอเปลี่ยนเครื่อง, License ใกล้หมดอายุ
             </p>
           </div>
@@ -144,23 +144,23 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
               value={hrEmail}
               onChange={e => setHrEmail(e.target.value)}
             />
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[12px] text-slate-400 mt-1">
               รับแจ้งเตือน: คำขอเบิกอุปกรณ์สำนักงาน
             </p>
           </div>
 
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[12px] text-slate-400">
             * หากเว้นว่างไว้ ระบบจะใช้อีเมลค่าเริ่มต้นที่ตั้งไว้ในระบบ
           </p>
 
           {/* Error / Success */}
           {error && (
-            <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[13px] font-medium rounded-xl ring-1 ring-rose-200">
+            <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl ring-1 ring-rose-200">
               {error}
             </div>
           )}
           {success && (
-            <div className="px-3.5 py-2.5 bg-emerald-50 text-emerald-700 text-[13px] font-medium rounded-xl ring-1 ring-emerald-200">
+            <div className="px-3.5 py-2.5 bg-emerald-50 text-emerald-700 text-[14px] font-medium rounded-xl ring-1 ring-emerald-200">
               {success}
             </div>
           )}

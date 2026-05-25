@@ -6,7 +6,7 @@ const BRAND = '#1E487A';
 function SectionHeader({ children }) {
   return (
     <div className="flex items-center gap-3 pt-2 first:pt-0">
-      <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-500 uppercase">{children}</span>
+      <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">{children}</span>
       <span className="flex-1 h-px bg-slate-200/80" />
     </div>
   );
@@ -15,11 +15,11 @@ function SectionHeader({ children }) {
 function Field({ label, required, hint, children, className = '' }) {
   return (
     <div className={className}>
-      <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+      <label className="block text-[14px] font-medium text-slate-600 mb-1.5">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[11px] text-slate-400 mt-1.5 leading-snug">{hint}</p>}
+      {hint && <p className="text-[12px] text-slate-400 mt-1.5 leading-snug">{hint}</p>}
     </div>
   );
 }
@@ -86,8 +86,8 @@ export default function EditAssetModal({
               </svg>
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-slate-900 leading-tight">แก้ไข{title}</h3>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">{subtitle}</p>
+              <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">แก้ไข{title}</h3>
+              <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>
             </div>
           </div>
           <button

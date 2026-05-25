@@ -37,19 +37,19 @@ export default function OfficeSupplyTable({
               onChange={handleSelectAllOfficeSupplies}
             />
           </th>
-          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
+          <th className="px-5 py-3 text-left text-[12px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
             อุปกรณ์
           </th>
-          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em] hidden sm:table-cell">
+          <th className="px-5 py-3 text-left text-[12px] font-semibold text-slate-500 uppercase tracking-[0.08em] hidden sm:table-cell">
             ประเภท
           </th>
-          <th className="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
+          <th className="px-5 py-3 text-center text-[12px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
             สต็อกคงเหลือ
           </th>
-          <th className="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em] hidden md:table-cell">
+          <th className="px-5 py-3 text-center text-[12px] font-semibold text-slate-500 uppercase tracking-[0.08em] hidden md:table-cell">
             สถานะ
           </th>
-          <th className="px-5 py-3 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
+          <th className="px-5 py-3 text-center text-[12px] font-semibold text-slate-500 uppercase tracking-[0.08em]">
             จัดการ
           </th>
         </tr>
@@ -111,11 +111,11 @@ export default function OfficeSupplyTable({
                   )}
 
                   <div className="min-w-0">
-                    <p className="font-semibold text-[13.5px] text-slate-800 group-hover:text-[#1E487A] transition-colors truncate">
+                    <p className="font-semibold text-[14.5px] text-slate-800 group-hover:text-[#1E487A] transition-colors truncate">
                       {item.name}
                     </p>
                     {/* type (mobile fallback) */}
-                    <p className="text-[11px] text-slate-400 mt-0.5 sm:hidden">
+                    <p className="text-[12px] text-slate-400 mt-0.5 sm:hidden">
                       {item.type || '—'}
                     </p>
                   </div>
@@ -124,7 +124,7 @@ export default function OfficeSupplyTable({
 
               {/* ── type ── */}
               <td className="px-4 py-3.5 hidden sm:table-cell">
-                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[11px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
+                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[12px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
                   {item.type || '—'}
                 </span>
               </td>
@@ -134,10 +134,10 @@ export default function OfficeSupplyTable({
                 <div className="flex flex-col items-center gap-1.5">
                   {/* number */}
                   <div className="flex items-baseline gap-1">
-                    <span className={`font-black text-[20px] tabular-nums leading-none ${meta.num}`}>
+                    <span className={`font-black text-[21px] tabular-nums leading-none ${meta.num}`}>
                       {item.quantity}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-medium">
+                    <span className="text-[12px] text-slate-400 font-medium">
                       {item.unit || 'ชิ้น'}
                     </span>
                   </div>
@@ -151,7 +151,7 @@ export default function OfficeSupplyTable({
 
               {/* ── status badge ── */}
               <td className="px-4 py-3.5 text-center hidden md:table-cell">
-                <span className={`inline-flex items-center gap-1.5 text-[11.5px] px-3 py-1.5 rounded-full font-semibold ring-1 ring-inset ${meta.badge}`}>
+                <span className={`inline-flex items-center gap-1.5 text-[12.5px] px-3 py-1.5 rounded-full font-semibold ring-1 ring-inset ${meta.badge}`}>
                   <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
                   {meta.label}
                 </span>
@@ -195,8 +195,8 @@ export default function OfficeSupplyTable({
                 >
                   <Package className="h-6 w-6" strokeWidth={1.5} />
                 </div>
-                <p className="font-semibold text-slate-500 text-[14px]">ไม่พบรายการอุปกรณ์</p>
-                <p className="text-[12px] text-slate-400">ลองค้นหาด้วยคำอื่น หรือเพิ่มอุปกรณ์ใหม่</p>
+                <p className="font-semibold text-slate-500 text-[15px]">ไม่พบรายการอุปกรณ์</p>
+                <p className="text-[13px] text-slate-400">ลองค้นหาด้วยคำอื่น หรือเพิ่มอุปกรณ์ใหม่</p>
               </div>
             </td>
           </tr>

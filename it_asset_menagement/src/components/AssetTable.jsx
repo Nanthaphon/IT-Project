@@ -2,7 +2,7 @@ import React from 'react';
 import { Pencil, Trash2, Monitor, User as UserIcon, LogIn, RotateCcw } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[11px] uppercase tracking-[0.08em]';
+const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-3.5';
 
 export default function AssetTable({
@@ -36,7 +36,7 @@ export default function AssetTable({
           <th className={`${TH} text-center`}>จัดการ</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-100 text-[13.5px] bg-white">
+      <tbody className="divide-y divide-slate-100 text-[14.5px] bg-white">
         {currentData.map((item) => (
           <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
             {visibleAssetColumns.name && (
@@ -68,7 +68,7 @@ export default function AssetTable({
 
             {visibleAssetColumns.type && (
               <td className={TD}>
-                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[11px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
+                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[12px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
                   {item.type}
                 </span>
               </td>
@@ -78,10 +78,10 @@ export default function AssetTable({
               <td className={`${TD} text-center font-medium text-slate-700`}>{item.department || '-'}</td>
             )}
             {visibleAssetColumns.assetTag && (
-              <td className={`${TD} font-mono text-slate-600 text-[12.5px]`}>{item.assetTag || '-'}</td>
+              <td className={`${TD} font-mono text-slate-600 text-[13.5px]`}>{item.assetTag || '-'}</td>
             )}
             {visibleAssetColumns.sn && (
-              <td className={`${TD} font-mono text-slate-600 text-[12.5px]`}>{item.sn || '-'}</td>
+              <td className={`${TD} font-mono text-slate-600 text-[13.5px]`}>{item.sn || '-'}</td>
             )}
             {visibleAssetColumns.model && <td className={`${TD} text-slate-700`}>{item.model || '-'}</td>}
             {visibleAssetColumns.vendor && <td className={`${TD} text-slate-700`}>{item.vendor || '-'}</td>}
@@ -160,12 +160,12 @@ function StatusBadge({ status, assignedName, showAssignee }) {
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ring-1 ring-inset ${meta.cls}`}>
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${meta.cls}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
         {meta.label}
       </span>
       {norm === 'inuse' && showAssignee && assignedName && (
-        <span className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
+        <span className="text-[11.5px] text-slate-500 font-medium flex items-center gap-1">
           <UserIcon className="h-3 w-3" strokeWidth={2} /> {assignedName}
         </span>
       )}
@@ -181,7 +181,7 @@ function ActionBtn({ onClick, kind, icon: Icon, children }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1 px-2.5 py-1.5 bg-white ring-1 ring-inset rounded-lg font-semibold transition-colors text-[11.5px] ${map}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-1.5 bg-white ring-1 ring-inset rounded-lg font-semibold transition-colors text-[12.5px] ${map}`}
     >
       {Icon && <Icon className="h-3 w-3" strokeWidth={2.2} />}
       {children}

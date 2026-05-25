@@ -34,10 +34,10 @@ export default function RepairModal({
             className="rounded-xl ring-1 p-5"
             style={{ background: `${BRAND.primary}08`, borderColor: `${BRAND.primary}25`, '--tw-ring-color': `${BRAND.primary}25` }}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: BRAND.primary }}>
+            <p className="text-[12px] font-semibold uppercase tracking-wide mb-1" style={{ color: BRAND.primary }}>
               อุปกรณ์ที่ซ่อมเสร็จแล้ว
             </p>
-            <p className="text-[17px] font-bold" style={{ color: BRAND.primary }}>{repairModal.assetName}</p>
+            <p className="text-[18px] font-bold" style={{ color: BRAND.primary }}>{repairModal.assetName}</p>
           </div>
 
           {repairModal.maxRepair > 1 && (

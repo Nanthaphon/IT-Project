@@ -41,7 +41,7 @@ export default function LoginView({
           {/* Logo + title */}
           <div className="text-center mb-10">
             <Logo />
-            <h1 className="text-[28px] font-semibold text-slate-900 mb-2 tracking-tight">
+            <h1 className="text-[29px] font-semibold text-slate-900 mb-2 tracking-tight">
               ระบบจัดการทรัพย์สิน IT
             </h1>
             <p className="text-slate-500 text-sm">กรุณาเลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
@@ -72,7 +72,7 @@ export default function LoginView({
         <div className="w-full max-w-md mx-auto relative z-10">
           <div className="text-center mb-7">
             <Logo />
-            <h2 className="text-[24px] font-semibold text-slate-900 tracking-tight">IT Administrator</h2>
+            <h2 className="text-[25px] font-semibold text-slate-900 tracking-tight">IT Administrator</h2>
             <p className="text-slate-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
           </div>
 
@@ -127,7 +127,7 @@ export default function LoginView({
                 <button
                   type="button"
                   onClick={() => setForgotOpen(true)}
-                  className="text-[12.5px] font-medium text-slate-500 hover:text-[#1E487A] transition-colors inline-flex items-center gap-1.5"
+                  className="text-[13.5px] font-medium text-slate-500 hover:text-[#1E487A] transition-colors inline-flex items-center gap-1.5"
                 >
                   <KeyRound className="h-3.5 w-3.5" strokeWidth={1.8} />
                   ลืมรหัสผ่าน?
@@ -138,7 +138,7 @@ export default function LoginView({
 
           {/* alert จาก reset password */}
           {alertMsg && (
-            <div className={`mt-4 px-4 py-3 rounded-xl text-[12.5px] font-medium ring-1 flex items-start gap-2 ${
+            <div className={`mt-4 px-4 py-3 rounded-xl text-[13.5px] font-medium ring-1 flex items-start gap-2 ${
               alertMsg.type === 'success'
                 ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
                 : 'bg-rose-50 text-rose-700 ring-rose-200'
@@ -214,13 +214,13 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
         <Icon className="h-7 w-7" strokeWidth={1.7} />
       </div>
 
-      <h2 className="text-[18px] font-semibold text-slate-900 group-hover:text-[#1E487A] mb-2 transition-colors duration-200 relative">
+      <h2 className="text-[19px] font-semibold text-slate-900 group-hover:text-[#1E487A] mb-2 transition-colors duration-200 relative">
         {title}
       </h2>
-      <p className="text-slate-500 text-[13.5px] leading-relaxed mb-5 relative">{description}</p>
+      <p className="text-slate-500 text-[14.5px] leading-relaxed mb-5 relative">{description}</p>
 
       <div className="mt-auto pt-4 w-full border-t border-slate-100 relative">
-        <p className="text-slate-400 text-[11.5px] font-medium flex items-center justify-center gap-1.5">
+        <p className="text-slate-400 text-[12.5px] font-medium flex items-center justify-center gap-1.5">
           <HintIcon className="h-3.5 w-3.5" strokeWidth={1.8} />
           {hint}
         </p>
@@ -232,7 +232,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 function FormField({ label, icon: Icon, children }) {
   return (
     <div>
-      <label className="block text-[13px] font-medium text-slate-600 mb-1.5">{label}</label>
+      <label className="block text-[14px] font-medium text-slate-600 mb-1.5">{label}</label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
           <Icon className="h-4 w-4 text-slate-400" strokeWidth={1.8} />

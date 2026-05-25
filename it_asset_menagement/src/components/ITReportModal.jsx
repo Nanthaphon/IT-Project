@@ -8,10 +8,10 @@ const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มี
 
 const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸ On Hold'];
 
-const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]';
+const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]';
 // select เพิ่ม pr-8 ให้ไม่ทับลูกศร native ของ browser
 const selectCls = inputCls + ' pr-8 truncate';
-const labelCls = 'block text-[12px] font-medium text-slate-600 mb-1';
+const labelCls = 'block text-[13px] font-medium text-slate-600 mb-1';
 
 function SectionHeader({ title, children }) {
   return (
@@ -293,8 +293,8 @@ export default function ITReportModal({
               <BarChart3 className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-slate-900 leading-tight">สร้าง IT Monthly Report</h3>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">กรอกข้อมูล Issue/Project แล้ว Export เป็นไฟล์ .pptx</p>
+              <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">สร้าง IT Monthly Report</h3>
+              <p className="text-[13.5px] text-slate-500 mt-0.5">กรอกข้อมูล Issue/Project แล้ว Export เป็นไฟล์ .pptx</p>
             </div>
           </div>
           <button
@@ -314,7 +314,7 @@ export default function ITReportModal({
 
             {/* Basic config */}
             <div className="bg-blue-50/40 ring-1 ring-inset ring-blue-200 rounded-xl p-4 space-y-4">
-              <h4 className="text-[13px] font-semibold text-[#1E487A] flex items-center gap-2">
+              <h4 className="text-[14px] font-semibold text-[#1E487A] flex items-center gap-2">
                 <Settings className="h-4 w-4" strokeWidth={2} /> ตั้งค่าทั่วไป
               </h4>
               <div className="grid grid-cols-2 gap-3">
@@ -431,20 +431,20 @@ export default function ITReportModal({
 
         {/* Footer */}
         <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
-          <p className="text-[12px] text-slate-500">
+          <p className="text-[13px] text-slate-500">
             รายงานจะสร้างเป็นไฟล์ <strong className="text-slate-700">.pptx</strong> — สามารถแก้ไขใน PowerPoint ได้ต่อ
           </p>
           <div className="flex gap-2.5">
             <button
               onClick={onClose}
-              className="px-4 py-2.5 bg-white ring-1 ring-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:ring-slate-300 font-medium text-[13.5px] transition-colors"
+              className="px-4 py-2.5 bg-white ring-1 ring-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:ring-slate-300 font-medium text-[14.5px] transition-colors"
             >
               ยกเลิก
             </button>
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[13.5px] transition-colors shadow-sm hover:shadow-md ${generating ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'text-white'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm hover:shadow-md ${generating ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'text-white'}`}
               style={!generating ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
               onMouseEnter={(e) => !generating && (e.currentTarget.style.background = BRAND.primaryDark)}
               onMouseLeave={(e) => !generating && (e.currentTarget.style.background = BRAND.primary)}

@@ -85,10 +85,10 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           >
             <KeyRound className="h-6 w-6" strokeWidth={1.8} />
           </div>
-          <h3 className="text-[18px] font-semibold tracking-tight" style={{ color: BRAND.primary }}>
+          <h3 className="text-[19px] font-semibold tracking-tight" style={{ color: BRAND.primary }}>
             เปลี่ยนรหัสผ่าน
           </h3>
-          <p className="text-[12.5px] text-slate-500 mt-1">
+          <p className="text-[13.5px] text-slate-500 mt-1">
             ยืนยันด้วยรหัสผ่านปัจจุบัน เพื่อความปลอดภัยของบัญชี
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 
           {/* error banner */}
           {fieldError && (
-            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[12.5px] font-medium ring-1 ring-rose-200 flex items-start gap-2.5">
+            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13.5px] font-medium ring-1 ring-rose-200 flex items-start gap-2.5">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
               <span>{fieldError}</span>
             </div>
@@ -131,7 +131,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           {newPassword.length > 0 && (
             <div className="bg-slate-50 ring-1 ring-slate-100 rounded-xl px-3.5 py-2.5 space-y-1">
               {rules.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 text-[11.5px]">
+                <div key={i} className="flex items-center gap-2 text-[12.5px]">
                   <CheckCircle2
                     className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-emerald-500' : 'text-slate-300'}`}
                     strokeWidth={2.2}
@@ -153,10 +153,10 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
               error={confirmPassword.length > 0 && !matchOk}
             />
             {confirmPassword.length > 0 && !matchOk && (
-              <p className="text-[11.5px] text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
+              <p className="text-[12.5px] text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
             )}
             {confirmPassword.length > 0 && matchOk && (
-              <p className="text-[11.5px] text-emerald-600 mt-1.5 font-medium flex items-center gap-1">
+              <p className="text-[12.5px] text-emerald-600 mt-1.5 font-medium flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" strokeWidth={2.5} /> ตรงกันแล้ว
               </p>
             )}
@@ -167,14 +167,14 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 rounded-lg text-[13.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={isLoading || !passedAll || !matchOk || !currentPassword}
-              className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
             >
               {isLoading ? 'กำลังเปลี่ยน...' : 'ยืนยันเปลี่ยนรหัสผ่าน'}
@@ -190,7 +190,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 function Field({ label, required, children }) {
   return (
     <div>
-      <label className="block text-[12.5px] font-medium text-slate-600 mb-1.5">
+      <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}
@@ -208,7 +208,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         placeholder={placeholder}
         autoFocus={autoFocus}
         required
-        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-all text-[13.5px] text-slate-800 placeholder:text-slate-400 ${
+        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-all text-[14.5px] text-slate-800 placeholder:text-slate-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
             : 'border-slate-200 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'

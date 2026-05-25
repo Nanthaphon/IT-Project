@@ -399,12 +399,12 @@ export default function StaffView({
             >
               <img src="/gb_icon.svg" alt="Logo" className="w-7 h-7 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
-            <h1 className="text-[20px] font-semibold text-[#1E487A] tracking-tight">พนักงานทั่วไป</h1>
-            <p className="text-[13px] text-slate-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
+            <h1 className="text-[21px] font-semibold text-[#1E487A] tracking-tight">พนักงานทั่วไป</h1>
+            <p className="text-[14px] text-slate-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
           </div>
 
           <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-7 shadow-xl shadow-slate-950/5">
-            <h2 className="text-[15px] font-semibold text-slate-800 mb-5 tracking-tight">เข้าสู่ระบบ</h2>
+            <h2 className="text-[16px] font-semibold text-slate-800 mb-5 tracking-tight">เข้าสู่ระบบ</h2>
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className={labelCls}>รหัสพนักงาน</label>
@@ -416,11 +416,11 @@ export default function StaffView({
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
-                <span className="text-[13px] text-slate-500">จดจำฉันไว้ 30 วัน</span>
+                <span className="text-[14px] text-slate-500">จดจำฉันไว้ 30 วัน</span>
               </label>
               <button
                 type="submit"
-                className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[13.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1"
+                className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1"
                 style={{ boxShadow: '0 4px 14px rgba(30,72,122,0.25)' }}
               >
                 เข้าสู่ระบบ
@@ -430,7 +430,7 @@ export default function StaffView({
 
           <button
             onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-            className="w-full mt-5 text-[13px] text-slate-500 hover:text-[#1E487A] transition-colors text-center inline-flex items-center justify-center gap-1.5"
+            className="w-full mt-5 text-[14px] text-slate-500 hover:text-[#1E487A] transition-colors text-center inline-flex items-center justify-center gap-1.5"
           >
             ← กลับไปหน้าเลือกบทบาท
           </button>
@@ -454,11 +454,11 @@ export default function StaffView({
           >
             <img src="/gb_icon.svg" alt="Logo" className="w-4 h-4 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
           </div>
-          <span className="text-[13.5px] font-semibold text-slate-700 hidden sm:block tracking-tight">ระบบพนักงาน</span>
+          <span className="text-[14.5px] font-semibold text-slate-700 hidden sm:block tracking-tight">ระบบพนักงาน</span>
         </div>
         <button
           onClick={() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-          className="text-[12.5px] font-medium text-slate-600 hover:text-rose-600 ring-1 ring-slate-200 hover:ring-rose-300 hover:bg-rose-50 px-3.5 py-1.5 rounded-lg transition-colors"
+          className="text-[13.5px] font-medium text-slate-600 hover:text-rose-600 ring-1 ring-slate-200 hover:ring-rose-300 hover:bg-rose-50 px-3.5 py-1.5 rounded-lg transition-colors"
         >
           ออกจากระบบ
         </button>
@@ -473,21 +473,21 @@ export default function StaffView({
         >
           <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full border border-white/10 pointer-events-none" />
           <div className="flex items-center gap-4 relative">
-            <div className="w-12 h-12 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center text-white font-semibold text-[18px] shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center text-white font-semibold text-[19px] shrink-0">
               {currentStaff.fullName?.charAt(0) || '?'}
             </div>
             <div>
-              <p className="text-white font-semibold text-[15px] leading-tight tracking-tight">
+              <p className="text-white font-semibold text-[16px] leading-tight tracking-tight">
                 {currentStaff.fullName}{currentStaff.nickname ? ` (${currentStaff.nickname})` : ''}
               </p>
-              <p className="text-blue-200/85 text-[12px] mt-0.5">
+              <p className="text-blue-200/85 text-[13px] mt-0.5">
                 {currentStaff.empId} · {currentStaff.department || 'ไม่ระบุแผนก'}
               </p>
             </div>
           </div>
           <button
             onClick={() => { setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-            className="text-[12.5px] text-blue-200 hover:text-white ring-1 ring-white/20 hover:ring-white/40 hover:bg-white/10 px-3.5 py-1.5 rounded-lg transition-colors relative"
+            className="text-[13.5px] text-blue-200 hover:text-white ring-1 ring-white/20 hover:ring-white/40 hover:bg-white/10 px-3.5 py-1.5 rounded-lg transition-colors relative"
           >
             เปลี่ยนผู้ใช้
           </button>
@@ -499,14 +499,14 @@ export default function StaffView({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-[13px] font-medium whitespace-nowrap border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-5 py-3.5 text-[14px] font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-[#1E487A] text-[#1E487A]'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.label}
-              <span className={`text-[10.5px] px-1.5 py-0.5 rounded-full font-semibold tabular-nums ${
+              <span className={`text-[11.5px] px-1.5 py-0.5 rounded-full font-semibold tabular-nums ${
                 activeTab === tab.id ? 'bg-[#1E487A]/10 text-[#1E487A]' : 'bg-slate-100 text-slate-500'
               }`}>
                 {tab.count}
@@ -548,7 +548,7 @@ export default function StaffView({
               </Section>
             )}
 
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[12px] text-slate-400 leading-relaxed">
               * หากข้อมูลไม่ถูกต้อง กรุณาติดต่อฝ่าย IT หรือ HR เพื่อขอแก้ไข
             </p>
           </div>
@@ -639,7 +639,7 @@ export default function StaffView({
                                 </IconBtn>
                               </div>
                             ) : (
-                              <span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">ล็อคแล้ว</span>
+                              <span className="text-[11px] text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">ล็อคแล้ว</span>
                             )}
                           </td>
                         </tr>
@@ -838,7 +838,7 @@ export default function StaffView({
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <label className="text-[10px] font-semibold text-slate-400 uppercase mb-1 block">จำนวน *</label>
+                            <label className="text-[11px] font-semibold text-slate-400 uppercase mb-1 block">จำนวน *</label>
                             <input
                               type="number" min="1" max={cartItem.maxQty} value={cartItem.quantity}
                               onChange={e => { const nc = [...supplyCart]; nc[index].quantity = e.target.value; setSupplyCart(nc); }}
@@ -846,7 +846,7 @@ export default function StaffView({
                             />
                           </div>
                           <div className="col-span-2">
-                            <label className="text-[10px] font-semibold text-slate-400 uppercase mb-1 block">หมายเหตุ</label>
+                            <label className="text-[11px] font-semibold text-slate-400 uppercase mb-1 block">หมายเหตุ</label>
                             <input
                               type="text" value={cartItem.note}
                               onChange={e => { const nc = [...supplyCart]; nc[index].note = e.target.value; setSupplyCart(nc); }}
@@ -937,9 +937,9 @@ export default function StaffView({
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
-                        <span className="text-[10px] uppercase tracking-wide font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{catText}</span>
+                        <span className="text-[11px] uppercase tracking-wide font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{catText}</span>
                         {item.sn && (
-                          <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded-md truncate max-w-[130px]" title={item.sn}>
+                          <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded-md truncate max-w-[130px]" title={item.sn}>
                             {item.sn}
                           </span>
                         )}
@@ -1019,7 +1019,7 @@ export default function StaffView({
 function EvaluationCell({ req, onOpen }) {
   // ถ้ายังไม่ซ่อมเสร็จ → ขีดกลาง
   if (req.status !== 'ซ่อมเสร็จสิ้น') {
-    return <span className="text-[11px] text-slate-300">—</span>;
+    return <span className="text-[12px] text-slate-300">—</span>;
   }
 
   // ประเมินแล้ว → แสดงดาวคะแนน
@@ -1033,8 +1033,8 @@ function EvaluationCell({ req, onOpen }) {
         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 ring-1 ring-amber-200 hover:bg-amber-100 transition cursor-pointer"
       >
         <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={1.6} />
-        <span className="text-[11.5px] font-bold text-amber-700 tabular-nums">{score.toFixed(2)}</span>
-        <span className="text-[10px] text-amber-500/70 font-medium">/{`5`}</span>
+        <span className="text-[12.5px] font-bold text-amber-700 tabular-nums">{score.toFixed(2)}</span>
+        <span className="text-[11px] text-amber-500/70 font-medium">/{`5`}</span>
       </button>
     );
   }
@@ -1043,7 +1043,7 @@ function EvaluationCell({ req, onOpen }) {
   return (
     <button
       onClick={onOpen}
-      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#1E487A] to-blue-600 hover:from-[#163963] hover:to-blue-700 text-white text-[10.5px] font-bold shadow-sm shadow-blue-500/30 active:scale-95 transition-all"
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#1E487A] to-blue-600 hover:from-[#163963] hover:to-blue-700 text-white text-[11.5px] font-bold shadow-sm shadow-blue-500/30 active:scale-95 transition-all"
     >
       <Sparkles className="h-3 w-3" strokeWidth={2.2} />
       ทำแบบประเมิน
@@ -1056,7 +1056,7 @@ function EvaluationCell({ req, onOpen }) {
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
+      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
       <div className="border border-slate-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
@@ -1069,7 +1069,7 @@ function InfoGrid({ children }) {
 function InfoItem({ label, value, accent, mono }) {
   return (
     <div className="flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0">
-      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
+      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
       <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
@@ -1090,7 +1090,7 @@ function EmptyState({ label }) {
 
 function Th({ children, center }) {
   return (
-    <th className={`px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider ${center ? 'text-center' : 'text-left'}`}>
+    <th className={`px-4 py-3 text-[12px] font-semibold text-slate-400 uppercase tracking-wider ${center ? 'text-center' : 'text-left'}`}>
       {children}
     </th>
   );

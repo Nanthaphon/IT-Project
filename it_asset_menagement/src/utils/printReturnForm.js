@@ -4,6 +4,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { renderAppendix } from './printAppendix.js';
+import { printViaIframe } from './printViaIframe.js';
 import {
   ASSESSMENT_SECTIONS,
   itemMaxScore,
@@ -221,12 +222,6 @@ export function printReturnForm({
 </head>
 <body>
 
-  <button class="no-print" onclick="window.print()"
-    style="display:block;margin:0 auto 16px;padding:8px 28px;background:#1E487A;color:#fff;
-    border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-    🖨️ พิมพ์เอกสาร / บันทึก PDF
-  </button>
-
   <!-- ════════════════════════════════════════════════ -->
   <!--          หน้าที่ 1 — Header + Summary + Assess (1) -->
   <!-- ════════════════════════════════════════════════ -->
@@ -419,7 +414,5 @@ export function printReturnForm({
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=900,height=700');
-  win.document.write(html);
-  win.document.close();
+  printViaIframe(html);
 }

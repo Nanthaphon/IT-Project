@@ -145,26 +145,28 @@ export function printReturnForm({
   }).join('');
   const grandDiff = anyHandoverScore ? (grandTotalReturn - grandTotalHandover) : null;
 
-  /* ── Section 4: Damages table — ค่าปรับเป็น "ช่องว่าง" สำหรับเขียนมือเสมอ ── */
-  // List user-entered damage descriptions, then pad with blank rows so the form
-  // is always usable for handwriting. Fee column stays blank.
-  const MIN_DAMAGE_ROWS = 5;
+  /* ── Section 4: Damages table — รวมค่าปรับอัตโนมัติ ── */
+  let totalFee = 0;
   const damageRowsArr = [];
   damages.forEach((d, i) => {
+    const fee = Number(d.fee) || 0;
+    totalFee += fee;
     damageRowsArr.push(`
       <tr>
-        <td style="border:1px solid #cbd5e1;padding:7px 8px;text-align:center;font-size:11px;width:34px">${i + 1}</td>
-        <td style="border:1px solid #cbd5e1;padding:7px 8px;font-size:11px">${(d.name || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-        <td style="border:1px solid #cbd5e1;padding:7px 8px;font-size:11px"></td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;font-size:11px;width:34px">${i + 1}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px">${(d.name || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:right;font-size:11px;font-variant-numeric:tabular-nums">${fee ? fmtTHB(fee) : '-'}</td>
       </tr>`);
   });
-  while (damageRowsArr.length < MIN_DAMAGE_ROWS) {
+  // Show at least a couple of blank rows when there are no/few damages
+  const MIN_ROWS = damages.length === 0 ? 3 : 0;
+  while (damageRowsArr.length < damages.length + MIN_ROWS) {
     const i = damageRowsArr.length;
     damageRowsArr.push(`
       <tr>
-        <td style="border:1px solid #cbd5e1;padding:7px 8px;text-align:center;font-size:11px;color:#94a3b8;width:34px">${i + 1}</td>
-        <td style="border:1px solid #cbd5e1;padding:7px 8px;font-size:11px;height:24px"></td>
-        <td style="border:1px solid #cbd5e1;padding:7px 8px;font-size:11px"></td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;font-size:11px;color:#94a3b8;width:34px">${i + 1}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;height:22px"></td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px"></td>
       </tr>`);
   }
   const damageRows = damageRowsArr.join('');
@@ -344,12 +346,12 @@ export function printReturnForm({
       <tbody>
         ${damageRows}
         <tr style="background:#fef3c7">
-          <td colspan="2" style="border:1px solid #94a3b8;padding:9px 10px;font-size:12.5px;font-weight:700;text-align:right">รวมค่าปรับทั้งหมด</td>
-          <td style="border:1px solid #94a3b8;padding:9px 10px;font-size:12.5px;font-weight:700;text-align:right;color:#475569">________________ บาท</td>
+          <td colspan="2" style="border:1px solid #94a3b8;padding:8px 10px;font-size:12.5px;font-weight:700;text-align:right">รวมค่าปรับทั้งหมด</td>
+          <td style="border:1px solid #94a3b8;padding:8px 10px;font-size:13px;font-weight:700;text-align:right;color:#dc2626">${fmtTHB(totalFee)} บาท</td>
         </tr>
       </tbody>
     </table>
-    <div style="font-size:10px;color:#475569;margin-top:4px">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${tier} &nbsp;|&nbsp; ค่าปรับให้กรอกด้วยลายมือตามใบเสนอราคาซ่อมจริง / ตารางในภาคผนวก</div>
+    <div style="font-size:10px;color:#475569;margin-top:4px">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${tier} &nbsp;|&nbsp; ใช้ราคาตามใบเสนอราคาซ่อมจริงหากต่างจากตาราง</div>
 
   </div><!-- end page 2 -->
 

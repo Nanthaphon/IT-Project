@@ -25,8 +25,15 @@ const TH_MONTHS = [
   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม',
 ];
 
-const F  = 'TH Sarabun New';   // Thai font
-const FE = 'TH Sarabun New';   // EN/number font — ใช้ TH Sarabun New เหมือนกันเพื่อความสม่ำเสมอ
+// ── Fonts: 'Sarabun' is much more widely supported than 'TH Sarabun New'.
+//    The old 'TH Sarabun New' falls back inconsistently on machines without it,
+//    causing the spaced-out character bug in headers/body text.
+const F  = 'Sarabun';   // Thai font
+const FE = 'Sarabun';   // EN/number font (Sarabun has solid Latin glyphs too)
+
+/* ─── Base sizes (per user request: non-heading body text = 16) ─── */
+const BODY_SIZE   = 16;   // table body text
+const HEADER_SIZE = 16;   // table column header (kept = body, distinct via fill + bold)
 
 /* ─── pptxgenjs border object (all 4 sides) ─── */
 const bdr = (color = C.grayBorder, pt = 1) =>
@@ -36,10 +43,13 @@ const bdr = (color = C.grayBorder, pt = 1) =>
 const cell = (text, opts = {}) => ({
   text: String(text ?? '–'),
   options: {
-    fontSize: 11,
+    fontSize: BODY_SIZE,
     fontFace: F,
     valign: 'middle',
     border: bdr(),
+    charSpacing: 0,     // explicit 0 prevents PowerPoint from applying default kerning that
+                        // can render as spread-out characters when fonts fall back
+    autoFit: false,     // don't let PPT shrink/spread text — keep our chosen size
     ...opts,
   },
 });
@@ -49,7 +59,7 @@ const cellH  = (text, opts = {}) => cell(text, {                             // 
   fill: { color: C.blue },
   color: C.white,
   bold: true,
-  fontSize: 12,
+  fontSize: HEADER_SIZE,
   align: 'center',
   border: bdr(C.blueMid, 1),
   ...opts,
@@ -261,7 +271,7 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
   s.addTable([hdr, ...dataRows], {
     x:0.4, y:3.45, w:12.53,
     colW:[0.5, 6.55, 1.8, 1.8, 1.88],
-    rowH:0.52,
+    rowH:0.62,
     border: bdr(C.grayBorder, 1),
   });
 
@@ -315,16 +325,16 @@ function slide4(pptx, { month, year, company, assets, accessories }) {
   const rows = entries.map(([type, g], i) => {
     const f = rowFill(i);
     const brokenCell = g.broken > 0
-      ? { text: String(g.broken), options: { fontSize:11, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), ...f } }
-      : { text: '–',              options: { fontSize:11, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), ...f } };
+      ? { text: String(g.broken), options: { fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), ...f } }
+      : { text: '–',              options: { fontSize:16, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), ...f } };
     return [
-      { text:String(i+1),    options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:type,            options:{ fontSize:12, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:String(g.total), options:{ fontSize:12, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
-      { text:String(g.inUse), options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), ...f } },
+      { text:String(i+1),    options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:type,            options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
+      { text:String(g.total), options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
+      { text:String(g.inUse), options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), ...f } },
       brokenCell,
-      { text:'',              options:{ fontSize:10, fontFace:F, align:'left', valign:'middle', color:C.grayText, border:bdr(), ...f } },
+      { text:'',              options:{ fontSize:16, fontFace:F, align:'left', valign:'middle', color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -338,7 +348,7 @@ function slide4(pptx, { month, year, company, assets, accessories }) {
   s.addTable([hdr, ...rows], {
     x:0.4, y:1.15, w:12.53,
     colW:[0.5, 3.0, 0.85, 0.95, 1.4, 0.85, 4.98],
-    rowH:0.5,
+    rowH:0.62,
     border: bdr(C.grayBorder, 1),
   });
 
@@ -368,12 +378,12 @@ function slide5(pptx, { month, year, company, licenses }) {
     const inactive = Math.max(0, stock - active);
     const f = rowFill(i);
     return [
-      { text:String(i+1),      options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:lic.name||'–',    options:{ fontSize:12, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:String(stock),    options:{ fontSize:12, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
-      { text:String(active),   options:{ fontSize:12, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), ...f } },
-      { text:String(inactive), options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), ...f } },
-      { text:lic.remarks||'',  options:{ fontSize:10, fontFace:F,  align:'left',   valign:'middle', color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),      options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:lic.name||'–',    options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
+      { text:String(stock),    options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
+      { text:String(active),   options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), ...f } },
+      { text:String(inactive), options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), ...f } },
+      { text:lic.remarks||'',  options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -384,7 +394,7 @@ function slide5(pptx, { month, year, company, licenses }) {
   s.addTable([hdr, ...rows], {
     x:0.4, y:1.15, w:12.53,
     colW:[0.5, 3.0, 0.9, 0.9, 0.9, 6.33],
-    rowH:0.48,
+    rowH:0.62,
     border: bdr(C.grayBorder, 1),
   });
 
@@ -412,12 +422,12 @@ function slide6(pptx, { month, year, company, rdProjects }) {
     const f = rowFill(i);
     const so = statusOpts(p.status||'');
     return [
-      { text:String(i+1),    options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:p.project||'–', options:{ fontSize:12, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:p.details||'',  options:{ fontSize:10, fontFace:F,  align:'left',   valign:'top',    border:bdr(), ...f } },
-      { text:p.status||'–',  options:{ fontSize:11, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
-      { text:p.due||'–',     options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:p.remarks||'',  options:{ fontSize:10, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),    options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:p.project||'–', options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
+      { text:p.details||'',  options:{ fontSize:16, fontFace:F,  align:'left',   valign:'top',    border:bdr(), ...f } },
+      { text:p.status||'–',  options:{ fontSize:16, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
+      { text:p.due||'–',     options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:p.remarks||'',  options:{ fontSize:16, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -428,7 +438,7 @@ function slide6(pptx, { month, year, company, rdProjects }) {
   s.addTable([hdr, ...rows], {
     x:0.4, y:1.15, w:12.53,
     colW:[0.5, 2.5, 4.3, 1.5, 1.0, 2.73],
-    rowH:0.72,
+    rowH:0.88,
     border: bdr(C.grayBorder, 1),
   });
 
@@ -455,11 +465,11 @@ function slide7(pptx, { month, year, company, followUps }) {
     const f = rowFill(i);
     const so = statusOpts(f2.status||'');
     return [
-      { text:String(i+1),      options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:f2.details||'',   options:{ fontSize:12, fontFace:F,  align:'left',   valign:'middle', border:bdr(), ...f } },
-      { text:f2.status||'–',   options:{ fontSize:11, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
-      { text:f2.due||'–',      options:{ fontSize:11, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:f2.remarks||'',   options:{ fontSize:10, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),      options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:f2.details||'',   options:{ fontSize:16, fontFace:F,  align:'left',   valign:'middle', border:bdr(), ...f } },
+      { text:f2.status||'–',   options:{ fontSize:16, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
+      { text:f2.due||'–',      options:{ fontSize:16, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
+      { text:f2.remarks||'',   options:{ fontSize:16, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
     ];
   });
 
@@ -470,7 +480,7 @@ function slide7(pptx, { month, year, company, followUps }) {
   s.addTable([hdr, ...rows], {
     x:0.4, y:1.15, w:12.53,
     colW:[0.5, 5.5, 1.5, 1.0, 4.03],
-    rowH:0.75,
+    rowH:0.88,
     border: bdr(C.grayBorder, 1),
   });
 

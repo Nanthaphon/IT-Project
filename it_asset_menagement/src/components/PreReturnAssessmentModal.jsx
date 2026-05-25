@@ -25,19 +25,7 @@ const STATUS_COLOR_CLS = {
 const DAMAGE_ITEMS = DAMAGE_FEE_TABLE.filter(r => Array.isArray(r));
 //  Each row: [no, name, gen, data, gx, note]
 
-const tierColIdx = (tier = 'General') => {
-  const t = String(tier).toLowerCase();
-  if (t.includes('graphic') || t.includes('dx')) return 4;
-  if (t.includes('data')) return 3;
-  return 2; // default General
-};
-
-const feeFor = (damageRow, tier) => {
-  if (!damageRow) return 0;
-  const idx = tierColIdx(tier);
-  const v = damageRow[idx];
-  return typeof v === 'number' ? v : 0;
-};
+// (tier-based fee auto-calc removed — fee column is now handwritten on print)
 
 export default function PreReturnAssessmentModal({
   isOpen, onClose,
@@ -52,7 +40,7 @@ export default function PreReturnAssessmentModal({
   const [showHandover, setShowHandover] = useState(false);
   const [photosReturn, setPhotosReturn] = useState({});
   const [photosDamage, setPhotosDamage] = useState({});
-  const [damages, setDamages] = useState([]); // [{ name, fee, refRow? }]
+  const [damages, setDamages] = useState([]); // [{ name }]  — ค่าปรับเขียนมือบนเอกสารพิมพ์
   const [notes, setNotes] = useState('');
   const [tier, setTier] = useState(mainAsset?.tier || 'General');
 
@@ -86,16 +74,15 @@ export default function PreReturnAssessmentModal({
   const grade = grandTotal >= 90 ? 'A' : grandTotal >= 75 ? 'B' : grandTotal >= 60 ? 'C' : 'D';
   const gradeColor = { A: 'text-emerald-600', B: 'text-blue-600', C: 'text-amber-600', D: 'text-rose-600' }[grade];
 
-  /* ── Damages ── */
-  const addDamage = () => setDamages(prev => [...prev, { name: '', fee: 0 }]);
+  /* ── Damages (description only — fees written by hand on print) ── */
+  const addDamage = () => setDamages(prev => [...prev, { name: '' }]);
   const updateDamage = (i, patch) => setDamages(prev => prev.map((d, idx) => idx === i ? { ...d, ...patch } : d));
   const removeDamage = (i) => setDamages(prev => prev.filter((_, idx) => idx !== i));
   const pickDamageTemplate = (i, refNo) => {
     const row = DAMAGE_ITEMS.find(r => r[0] === Number(refNo));
     if (!row) return;
-    updateDamage(i, { name: row[1], fee: feeFor(row, tier) });
+    updateDamage(i, { name: row[1] });
   };
-  const totalFee = damages.reduce((s, d) => s + (Number(d.fee) || 0), 0);
 
   /* ── Print ── */
   const handlePrint = () => {
@@ -211,20 +198,25 @@ export default function PreReturnAssessmentModal({
             )}
           </div>
 
-          {/* Damages */}
-          <Section title="รายการความเสียหายและค่าปรับ">
+          {/* Damages (description only — fees written by hand on print) */}
+          <Section title="รายการความเสียหาย">
             <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden">
+              <div className="px-3 py-2 bg-blue-50/60 border-b border-blue-200">
+                <p className="text-[12.5px] text-blue-700 flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                  ระบุเฉพาะรายละเอียดความเสียหาย — <b>ช่องค่าปรับจะเว้นว่างให้เขียนด้วยลายมือบนเอกสารพิมพ์</b>
+                </p>
+              </div>
               {damages.length === 0 ? (
                 <div className="py-8 text-center text-slate-400 text-[13px]">
-                  — ไม่พบความเสียหาย — กดปุ่มด้านล่างเพื่อเพิ่มรายการ
+                  — ยังไม่มีรายการ — กดปุ่มด้านล่างเพื่อเพิ่ม (ไม่เพิ่มก็ได้ จะมีช่องว่าง 5 ช่องให้เขียนมือบนเอกสาร)
                 </div>
               ) : (
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
                       <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2 w-12">ลำดับ</th>
-                      <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2">รายการ</th>
-                      <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2 w-36">ค่าปรับ (THB)</th>
+                      <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2">รายละเอียดความเสียหาย</th>
                       <th className="w-10"></th>
                     </tr>
                   </thead>
@@ -239,7 +231,7 @@ export default function PreReturnAssessmentModal({
                               onChange={(e) => pickDamageTemplate(i, e.target.value)}
                               className="text-[12px] bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
                             >
-                              <option value="">เลือกจากตารางค่าปรับ...</option>
+                              <option value="">เลือกจากตารางอ้างอิง...</option>
                               {DAMAGE_ITEMS.map(row => (
                                 <option key={row[0]} value={row[0]}>{row[0]}. {row[1]}</option>
                               ))}
@@ -253,14 +245,6 @@ export default function PreReturnAssessmentModal({
                             />
                           </div>
                         </td>
-                        <td className="px-3 py-2">
-                          <input
-                            type="number" min="0" step="any"
-                            value={d.fee}
-                            onChange={(e) => updateDamage(i, { fee: e.target.value })}
-                            className="w-full text-[14px] bg-white border border-slate-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] tabular-nums text-right"
-                          />
-                        </td>
                         <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => removeDamage(i)}
@@ -272,11 +256,6 @@ export default function PreReturnAssessmentModal({
                         </td>
                       </tr>
                     ))}
-                    <tr className="bg-amber-50">
-                      <td colSpan={2} className="px-3 py-2.5 text-right text-[13.5px] font-bold text-slate-700">รวมค่าปรับทั้งหมด</td>
-                      <td className="px-3 py-2.5 text-right text-[15px] font-bold text-rose-600 tabular-nums">{Number(totalFee).toLocaleString('th-TH')} ฿</td>
-                      <td></td>
-                    </tr>
                   </tbody>
                 </table>
               )}
@@ -334,7 +313,7 @@ export default function PreReturnAssessmentModal({
         <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0 gap-3">
           <div className="text-[12.5px] text-slate-500">
             แนบรูปทั่วไป <b>{Object.keys(photosReturn).length}/6</b> · ความเสียหาย <b>{Object.keys(photosDamage).length}/4</b>
-            &nbsp;·&nbsp; ค่าปรับรวม <b className="text-rose-600">{Number(totalFee).toLocaleString('th-TH')} ฿</b>
+            {damages.length > 0 && <> &nbsp;·&nbsp; รายการเสียหาย <b>{damages.length}</b></>}
           </div>
           <div className="flex gap-2.5">
             <button onClick={onClose} className="px-5 py-2.5 text-[14px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">

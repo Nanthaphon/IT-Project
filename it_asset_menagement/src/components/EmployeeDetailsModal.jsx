@@ -360,8 +360,8 @@ export default function EmployeeDetailsModal({
                                 {rec.remarks || '-'}
                               </td>
                               <td className="px-4 py-3 text-center">
-                                {/* พิมพ์ใบรับคืน — เฉพาะแถวที่เป็น "รับคืน" และไม่ใช่ license */}
-                                {!isCheckout && rec.category !== 'licenses' && rec.category !== 'license' ? (
+                                {/* พิมพ์ใบรับคืน — เฉพาะแถว "รับคืน" ของทรัพย์สินหลัก (notebook) เท่านั้น */}
+                                {!isCheckout && (rec.category === 'assets' || rec.category === 'asset') ? (
                                   <button
                                     onClick={() => openPrintReturn(rec)}
                                     title="พิมพ์ใบรับคืน (IT-FORM-002)"

@@ -232,44 +232,110 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
 
       {/* NEW shape: photos grouped per field */}
       {hasFields ? (
-        <div className="space-y-1.5 mb-3">
-          {CHECKLIST_FIELDS.map(f => {
-            const cell = fields[f.key] || { status: 'normal', photos: [] };
-            const v = cell.status || 'normal';
-            const cellPhotos = cell.photos || [];
+        (() => {
+          const fieldsWithPhotos    = CHECKLIST_FIELDS.filter(f => (fields[f.key]?.photos || []).length > 0);
+          const fieldsWithoutPhotos = CHECKLIST_FIELDS.filter(f => !(fields[f.key]?.photos || []).length);
+
+          if (totalFieldPhotos === 0) {
+            // No photos at all → just the compact status pill row
             return (
-              <div key={f.key} className="rounded-lg bg-slate-50/70 ring-1 ring-slate-200 px-2.5 py-2">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[12.5px] font-semibold text-slate-700 truncate">{f.label}</span>
-                  <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset shrink-0 ${STATUS_COLOR[v]}`}>
-                    {labelOf(f.key, v)}
-                  </span>
-                </div>
-                {cellPhotos.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {cellPhotos.map((src, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => onPhotoClick(src)}
-                        className="w-14 h-14 rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition"
+              <div className="mb-3">
+                <p className="text-[11.5px] text-slate-400 italic mb-2 flex items-center gap-1">
+                  <Camera className="h-3 w-3" /> ไม่ได้แนบรูปใดๆ — แสดงเฉพาะสถานะ
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {fieldsWithoutPhotos.map(f => {
+                    const v = fields[f.key]?.status || 'normal';
+                    return (
+                      <span
+                        key={f.key}
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_COLOR[v]}`}
                       >
-                        <img src={src} alt={`${f.label}-${i}`} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-slate-400 italic flex items-center gap-1">
-                    <Camera className="h-3 w-3" /> ไม่มีรูป
-                  </p>
-                )}
+                        <span className="text-slate-700/70 mr-1">{f.label}:</span>
+                        <span className="font-semibold">{labelOf(f.key, v)}</span>
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
             );
-          })}
-          {totalFieldPhotos === 0 && (
-            <p className="text-[11.5px] text-slate-400 italic">— ไม่ได้แนบรูปใดๆ —</p>
-          )}
-        </div>
+          }
+
+          return (
+            <div className="space-y-3 mb-3">
+              {/* ── Photo cards (2-col grid) ── */}
+              {fieldsWithPhotos.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {fieldsWithPhotos.map(f => {
+                    const cell = fields[f.key];
+                    const v = cell.status || 'normal';
+                    return (
+                      <div
+                        key={f.key}
+                        className="flex gap-2.5 rounded-lg bg-white ring-1 ring-slate-200 p-2 hover:ring-[#1E487A]/30 hover:shadow-sm transition-all"
+                      >
+                        {/* Photo strip on left */}
+                        <div className="flex gap-1 shrink-0">
+                          {cell.photos.slice(0, 2).map((src, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => onPhotoClick(src)}
+                              className="w-14 h-14 rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition shrink-0 bg-slate-50"
+                            >
+                              <img src={src} alt={`${f.label}-${i}`} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                          {cell.photos.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => onPhotoClick(cell.photos[2])}
+                              className="w-14 h-14 rounded-md ring-1 ring-slate-200 bg-slate-50 text-[10.5px] font-semibold text-slate-500 hover:ring-[#1E487A] hover:text-[#1E487A] transition flex items-center justify-center shrink-0"
+                            >
+                              +{cell.photos.length - 2}
+                            </button>
+                          )}
+                        </div>
+                        {/* Label + status on right */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                          <p className="text-[12.5px] font-semibold text-slate-800 leading-snug line-clamp-2" title={f.label}>
+                            {f.label}
+                          </p>
+                          <span className={`self-start text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_COLOR[v]}`}>
+                            {labelOf(f.key, v)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* ── Compact pills for fields without photos ── */}
+              {fieldsWithoutPhotos.length > 0 && (
+                <div>
+                  <p className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-[0.06em] mb-1.5 flex items-center gap-1">
+                    <Camera className="h-3 w-3 opacity-60" /> จุดที่ไม่ได้แนบรูป
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {fieldsWithoutPhotos.map(f => {
+                      const v = fields[f.key]?.status || 'normal';
+                      return (
+                        <span
+                          key={f.key}
+                          className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_COLOR[v]}`}
+                        >
+                          <span className="text-slate-600 mr-1">{f.label}:</span>
+                          <span className="font-semibold">{labelOf(f.key, v)}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()
       ) : (
         <>
           {/* LEGACY shape: flat photos grid */}

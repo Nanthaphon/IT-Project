@@ -7,6 +7,7 @@ export default function AssetDetailsModal({
   accessories, assets, licenses, setCheckoutModal, setReturnModal, handleCheckin, openEditLicenseModal, openEditAssetModal,
   setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert,
   transactions = [],
+  employees = [],
 }) {
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
@@ -1530,6 +1531,8 @@ export default function AssetDetailsModal({
                 assetId={currentAssetDetail.id}
                 transactions={transactions}
                 currentHolder={currentAssetDetail.assignedName ? { empName: currentAssetDetail.assignedName } : null}
+                asset={currentAssetDetail}
+                employees={employees}
               />
             </div>
           )}

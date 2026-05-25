@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2, X, Clock, Pencil, Trash2, Save } from 'lucide-react';
+import { User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2, X, Clock, Pencil, Trash2, Save, Printer } from 'lucide-react';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import ConditionCapture, {
   CHECKLIST_FIELDS, FIELD_STATUS_LABELS, EMPTY_FIELDS, flattenFields,
 } from './ConditionCapture.jsx';
+import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 
 // helper: คืน label ของสถานะตามฟิลด์ (ถ้าไม่รู้จัก field ใช้ default)
 const labelOf = (fieldKey, value) =>
@@ -51,10 +52,15 @@ const txCollectionOf = (category) =>
  * - transactions: array of all transactions
  * - currentHolder: { empName } | null  (current assignee, optional)
  */
-export default function OwnershipHistory({ assetId, transactions = [], currentHolder = null }) {
+export default function OwnershipHistory({
+  assetId, transactions = [], currentHolder = null,
+  asset = null,             // optional: full asset object (for print fields)
+  employees = [],           // optional: lookup employee details for print
+}) {
   const [viewerImage, setViewerImage] = useState(null);
   const [editPeriod, setEditPeriod] = useState(null);
   const [deletePeriod, setDeletePeriod] = useState(null);
+  const [printReturnPeriod, setPrintReturnPeriod] = useState(null);
 
   // กรอง transactions ของ asset นี้ เรียงใหม่ → เก่า
   const relevant = transactions
@@ -97,6 +103,7 @@ export default function OwnershipHistory({ assetId, transactions = [], currentHo
               onPhotoClick={setViewerImage}
               onEdit={() => setEditPeriod(p)}
               onDelete={() => setDeletePeriod(p)}
+              onPrintReturn={() => setPrintReturnPeriod(p)}
             />
           );
         })}
@@ -138,12 +145,28 @@ export default function OwnershipHistory({ assetId, transactions = [], currentHo
           onClose={() => setDeletePeriod(null)}
         />
       )}
+
+      {/* IT-FORM-002 pre-print modal */}
+      {printReturnPeriod && (
+        <PreReturnAssessmentModal
+          isOpen={true}
+          onClose={() => setPrintReturnPeriod(null)}
+          employee={
+            employees.find(e => String(e.empId) === String(printReturnPeriod.checkout.empId)) ||
+            employees.find(e => e.id === printReturnPeriod.checkout.empId) ||
+            { fullName: printReturnPeriod.checkout.empName, empId: printReturnPeriod.checkout.empId }
+          }
+          mainAsset={asset || { name: printReturnPeriod.checkout.assetName }}
+          handoverDate={printReturnPeriod.checkout.timestamp}
+          returnDate={printReturnPeriod.return?.timestamp}
+        />
+      )}
     </>
   );
 }
 
 /* ── Period Card ── */
-function PeriodCard({ period, isCurrent, onPhotoClick, onEdit, onDelete }) {
+function PeriodCard({ period, isCurrent, onPhotoClick, onEdit, onDelete, onPrintReturn }) {
   const [expanded, setExpanded] = useState(false);
   const { checkout, return: ret } = period;
 
@@ -222,7 +245,18 @@ function PeriodCard({ period, isCurrent, onPhotoClick, onEdit, onDelete }) {
           >
             {expanded ? 'ย่อ' : 'รายละเอียด'}
           </button>
-          {/* Edit / Delete buttons — NEW */}
+          {/* Print return-form button — only when this period has been returned */}
+          {ret && (
+            <button
+              onClick={onPrintReturn}
+              title="พิมพ์ใบรับคืน (IT-FORM-002)"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11.5px] font-semibold text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 bg-white hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] transition"
+            >
+              <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
+              ใบรับคืน
+            </button>
+          )}
+          {/* Edit / Delete buttons */}
           <button
             onClick={onEdit}
             title="แก้ไขวันที่ / หมายเหตุ"

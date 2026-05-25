@@ -101,10 +101,8 @@ export default function ReturnModal({
           {!isLicense && returnConditionData && setReturnConditionData && (
             <ConditionCapture
               mode="return"
-              photos={returnConditionData.photos}
-              setPhotos={(photos) => setReturnConditionData({ ...returnConditionData, photos })}
-              checklist={returnConditionData.checklist}
-              setChecklist={(checklist) => setReturnConditionData({ ...returnConditionData, checklist })}
+              fields={returnConditionData.fields}
+              setFields={(fields) => setReturnConditionData({ ...returnConditionData, fields })}
               notes={returnConditionData.notes}
               setNotes={(notes) => setReturnConditionData({ ...returnConditionData, notes })}
             />

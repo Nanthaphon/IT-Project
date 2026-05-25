@@ -42,7 +42,7 @@ import useAdminPermissions from './hooks/useAdminPermissions.jsx';
 import UserManagementPage from './components/UserManagementPage.jsx';
 import SystemSettingsPage from './components/SystemSettingsPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
-import { EMPTY_CHECKLIST } from './components/ConditionCapture.jsx';
+import { EMPTY_CHECKLIST, EMPTY_FIELDS, flattenFields } from './components/ConditionCapture.jsx';
 import TopHeader from './components/TopHeader.jsx';
 import DashboardStats from './components/DashboardStats.jsx';
 import KpiDashboard from './components/KpiDashboard.jsx';
@@ -164,9 +164,9 @@ function App() {
   const [returnModal, setReturnModal] = useState({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
   const [returnCondition, setReturnCondition] = useState('good');
   const [returnRemarks, setReturnRemarks] = useState('');
-  // ─── หลักฐานสภาพอุปกรณ์ (รูป + checklist + หมายเหตุ) ───
-  const [checkoutCondition, setCheckoutCondition] = useState({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
-  const [returnConditionData, setReturnConditionData] = useState({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
+  // ─── หลักฐานสภาพอุปกรณ์ (รูปต่อหัวข้อ + checklist + หมายเหตุ) ───
+  const [checkoutCondition, setCheckoutCondition] = useState({ fields: EMPTY_FIELDS, notes: '' });
+  const [returnConditionData, setReturnConditionData] = useState({ fields: EMPTY_FIELDS, notes: '' });
   const [repairModal, setRepairModal] = useState({ isOpen: false, assetId: null, assetName: null, maxRepair: 0, brokenIndex: undefined });
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairRemarks, setRepairRemarks] = useState('');
@@ -949,14 +949,18 @@ function App() {
             assignees: [...(item.assignees || []), newAssignee],
             availableItems: availItems,
           });
-          await addDoc(collection(db, 'accessories_transactions'), {
-            empId: emp.id, empName: newAssignee.empName, assetId: checkoutModal.assetId, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
-            condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now(),
-            checkoutPhotos: checkoutCondition.photos,
-            checkoutChecklist: checkoutCondition.checklist,
-            checkoutNotes: checkoutCondition.notes,
-            checkoutId: newAssignee.checkoutId,
-          });
+          {
+            const flat = flattenFields(checkoutCondition.fields);
+            await addDoc(collection(db, 'accessories_transactions'), {
+              empId: emp.id, empName: newAssignee.empName, assetId: checkoutModal.assetId, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
+              condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now(),
+              checkoutFields: checkoutCondition.fields,
+              checkoutPhotos: flat.photos,
+              checkoutChecklist: flat.checklist,
+              checkoutNotes: checkoutCondition.notes,
+              checkoutId: newAssignee.checkoutId,
+            });
+          }
         } else {
           return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอ', type: 'error' });
         }
@@ -1022,16 +1026,20 @@ function App() {
         });
         const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
         const empName = `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`;
-        await addDoc(collection(db, 'assets_transactions'), {
-          empId: emp.id, empName, assetId: checkoutModal.assetId, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now(),
-          checkoutPhotos: checkoutCondition.photos,
-          checkoutChecklist: checkoutCondition.checklist,
-          checkoutNotes: checkoutCondition.notes,
-        });
+        {
+          const flat = flattenFields(checkoutCondition.fields);
+          await addDoc(collection(db, 'assets_transactions'), {
+            empId: emp.id, empName, assetId: checkoutModal.assetId, assetName: itemToCheckout ? itemToCheckout.name : '-', category: 'assets', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now(),
+            checkoutFields: checkoutCondition.fields,
+            checkoutPhotos: flat.photos,
+            checkoutChecklist: flat.checklist,
+            checkoutNotes: checkoutCondition.notes,
+          });
+        }
       }
       setCheckoutModal({ isOpen: false, assetId: null, collectionName: '', sn: '', snIndex: undefined });
       setCheckoutEmpId(''); setCheckoutSearchTerm(''); setCheckoutRemarks('');
-      setCheckoutCondition({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
+      setCheckoutCondition({ fields: EMPTY_FIELDS, notes: '' });
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
   };
@@ -1112,31 +1120,39 @@ function App() {
         }
         await updateDoc(doc(db, collectionName, returnModal.assetId), updateData);
         const txCollection = collectionName === 'accessories' ? 'accessories_transactions' : 'licenses_transactions';
-        await addDoc(collection(db, txCollection), {
-          empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน',
-          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
-          remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
-          returnPhotos: returnConditionData.photos,
-          returnChecklist: returnConditionData.checklist,
-          returnNotes: returnConditionData.notes,
-          checkoutId: returnModal.checkoutId,
-        });
+        {
+          const flat = flattenFields(returnConditionData.fields);
+          await addDoc(collection(db, txCollection), {
+            empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน',
+            condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+            remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
+            returnFields: returnConditionData.fields,
+            returnPhotos: flat.photos,
+            returnChecklist: flat.checklist,
+            returnNotes: returnConditionData.notes,
+            checkoutId: returnModal.checkoutId,
+          });
+        }
 
       } else {
         await updateDoc(doc(db, 'assets', returnModal.assetId), { status: returnCondition === 'broken' ? 'ชำรุดเสียหาย' : 'พร้อมใช้งาน', assignedTo: null, assignedName: null });
-        await addDoc(collection(db, 'assets_transactions'), {
-          empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: 'assets', action: 'รับคืน',
-          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
-          remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
-          returnPhotos: returnConditionData.photos,
-          returnChecklist: returnConditionData.checklist,
-          returnNotes: returnConditionData.notes,
-        });
+        {
+          const flat = flattenFields(returnConditionData.fields);
+          await addDoc(collection(db, 'assets_transactions'), {
+            empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: 'assets', action: 'รับคืน',
+            condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+            remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
+            returnFields: returnConditionData.fields,
+            returnPhotos: flat.photos,
+            returnChecklist: flat.checklist,
+            returnNotes: returnConditionData.notes,
+          });
+        }
       }
 
       setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
       setReturnCondition('good'); setReturnRemarks('');
-      setReturnConditionData({ photos: [], checklist: EMPTY_CHECKLIST, notes: '' });
+      setReturnConditionData({ fields: EMPTY_FIELDS, notes: '' });
       setCustomAlert({ isOpen: true, title: 'รับคืนสำเร็จ', message: 'รับคืนเข้าระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' }); }
   };

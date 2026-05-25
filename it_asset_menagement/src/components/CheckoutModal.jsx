@@ -248,10 +248,8 @@ export default function CheckoutModal({
           {!isLicense && checkoutCondition && setCheckoutCondition && (
             <ConditionCapture
               mode="checkout"
-              photos={checkoutCondition.photos}
-              setPhotos={(photos) => setCheckoutCondition({ ...checkoutCondition, photos })}
-              checklist={checkoutCondition.checklist}
-              setChecklist={(checklist) => setCheckoutCondition({ ...checkoutCondition, checklist })}
+              fields={checkoutCondition.fields}
+              setFields={(fields) => setCheckoutCondition({ ...checkoutCondition, fields })}
               notes={checkoutCondition.notes}
               setNotes={(notes) => setCheckoutCondition({ ...checkoutCondition, notes })}
             />

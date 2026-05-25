@@ -163,6 +163,7 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
             label="ตอนส่งมอบ"
             Icon={ArrowRight}
             color="blue"
+            fields={checkout.checkoutFields}
             photos={checkout.checkoutPhotos}
             checklist={checkout.checkoutChecklist}
             notes={checkout.checkoutNotes}
@@ -175,6 +176,7 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
               label="ตอนรับคืน"
               Icon={ArrowLeft}
               color={damages.length > 0 ? 'rose' : 'emerald'}
+              fields={ret.returnFields}
               photos={ret.returnPhotos}
               checklist={ret.returnChecklist}
               notes={ret.returnNotes}
@@ -205,14 +207,20 @@ function PeriodCard({ period, isCurrent, onPhotoClick }) {
 }
 
 /* ── Snapshot of one event (checkout or return) ── */
-function ConditionSnapshot({ label, Icon, color, photos = [], checklist = {}, notes, onPhotoClick }) {
+function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist = {}, notes, onPhotoClick }) {
   const colorCls = {
     blue:    'text-blue-700 bg-blue-50 ring-blue-200',
     emerald: 'text-emerald-700 bg-emerald-50 ring-emerald-200',
     rose:    'text-rose-700 bg-rose-50 ring-rose-200',
   }[color];
 
-  const hasPhotos = Array.isArray(photos) && photos.length > 0;
+  // Detect new per-field shape; fall back to flat photos+checklist
+  const hasFields = fields && typeof fields === 'object' && Object.keys(fields).length > 0;
+  const totalFieldPhotos = hasFields
+    ? CHECKLIST_FIELDS.reduce((n, f) => n + ((fields[f.key]?.photos || []).length), 0)
+    : 0;
+
+  const hasFlatPhotos = Array.isArray(photos) && photos.length > 0;
   const hasChecklist = checklist && Object.keys(checklist).length > 0;
 
   return (
@@ -222,41 +230,85 @@ function ConditionSnapshot({ label, Icon, color, photos = [], checklist = {}, no
         {label}
       </p>
 
-      {/* Photos */}
-      {hasPhotos ? (
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-3">
-          {photos.map((src, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => onPhotoClick(src)}
-              className="aspect-square rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition"
-            >
-              <img src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
-      ) : (
-        <p className="text-[12px] text-slate-400 italic mb-3 flex items-center gap-1">
-          <Camera className="h-3 w-3" /> ไม่ได้บันทึกรูป
-        </p>
-      )}
-
-      {/* Checklist mini badges */}
-      {hasChecklist && (
-        <div className="flex flex-wrap gap-1 mb-2">
+      {/* NEW shape: photos grouped per field */}
+      {hasFields ? (
+        <div className="space-y-1.5 mb-3">
           {CHECKLIST_FIELDS.map(f => {
-            const v = checklist[f.key] || 'normal';
+            const cell = fields[f.key] || { status: 'normal', photos: [] };
+            const v = cell.status || 'normal';
+            const cellPhotos = cell.photos || [];
             return (
-              <span
-                key={f.key}
-                className={`text-[11px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${STATUS_COLOR[v]}`}
-              >
-                {f.label}: {labelOf(f.key, v)}
-              </span>
+              <div key={f.key} className="rounded-lg bg-slate-50/70 ring-1 ring-slate-200 px-2.5 py-2">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[12.5px] font-semibold text-slate-700 truncate">{f.label}</span>
+                  <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset shrink-0 ${STATUS_COLOR[v]}`}>
+                    {labelOf(f.key, v)}
+                  </span>
+                </div>
+                {cellPhotos.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {cellPhotos.map((src, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => onPhotoClick(src)}
+                        className="w-14 h-14 rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition"
+                      >
+                        <img src={src} alt={`${f.label}-${i}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-400 italic flex items-center gap-1">
+                    <Camera className="h-3 w-3" /> ไม่มีรูป
+                  </p>
+                )}
+              </div>
             );
           })}
+          {totalFieldPhotos === 0 && (
+            <p className="text-[11.5px] text-slate-400 italic">— ไม่ได้แนบรูปใดๆ —</p>
+          )}
         </div>
+      ) : (
+        <>
+          {/* LEGACY shape: flat photos grid */}
+          {hasFlatPhotos ? (
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-3">
+              {photos.map((src, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onPhotoClick(src)}
+                  className="aspect-square rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition"
+                >
+                  <img src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-slate-400 italic mb-3 flex items-center gap-1">
+              <Camera className="h-3 w-3" /> ไม่ได้บันทึกรูป
+            </p>
+          )}
+
+          {/* Checklist mini badges (legacy only — new shape shows status inline above) */}
+          {hasChecklist && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {CHECKLIST_FIELDS.map(f => {
+                const v = checklist[f.key] || 'normal';
+                return (
+                  <span
+                    key={f.key}
+                    className={`text-[11px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${STATUS_COLOR[v]}`}
+                  >
+                    {f.label}: {labelOf(f.key, v)}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* Notes */}

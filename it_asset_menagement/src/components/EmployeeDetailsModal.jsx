@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
+import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -21,6 +22,7 @@ export default function EmployeeDetailsModal({
   setSelectedAssetDetail, setSelectedAssetCategory,
 }) {
   const [historyFilter, setHistoryFilter] = useState('all');
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
   if (!selectedEmployee) return null;
 
   /* ── derived data ── */
@@ -57,14 +59,8 @@ export default function EmployeeDetailsModal({
 
   const initial = selectedEmployee.fullName?.charAt(0) || '?';
 
-  const handlePrint = () => {
-    printHandoverForm({
-      employee: selectedEmployee,
-      empAssets,
-      empLicenses,
-      empAccessories,
-    });
-  };
+  // เปิด modal ให้ติ๊ก checklist + แนบรูปก่อนพิมพ์ (modal จะเรียก printHandoverForm เองเมื่อ submit)
+  const handlePrint = () => setAssessmentOpen(true);
 
   return (
     <div
@@ -388,6 +384,16 @@ export default function EmployeeDetailsModal({
         </div>
 
       </div>
+
+      {/* ── Pre-Handover Assessment Modal (เปิดก่อนพิมพ์) ── */}
+      <PreHandoverAssessmentModal
+        isOpen={assessmentOpen}
+        onClose={() => setAssessmentOpen(false)}
+        employee={selectedEmployee}
+        empAssets={empAssets}
+        empLicenses={empLicenses}
+        empAccessories={empAccessories}
+      />
     </div>
   );
 }

@@ -13,7 +13,7 @@ function getCompanyLogo(company) {
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
 /* ── 100-point checklist definition (sections 5 / 2) ── */
-const ASSESSMENT_SECTIONS = [
+export const ASSESSMENT_SECTIONS = [
   {
     title: '1. สภาพตัวเครื่องและบรรจุภัณฑ์', max: 20,
     items: [
@@ -67,6 +67,42 @@ const ASSESSMENT_SECTIONS = [
   },
 ];
 
+/* ── 6-angle photo slots (section 7) ── */
+export const PHOTO_SLOTS = [
+  { key: 'topLid',         label: 'ฝาด้านบน' },
+  { key: 'base',           label: 'ฐานเครื่อง' },
+  { key: 'left',           label: 'ด้านซ้าย' },
+  { key: 'right',          label: 'ด้านขวา' },
+  { key: 'screenKeyboard', label: 'จอ + คีย์บอร์ด' },
+  { key: 'existingDefect', label: 'ตำหนิเดิม' },
+];
+
+/* ── Calculate per-item max score (section max ÷ item count) ── */
+export function itemMaxScore(sectionIdx) {
+  const sec = ASSESSMENT_SECTIONS[sectionIdx];
+  return sec.max / sec.items.length;
+}
+
+/* ── Helper: default score per status ── */
+export function scoreFromStatus(status, max) {
+  if (status === 'normal') return max;
+  if (status === 'scratch') return max / 2;
+  if (status === 'broken') return 0;
+  return null; // not assessed
+}
+
+/* ── Build empty assessment state (all 'normal' by default) ── */
+export function buildEmptyAssessment() {
+  const a = {};
+  ASSESSMENT_SECTIONS.forEach((sec, si) => {
+    const max = itemMaxScore(si);
+    sec.items.forEach(([no]) => {
+      a[no] = { status: 'normal', score: max };
+    });
+  });
+  return a;
+}
+
 /* ── ตารางค่าปรับฉบับเต็ม (ภาคผนวก ส่วนที่ 5) ── */
 const DAMAGE_FEE_TABLE = [
   { group: 'ตัวเครื่อง / เคส' },
@@ -100,11 +136,22 @@ const DAMAGE_FEE_TABLE = [
 /* ════════════════════════════════════════════════════════════════════════
    ฟังก์ชันสร้าง HTML ของฟอร์มทั้งฉบับ
    ════════════════════════════════════════════════════════════════════════ */
-export function printHandoverForm({ employee, empAssets, empLicenses, empAccessories, formNumber }) {
+export function printHandoverForm({
+  employee, empAssets, empLicenses, empAccessories, formNumber,
+  assessment = {},   // { '1.1': { status, score }, ... }
+  photos = {},       // { topLid, base, left, right, screenKeyboard, existingDefect }
+  defectsNote = '',  // pre-existing defects text
+  handoverDate = '', // user-entered handover date
+}) {
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
   const logoUrl = getCompanyLogo(employee.company);
   const docNo = formNumber || `IT-FORM-001-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${(employee.empId || '').slice(-4)}`;
+
+  /* ── Marker helpers (filled ✓ vs empty ☐) ── */
+  const mark = (filled) => filled
+    ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#1E487A;border:1px solid #1E487A;border-radius:2px;font-size:10px">✓</span>`
+    : `<span style="display:inline-block;width:14px;height:14px;border:1.2px solid #94a3b8;border-radius:2px"></span>`;
 
   /* ── Main computer in this handover (first asset, if any) ── */
   const mainAsset = empAssets[0] || {};
@@ -129,26 +176,42 @@ export function printHandoverForm({ employee, empAssets, empLicenses, empAccesso
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">1</td>
     </tr>`).join('');
 
-  /* ── Sections 5: assessment checklist ── */
-  const assessmentRows = ASSESSMENT_SECTIONS.map(sec => {
+  /* ── Sections 5: assessment checklist (filled from assessment prop) ── */
+  let grandTotal = 0;
+  const assessmentRows = ASSESSMENT_SECTIONS.map((sec, si) => {
+    const itemMax = itemMaxScore(si);
+    let sectionScore = 0;
     const headerRow = `
       <tr style="background:#e2e8f0">
         <td colspan="7" style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;color:#1E487A">${sec.title}</td>
         <td style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;text-align:center;color:#1E487A">/${sec.max}</td>
       </tr>`;
-    const itemRows = sec.items.map(([no, name, criteria]) => `
+    const itemRows = sec.items.map(([no, name, criteria]) => {
+      const cell = assessment[no] || {};
+      const score = (cell.score != null && !isNaN(cell.score)) ? Number(cell.score) : null;
+      if (score != null) sectionScore += score;
+      return `
       <tr>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px;text-align:center;width:34px">${no}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">${name}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10px;color:#475569">${criteria}</td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">☐</td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">☐</td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">☐</td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px"></td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px"></td>
-      </tr>`).join('');
-    return headerRow + itemRows;
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">${mark(cell.status === 'normal')}</td>
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">${mark(cell.status === 'scratch')}</td>
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">${mark(cell.status === 'broken')}</td>
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px;color:#475569">${itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</td>
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px;font-weight:600">${score != null ? (score % 1 === 0 ? score : score.toFixed(2)) : ''}</td>
+      </tr>`;
+    }).join('');
+    grandTotal += sectionScore;
+    const subtotalRow = `
+      <tr style="background:#f8fafc">
+        <td colspan="6" style="border:1px solid #cbd5e1;padding:3px 8px;font-size:10px;text-align:right;font-style:italic;color:#475569">รวมหมวด</td>
+        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;color:#475569">${sec.max}</td>
+        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;font-weight:700;color:#1E487A">${sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(2)}</td>
+      </tr>`;
+    return headerRow + itemRows + subtotalRow;
   }).join('');
+  const grandTotalDisplay = grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(2);
 
   /* ── Damage fee table (appendix s.5) ── */
   const feeRows = DAMAGE_FEE_TABLE.map(row => {
@@ -168,12 +231,20 @@ export function printHandoverForm({ employee, empAssets, empLicenses, empAccesso
       </tr>`;
   }).join('');
 
-  /* ── Photo placeholder cell ── */
-  const photoCell = (label) => `
+  /* ── Photo cell — render uploaded image or placeholder ── */
+  const photoCell = (key, label) => {
+    const src = photos[key];
+    return `
     <td style="border:1px solid #cbd5e1;padding:6px;vertical-align:top;width:33.33%">
       <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:4px;text-align:center">${label}</div>
-      <div style="border:1.5px dashed #94a3b8;border-radius:4px;height:100px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>
+      ${src
+        ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:170px;overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
+             <img src="${src}" alt="${label}" style="max-width:100%;max-height:100%;object-fit:contain"/>
+           </div>`
+        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:170px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>`
+      }
     </td>`;
+  };
 
   /* ── Section title bar ── */
   const sectionBar = (n, label) => `
@@ -274,7 +345,9 @@ export function printHandoverForm({ employee, empAssets, empLicenses, empAccesso
         ${ic('ตำแหน่ง', employee.position)}
         ${ic('แผนก / ฝ่าย', employee.department)}
         ${ic('ผู้บังคับบัญชา', employee.manager)}
-        ${ic('วันที่รับมอบ', '')}
+        ${ic('วันที่รับมอบ', handoverDate
+          ? new Date(handoverDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+          : '')}
       </div>
     </div>
 
@@ -347,10 +420,10 @@ export function printHandoverForm({ employee, empAssets, empLicenses, empAccesso
         </tr>
       </thead>
       <tbody>${assessmentRows}
-        <tr style="background:#f1f5f9">
-          <td colspan="6" style="border:1px solid #94a3b8;padding:6px 12px;font-size:12px;font-weight:700;text-align:right">รวมคะแนน</td>
-          <td style="border:1px solid #94a3b8;padding:6px;text-align:center;font-size:12px;font-weight:700">100</td>
-          <td style="border:1px solid #94a3b8;padding:6px;text-align:center"></td>
+        <tr style="background:#1E487A;color:#fff">
+          <td colspan="6" style="border:1px solid #1E487A;padding:7px 12px;font-size:13px;font-weight:700;text-align:right">รวมคะแนนทั้งหมด</td>
+          <td style="border:1px solid #1E487A;padding:7px;text-align:center;font-size:13px;font-weight:700">100</td>
+          <td style="border:1px solid #1E487A;padding:7px;text-align:center;font-size:13px;font-weight:700">${grandTotalDisplay}</td>
         </tr>
       </tbody>
     </table>
@@ -360,17 +433,20 @@ export function printHandoverForm({ employee, empAssets, empLicenses, empAccesso
     <div style="border:1px solid #cbd5e1;padding:8px 12px;border-radius:3px">
       <div style="font-size:11px;color:#475569;margin-bottom:4px">บันทึกตำหนิ / ความเสียหายที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")</div>
       <div style="font-size:11px;font-weight:600;margin-bottom:4px">บรรยาย:</div>
-      <div style="border-bottom:1px dotted #94a3b8;height:18px"></div>
-      <div style="border-bottom:1px dotted #94a3b8;height:18px;margin-top:4px"></div>
-      <div style="border-bottom:1px dotted #94a3b8;height:18px;margin-top:4px"></div>
+      ${defectsNote
+        ? `<div style="font-size:11.5px;white-space:pre-wrap;line-height:1.7;padding:4px 0">${defectsNote.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+        : `<div style="border-bottom:1px dotted #94a3b8;height:18px"></div>
+           <div style="border-bottom:1px dotted #94a3b8;height:18px;margin-top:4px"></div>
+           <div style="border-bottom:1px dotted #94a3b8;height:18px;margin-top:4px"></div>`
+      }
     </div>
 
     <!-- ── 7. รูปภาพ 6 มุม ── -->
     ${sectionBar(7, 'รูปภาพสภาพอุปกรณ์ก่อนส่งมอบ')}
     <div style="font-size:10.5px;color:#475569;margin-bottom:4px">แนบรูปภาพ 6 มุม: ฝา / ฐาน / ซ้าย / ขวา / จอ+คีย์บอร์ด / ตำหนิเดิม</div>
     <table>
-      <tr>${photoCell('ฝาด้านบน')}${photoCell('ฐานเครื่อง')}${photoCell('ด้านซ้าย')}</tr>
-      <tr>${photoCell('ด้านขวา')}${photoCell('จอ + คีย์บอร์ด')}${photoCell('ตำหนิเดิม')}</tr>
+      <tr>${photoCell('topLid', 'ฝาด้านบน')}${photoCell('base', 'ฐานเครื่อง')}${photoCell('left', 'ด้านซ้าย')}</tr>
+      <tr>${photoCell('right', 'ด้านขวา')}${photoCell('screenKeyboard', 'จอ + คีย์บอร์ด')}${photoCell('existingDefect', 'ตำหนิเดิม')}</tr>
     </table>
 
   </div><!-- end page 2 -->

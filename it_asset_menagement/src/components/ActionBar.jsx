@@ -28,6 +28,7 @@ export default function ActionBar({
   selectedOfficeSupplyIds,
   setIsAddModalOpen,
   handleExportAssets,
+  handleExportOfficeSupplies,
   visibleAssetColumns,
   setVisibleAssetColumns,
   handleExportLicenses,
@@ -160,6 +161,7 @@ export default function ActionBar({
               <option value="อื่นๆ">อื่นๆ</option>
             </FilterSelect>
             {canEdit && <Btn icon={Download} onClick={handleExportAccessories}>ส่งออก CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
             {canEdit && selectedAccessoryIds.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedAccessoryIds, collectionName: 'accessories' })}>
                 ลบ ({selectedAccessoryIds.length})
@@ -177,6 +179,8 @@ export default function ActionBar({
               <option value="ใกล้หมด">ใกล้หมด (1–5)</option>
               <option value="หมดสต็อก">หมดสต็อก (0)</option>
             </FilterSelect>
+            {canEdit && <Btn icon={Download} onClick={handleExportOfficeSupplies}>ส่งออก CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
             {canEdit && selectedOfficeSupplyIds.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })}>
                 ลบ ({selectedOfficeSupplyIds.length})

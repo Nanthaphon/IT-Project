@@ -621,15 +621,29 @@ function App() {
   };
   const handleExportAccessories = () => {
     const filtered = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
-    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty', 'สถานะ']];
+    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty', 'ผู้จัดจำหน่าย', 'หมายเหตุ', 'สถานะ']];
     filtered.forEach(item => rows.push([
       item.name || '', item.type || '', item.quantity || '', item.cost || '',
-      item.purchaseDate || '', item.warrantyDate || '', item.status || '',
+      item.purchaseDate || '', item.warrantyDate || '', item.vendor || '',
+      item.note || '', item.status || '',
     ]));
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'accessories.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+
+  const handleExportOfficeSupplies = () => {
+    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'หน่วยนับ', 'ราคา', 'วันที่ซื้อ', 'ผู้จัดจำหน่าย', 'หมายเหตุ', 'สถานะ']];
+    officeSupplies.forEach(item => rows.push([
+      item.name || '', item.type || '', item.quantity || 0, item.unit || 'ชิ้น',
+      item.cost || '', item.purchaseDate || '', item.vendor || '',
+      item.note || '', item.status || 'พร้อมใช้งาน',
+    ]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'office_supplies.csv'; a.click(); URL.revokeObjectURL(url);
   };
   const handleExportLicenses = () => {
     // Export แบบ 1 บรรทัด = 1 สิทธิ์ (seat) — ข้อมูล license ใช้ซ้ำทุกบรรทัด
@@ -1556,7 +1570,7 @@ function App() {
                 <ActionBar
                   menuTitle={menuTitle} activeMenu={activeMenu} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showDeletedEmployees={showDeletedEmployees} setShowDeletedEmployees={setShowDeletedEmployees} setIsImportModalOpen={setIsImportModalOpen} handleExportEmployees={handleExportEmployees}
                   selectedEmployeeIds={selectedEmployeeIds} setConfirmDeleteModal={setConfirmDeleteModal} assetFilterDepartment={assetFilterDepartment} setAssetFilterDepartment={setAssetFilterDepartment} assetFilterType={assetFilterType} setAssetFilterType={setAssetFilterType} assetFilterStatus={assetFilterStatus} setAssetFilterStatus={setAssetFilterStatus} accFilterType={accFilterType} setAccFilterType={setAccFilterType}
-                  handleExportAccessories={handleExportAccessories} selectedAccessoryIds={selectedAccessoryIds} officeSupplyStockFilter={officeSupplyStockFilter} setOfficeSupplyStockFilter={setOfficeSupplyStockFilter} selectedOfficeSupplyIds={selectedOfficeSupplyIds} setIsAddModalOpen={setIsAddModalOpen} handleExportAssets={handleExportAssets} visibleAssetColumns={visibleAssetColumns} setVisibleAssetColumns={setVisibleAssetColumns}
+                  handleExportAccessories={handleExportAccessories} selectedAccessoryIds={selectedAccessoryIds} officeSupplyStockFilter={officeSupplyStockFilter} setOfficeSupplyStockFilter={setOfficeSupplyStockFilter} selectedOfficeSupplyIds={selectedOfficeSupplyIds} setIsAddModalOpen={setIsAddModalOpen} handleExportAssets={handleExportAssets} handleExportOfficeSupplies={handleExportOfficeSupplies} visibleAssetColumns={visibleAssetColumns} setVisibleAssetColumns={setVisibleAssetColumns}
                   handleExportLicenses={handleExportLicenses} selectedLicenseIds={selectedLicenseIds}
                   visibleLicenseColumns={visibleLicenseColumns} setVisibleLicenseColumns={setVisibleLicenseColumns}
                   canEdit={canEdit}

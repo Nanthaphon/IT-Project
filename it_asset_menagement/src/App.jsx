@@ -722,25 +722,76 @@ function App() {
     const a = document.createElement('a'); a.href = url; a.download = 'licenses.csv'; a.click(); URL.revokeObjectURL(url);
   };
   const handleDownloadTemplate = () => {
-    let headers, filename;
+    /* ── Template definition per entity ──
+     * - headers: ชื่อคอลัมน์ที่ใช้ใน CSV (ตรงกับ MAP ด้านล่าง)
+     * - example: แถวตัวอย่าง 1 แถว ช่วยให้ผู้ใช้เห็น format (ลบทิ้งก่อน import ก็ได้)
+     */
+    let headers, example, filename;
+
     if (activeMenu === 'assets') {
       headers = [
         'ชื่ออุปกรณ์', 'ประเภท', 'แผนก', 'รหัสทรัพย์สิน', 'Serial Number',
         'ยี่ห้อ/รุ่น', 'บริษัท', 'ผู้จัดจำหน่าย', 'วันที่ซื้อ', 'วันหมด Warranty',
-        'ราคา', 'สถานะ',
+        'ราคา', 'Tier', 'หมายเหตุ', 'สถานะ',
+      ];
+      example = [
+        'Lenovo ThinkPad X1', 'คอมพิวเตอร์', 'Business Development', 'AST-001', 'SN12345',
+        'T14 Gen 4', 'Globe Syndicate (Thailand) Co., Ltd.', 'IT CITY', '2026-01-15', '2027-01-15',
+        '35000', 'Data', 'เครื่องตัวอย่าง — ลบแถวนี้ก่อน import จริง', 'พร้อมใช้งาน',
       ];
       filename = 'template_assets.csv';
-    } else if (activeMenu === 'accessories') {
-      headers = ['ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty'];
+    }
+    else if (activeMenu === 'accessories') {
+      headers = [
+        'ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา',
+        'วันที่ซื้อ', 'วันหมด Warranty', 'ผู้จัดจำหน่าย', 'หมายเหตุ',
+      ];
+      example = [
+        'Logitech M170 Mouse', 'เมาส์ (Mouse)', '20', '300',
+        '2026-01-15', '', 'IT CITY', 'อุปกรณ์ตัวอย่าง — ลบแถวนี้ก่อน import จริง',
+      ];
       filename = 'template_accessories.csv';
-    } else if (activeMenu === 'licenses') {
-      headers = ['ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ', 'ราคา', 'จำนวนสิทธิ์'];
+    }
+    else if (activeMenu === 'licenses') {
+      headers = [
+        'ชื่อโปรแกรม', 'Product Key', 'รหัส Key', 'Supplier',
+        'วันที่ซื้อ', 'วันหมดอายุ', 'ราคา', 'จำนวนสิทธิ์', 'หมายเหตุ',
+      ];
+      example = [
+        'Microsoft Office 2024', 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX', 'KEY001', 'IT CITY',
+        '2026-01-15', '2099-12-31', '12000', '5', 'License ตัวอย่าง — ลบแถวนี้ก่อน import จริง',
+      ];
       filename = 'template_licenses.csv';
-    } else {
-      headers = ['รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร', 'M365 Email'];
+    }
+    else if (activeMenu === 'office_supplies') {
+      headers = [
+        'ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'หน่วยนับ',
+        'ราคา', 'วันที่ซื้อ', 'ผู้จัดจำหน่าย', 'หมายเหตุ',
+      ];
+      example = [
+        'ปากกาลูกลื่น สีน้ำเงิน', 'เครื่องเขียน', '50', 'ด้าม',
+        '15', '2026-01-15', 'Officemate', 'อุปกรณ์ตัวอย่าง — ลบแถวนี้ก่อน import จริง',
+      ];
+      filename = 'template_office_supplies.csv';
+    }
+    else {
+      headers = [
+        'รหัสพนักงาน', 'รหัสบัตรประชาชน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น',
+        'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร',
+        'M365 Email', 'M365 Password',
+      ];
+      example = [
+        'EMP001', '', 'นายตัวอย่าง ทดสอบ', 'Sample Test', 'ทอม',
+        'IT', 'Globe Syndicate (Thailand) Co., Ltd.', 'IT Support', '', '081-234-5678',
+        'sample@globesyndicate.com', '',
+      ];
       filename = 'template_employees.csv';
     }
-    const csv = headers.map(h => `"${h}"`).join(',') + '\n';
+
+    const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+    const csv =
+      headers.map(esc).join(',') + '\n' +
+      example.map(esc).join(',') + '\n';
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
@@ -760,7 +811,7 @@ function App() {
           return setCustomAlert({ isOpen: true, title: 'ไฟล์ว่างเปล่า', message: 'ไม่พบข้อมูลในไฟล์ CSV', type: 'error' });
         }
 
-        // CSV row parser — handles quoted fields with commas / newlines
+        // ── CSV row parser — handles quoted fields with commas / newlines ──
         const parseRow = (line) => {
           const res = []; let cur = ''; let inQ = false;
           for (let i = 0; i < line.length; i++) {
@@ -772,75 +823,130 @@ function App() {
           res.push(cur.trim()); return res;
         };
 
+        // ── Number parser — รองรับ "25,000" และ "12,345.67" ──
+        const toNumber = (v) => {
+          if (v == null || v === '') return null;
+          const n = Number(String(v).replace(/,/g, '').trim());
+          return isNaN(n) ? null : n;
+        };
+
         const headers = parseRow(lines[0]);
 
-        // Header → Firestore field mappings per collection
+        // ── Header → Firestore field mappings per collection ──
         const MAP = {
           assets: {
             'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'แผนก': 'department',
             'รหัสทรัพย์สิน': 'assetTag', 'Serial Number': 'sn', 'ยี่ห้อ/รุ่น': 'model',
             'บริษัท': 'company', 'ผู้จัดจำหน่าย': 'vendor',
             'วันที่ซื้อ': 'purchaseDate', 'วันหมด Warranty': 'warrantyDate',
-            'ราคา': 'cost', 'สถานะ': 'status',
+            'ราคา': 'cost', 'Tier': 'tier', 'หมายเหตุ': 'note', 'สถานะ': 'status',
           },
           accessories: {
             'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'จำนวนทั้งหมด': 'quantity',
             'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'วันหมด Warranty': 'warrantyDate',
+            'ผู้จัดจำหน่าย': 'vendor', 'หมายเหตุ': 'note',
           },
           licenses: {
             'ชื่อโปรแกรม': 'name', 'Product Key': 'productKey', 'รหัส Key': 'keyCode',
             'Supplier': 'supplier', 'วันที่ซื้อ': 'purchaseDate', 'วันหมดอายุ': 'expirationDate',
-            'ราคา': 'cost', 'จำนวนสิทธิ์': 'quantity',
+            'ราคา': 'cost', 'จำนวนสิทธิ์': 'quantity', 'หมายเหตุ': 'note',
+          },
+          office_supplies: {
+            'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'จำนวน': 'quantity', 'หน่วยนับ': 'unit',
+            'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'ผู้จัดจำหน่าย': 'vendor', 'หมายเหตุ': 'note',
           },
           employees: {
-            'รหัสพนักงาน': 'empId', 'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
+            'รหัสพนักงาน': 'empId', 'รหัสบัตรประชาชน': 'nationalId',
+            'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
             'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
-            'M365 Email': 'm365Email',
+            'M365 Email': 'm365Email', 'M365 Password': 'm365Password',
           },
         };
 
-        const colName = activeMenu === 'assets' ? 'assets'
-          : activeMenu === 'accessories' ? 'accessories'
-          : activeMenu === 'licenses' ? 'licenses'
-          : 'employees';
+        const colName = activeMenu === 'assets'          ? 'assets'
+                      : activeMenu === 'accessories'     ? 'accessories'
+                      : activeMenu === 'licenses'        ? 'licenses'
+                      : activeMenu === 'office_supplies' ? 'office_supplies'
+                      : 'employees';
         const fieldMap = MAP[colName];
 
+        // ── ตรวจสอบว่ามี header อย่างน้อย 1 อันที่ map ได้ — ป้องกัน import ผิด collection ──
+        const recognizedHeaders = headers.filter(h => fieldMap[h]);
+        if (recognizedHeaders.length === 0) {
+          return setCustomAlert({
+            isOpen: true,
+            title: 'ไฟล์ผิดประเภท',
+            message: `ไฟล์นี้ไม่มีคอลัมน์ที่ตรงกับเมนู "${colName}" — โปรดโหลด Template.csv ของเมนูนี้ก่อนกรอกข้อมูล`,
+            type: 'error',
+          });
+        }
+
         let count = 0;
+        const skipped = [];
+
         for (let i = 1; i < lines.length; i++) {
           const vals = parseRow(lines[i]);
           if (vals.every(v => !v)) continue; // skip blank rows
-          const rec = {};
-          headers.forEach((h, idx) => { const f = fieldMap[h]; if (f) rec[f] = vals[idx] || ''; });
-          const hasName = rec.name || rec.fullName;
-          if (!hasName) continue;
 
-          // Defaults per collection
+          const rec = {};
+          headers.forEach((h, idx) => {
+            const f = fieldMap[h];
+            if (f) rec[f] = (vals[idx] || '').trim();
+          });
+
+          // ── Validate required ──
+          const hasName = (rec.name || rec.fullName || '').trim();
+          if (!hasName) { skipped.push(i + 1); continue; }
+
+          // ── Defaults + type conversion per collection ──
           if (colName === 'assets') {
-            rec.status       = rec.status || 'พร้อมใช้งาน';
-            rec.quantity     = 1;
+            rec.cost           = toNumber(rec.cost) || 0;
+            rec.status         = rec.status || 'พร้อมใช้งาน';
+            rec.tier           = rec.tier || 'General';
+            rec.quantity       = 1;
             rec.brokenQuantity = 0;
-            rec.assignedTo   = null;
-            rec.assignedName = null;
-          } else if (colName === 'accessories') {
-            rec.quantity     = Number(rec.quantity) || 1;
-            rec.brokenQuantity = 0;
-            rec.status       = 'พร้อมใช้งาน';
-            rec.assignees    = [];
-          } else if (colName === 'licenses') {
-            rec.quantity     = Number(rec.quantity) || 1;
-            rec.status       = 'พร้อมใช้งาน';
-            rec.assignees    = [];
-            rec.assignedTo   = null;
-            rec.assignedName = null;
+            rec.assignedTo     = null;
+            rec.assignedName   = null;
           }
+          else if (colName === 'accessories') {
+            rec.quantity       = toNumber(rec.quantity) || 1;
+            rec.cost           = toNumber(rec.cost) || 0;
+            rec.brokenQuantity = 0;
+            rec.status         = 'พร้อมใช้งาน';
+            rec.assignees      = [];
+          }
+          else if (colName === 'licenses') {
+            rec.quantity       = toNumber(rec.quantity) || 1;
+            rec.cost           = toNumber(rec.cost) || 0;
+            rec.status         = 'พร้อมใช้งาน';
+            rec.assignees      = [];
+            rec.assignedTo     = null;
+            rec.assignedName   = null;
+          }
+          else if (colName === 'office_supplies') {
+            rec.quantity       = toNumber(rec.quantity) || 0;
+            rec.cost           = toNumber(rec.cost) || 0;
+            rec.unit           = rec.unit || 'ชิ้น';
+            rec.status         = 'พร้อมใช้งาน';
+          }
+
           rec.createdAt = serverTimestamp();
           await addDoc(collection(db, colName), rec);
           count++;
         }
 
         setIsImportModalOpen(false);
-        setCustomAlert({ isOpen: true, title: 'นำเข้าสำเร็จ!', message: `นำเข้าข้อมูล ${count} รายการเรียบร้อยแล้ว`, type: 'success' });
+        const msgParts = [`นำเข้าข้อมูล ${count} รายการเรียบร้อยแล้ว`];
+        if (skipped.length > 0) {
+          msgParts.push(`(ข้ามแถวที่ไม่มีชื่อ: ${skipped.slice(0, 5).join(', ')}${skipped.length > 5 ? '...' : ''})`);
+        }
+        setCustomAlert({
+          isOpen: true,
+          title: count > 0 ? 'นำเข้าสำเร็จ!' : 'ไม่พบข้อมูลที่นำเข้าได้',
+          message: msgParts.join('\n'),
+          type: count > 0 ? 'success' : 'error',
+        });
       } catch (err) {
         setCustomAlert({ isOpen: true, title: 'นำเข้าไม่สำเร็จ', message: err.message, type: 'error' });
       }

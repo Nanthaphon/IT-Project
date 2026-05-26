@@ -8,6 +8,28 @@ import {
 import { DAMAGE_FEE_TABLE } from '../utils/printHandoverForm.js';
 import { RETURN_PHOTO_SLOTS, DAMAGE_PHOTO_SLOTS, printReturnForm } from '../utils/printReturnForm.js';
 import { compressImages } from '../utils/compressImage.js';
+import { migrateFields } from './ConditionCapture.jsx';
+
+/* ── Pre-fill 18 sub-items จาก 6 หมวด in-app
+ * แต่ละ in-app key (index 0-5) ตรงกับ ASSESSMENT_SECTIONS index 0-5
+ * ── */
+const IN_APP_KEY_BY_SECTION = ['case', 'display', 'keyboard', 'software', 'performance', 'accessories'];
+
+function inAppFieldsToAssessment(inAppFields) {
+  if (!inAppFields || typeof inAppFields !== 'object') return buildEmptyAssessment();
+  // migrate ก่อน เผื่อเป็น shape เก่า
+  const fields = migrateFields(inAppFields);
+  const a = {};
+  ASSESSMENT_SECTIONS.forEach((sec, si) => {
+    const key    = IN_APP_KEY_BY_SECTION[si];
+    const status = fields[key]?.status || 'normal';
+    const max    = itemMaxScore(si);
+    sec.items.forEach(([no]) => {
+      a[no] = { status, score: scoreFromStatus(status, max) };
+    });
+  });
+  return a;
+}
 
 const STATUS_OPTIONS = [
   { value: 'normal',  label: 'ปกติ',  color: 'emerald' },
@@ -46,10 +68,18 @@ export default function PreReturnAssessmentModal({
   returnDate,     // ISO string or '' (from return transaction)
   // optional pre-fill from saved data
   presetAssessment = null,
+  // ── Pre-fill 18 sub-items จาก 6 หมวด in-app (Option B mapping) ──
+  inAppFieldsReturn   = null,  // returnFields ของ tx รับคืน
+  inAppFieldsHandover = null,  // checkoutFields ของ tx เบิกจ่าย
 }) {
-  const [assessmentReturn,   setAssessmentReturn]   = useState(() => presetAssessment || buildEmptyAssessment());
-  const [assessmentHandover, setAssessmentHandover] = useState(() => buildEmptyAssessment());
-  const [showHandover, setShowHandover] = useState(false);
+  const [assessmentReturn,   setAssessmentReturn]   = useState(() =>
+    presetAssessment || inAppFieldsToAssessment(inAppFieldsReturn)
+  );
+  const [assessmentHandover, setAssessmentHandover] = useState(() =>
+    inAppFieldsToAssessment(inAppFieldsHandover)
+  );
+  // เปิดแท็บ "ขา 1" อัตโนมัติถ้ามีข้อมูล in-app ของ handover
+  const [showHandover, setShowHandover] = useState(!!inAppFieldsHandover);
   const [photosReturn, setPhotosReturn] = useState({});
   const [photosDamage, setPhotosDamage] = useState({});
   const [damages, setDamages] = useState([]); // [{ name, fee }]

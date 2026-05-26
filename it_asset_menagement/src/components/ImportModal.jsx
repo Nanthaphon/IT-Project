@@ -1,6 +1,53 @@
 import React from 'react';
-import { Upload, Download, FileSpreadsheet } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, Info } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
+
+/* ── รายการ field ที่แต่ละ entity import ได้ — แสดงเป็น preview ในกล่อง info ── */
+const FIELDS_BY_MENU = {
+  assets: {
+    title: 'ทรัพย์สิน IT หลัก',
+    fields: [
+      'ชื่ออุปกรณ์ (จำเป็น)', 'ประเภท', 'แผนก',
+      'รหัสทรัพย์สิน', 'Serial Number', 'ยี่ห้อ/รุ่น',
+      'บริษัท', 'ผู้จัดจำหน่าย', 'วันที่ซื้อ (YYYY-MM-DD)',
+      'วันหมด Warranty', 'ราคา', 'Tier (General/Data/Graphic-DX)',
+      'หมายเหตุ', 'สถานะ',
+    ],
+  },
+  licenses: {
+    title: 'โปรแกรม / ใบอนุญาต',
+    fields: [
+      'ชื่อโปรแกรม (จำเป็น)', 'Product Key', 'รหัส Key',
+      'Supplier', 'วันที่ซื้อ (YYYY-MM-DD)', 'วันหมดอายุ',
+      'ราคา', 'จำนวนสิทธิ์', 'หมายเหตุ',
+    ],
+  },
+  accessories: {
+    title: 'อุปกรณ์เสริม',
+    fields: [
+      'ชื่ออุปกรณ์ (จำเป็น)', 'ประเภท', 'จำนวนทั้งหมด',
+      'ราคา', 'วันที่ซื้อ', 'วันหมด Warranty',
+      'ผู้จัดจำหน่าย', 'หมายเหตุ',
+    ],
+  },
+  office_supplies: {
+    title: 'อุปกรณ์สำนักงาน',
+    fields: [
+      'ชื่ออุปกรณ์ (จำเป็น)', 'ประเภท', 'จำนวน',
+      'หน่วยนับ (ชิ้น/กล่อง/ด้าม)', 'ราคา', 'วันที่ซื้อ',
+      'ผู้จัดจำหน่าย', 'หมายเหตุ',
+    ],
+  },
+  employees: {
+    title: 'พนักงาน',
+    fields: [
+      'รหัสพนักงาน (จำเป็น)', 'รหัสบัตรประชาชน', 'ชื่อ-นามสกุล (จำเป็น)',
+      'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก',
+      'บริษัท', 'ตำแหน่ง', 'หัวหน้า',
+      'เบอร์โทร', 'M365 Email', 'M365 Password',
+    ],
+  },
+};
 
 export default function ImportModal({
   isImportModalOpen,
@@ -11,11 +58,8 @@ export default function ImportModal({
 }) {
   if (!isImportModalOpen) return null;
 
-  const title =
-    activeMenu === 'accessories' ? 'อุปกรณ์เสริม' :
-    activeMenu === 'assets'      ? 'ทรัพย์สินหลัก' :
-    activeMenu === 'licenses'    ? 'โปรแกรม / License' :
-    'พนักงาน';
+  const meta = FIELDS_BY_MENU[activeMenu] || FIELDS_BY_MENU.employees;
+  const title = meta.title;
 
   const close = () => setIsImportModalOpen(false);
 
@@ -28,6 +72,35 @@ export default function ImportModal({
         onClose={close}
       />
       <ModalBody className="space-y-4">
+        {/* ── Field preview — ให้ผู้ใช้รู้ว่าจะ import field อะไรบ้าง ── */}
+        <div className="bg-blue-50/60 ring-1 ring-blue-200 p-4 rounded-xl">
+          <div className="flex items-start gap-2.5">
+            <Info className="h-4 w-4 text-[#1E487A] mt-0.5 shrink-0" strokeWidth={2.2} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-semibold text-[#1E487A] mb-1.5">
+                คอลัมน์ที่ระบบจะนำเข้า ({meta.fields.length} คอลัมน์):
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {meta.fields.map((f, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center text-[11.5px] font-medium px-2 py-0.5 rounded-md ring-1 ring-inset ${
+                      f.includes('จำเป็น')
+                        ? 'bg-rose-50 text-rose-700 ring-rose-200'
+                        : 'bg-white text-slate-700 ring-slate-200'
+                    }`}
+                  >
+                    {f}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-500 mt-2 leading-snug">
+                💡 Template มีแถวตัวอย่าง 1 แถว ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Step 1 */}
         <div className="bg-slate-50/70 ring-1 ring-slate-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">

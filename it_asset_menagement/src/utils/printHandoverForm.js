@@ -5,13 +5,7 @@
 
 import { renderAppendix } from './printAppendix.js';
 import { printViaIframe } from './printViaIframe.js';
-
-function getCompanyLogo(company) {
-  if (!company) return '/gb_logo.webp';
-  const c = String(company).toLowerCase();
-  if (c.includes('best') || c.includes('hrm')) return '/besthrm_logo.webp';
-  return '/gb_logo.webp';
-}
+import { getCompanyInfo } from './companyInfo.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
@@ -55,9 +49,9 @@ export const ASSESSMENT_SECTIONS = [
   {
     title: '5. ประสิทธิภาพการทำงาน', max: 15,
     items: [
-      ['5.1', 'Battery Health',          'ความจุ ≥ 80% ของ Design Capacity'],
-      ['5.2', 'ระบบระบายความร้อน',       'พัดลมทำงานปกติ ไม่ร้อนผิดปกติ'],
-      ['5.3', 'Boot Time / ประสิทธิภาพ', 'Boot ภายใน 60 วินาที ไม่ค้าง/หน่วง'],
+      ['5.1', 'ระบบระบายความร้อน',                 'พัดลมทำงานปกติ ไม่มีเสียงผิดปกติ อุณหภูมิ CPU Idle ไม่เกิน 55°C'],
+      ['5.2', 'Boot Time และการตอบสนองระบบ',       'บูตสำเร็จภายใน 60 วินาที ไม่มี crash/freeze ระบบตอบสนองได้ปกติ'],
+      ['5.3', 'สุขภาพ Storage / พื้นที่ว่าง',       'SSD ทำงานปกติ ไม่มี Bad Sector พื้นที่ว่างไม่ต่ำกว่า 50 GB'],
     ],
   },
   {
@@ -126,14 +120,11 @@ export const DAMAGE_FEE_TABLE = [
   [12, 'พอร์ต USB / HDMI / USB-C ชำรุด',        1000, 1500,  2500, 'ต่อพอร์ต'],
   [13, 'Charger / Adapter หาย',                  800, 1200,  2000, ''],
   [14, 'Charger สายฉีก / ชำรุด',                 400,  600,  1000, ''],
-  { group: 'แบตเตอรี่' },
-  [15, 'Battery Health 60-79% (ก่อนครบอายุ)',  1500, 2000,  3000, 'ตรวจสอบด้วย Battery Report'],
-  [16, 'Battery Health ต่ำกว่า 60% (ก่อนครบอายุ)', 2500, 3500, 5000, ''],
   { group: 'กรณีพิเศษ' },
-  [17, 'น้ำเข้า — ซ่อมได้',                    3000, 5000,  8000, 'บวกค่าซ่อมจริง'],
-  [18, 'น้ำเข้า — ซ่อมไม่ได้ / Motherboard เสีย', 'ราคาตลาด', 'ราคาตลาด', 'ราคาตลาด', 'ณ วันเกิดเหตุ'],
-  [19, 'ทำหาย / สูญหาย',                       'ราคาตลาด', 'ราคาตลาด', 'ราคาตลาด', 'แจ้ง IT+ประกัน'],
-  [20, 'ถูกโจรกรรม (มีใบแจ้งความ)',            '50% ราคาตลาด', '50% ราคาตลาด', '50% ราคาตลาด', 'ต้องมีใบแจ้งความ'],
+  [15, 'น้ำเข้า — ซ่อมได้',                    3000, 5000,  8000, 'บวกค่าซ่อมจริง'],
+  [16, 'น้ำเข้า — ซ่อมไม่ได้ / Motherboard เสีย', 'ราคาตลาด', 'ราคาตลาด', 'ราคาตลาด', 'ณ วันเกิดเหตุ'],
+  [17, 'ทำหาย / สูญหาย',                       'ราคาตลาด', 'ราคาตลาด', 'ราคาตลาด', 'แจ้ง IT+ประกัน'],
+  [18, 'ถูกโจรกรรม (มีใบแจ้งความ)',            '50% ราคาตลาด', '50% ราคาตลาด', '50% ราคาตลาด', 'ต้องมีใบแจ้งความ'],
 ];
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -148,7 +139,7 @@ export function printHandoverForm({
 }) {
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-  const logoUrl = getCompanyLogo(employee.company);
+  const companyInfo = getCompanyInfo(employee.company);
   const docNo = formNumber || `IT-FORM-001-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}-${(employee.empId || '').slice(-4)}`;
 
   /* ── Marker helpers (filled ✓ vs empty ☐) ── */
@@ -296,15 +287,15 @@ export function printHandoverForm({
       <tr>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
           <div style="display:flex;align-items:center;gap:8px">
-            <img src="${logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
+            <img src="${companyInfo.logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#1E487A;line-height:1.2">Globe Syndicate<br/>(Thailand) Co., Ltd.</div>
+              <div style="font-size:10px;font-weight:700;color:#1E487A;line-height:1.2">${companyInfo.nameEn}</div>
             </div>
           </div>
         </td>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบส่งมอบทรัพย์สิน IT</div>
-          <div style="font-size:10px;color:#475569;margin-top:1px">IT Asset Management &nbsp;|&nbsp; บริษัท โกลบ ซินดิเคท (ประเทศไทย) จำกัด</div>
+          <div style="font-size:10px;color:#475569;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
         </td>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
           <div><b>เลขที่:</b> ${docNo}</div>
@@ -481,7 +472,7 @@ export function printHandoverForm({
 
   </div><!-- end page 3 (defects + photos + terms + signatures) -->
 
-  ${renderAppendix({ employeeName: employee.fullName, docNo, thDate })}
+  ${renderAppendix({ employeeName: employee.fullName, docNo, thDate, companyInfo })}
 
 </body>
 </html>`;

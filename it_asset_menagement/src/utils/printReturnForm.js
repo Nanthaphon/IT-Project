@@ -5,6 +5,7 @@
 
 import { renderAppendix } from './printAppendix.js';
 import { printViaIframe } from './printViaIframe.js';
+import { getCompanyInfo } from './companyInfo.js';
 import {
   ASSESSMENT_SECTIONS,
   itemMaxScore,
@@ -25,13 +26,6 @@ export const DAMAGE_PHOTO_SLOTS = [
   { key: 'damage3', label: 'ความเสียหายที่ 3' },
   { key: 'damage4', label: 'ความเสียหายที่ 4' },
 ];
-
-function getCompanyLogo(company) {
-  if (!company) return '/gb_logo.webp';
-  const c = String(company).toLowerCase();
-  if (c.includes('best') || c.includes('hrm')) return '/besthrm_logo.webp';
-  return '/gb_logo.webp';
-}
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
@@ -57,7 +51,7 @@ export function printReturnForm({
 }) {
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
-  const logoUrl = getCompanyLogo(employee.company);
+  const companyInfo = getCompanyInfo(employee.company);
   const docNo = formNumber
     || `IT-FORM-002-${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}-${(employee.empId||'').slice(-4)}`;
 
@@ -213,6 +207,8 @@ export function printReturnForm({
     .page { page-break-after:always; }
     .page:last-child { page-break-after:auto; }
     table { border-collapse:collapse; width:100%; }
+    /* Keep logical groups together — prevent ugly mid-table page breaks */
+    .keep-together { page-break-inside: avoid; }
     @media print {
       body { padding:0; }
       .no-print { display:none !important; }
@@ -223,7 +219,8 @@ export function printReturnForm({
 <body>
 
   <!-- ════════════════════════════════════════════════ -->
-  <!--          หน้าที่ 1 — Header + Summary + Assess (1) -->
+  <!--   หน้าที่ 1+2 — Header + Summary + Assess + Comp + Damages
+        (flow ต่อเนื่อง ให้ browser เติม section ที่ขาดอัตโนมัติ)  -->
   <!-- ════════════════════════════════════════════════ -->
   <div class="page">
 
@@ -238,15 +235,15 @@ export function printReturnForm({
       <tr>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
           <div style="display:flex;align-items:center;gap:8px">
-            <img src="${logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
+            <img src="${companyInfo.logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#1E487A;line-height:1.2">Globe Syndicate<br/>(Thailand) Co., Ltd.</div>
+              <div style="font-size:10px;font-weight:700;color:#1E487A;line-height:1.2">${companyInfo.nameEn}</div>
             </div>
           </div>
         </td>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบรับคืนทรัพย์สิน IT</div>
-          <div style="font-size:10px;color:#475569;margin-top:1px">IT Asset Management &nbsp;|&nbsp; บริษัท โกลบ ซินดิเคท (ประเทศไทย) จำกัด</div>
+          <div style="font-size:10px;color:#475569;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
         </td>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
           <div><b>เลขที่:</b> ${docNo}</div>
@@ -298,14 +295,8 @@ export function printReturnForm({
       </tbody>
     </table>
 
-  </div><!-- end page 1 -->
-
-  <!-- ════════════════════════════════════════════════ -->
-  <!--          หน้าที่ 2 — เปรียบเทียบ + ค่าปรับ           -->
-  <!-- ════════════════════════════════════════════════ -->
-  <div class="page">
-
-    <!-- ── 3. สรุปคะแนนเปรียบเทียบ ── -->
+    <!-- ── 3. สรุปคะแนนเปรียบเทียบ (flow ต่อจาก assessment, ไม่บังคับขึ้นหน้าใหม่) ── -->
+    <div class="keep-together">
     ${sectionBar(3, 'สรุปคะแนนเปรียบเทียบ ขา 1 vs ขา 2')}
     <table>
       <thead>
@@ -327,8 +318,10 @@ export function printReturnForm({
       </tbody>
     </table>
     <div style="font-size:10px;color:#475569;margin-top:4px">เกณฑ์เกรด: A = 90-100 | B = 75-89 | C = 60-74 | D = ต่ำกว่า 60 (ต้องพิจารณาค่าปรับ)</div>
+    </div><!-- /keep-together (section 3) -->
 
     <!-- ── 4. รายการความเสียหายและค่าปรับ ── -->
+    <div class="keep-together">
     ${sectionBar(4, 'รายการความเสียหายและการคำนวณค่าปรับ')}
     <table>
       <thead>
@@ -347,8 +340,12 @@ export function printReturnForm({
       </tbody>
     </table>
     <div style="font-size:10px;color:#475569;margin-top:4px">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${tier} &nbsp;|&nbsp; ใช้ราคาตามใบเสนอราคาซ่อมจริงหากต่างจากตาราง</div>
+    <div style="margin-top:6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:3px;font-size:10px;line-height:1.65;color:#78350f">
+      <b>หมายเหตุ:</b> ตัวเลขที่ระบุในตารางค่าปรับเป็นราคาอ้างอิงเบื้องต้น (Preliminary Reference Price) ไม่ถือเป็นค่าใช้จ่ายที่ผูกพันทางสัญญา ค่าใช้จ่ายที่แท้จริงจะกำหนดตามใบเสนอราคาจากผู้ให้บริการซ่อมที่ได้รับการอนุมัติจากบริษัท และจะแจ้งให้พนักงานรับทราบเป็นลายลักษณ์อักษรก่อนดำเนินการหักเงินทุกกรณี
+    </div>
+    </div><!-- /keep-together (section 4) -->
 
-  </div><!-- end page 2 -->
+  </div><!-- end page (assessment + comparison + damages flow together) -->
 
   <!-- ════════════════════════════════════════════════ -->
   <!--          หน้าที่ 3 — รูปภาพ + เงื่อนไข + ลายเซ็น     -->
@@ -409,7 +406,7 @@ export function printReturnForm({
   </div><!-- end page 3 -->
 
   <!-- ═══════════════ ภาคผนวก (shared with IT-FORM-001) ═══════════════ -->
-  ${renderAppendix({ employeeName: employee.fullName, docNo, thDate })}
+  ${renderAppendix({ employeeName: employee.fullName, docNo, thDate, companyInfo })}
 
 </body>
 </html>`;

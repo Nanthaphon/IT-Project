@@ -11,7 +11,9 @@ const appendixBar = (n, label) => `
     ส่วนที่ ${n} — ${label}
   </div>`;
 
-export function renderAppendix({ employeeName = '', docNo = '', thDate = '' } = {}) {
+export function renderAppendix({ employeeName = '', docNo = '', thDate = '', companyInfo = null } = {}) {
+  // ── ใช้ชื่อบริษัทตามที่ส่งมา (จาก employee.company) — fallback เป็น Globe Syndicate ──
+  const companyNameTh = companyInfo?.nameTh || 'บริษัท โกลบ ซินดิเคท (ประเทศไทย) จำกัด';
   // ── Build fee rows from shared table ──
   const feeRows = DAMAGE_FEE_TABLE.map(row => {
     if (row.group) {
@@ -38,7 +40,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '' } = 
     <div style="text-align:center;margin-bottom:8px;padding-top:6px">
       <div style="font-size:15px;font-weight:700;color:#1E487A">รายละเอียดแนบท้าย</div>
       <div style="font-size:11px;color:#475569">เอกสารส่งมอบและรับคืนทรัพย์สิน IT &nbsp;|&nbsp; IT-FORM-001 &amp; IT-FORM-002</div>
-      <div style="font-size:10.5px;color:#475569">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; บริษัท โกลบ ซินดิเคท (ประเทศไทย) จำกัด</div>
+      <div style="font-size:10.5px;color:#475569">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; ${companyNameTh}</div>
     </div>
 
     ${appendixBar(1, 'วัตถุประสงค์และขอบเขต')}
@@ -83,7 +85,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '' } = 
         <tr><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">2</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">จอภาพ</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ไม่มีรอย Dead Pixel ≤3</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">Dead Pixel 4-10 / Backlight</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">จอแตก / Dead Pixel &gt;10</td><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">20</td></tr>
         <tr><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">3</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">คีย์บอร์ด/Touchpad</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ครบ / ตอบสนองปกติ</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">หัก 1-5 ปุ่ม / Touchpad ช้า</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">หักหลายปุ่ม / Touchpad เสีย</td><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">15</td></tr>
         <tr><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">4</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">OS/ซอฟต์แวร์</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">Activated / ครบ / สะอาด</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">Software บางตัวหาย / Update ค้าง</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ไม่ Activate / มี Malware</td><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">20</td></tr>
-        <tr><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">5</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ประสิทธิภาพ</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">Battery ≥80% Boot &lt;60s</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">Battery 60-79% / Boot ช้า</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">Battery &lt;60% / ระบบค้าง</td><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">15</td></tr>
+        <tr><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">5</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ประสิทธิภาพ</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ระบายดี / บูตเร็ว / SSD ปกติ</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">พัดลมดัง / Boot ช้า / พื้นที่น้อย</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">ร้อนจัด / ระบบค้าง / SSD เสีย</td><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">15</td></tr>
         <tr><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">6</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">อุปกรณ์เสริม/พอร์ต</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">พอร์ตครบ / Charger ครบ</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">พอร์ต 1 จุดเสีย / Charger หัก</td><td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">หลายพอร์ตเสีย / Charger หาย</td><td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;font-size:10.5px">10</td></tr>
       </tbody>
     </table>
@@ -129,16 +131,18 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '' } = 
       <tbody>${feeRows}</tbody>
     </table>
     <div style="font-size:9.5px;color:#475569;margin-top:4px">* ค่าปรับใช้ราคาในตารางเป็นขั้นต่ำ หากราคาซ่อมจริงสูงกว่าให้ใช้ราคาตามใบเสนอราคา</div>
+    <div style="margin-top:6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:3px;font-size:10px;line-height:1.65;color:#78350f">
+      <b>หมายเหตุ:</b> ตัวเลขที่ระบุในตารางค่าปรับเป็นราคาอ้างอิงเบื้องต้น (Preliminary Reference Price) ไม่ถือเป็นค่าใช้จ่ายที่ผูกพันทางสัญญา ค่าใช้จ่ายที่แท้จริงจะกำหนดตามใบเสนอราคาจากผู้ให้บริการซ่อมที่ได้รับการอนุมัติจากบริษัท และจะแจ้งให้พนักงานรับทราบเป็นลายลักษณ์อักษรก่อนดำเนินการหักเงินทุกกรณี
+    </div>
 
     ${appendixBar(6, 'ข้อยกเว้นการหักค่าเสียหาย')}
     <div style="border:1px solid #cbd5e1;padding:8px 14px;border-radius:3px;font-size:10.5px;line-height:1.85">
       <div style="font-weight:700;margin-bottom:4px">รายการต่อไปนี้ได้รับการยกเว้นจากการหักค่าเสียหาย:</div>
       <div>1. การเสื่อมสภาพตามอายุการใช้งานปกติ เช่น สีซีดเล็กน้อยจากการใช้งาน รอยถูบนฐานเครื่องที่เกิดจากการวางบนโต๊ะ</div>
       <div>2. รอยแตกร้าวที่เกิดจากข้อบกพร่องของผู้ผลิต (Manufacturing Defect) โดยต้องผ่านการยืนยันจากศูนย์บริการ</div>
-      <div>3. Battery Health ที่ลดลงตามอายุการใช้งานปกติ กรณีใช้งานเกิน 2 ปี ถือว่าปกติหากสูงกว่า 60%</div>
-      <div>4. Dead Pixel ที่มีอยู่ตั้งแต่ก่อนส่งมอบ และถูกบันทึกไว้ในขา 1 (IT-FORM-001) ก่อนลงนาม</div>
-      <div>5. ความเสียหายที่เกิดจากเหตุสุดวิสัย เช่น ภัยธรรมชาติ โดยต้องมีหลักฐานประกอบ</div>
-      <div>6. การชำรุดเสียหายที่ผ่านการซ่อมโดย IT แผนกและมีบันทึกการซ่อมอยู่แล้ว</div>
+      <div>3. Dead Pixel ที่มีอยู่ตั้งแต่ก่อนส่งมอบ และถูกบันทึกไว้ในขา 1 (IT-FORM-001) ก่อนลงนาม</div>
+      <div>4. ความเสียหายที่เกิดจากเหตุสุดวิสัย เช่น ภัยธรรมชาติ โดยต้องมีหลักฐานประกอบ</div>
+      <div>5. การชำรุดเสียหายที่ผ่านการซ่อมโดย IT แผนกและมีบันทึกการซ่อมอยู่แล้ว</div>
     </div>
 
   </div>

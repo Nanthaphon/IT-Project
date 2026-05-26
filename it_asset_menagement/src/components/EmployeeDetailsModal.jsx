@@ -445,6 +445,9 @@ export default function EmployeeDetailsModal({
           mainAsset={printReturnFor.asset}
           handoverDate={printReturnFor.period.checkout?.timestamp}
           returnDate={printReturnFor.period.return?.timestamp}
+          // Pre-fill 18 sub-items จาก 6 หมวด in-app
+          inAppFieldsReturn={printReturnFor.period.return?.returnFields}
+          inAppFieldsHandover={printReturnFor.period.checkout?.checkoutFields}
         />
       )}
     </div>

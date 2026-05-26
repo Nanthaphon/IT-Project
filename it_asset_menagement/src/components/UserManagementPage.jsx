@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth, functions } from '../firebase.js';
+import { db, auth } from '../firebase.js';
 import {
   collection, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp,
 } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
 import { Plus, Pencil, Trash2, Users, Shield, Eye, CheckSquare, Square, X, KeyRound } from 'lucide-react';
 import { cls, BRAND } from '../ui/theme.js';
 
@@ -126,15 +125,20 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
     setPwSaving(true);
     try {
-      // ── เรียก Firebase Callable Function (มี auth token ใส่ให้อัตโนมัติ) ──
-      const setUserPassword = httpsCallable(functions, 'setUserPassword');
-      await setUserPassword({ targetUid: pwUser.id, newPassword: pwValue });
+      // ── เรียก Vercel API endpoint (api/set-password.js) ──
+      const idToken = await auth.currentUser.getIdToken();
+      const resp = await fetch('/api/set-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, targetUid: pwUser.id, newPassword: pwValue }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'รีเซ็ตรหัสผ่านไม่สำเร็จ');
       setPwSuccess('ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว');
       setPwValue('');
       setPwConfirm('');
     } catch (err) {
       console.error(err);
-      // Firebase Functions error format: err.message มีข้อความที่ throw จาก HttpsError
       setPwError(err.message || 'รีเซ็ตรหัสผ่านไม่สำเร็จ');
     } finally {
       setPwSaving(false);

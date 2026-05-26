@@ -137,7 +137,7 @@ function App() {
   const [assetDocument, setAssetDocument] = useState(null);
 
   const [empForm, setEmpForm] = useState({
-    fullName: '', fullNameEng: '', empId: '', nationalId: '', department: '',
+    fullName: '', fullNameEng: '', empId: '', department: '',
     company: '', position: '', nickname: '', manager: '', phone: '',
     m365Email: '', m365Password: ''
   });
@@ -429,8 +429,21 @@ function App() {
   };
 
   const handleUpdateReplacementStatus = async (id, newStatus) => {
-    try { await updateDoc(doc(db, 'replacement_requests', id), { status: newStatus }); } 
+    try { await updateDoc(doc(db, 'replacement_requests', id), { status: newStatus }); }
     catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+  };
+
+  // พนักงานแก้ไขข้อมูลส่วนตัวของตัวเอง
+  const handleStaffUpdateProfile = async (updates) => {
+    if (!currentStaff) return;
+    try {
+      await updateDoc(doc(db, 'employees', currentStaff.id), updates);
+      setCurrentStaff(prev => ({ ...prev, ...updates }));
+      setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว', type: 'success' });
+    } catch (err) {
+      setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: err.message, type: 'error' });
+      throw err;
+    }
   };
 
   const handleDeleteReplacement = (id) => {
@@ -535,7 +548,7 @@ function App() {
     if (isDuplicate) return setCustomAlert({ isOpen: true, title: 'ข้อมูลซ้ำซ้อน!', message: `รหัสพนักงาน หรือ ชื่อ-นามสกุล นี้มีอยู่ในระบบแล้ว`, type: 'error' });
     try {
       await addDoc(collection(db, 'employees'), { ...empForm, createdAt: serverTimestamp() });
-      setEmpForm({ fullName: '', fullNameEng: '', empId: '', nationalId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '' });
+      setEmpForm({ fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '' });
       setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
@@ -790,12 +803,12 @@ function App() {
     }
     else {
       headers = [
-        'รหัสพนักงาน', 'รหัสบัตรประชาชน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น',
+        'รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น',
         'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร',
         'M365 Email', 'M365 Password',
       ];
       example = [
-        'EMP001', '', 'นายตัวอย่าง ทดสอบ', 'Sample Test', 'ทอม',
+        'EMP001', 'นายตัวอย่าง ทดสอบ', 'Sample Test', 'ทอม',
         'IT', 'Globe Syndicate (Thailand) Co., Ltd.', 'IT Support', '', '081-234-5678',
         'sample@globesyndicate.com', '',
       ];
@@ -870,7 +883,7 @@ function App() {
             'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'ผู้จัดจำหน่าย': 'vendor', 'หมายเหตุ': 'note',
           },
           employees: {
-            'รหัสพนักงาน': 'empId', 'รหัสบัตรประชาชน': 'nationalId',
+            'รหัสพนักงาน': 'empId',
             'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
             'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
@@ -1486,6 +1499,7 @@ function App() {
         replacementRequests={replacementRequests}
         handleStaffSubmitReplacement={handleStaffSubmitReplacement}
         handleSubmitEvaluation={handleSubmitEvaluation}
+        handleStaffUpdateProfile={handleStaffUpdateProfile}
       />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </React.Fragment>

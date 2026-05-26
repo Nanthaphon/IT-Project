@@ -36,23 +36,23 @@ export default function LoginView({
 
       {!showAdminLogin ? (
         /* ── Role selection ── */
-        <div className="w-full max-w-3xl mx-auto flex flex-col items-center relative z-10">
+        <div className="w-full max-w-xl mx-auto flex flex-col items-center relative z-10">
 
           {/* Logo + title */}
           <div className="text-center mb-10">
             <Logo />
-            <h1 className="text-[29px] font-semibold text-slate-900 mb-2 tracking-tight">
+            <h1 className="text-[34px] font-semibold text-slate-900 mb-2 tracking-tight">
               ระบบจัดการทรัพย์สิน IT
             </h1>
-            <p className="text-slate-500 text-sm">กรุณาเลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
+            <p className="text-slate-500 text-[15.5px]">เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
           </div>
 
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full px-2 md:px-0">
+          {/* Role buttons — compact horizontal pills */}
+          <div className="w-full space-y-3.5">
             <RoleCard
               icon={User}
               title="พนักงานทั่วไป"
-              description="เข้าสู่ระบบเพื่อสร้างรายการแจ้งปัญหา IT และติดตามสถานะ"
+              description="แจ้งปัญหา IT และติดตามสถานะ"
               hintIcon={IdCard}
               hint="ใช้รหัสพนักงาน"
               onClick={() => setAuthRole('staff')}
@@ -60,12 +60,18 @@ export default function LoginView({
             <RoleCard
               icon={ShieldCheck}
               title="เจ้าหน้าที่ IT (Admin)"
-              description="เข้าสู่ระบบเพื่อจัดการทรัพย์สิน, โปรแกรม และคิวงานแจ้งซ่อม"
+              description="จัดการทรัพย์สิน โปรแกรม และคิวงาน"
               hintIcon={Lock}
-              hint="จำเป็นต้องใช้รหัสผ่าน (Password)"
+              hint="ต้องใช้รหัสผ่าน"
               onClick={() => setShowAdminLogin(true)}
+              accent
             />
           </div>
+
+          {/* Footer hint */}
+          <p className="mt-9 text-[12.5px] text-slate-400 text-center">
+            © {new Date().getFullYear()} Globe Syndicate — IT Asset Management
+          </p>
         </div>
       ) : (
         /* ── Admin login form ── */
@@ -178,53 +184,61 @@ export default function LoginView({
 function Logo() {
   return (
     <div
-      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-[#1E487A]/25 ring-1 ring-white/50"
+      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-[#1E487A]/25 ring-1 ring-white/50"
       style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
     >
       <img
         src="/gb_icon.svg"
         alt="Logo"
-        className="w-7 h-7 object-contain"
+        className="w-8 h-8 object-contain"
         style={{ filter: 'brightness(0) invert(1)' }}
       />
     </div>
   );
 }
 
-function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, onClick }) {
+function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, onClick, accent = false }) {
   return (
     <button
       onClick={onClick}
-      className="group bg-white p-8 rounded-2xl ring-1 ring-slate-200/70 flex flex-col items-center text-center
-                 hover:ring-[#1E487A]/30 hover:shadow-xl hover:shadow-[#1E487A]/8 hover:-translate-y-0.5
-                 transition-all duration-200 relative overflow-hidden"
+      className={`group w-full bg-white rounded-2xl ring-1 flex items-center gap-5 px-6 py-5 text-left
+                  transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl
+                  ${accent
+                    ? 'ring-[#1E487A]/15 hover:ring-[#1E487A]/40 hover:shadow-[#1E487A]/10'
+                    : 'ring-slate-200/70 hover:ring-[#1E487A]/30 hover:shadow-slate-300/30'
+                  }`}
     >
-      {/* Hover gradient overlay */}
+      {/* Icon */}
       <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-        style={{
-          background: 'linear-gradient(135deg, rgba(30,72,122,0.04) 0%, rgba(30,72,122,0) 70%)',
-        }}
-      />
-
-      <div
-        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 transition-all duration-200 relative"
-        style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
+        className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
+          accent ? 'text-white' : ''
+        }`}
+        style={
+          accent
+            ? { background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.primaryDark} 100%)` }
+            : { background: `${BRAND.primary}10`, color: BRAND.primary }
+        }
       >
-        <Icon className="h-7 w-7" strokeWidth={1.7} />
+        <Icon className="h-6 w-6" strokeWidth={1.85} />
       </div>
 
-      <h2 className="text-[19px] font-semibold text-slate-900 group-hover:text-[#1E487A] mb-2 transition-colors duration-200 relative">
-        {title}
-      </h2>
-      <p className="text-slate-500 text-[14.5px] leading-relaxed mb-5 relative">{description}</p>
-
-      <div className="mt-auto pt-4 w-full border-t border-slate-100 relative">
-        <p className="text-slate-400 text-[12.5px] font-medium flex items-center justify-center gap-1.5">
-          <HintIcon className="h-3.5 w-3.5" strokeWidth={1.8} />
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <h2 className="text-[18px] font-semibold text-slate-900 group-hover:text-[#1E487A] transition-colors leading-tight">
+          {title}
+        </h2>
+        <p className="text-slate-500 text-[14px] mt-1 leading-snug">{description}</p>
+        <p className="text-slate-400 text-[12.5px] font-medium flex items-center gap-1.5 mt-1.5">
+          <HintIcon className="h-3.5 w-3.5" strokeWidth={2} />
           {hint}
         </p>
       </div>
+
+      {/* Arrow */}
+      <ArrowRight
+        className="h-5 w-5 text-slate-300 shrink-0 group-hover:text-[#1E487A] group-hover:translate-x-0.5 transition-all"
+        strokeWidth={2.2}
+      />
     </button>
   );
 }

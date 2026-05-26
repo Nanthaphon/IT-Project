@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Star, Sparkles } from 'lucide-react';
+import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X } from 'lucide-react';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 
 /* ════════════════════════════════════════════════
@@ -193,6 +193,7 @@ export default function StaffView({
   assets = [], accessories = [], licenses = [],
   replacementRequests = [], handleStaffSubmitReplacement,
   handleSubmitEvaluation,
+  handleStaffUpdateProfile,
 }) {
   /* ── satisfaction survey state ── */
   const [surveyModal, setSurveyModal] = useState({ isOpen: false, repair: null });
@@ -215,6 +216,45 @@ export default function StaffView({
   const ITEMS_PER_PAGE = 15;
 
   const [rememberMe, setRememberMe] = useState(false);
+
+  /* ── Edit profile state ── */
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({});
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const startEditProfile = () => {
+    setProfileForm({
+      fullName:     currentStaff.fullName     || '',
+      fullNameEng:  currentStaff.fullNameEng  || '',
+      nickname:     currentStaff.nickname     || '',
+      position:     currentStaff.position     || '',
+      department:   currentStaff.department   || '',
+      company:      currentStaff.company      || '',
+      phone:        currentStaff.phone        || '',
+      manager:      currentStaff.manager      || '',
+      m365Email:    currentStaff.m365Email    || '',
+      m365Password: currentStaff.m365Password || '',
+    });
+    setIsEditingProfile(true);
+  };
+
+  const cancelEditProfile = () => {
+    setIsEditingProfile(false);
+    setProfileForm({});
+  };
+
+  const saveProfile = async () => {
+    if (!handleStaffUpdateProfile) return;
+    setIsSavingProfile(true);
+    try {
+      await handleStaffUpdateProfile(profileForm);
+      setIsEditingProfile(false);
+    } catch (e) {
+      // alert already shown by handler
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -351,11 +391,11 @@ export default function StaffView({
   const currentSupplyRequests = mySupplyReqs.slice((supplyPage - 1) * ITEMS_PER_PAGE, supplyPage * ITEMS_PER_PAGE);
 
   const tabs = [
-    { id: 'profile',         label: 'ข้อมูลของฉัน' },
-    { id: 'it_repair',       label: 'แจ้งปัญหา IT',     count: myRequests.length },
-    { id: 'replacement',     label: 'ขอเปลี่ยนเครื่อง',  count: myReplacementReqs.length },
-    { id: 'office_supplies', label: 'เบิกอุปกรณ์',       count: mySupplyReqs.length },
-    { id: 'my_assets',       label: 'ทรัพย์สินของฉัน',   count: myAssetsList.length },
+    { id: 'profile',         label: 'ข้อมูลของฉัน',     icon: User },
+    { id: 'it_repair',       label: 'แจ้งปัญหา IT',     icon: Wrench,   count: myRequests.length,         color: 'rose' },
+    { id: 'replacement',     label: 'ขอเปลี่ยนเครื่อง',  icon: RefreshCw, count: myReplacementReqs.length, color: 'amber' },
+    { id: 'office_supplies', label: 'เบิกอุปกรณ์',       icon: Package,  count: mySupplyReqs.length,       color: 'emerald' },
+    { id: 'my_assets',       label: 'ทรัพย์สินของฉัน',   icon: Laptop,   count: myAssetsList.length,       color: 'blue' },
   ];
 
   const statusBadge = (status) => {
@@ -494,64 +534,143 @@ export default function StaffView({
         </div>
 
         {/* ── Tab bar ── */}
-        <div className="bg-white rounded-xl ring-1 ring-slate-200/70 shadow-sm px-2 flex overflow-x-auto">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-[14px] font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-[#1E487A] text-[#1E487A]'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {tab.label}
-              <span className={`text-[11.5px] px-1.5 py-0.5 rounded-full font-semibold tabular-nums ${
-                activeTab === tab.id ? 'bg-[#1E487A]/10 text-[#1E487A]' : 'bg-slate-100 text-slate-500'
-              }`}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+        <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm p-1.5 flex gap-1 overflow-x-auto">
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2.5 px-4 py-2.5 text-[13.5px] font-semibold whitespace-nowrap rounded-xl transition-all flex-1 justify-center min-w-fit ${
+                  isActive
+                    ? 'bg-[#1E487A] text-white shadow-md shadow-[#1E487A]/20'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                {Icon && <Icon className="h-[17px] w-[17px] shrink-0" strokeWidth={isActive ? 2.2 : 1.9} />}
+                <span>{tab.label}</span>
+                {typeof tab.count === 'number' && (
+                  <span className={`text-[11px] min-w-[18px] h-[18px] px-1.5 rounded-full font-bold tabular-nums inline-flex items-center justify-center ${
+                    isActive ? 'bg-white/20 text-white' : tab.count > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-400'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* ==================== TAB: ข้อมูลของฉัน ==================== */}
         {activeTab === 'profile' && (
+          <>
+          {/* Quick Actions — ปุ่มลัดสำหรับงานที่ใช้บ่อย */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <QuickAction
+              icon={Wrench}
+              label="แจ้งปัญหา IT"
+              hint="เครื่องเสีย, โปรแกรมขัดข้อง"
+              tone="rose"
+              onClick={() => setActiveTab('it_repair')}
+            />
+            <QuickAction
+              icon={RefreshCw}
+              label="ขอเปลี่ยนเครื่อง"
+              hint="เครื่องช้า/ชำรุดหนัก"
+              tone="amber"
+              onClick={() => setActiveTab('replacement')}
+            />
+            <QuickAction
+              icon={Package}
+              label="เบิกอุปกรณ์"
+              hint="เครื่องเขียน, เม้าส์, คีย์บอร์ด"
+              tone="emerald"
+              onClick={() => setActiveTab('office_supplies')}
+            />
+            <QuickAction
+              icon={Laptop}
+              label="ทรัพย์สินของฉัน"
+              hint={`${myAssetsList.length} รายการในชื่อคุณ`}
+              tone="blue"
+              onClick={() => setActiveTab('my_assets')}
+            />
+          </div>
+
           <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+
+            {/* ── Edit toggle / Save / Cancel ── */}
+            <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-[15px] font-semibold text-slate-800">ข้อมูลของฉัน</h3>
+                <p className="text-[12.5px] text-slate-500 mt-0.5">
+                  {isEditingProfile ? 'กำลังแก้ไข — กรอกข้อมูลให้ครบถ้วนแล้วกด "บันทึก"' : 'หากต้องการอัปเดตข้อมูล กดปุ่ม "แก้ไข"'}
+                </p>
+              </div>
+              {!isEditingProfile ? (
+                <button
+                  onClick={startEditProfile}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold text-[#1E487A] bg-[#1E487A]/8 ring-1 ring-[#1E487A]/15 hover:bg-[#1E487A]/15 transition-colors shrink-0"
+                >
+                  <Pencil className="h-3.5 w-3.5" strokeWidth={2.2} />
+                  แก้ไข
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={cancelEditProfile}
+                    disabled={isSavingProfile}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-semibold text-slate-600 bg-white ring-1 ring-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                  >
+                    <X className="h-3.5 w-3.5" strokeWidth={2.2} /> ยกเลิก
+                  </button>
+                  <button
+                    onClick={saveProfile}
+                    disabled={isSavingProfile}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] transition-colors shadow-sm disabled:opacity-60"
+                  >
+                    {isSavingProfile
+                      ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังบันทึก...</>
+                      : <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึก</>
+                    }
+                  </button>
+                </div>
+              )}
+            </div>
 
             <Section title="ข้อมูลส่วนตัวและตำแหน่ง">
               <InfoGrid>
-                <InfoItem label="ชื่อ-นามสกุล (TH)" value={currentStaff.fullName} />
-                <InfoItem label="ชื่อ-นามสกุล (EN)" value={currentStaff.fullNameEng} />
-                <InfoItem label="ชื่อเล่น"          value={currentStaff.nickname} />
-                <InfoItem label="รหัสพนักงาน"      value={currentStaff.empId} mono />
-                <InfoItem label="เลขบัตรประชาชน"   value={currentStaff.nationalId} mono />
-                <InfoItem label="ตำแหน่ง"          value={currentStaff.position} />
-                <InfoItem label="แผนก"             value={currentStaff.department} />
-                <InfoItem label="บริษัท"           value={currentStaff.company} />
+                <EditableItem label="ชื่อ-นามสกุล (TH)" name="fullName"     editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.fullName} />
+                <EditableItem label="ชื่อ-นามสกุล (EN)" name="fullNameEng"  editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.fullNameEng} />
+                <EditableItem label="ชื่อเล่น"          name="nickname"     editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.nickname} />
+                <InfoItem     label="รหัสพนักงาน"      value={currentStaff.empId} mono />
+                <EditableItem label="ตำแหน่ง"          name="position"     editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.position} />
+                <EditableItem label="แผนก"             name="department"   editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.department} />
+                <EditableItem label="บริษัท"           name="company"      editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.company} />
               </InfoGrid>
             </Section>
 
             <Section title="ข้อมูลการติดต่อ">
               <InfoGrid>
-                <InfoItem label="เบอร์โทรศัพท์" value={currentStaff.phone} />
-                <InfoItem label="หัวหน้างาน"   value={currentStaff.manager} />
+                <EditableItem label="เบอร์โทรศัพท์" name="phone"   editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.phone} />
+                <EditableItem label="หัวหน้างาน"   name="manager" editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.manager} />
               </InfoGrid>
             </Section>
 
-            {(currentStaff.m365Email || currentStaff.m365Password) && (
+            {(isEditingProfile || currentStaff.m365Email || currentStaff.m365Password) && (
               <Section title="บัญชี Microsoft 365">
                 <InfoGrid>
-                  <InfoItem label="อีเมล Microsoft 365"    value={currentStaff.m365Email}    accent />
-                  <InfoItem label="รหัสผ่าน Microsoft 365" value={currentStaff.m365Password} mono />
+                  <EditableItem label="อีเมล Microsoft 365"    name="m365Email"    editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.m365Email}    accent />
+                  <EditableItem label="รหัสผ่าน Microsoft 365" name="m365Password" editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.m365Password} mono />
                 </InfoGrid>
               </Section>
             )}
 
             <p className="text-[12px] text-slate-400 leading-relaxed">
-              * หากข้อมูลไม่ถูกต้อง กรุณาติดต่อฝ่าย IT หรือ HR เพื่อขอแก้ไข
+              * รหัสพนักงานไม่สามารถแก้ไขได้ หากไม่ถูกต้องกรุณาติดต่อฝ่าย IT หรือ HR
             </p>
           </div>
+          </>
         )}
 
         {/* ==================== TAB: แจ้งปัญหา IT ==================== */}
@@ -1051,6 +1170,34 @@ function EvaluationCell({ req, onOpen }) {
   );
 }
 
+/* ─────── QuickAction — ปุ่มลัดบนแท็บข้อมูลของฉัน ─────── */
+function QuickAction({ icon: Icon, label, hint, tone = 'blue', onClick }) {
+  const toneMap = {
+    rose:    { bg: 'bg-rose-50',    text: 'text-rose-600',    iconBg: 'bg-rose-500',    ring: 'hover:ring-rose-300' },
+    amber:   { bg: 'bg-amber-50',   text: 'text-amber-600',   iconBg: 'bg-amber-500',   ring: 'hover:ring-amber-300' },
+    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', iconBg: 'bg-emerald-500', ring: 'hover:ring-emerald-300' },
+    blue:    { bg: 'bg-blue-50',    text: 'text-blue-600',    iconBg: 'bg-[#1E487A]',   ring: 'hover:ring-[#1E487A]/40' },
+  }[tone];
+  return (
+    <button
+      onClick={onClick}
+      className={`group bg-white rounded-2xl ring-1 ring-slate-200/70 p-4 sm:p-5 flex flex-col items-start gap-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg ${toneMap.ring}`}
+    >
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-md ${toneMap.iconBg}`}>
+        <Icon className="h-[19px] w-[19px]" strokeWidth={2} />
+      </div>
+      <div className="w-full">
+        <p className="text-[15px] font-semibold text-slate-900 leading-tight group-hover:text-[#1E487A] transition-colors">{label}</p>
+        <p className="text-[12px] text-slate-500 mt-1 leading-snug line-clamp-1">{hint}</p>
+      </div>
+      <div className="flex items-center gap-1 text-[12px] font-semibold text-slate-400 group-hover:text-[#1E487A] transition-colors mt-auto">
+        ไปที่หน้านี้
+        <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.2} />
+      </div>
+    </button>
+  );
+}
+
 /* ── Tiny helper components ── */
 
 function Section({ title, children }) {
@@ -1073,6 +1220,27 @@ function InfoItem({ label, value, accent, mono }) {
       <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
+    </div>
+  );
+}
+
+/* ─────── EditableItem — สลับระหว่าง view / edit mode ─────── */
+function EditableItem({ label, name, value, accent, mono, editing, form, setForm }) {
+  if (!editing) {
+    return <InfoItem label={label} value={value} accent={accent} mono={mono} />;
+  }
+  return (
+    <div className="flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0 bg-blue-50/30">
+      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{label}</span>
+      <input
+        type="text"
+        value={form[name] ?? ''}
+        onChange={(e) => setForm(prev => ({ ...prev, [name]: e.target.value }))}
+        className={`w-full bg-white border border-slate-200 px-2.5 py-1.5 rounded-md text-sm
+                    focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] transition
+                    ${accent ? 'text-[#1E487A] font-medium' : 'text-slate-800'}
+                    ${mono ? 'font-mono' : ''}`}
+      />
     </div>
   );
 }

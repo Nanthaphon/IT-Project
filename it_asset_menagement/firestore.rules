@@ -23,5 +23,10 @@ service cloud.firestore {
       allow write: if true;
     }
 
+    // 4. อนุญาตให้พนักงานทั่วไปแก้ไขข้อมูลส่วนตัวของตัวเองได้ (update เท่านั้น ไม่อนุญาต create/delete)
+    match /employees/{document} {
+      allow update: if true;
+    }
+
   }
 }

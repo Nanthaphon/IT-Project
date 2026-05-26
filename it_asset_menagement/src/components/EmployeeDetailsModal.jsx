@@ -160,7 +160,6 @@ export default function EmployeeDetailsModal({
                 <InfoGrid>
                   <InfoItem label="ชื่อ-นามสกุล (TH)"  value={selectedEmployee.fullName} />
                   <InfoItem label="ชื่อ-นามสกุล (EN)"  value={selectedEmployee.fullNameEng} />
-                  <InfoItem label="เลขบัตรประชาชน"     value={selectedEmployee.nationalId} />
                   <InfoItem label="ตำแหน่ง"            value={selectedEmployee.position} />
                   <InfoItem label="แผนก"               value={selectedEmployee.department} />
                   <InfoItem label="บริษัท"             value={selectedEmployee.company} />

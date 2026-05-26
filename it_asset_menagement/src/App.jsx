@@ -126,7 +126,7 @@ function App() {
   const [quantity, setQuantity] = useState(1); 
   const [unit, setUnit] = useState('ชิ้น'); 
   const [assetImage, setAssetImage] = useState(null); 
-  const [assetDepartment, setAssetDepartment] = useState('DX');
+  const [assetDepartment, setAssetDepartment] = useState('');
 
   const [sn, setSn] = useState('');
   const [company, setCompany] = useState('');
@@ -518,10 +518,10 @@ function App() {
         await addDoc(collection(db, collectionName), {
           name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
           assignees: activeMenu === 'accessories' ? [] : null,
-          department: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: activeMenu === 'accessories' ? note : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
+          forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: activeMenu === 'accessories' ? note : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
         });
       }
-      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX'); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
+      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment(''); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
       setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
   };
@@ -971,7 +971,7 @@ function App() {
     const filtered = assets.filter(item =>
       (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) &&
       (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) &&
-      (assetFilterDepartment === 'ทั้งหมด' || item.department === assetFilterDepartment)
+      (assetFilterDepartment === 'ทั้งหมด' || item.forDepartment === assetFilterDepartment)
     );
     const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'แผนก', 'รหัสทรัพย์สิน', 'Serial Number', 'ยี่ห้อ/รุ่น', 'ผู้จัดจำหน่าย', 'บริษัท', 'วันที่ซื้อ', 'วันหมด Warranty', 'ราคา', 'ผู้ครอบครอง', 'สถานะ']];
     filtered.forEach(item => rows.push([
@@ -1370,7 +1370,7 @@ function App() {
   };
 
   let baseData = [];
-  if (activeMenu === 'assets') baseData = assets.filter(item => (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) && (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) && (assetFilterDepartment === 'ทั้งหมด' || item.department === assetFilterDepartment));
+  if (activeMenu === 'assets') baseData = assets.filter(item => (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) && (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) && (assetFilterDepartment === 'ทั้งหมด' || item.forDepartment === assetFilterDepartment));
   else if (activeMenu === 'licenses') baseData = licenses;
   else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees;
   else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);

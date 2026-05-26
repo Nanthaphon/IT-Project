@@ -284,11 +284,11 @@ export default function AddModal({
                       placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
-                  <Field label="แผนก" required>
+                  <Field label="สำหรับแผนก" required>
                     <FieldOptionSelect
                       value={assetDepartment}
                       onChange={setAssetDepartment}
-                      options={fieldOptions.departments || []}
+                      options={fieldOptions.forDepartments || []}
                       placeholder="เลือกหรือพิมพ์ใหม่"
                       required
                     />

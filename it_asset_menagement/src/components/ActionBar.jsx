@@ -113,10 +113,10 @@ export default function ActionBar({
         {activeMenu === 'assets' && (
           <>
             <FilterSelect value={assetFilterDepartment} onChange={setAssetFilterDepartment}>
-              <option value="ทั้งหมด">แผนก: ทั้งหมด</option>
-              <option value="DX">DX</option>
-              <option value="BD">BD</option>
+              <option value="ทั้งหมด">สำหรับแผนก: ทั้งหมด</option>
               <option value="General">General</option>
+              <option value="Design Experience">Design Experience</option>
+              <option value="Business Development">Business Development</option>
             </FilterSelect>
             <FilterSelect value={assetFilterType} onChange={setAssetFilterType}>
               <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>

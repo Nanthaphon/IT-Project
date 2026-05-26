@@ -132,8 +132,19 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken, targetUid: pwUser.id, newPassword: pwValue }),
       });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'รีเซ็ตรหัสผ่านไม่สำเร็จ');
+      // อ่าน body แบบปลอดภัย — server อาจตอบ body ว่าง (404/500/crash)
+      const raw = await resp.text();
+      let data = {};
+      if (raw) {
+        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
+      }
+      if (!resp.ok) {
+        const fallback =
+          resp.status === 404
+            ? 'ไม่พบ API endpoint (/api/set-password) — ต้อง deploy บน Vercel หรือรัน `vercel dev` ในเครื่อง'
+            : `รีเซ็ตรหัสผ่านไม่สำเร็จ (HTTP ${resp.status})`;
+        throw new Error(data.error || fallback);
+      }
       setPwSuccess('ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว');
       setPwValue('');
       setPwConfirm('');

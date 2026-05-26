@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save, CheckCircle2, AlertTriangle, SlidersHorizontal, Info } from 'lucide-react';
+import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save, CheckCircle2, AlertTriangle, SlidersHorizontal, Info, Briefcase } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
 const CATEGORIES = [
@@ -26,6 +26,14 @@ const CATEGORIES = [
     color: 'emerald',
     description: 'ใช้ในฟอร์มทรัพย์สินและพนักงาน',
     placeholder: 'เช่น DX, BD, IT, HR, Finance...',
+  },
+  {
+    key: 'forDepartments',
+    label: 'สำหรับแผนก',
+    icon: Briefcase,
+    color: 'blue',
+    description: 'ใช้ในฟอร์มทรัพย์สินหลัก (ระบุว่าทรัพย์สินสำหรับแผนกใด)',
+    placeholder: 'เช่น General, Design Experience, Business Development...',
   },
   {
     key: 'positions',

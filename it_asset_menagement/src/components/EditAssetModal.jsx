@@ -224,12 +224,12 @@ export default function EditAssetModal({
                       placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
-                  <Field label="แผนก" required>
+                  <Field label="สำหรับแผนก" required>
                     <FieldOptionSelect
-                      name="department"
-                      value={editAssetModal.data.department || ''}
+                      name="forDepartment"
+                      value={editAssetModal.data.forDepartment || ''}
                       onChange={handleEditAssetChange}
-                      options={fieldOptions.departments || []}
+                      options={fieldOptions.forDepartments || []}
                       placeholder="เลือกหรือพิมพ์ใหม่"
                       required
                     />

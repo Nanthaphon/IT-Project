@@ -1574,6 +1574,7 @@ function App() {
                   handleExportLicenses={handleExportLicenses} selectedLicenseIds={selectedLicenseIds}
                   visibleLicenseColumns={visibleLicenseColumns} setVisibleLicenseColumns={setVisibleLicenseColumns}
                   canEdit={canEdit}
+                  fieldOptions={fieldOptions}
                 />
                 
                 {currentData.length === 0 ? (

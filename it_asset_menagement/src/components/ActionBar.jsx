@@ -36,6 +36,7 @@ export default function ActionBar({
   visibleLicenseColumns,
   setVisibleLicenseColumns,
   canEdit,
+  fieldOptions = {},
 }) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = React.useState(false);
   const columnDropdownRef = React.useRef(null);
@@ -114,9 +115,9 @@ export default function ActionBar({
           <>
             <FilterSelect value={assetFilterDepartment} onChange={setAssetFilterDepartment}>
               <option value="ทั้งหมด">สำหรับแผนก: ทั้งหมด</option>
-              <option value="General">General</option>
-              <option value="Design Experience">Design Experience</option>
-              <option value="Business Development">Business Development</option>
+              {(fieldOptions.forDepartments || []).map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
             </FilterSelect>
             <FilterSelect value={assetFilterType} onChange={setAssetFilterType}>
               <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>

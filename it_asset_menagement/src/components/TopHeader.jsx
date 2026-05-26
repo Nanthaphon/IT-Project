@@ -74,8 +74,8 @@ export default function TopHeader({
               <Bell className="h-[18px] w-[18px]" strokeWidth={1.8} />
             )}
             {totalPendingCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[11px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none shadow-sm pointer-events-none">
-                {totalPendingCount > 9 ? '9+' : totalPendingCount}
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-[5px] bg-rose-500 text-white text-[10.5px] font-bold rounded-full ring-2 ring-white inline-flex items-center justify-center shadow-sm pointer-events-none tabular-nums">
+                <span className="leading-none">{totalPendingCount > 9 ? '9+' : totalPendingCount}</span>
               </span>
             )}
           </button>

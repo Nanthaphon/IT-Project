@@ -111,12 +111,12 @@ export default function PreHandoverAssessmentModal({
               <div className="text-[12px] opacity-80 font-medium">คะแนนรวม (100)</div>
               <div className="text-[34px] font-bold leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
             </div>
-            <div className="text-right">
-              <div className="text-[12px] opacity-80 font-medium">เกรด</div>
-              <div className={`text-[34px] font-extrabold leading-none mt-1 bg-white rounded-lg px-4 py-1 inline-block ${gradeColor}`}>
+            <div className="flex flex-col items-center gap-1.5 shrink-0">
+              <div className="text-[10.5px] opacity-80 font-semibold tracking-[0.14em] uppercase">เกรด</div>
+              <div className={`w-14 h-14 rounded-xl bg-white shadow-sm ring-1 ring-white/40 flex items-center justify-center text-[30px] font-extrabold leading-none ${gradeColor}`}>
                 {grade}
               </div>
-              <div className="text-[11px] opacity-80 mt-1">
+              <div className="text-[11px] opacity-90 font-medium leading-tight text-center max-w-[140px]">
                 {grade === 'A' ? 'ดีเยี่ยม' : grade === 'B' ? 'ผ่าน (มีรอยเล็กน้อย)' : grade === 'C' ? 'ต้องซ่อม' : 'เสียหายหนัก'}
               </div>
             </div>

@@ -7,7 +7,7 @@ import { DAMAGE_FEE_TABLE } from './printHandoverForm.js';
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
 const appendixBar = (n, label) => `
-  <div style="background:#475569;color:#fff;padding:5px 12px;font-size:11px;font-weight:700;margin:10px 0 5px;border-radius:3px">
+  <div style="background:#000;color:#fff;padding:5px 12px;font-size:11px;font-weight:700;margin:10px 0 5px;border-radius:3px">
     ส่วนที่ ${n} — ${label}
   </div>`;
 
@@ -17,7 +17,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
   // ── Build fee rows from shared table ──
   const feeRows = DAMAGE_FEE_TABLE.map(row => {
     if (row.group) {
-      return `<tr style="background:#f1f5f9"><td colspan="6" style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10.5px;font-weight:700;color:#1E487A">${row.group}</td></tr>`;
+      return `<tr style="background:#f1f5f9"><td colspan="6" style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10.5px;font-weight:700;color:#000">${row.group}</td></tr>`;
     }
     const [no, name, gen, data, gx, note] = row;
     const cellVal = (v) => typeof v === 'number' ? fmtTHB(v) : v;
@@ -38,7 +38,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
   <!-- ════════════════════════════════════════════════ -->
   <div class="page">
     <div style="text-align:center;margin-bottom:8px;padding-top:6px">
-      <div style="font-size:15px;font-weight:700;color:#1E487A">รายละเอียดแนบท้าย</div>
+      <div style="font-size:15px;font-weight:700;color:#000">รายละเอียดแนบท้าย</div>
       <div style="font-size:11px;color:#000">เอกสารส่งมอบและรับคืนทรัพย์สิน IT &nbsp;|&nbsp; IT-FORM-001 &amp; IT-FORM-002</div>
       <div style="font-size:10.5px;color:#000">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; ${companyNameTh}</div>
     </div>
@@ -189,7 +189,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
     <div style="border:1px solid #cbd5e1;padding:10px 14px;border-radius:3px;font-size:11px;line-height:1.85">
       <div style="font-weight:700;margin-bottom:4px">การคำนวณค่าปรับตามอายุการใช้งาน (Depreciation Policy)</div>
       <div>บริษัทกำหนดนโยบายค่าปรับตามอายุการใช้งานของอุปกรณ์ IT ดังนี้:</div>
-      <div style="margin-top:6px;padding:6px 10px;background:#f8fafc;border-left:3px solid #1E487A">
+      <div style="margin-top:6px;padding:6px 10px;background:#f8fafc;border-left:3px solid #000">
         <div style="font-weight:600;margin-bottom:3px">General / Data / Graphic-DX : อายุอ้างอิง 3 ปีนับจากวันที่ลงนามรับมอบ</div>
         <div>• อายุ 0 - 1 ปี &nbsp;: คิดค่าปรับ <b>100%</b> ของตารางค่าปรับ</div>
         <div>• อายุ 1 - 2 ปี &nbsp;: คิดค่าปรับ <b>75%</b> ของตารางค่าปรับ</div>

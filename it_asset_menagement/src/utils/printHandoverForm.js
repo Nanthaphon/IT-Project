@@ -144,7 +144,7 @@ export function printHandoverForm({
 
   /* ── Marker helpers (filled ✓ vs empty ☐) ── */
   const mark = (filled) => filled
-    ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#1E487A;border:1px solid #1E487A;border-radius:2px;font-size:10px">✓</span>`
+    ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#000;border:1px solid #000;border-radius:2px;font-size:10px">✓</span>`
     : `<span style="display:inline-block;width:14px;height:14px;border:1.2px solid #94a3b8;border-radius:2px"></span>`;
 
   /* ── ส่วน 2: ข้อมูลอุปกรณ์ — แสดงทุกตัวที่พนักงานถือครอง ── */
@@ -186,8 +186,8 @@ export function printHandoverForm({
     let sectionScore = 0;
     const headerRow = `
       <tr style="background:#e2e8f0">
-        <td colspan="7" style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;color:#1E487A">${sec.title}</td>
-        <td style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;text-align:center;color:#1E487A">/${sec.max}</td>
+        <td colspan="7" style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;color:#000">${sec.title}</td>
+        <td style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;text-align:center;color:#000">/${sec.max}</td>
       </tr>`;
     const itemRows = sec.items.map(([no, name, criteria]) => {
       const cell = assessment[no] || {};
@@ -210,7 +210,7 @@ export function printHandoverForm({
       <tr style="background:#f8fafc">
         <td colspan="6" style="border:1px solid #cbd5e1;padding:3px 8px;font-size:10px;text-align:right;font-style:italic;color:#000">รวมหมวด</td>
         <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;color:#000">${sec.max}</td>
-        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;font-weight:700;color:#1E487A">${sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(2)}</td>
+        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;font-weight:700;color:#000">${sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(2)}</td>
       </tr>`;
     return headerRow + itemRows + subtotalRow;
   }).join('');
@@ -233,7 +233,7 @@ export function printHandoverForm({
 
   /* ── Section title bar ── */
   const sectionBar = (n, label) => `
-    <div style="background:#1E487A;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin:10px 0 5px;border-radius:3px">
+    <div style="background:#000;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin:10px 0 5px;border-radius:3px">
       ${n}. ${label}
     </div>`;
 
@@ -257,6 +257,13 @@ export function printHandoverForm({
       font-family:'Sarabun','Prompt',sans-serif;
       font-size:12px; color:#000; background:#fff;
       padding:14px 22px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    /* บังคับให้ทุก element พิมพ์สี background ออกมาด้วย (ไม่ต้องเปิด "Background graphics") */
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
     .page { page-break-after:always; }
     .page:last-child { page-break-after:auto; }
@@ -278,26 +285,26 @@ export function printHandoverForm({
     <!-- Title strip -->
     <div style="text-align:center;margin-bottom:6px">
       <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${docNo}</div>
-      <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.2;margin-top:2px">ใบส่งมอบทรัพย์สิน IT</div>
+      <div style="font-size:18px;font-weight:700;color:#000;line-height:1.2;margin-top:2px">ใบส่งมอบทรัพย์สิน IT</div>
       <div style="font-size:10.5px;color:#000">Pre-Handover Asset Transfer Form</div>
     </div>
 
     <!-- Header band -->
     <table style="margin-bottom:8px">
       <tr>
-        <td style="border:1px solid #1E487A;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
+        <td style="border:1px solid #000;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
           <div style="display:flex;align-items:center;gap:8px">
             <img src="${companyInfo.logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#1E487A;line-height:1.2">${companyInfo.nameEn}</div>
+              <div style="font-size:10px;font-weight:700;color:#000;line-height:1.2">${companyInfo.nameEn}</div>
             </div>
           </div>
         </td>
-        <td style="border:1px solid #1E487A;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
+        <td style="border:1px solid #000;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบส่งมอบทรัพย์สิน IT</div>
           <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
         </td>
-        <td style="border:1px solid #1E487A;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
+        <td style="border:1px solid #000;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
           <div><b>เลขที่:</b> ${docNo}</div>
           <div><b>วันที่:</b> ${thDate}</div>
           <div><b>Rev:</b> 01 &nbsp;|&nbsp; IT-POL-LAP-001</div>
@@ -305,7 +312,7 @@ export function printHandoverForm({
       </tr>
     </table>
 
-    <div style="background:#1E487A;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin-bottom:5px;border-radius:3px;display:flex;justify-content:space-between">
+    <div style="background:#000;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin-bottom:5px;border-radius:3px;display:flex;justify-content:space-between">
       <span>ขา 1 — ก่อนส่งมอบ (Pre-Handover)</span>
       <span style="font-weight:500;font-size:10.5px">เอกสารอ้างอิง: IT-POL-LAP-001 Rev.01</span>
     </div>
@@ -400,10 +407,10 @@ export function printHandoverForm({
         </tr>
       </thead>
       <tbody>${assessmentRows}
-        <tr style="background:#1E487A;color:#fff">
-          <td colspan="6" style="border:1px solid #1E487A;padding:7px 12px;font-size:13px;font-weight:700;text-align:right">รวมคะแนนทั้งหมด</td>
-          <td style="border:1px solid #1E487A;padding:7px;text-align:center;font-size:13px;font-weight:700">100</td>
-          <td style="border:1px solid #1E487A;padding:7px;text-align:center;font-size:13px;font-weight:700">${grandTotalDisplay}</td>
+        <tr style="background:#000;color:#fff">
+          <td colspan="6" style="border:1px solid #000;padding:7px 12px;font-size:13px;font-weight:700;text-align:right">รวมคะแนนทั้งหมด</td>
+          <td style="border:1px solid #000;padding:7px;text-align:center;font-size:13px;font-weight:700">100</td>
+          <td style="border:1px solid #000;padding:7px;text-align:center;font-size:13px;font-weight:700">${grandTotalDisplay}</td>
         </tr>
       </tbody>
     </table>

@@ -59,7 +59,7 @@ export function printReturnForm({
 
   /* ── Marker (filled ✓ or empty ☐) ── */
   const mark = (filled) => filled
-    ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#1E487A;border:1px solid #1E487A;border-radius:2px;font-size:10px">✓</span>`
+    ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#000;border:1px solid #000;border-radius:2px;font-size:10px">✓</span>`
     : `<span style="display:inline-block;width:14px;height:14px;border:1.2px solid #94a3b8;border-radius:2px"></span>`;
 
   /* ── Section assessment table rows (ขา 2 — main) ── */
@@ -70,8 +70,8 @@ export function printReturnForm({
     let sectionScore = 0;
     const headerRow = `
       <tr style="background:#e2e8f0">
-        <td colspan="7" style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;color:#1E487A">${sec.title}</td>
-        <td style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;text-align:center;color:#1E487A">/${sec.max}</td>
+        <td colspan="7" style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;color:#000">${sec.title}</td>
+        <td style="border:1px solid #94a3b8;padding:4px 8px;font-size:11px;font-weight:700;text-align:center;color:#000">/${sec.max}</td>
       </tr>`;
     const itemRows = sec.items.map(([no, name, criteria]) => {
       const cell = assessmentReturn[no] || {};
@@ -95,7 +95,7 @@ export function printReturnForm({
       <tr style="background:#f8fafc">
         <td colspan="6" style="border:1px solid #cbd5e1;padding:3px 8px;font-size:10px;text-align:right;font-style:italic;color:#000">รวมหมวด</td>
         <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;color:#000">${sec.max}</td>
-        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;font-weight:700;color:#1E487A">${sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(2)}</td>
+        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;font-weight:700;color:#000">${sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(2)}</td>
       </tr>`;
   }).join('');
   const grandReturnDisplay = grandTotalReturn % 1 === 0 ? grandTotalReturn : grandTotalReturn.toFixed(2);
@@ -134,7 +134,7 @@ export function printReturnForm({
       <tr>
         <td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px">${si+1}. ${sec.title.replace(/^\d+\.\s*/, '')} (เต็ม ${sec.max})</td>
         <td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px;text-align:center;font-weight:600">${h != null ? h : '...'}</td>
-        <td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px;text-align:center;font-weight:600;color:#1E487A">${r % 1 === 0 ? r : r.toFixed(2)}</td>
+        <td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px;text-align:center;font-weight:600;color:#000">${r % 1 === 0 ? r : r.toFixed(2)}</td>
         <td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px;text-align:center;font-weight:700;color:${diffColor}">${diffStr}</td>
       </tr>`;
   }).join('');
@@ -180,7 +180,7 @@ export function printReturnForm({
 
   /* ── Section title bar ── */
   const sectionBar = (n, label) => `
-    <div style="background:#1E487A;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin:10px 0 5px;border-radius:3px">
+    <div style="background:#000;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin:10px 0 5px;border-radius:3px">
       ${n}. ${label}
     </div>`;
 
@@ -203,6 +203,13 @@ export function printReturnForm({
       font-family:'Sarabun','Prompt',sans-serif;
       font-size:12px; color:#000; background:#fff;
       padding:14px 22px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    /* บังคับให้ทุก element พิมพ์สี background ออกมาด้วย (ไม่ต้องเปิด "Background graphics") */
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
     .page { page-break-after:always; }
     .page:last-child { page-break-after:auto; }
@@ -226,26 +233,26 @@ export function printReturnForm({
 
     <div style="text-align:center;margin-bottom:6px">
       <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${docNo}</div>
-      <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.2;margin-top:2px">ใบรับคืนทรัพย์สิน IT</div>
+      <div style="font-size:18px;font-weight:700;color:#000;line-height:1.2;margin-top:2px">ใบรับคืนทรัพย์สิน IT</div>
       <div style="font-size:10.5px;color:#000">Asset Return Assessment Form</div>
     </div>
 
     <!-- Header band -->
     <table style="margin-bottom:8px">
       <tr>
-        <td style="border:1px solid #1E487A;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
+        <td style="border:1px solid #000;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
           <div style="display:flex;align-items:center;gap:8px">
             <img src="${companyInfo.logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#1E487A;line-height:1.2">${companyInfo.nameEn}</div>
+              <div style="font-size:10px;font-weight:700;color:#000;line-height:1.2">${companyInfo.nameEn}</div>
             </div>
           </div>
         </td>
-        <td style="border:1px solid #1E487A;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
+        <td style="border:1px solid #000;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบรับคืนทรัพย์สิน IT</div>
           <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
         </td>
-        <td style="border:1px solid #1E487A;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
+        <td style="border:1px solid #000;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
           <div><b>เลขที่:</b> ${docNo}</div>
           <div><b>วันที่:</b> ${thDate}</div>
           <div><b>Rev:</b> 01 &nbsp;|&nbsp; IT-POL-LAP-001</div>
@@ -253,7 +260,7 @@ export function printReturnForm({
       </tr>
     </table>
 
-    <div style="background:#1E487A;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin-bottom:5px;border-radius:3px;display:flex;justify-content:space-between">
+    <div style="background:#000;color:#fff;padding:5px 12px;font-size:11.5px;font-weight:700;margin-bottom:5px;border-radius:3px;display:flex;justify-content:space-between">
       <span>ขา 2 — รับคืน (Return Assessment)</span>
       <span style="font-weight:500;font-size:10.5px">เกรด ${grade} &nbsp;|&nbsp; รวม ${grandReturnDisplay}/100</span>
     </div>
@@ -287,10 +294,10 @@ export function printReturnForm({
         </tr>
       </thead>
       <tbody>${assessmentRows}
-        <tr style="background:#1E487A;color:#fff">
-          <td colspan="6" style="border:1px solid #1E487A;padding:7px 12px;font-size:13px;font-weight:700;text-align:right">รวมคะแนนทั้งหมด</td>
-          <td style="border:1px solid #1E487A;padding:7px;text-align:center;font-size:13px;font-weight:700">100</td>
-          <td style="border:1px solid #1E487A;padding:7px;text-align:center;font-size:13px;font-weight:700">${grandReturnDisplay}</td>
+        <tr style="background:#000;color:#fff">
+          <td colspan="6" style="border:1px solid #000;padding:7px 12px;font-size:13px;font-weight:700;text-align:right">รวมคะแนนทั้งหมด</td>
+          <td style="border:1px solid #000;padding:7px;text-align:center;font-size:13px;font-weight:700">100</td>
+          <td style="border:1px solid #000;padding:7px;text-align:center;font-size:13px;font-weight:700">${grandReturnDisplay}</td>
         </tr>
       </tbody>
     </table>
@@ -312,7 +319,7 @@ export function printReturnForm({
         <tr style="background:#f1f5f9">
           <td style="border:1px solid #94a3b8;padding:7px 10px;font-size:12.5px;font-weight:700">รวม (100 คะแนน)</td>
           <td style="border:1px solid #94a3b8;padding:7px 10px;font-size:12.5px;font-weight:700;text-align:center">${anyHandoverScore ? (grandTotalHandover % 1 === 0 ? grandTotalHandover : grandTotalHandover.toFixed(2)) : '...'}</td>
-          <td style="border:1px solid #94a3b8;padding:7px 10px;font-size:12.5px;font-weight:700;text-align:center;color:#1E487A">${grandReturnDisplay}</td>
+          <td style="border:1px solid #94a3b8;padding:7px 10px;font-size:12.5px;font-weight:700;text-align:center;color:#000">${grandReturnDisplay}</td>
           <td style="border:1px solid #94a3b8;padding:7px 10px;font-size:12.5px;font-weight:700;text-align:center;color:${gradeColor}">เกรด: ${grade}</td>
         </tr>
       </tbody>

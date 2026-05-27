@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X } from 'lucide-react';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
+import { e, safeUrl } from '../utils/htmlEscape.js';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -24,10 +25,10 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
     ? myAssets.map((item, i) => `
         <tr>
           <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;text-align:center">${i + 1}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${item.name || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${item.type || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${item.sn || item.serialNumber || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${item.assetTag || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${e(item.name) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${e(item.type) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
         </tr>`).join('')
     : `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
 
@@ -35,7 +36,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
 <html lang="th">
 <head>
   <meta charset="UTF-8"/>
-  <title>ฟอร์มขอเปลี่ยนเครื่อง - ${staff.fullName}</title>
+  <title>ฟอร์มขอเปลี่ยนเครื่อง - ${e(staff.fullName)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -57,7 +58,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
 
   <!-- Header with company logo + title + date (compact one-line layout) -->
   <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
-    <img src="${logoUrl}" alt="logo" style="height:54px;width:auto;object-fit:contain;flex-shrink:0" />
+    <img src="${safeUrl(logoUrl)}" alt="logo" style="height:54px;width:auto;object-fit:contain;flex-shrink:0" />
     <div style="flex:1;text-align:center">
       <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.1">ฟอร์มขอเปลี่ยนเครื่องคอมพิวเตอร์</div>
       <div style="font-size:11px;color:#000;margin-top:2px">Computer Replacement Request Form</div>
@@ -80,23 +81,23 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 18px">
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">ชื่อ-นามสกุล</div>
-        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.fullName || '-'}</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${e(staff.fullName) || '-'}</div>
       </div>
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">รหัสพนักงาน</div>
-        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.empId || '-'}</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${e(staff.empId) || '-'}</div>
       </div>
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">แผนก</div>
-        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.department || '-'}</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${e(staff.department) || '-'}</div>
       </div>
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">ตำแหน่ง</div>
-        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.position || '-'}</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${e(staff.position) || '-'}</div>
       </div>
       <div style="grid-column:1 / -1">
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">หัวหน้างาน / ผู้บังคับบัญชา</div>
-        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${staff.manager || '-'}</div>
+        <div style="font-size:13px;font-weight:700;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px">${e(staff.manager) || '-'}</div>
       </div>
     </div>
   </div>
@@ -131,11 +132,11 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
   <div style="border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
     <div style="margin-bottom:6px">
       <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">สถานะเครื่องปัจจุบัน</div>
-      <div style="font-size:13px;font-weight:700;color:#000">${currentStatus}</div>
+      <div style="font-size:13px;font-weight:700;color:#000">${e(currentStatus)}</div>
     </div>
     <div>
       <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">รายละเอียด / เหตุผล</div>
-      <div style="font-size:13px;color:#000;line-height:1.7;min-height:40px;white-space:pre-wrap">${reason}</div>
+      <div style="font-size:13px;color:#000;line-height:1.7;min-height:40px;white-space:pre-wrap">${e(reason)}</div>
     </div>
   </div>
 
@@ -153,15 +154,15 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
     <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
       <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้ยื่นคำขอ (พนักงาน)</div>
       <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(${staff.fullName})</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">${staff.position || '............................'}</div>
+      <div style="font-size:13px;font-weight:700;color:#000">(${e(staff.fullName)})</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">${e(staff.position) || '............................'}</div>
       <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
     </div>
     <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
       <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">หัวหน้าแผนก (ผู้อนุมัติ)</div>
       <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(${staff.manager || '............................'})</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">หัวหน้าแผนก ${staff.department || ''}</div>
+      <div style="font-size:13px;font-weight:700;color:#000">(${e(staff.manager) || '............................'})</div>
+      <div style="font-size:12px;color:#000;margin-top:2px">หัวหน้าแผนก ${e(staff.department) || ''}</div>
       <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
     </div>
     <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
@@ -188,6 +189,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
 export default function StaffView({
   setAuthRole, currentStaff, setCurrentStaff,
   staffEmpIdInput, setStaffEmpIdInput, staffPasswordInput, setStaffPasswordInput, handleStaffLogin,
+  handleLogout,
   staffRepairForm, setStaffRepairForm, handleSubmitRepairRequest, repairRequests, editStaffRepairModal, setEditStaffRepairModal, handleStaffUpdateRepair, handleStaffDeleteRepair,
   officeSupplies = [], supplyRequests = [], handleStaffSubmitSupplyRequest,
   assets = [], accessories = [], licenses = [],
@@ -195,6 +197,8 @@ export default function StaffView({
   handleSubmitEvaluation,
   handleStaffUpdateProfile,
 }) {
+  const [showM365Password, setShowM365Password] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   /* ── satisfaction survey state ── */
   const [surveyModal, setSurveyModal] = useState({ isOpen: false, repair: null });
   const [autoPopupShown, setAutoPopupShown] = useState(false);
@@ -453,6 +457,30 @@ export default function StaffView({
                   className={inputCls} placeholder="เช่น EMP001" required autoFocus
                 />
               </div>
+              <div>
+                <label className={labelCls}>รหัสผ่าน</label>
+                <div className="relative">
+                  <input
+                    type={showLoginPassword ? 'text' : 'password'}
+                    value={staffPasswordInput}
+                    onChange={e => setStaffPasswordInput(e.target.value)}
+                    className={`${inputCls} pr-10`}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    tabIndex={-1}
+                    aria-label={showLoginPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                  >
+                    {showLoginPassword
+                      ? <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
+                      : <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+                  </button>
+                </div>
+              </div>
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
@@ -497,7 +525,7 @@ export default function StaffView({
           <span className="text-[14.5px] font-semibold text-slate-700 hidden sm:block tracking-tight">ระบบพนักงาน</span>
         </div>
         <button
-          onClick={() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
+          onClick={() => { (handleLogout || (() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }))(); }}
           className="text-[13.5px] font-medium text-slate-600 hover:text-rose-600 ring-1 ring-slate-200 hover:ring-rose-300 hover:bg-rose-50 px-3.5 py-1.5 rounded-lg transition-colors"
         >
           ออกจากระบบ
@@ -661,7 +689,11 @@ export default function StaffView({
               <Section title="บัญชี Microsoft 365">
                 <InfoGrid>
                   <EditableItem label="อีเมล Microsoft 365"    name="m365Email"    editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.m365Email}    accent />
-                  <EditableItem label="รหัสผ่าน Microsoft 365" name="m365Password" editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.m365Password} mono />
+                  {isEditingProfile ? (
+                    <EditableItem label="รหัสผ่าน Microsoft 365" name="m365Password" editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.m365Password} mono />
+                  ) : (
+                    <PasswordRevealItem label="รหัสผ่าน Microsoft 365" value={currentStaff.m365Password} show={showM365Password} setShow={setShowM365Password} />
+                  )}
                 </InfoGrid>
               </Section>
             )}
@@ -1220,6 +1252,49 @@ function InfoItem({ label, value, accent, mono }) {
       <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
+    </div>
+  );
+}
+
+/* ─────── PasswordRevealItem — show •••• with eye icon ─────── */
+function PasswordRevealItem({ label, value, show, setShow }) {
+  const hasValue = value && String(value).length > 0;
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    if (!hasValue) return;
+    try {
+      await navigator.clipboard.writeText(String(value));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* ignore */ }
+  };
+  return (
+    <div className="flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0">
+      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
+      {!hasValue ? (
+        <span className="text-sm text-slate-300">—</span>
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-800 font-mono select-all">
+            {show ? value : '•'.repeat(Math.min(String(value).length, 12))}
+          </span>
+          <button type="button" onClick={() => setShow(s => !s)}
+            className="text-slate-400 hover:text-[#1E487A] transition-colors"
+            title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+            aria-label={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}>
+            {show
+              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
+              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+          </button>
+          <button type="button" onClick={handleCopy}
+            className="text-slate-400 hover:text-[#1E487A] transition-colors"
+            title="คัดลอก" aria-label="คัดลอก">
+            {copied
+              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

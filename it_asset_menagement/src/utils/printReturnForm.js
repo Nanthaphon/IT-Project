@@ -6,6 +6,7 @@
 import { renderAppendix } from './printAppendix.js';
 import { printViaIframe } from './printViaIframe.js';
 import { getCompanyInfo } from './companyInfo.js';
+import { e, safeUrl } from './htmlEscape.js';
 import {
   ASSESSMENT_SECTIONS,
   itemMaxScore,
@@ -149,7 +150,7 @@ export function printReturnForm({
     damageRowsArr.push(`
       <tr>
         <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;font-size:11px;width:34px">${i + 1}</td>
-        <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px">${(d.name || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+        <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px">${e(d.name) || ''}</td>
         <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:right;font-size:11px;font-variant-numeric:tabular-nums">${fee ? fmtTHB(fee) : '-'}</td>
       </tr>`);
   });
@@ -169,10 +170,10 @@ export function printReturnForm({
   /* ── Photo cells (compact heights so all sections fit one page) ── */
   const photoCell = (src, label, big = false) => `
     <td style="border:1px solid #cbd5e1;padding:5px;vertical-align:top;width:${big ? '50%' : '33.33%'}">
-      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:3px;text-align:center">${label}</div>
+      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:3px;text-align:center">${e(label)}</div>
       ${src
         ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:${big ? '120px' : '100px'};overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
-             <img src="${src}" alt="${label}" style="max-width:100%;max-height:100%;object-fit:contain"/>
+             <img src="${safeUrl(src)}" alt="${e(label)}" style="max-width:100%;max-height:100%;object-fit:contain"/>
            </div>`
         : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:${big ? '120px' : '100px'};display:flex;align-items:center;justify-content:center;color:#000;font-size:11px">[ แนบรูปภาพ ]</div>`
       }
@@ -188,14 +189,14 @@ export function printReturnForm({
   const ic = (label, value) => `
     <div style="padding:3px 0">
       <div style="font-size:9.5px;color:#000;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px">${label}</div>
-      <div style="font-size:11px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px;min-height:18px">${value || ''}</div>
+      <div style="font-size:11px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px;min-height:18px">${e(value) || ''}</div>
     </div>`;
 
   const html = `<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8"/>
-  <title>${docNo} - ใบรับคืนทรัพย์สิน - ${employee.fullName}</title>
+  <title>${e(docNo)} - ใบรับคืนทรัพย์สิน - ${e(employee.fullName)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -232,7 +233,7 @@ export function printReturnForm({
   <div class="page">
 
     <div style="text-align:center;margin-bottom:6px">
-      <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${docNo}</div>
+      <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${e(docNo)}</div>
       <div style="font-size:18px;font-weight:700;color:#000;line-height:1.2;margin-top:2px">ใบรับคืนทรัพย์สิน IT</div>
       <div style="font-size:10.5px;color:#000">Asset Return Assessment Form</div>
     </div>
@@ -242,18 +243,18 @@ export function printReturnForm({
       <tr>
         <td style="border:1px solid #000;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
           <div style="display:flex;align-items:center;gap:8px">
-            <img src="${companyInfo.logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
+            <img src="${safeUrl(companyInfo.logoUrl)}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#000;line-height:1.2">${companyInfo.nameEn}</div>
+              <div style="font-size:10px;font-weight:700;color:#000;line-height:1.2">${e(companyInfo.nameEn)}</div>
             </div>
           </div>
         </td>
         <td style="border:1px solid #000;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบรับคืนทรัพย์สิน IT</div>
-          <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
+          <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${e(companyInfo.nameTh)}</div>
         </td>
         <td style="border:1px solid #000;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
-          <div><b>เลขที่:</b> ${docNo}</div>
+          <div><b>เลขที่:</b> ${e(docNo)}</div>
           <div><b>วันที่:</b> ${thDate}</div>
           <div><b>Rev:</b> 01 &nbsp;|&nbsp; IT-POL-LAP-001</div>
         </td>
@@ -346,7 +347,7 @@ export function printReturnForm({
         </tr>
       </tbody>
     </table>
-    <div style="font-size:10px;color:#000;margin-top:4px">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${tier} &nbsp;|&nbsp; ใช้ราคาตามใบเสนอราคาซ่อมจริงหากต่างจากตาราง</div>
+    <div style="font-size:10px;color:#000;margin-top:4px">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${e(tier)} &nbsp;|&nbsp; ใช้ราคาตามใบเสนอราคาซ่อมจริงหากต่างจากตาราง</div>
     <div style="margin-top:6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:3px;font-size:10px;line-height:1.65;color:#78350f">
       <b>หมายเหตุ:</b> ตัวเลขที่ระบุในตารางค่าปรับเป็นราคาอ้างอิงเบื้องต้น (Preliminary Reference Price) ไม่ถือเป็นค่าใช้จ่ายที่ผูกพันทางสัญญา ค่าใช้จ่ายที่แท้จริงจะกำหนดตามใบเสนอราคาจากผู้ให้บริการซ่อมที่ได้รับการอนุมัติจากบริษัท และจะแจ้งให้พนักงานรับทราบเป็นลายลักษณ์อักษรก่อนดำเนินการหักเงินทุกกรณี
     </div>
@@ -379,10 +380,10 @@ export function printReturnForm({
       <div style="font-weight:700;margin-bottom:2px">ข้อตกลงและเงื่อนไข</div>
       <div>1. IT เจ้าหน้าที่และพนักงานรับทราบผลการประเมินสภาพตามที่บันทึกไว้ในเอกสารนี้</div>
       <div>2. ค่าปรับ (ถ้ามี) จะถูกหักจากเงินเดือนงวดสุดท้าย หรือตามข้อตกลงกับแผนกบุคคล (HR)</div>
-      <div>3. อ้างอิงค่าปรับตามตาราง IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${tier}</div>
+      <div>3. อ้างอิงค่าปรับตามตาราง IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${e(tier)}</div>
       <div>4. กรณีออกพนักงาน: แผนกบุคคลต้องลงนามรับทราบก่อนดำเนินการด้านเอกสารลาออก/เลิกจ้าง</div>
       <div>5. การโต้แย้งผลการประเมินต้องทำภายใน 3 วันทำการหลังลงนาม</div>
-      ${notes ? `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #cbd5e1"><b>หมายเหตุ:</b> ${notes.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+      ${notes ? `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #cbd5e1"><b>หมายเหตุ:</b> ${e(notes)}</div>` : ''}
     </div>
 
     <!-- ── 7. ลายมือชื่อ 3 ฝ่าย (IT / พนักงาน / HR) ── -->
@@ -398,7 +399,7 @@ export function printReturnForm({
         <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">พนักงานผู้ส่งคืน</div>
           <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
-          <div style="font-size:11.5px;font-weight:700">( ${employee.fullName || '.....................................'} )</div>
+          <div style="font-size:11.5px;font-weight:700">( ${e(employee.fullName) || '.....................................'} )</div>
           <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
         <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">

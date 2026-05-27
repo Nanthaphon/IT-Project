@@ -18,11 +18,22 @@ if (!admin.apps.length) {
   }
 }
 
+/* ── Origins ที่อนุญาต ── */
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  const allowed = (process.env.ALLOWED_ORIGINS || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const defaults = ['http://localhost:5173', 'http://localhost:4173'];
+  return allowed.includes(origin) || defaults.includes(origin);
+}
+
 export default async function handler(req, res) {
-  /* ── CORS ── */
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  /* ── CORS (จำกัด origin ตาม env) ── */
+  const origin = req.headers.origin;
+  if (isAllowedOrigin(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });

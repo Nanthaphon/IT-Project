@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Printer } from 'lucide-react';
+import { Printer, Key } from 'lucide-react';
+import { auth } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
@@ -176,11 +177,18 @@ export default function EmployeeDetailsModal({
               {(selectedEmployee.m365Email || selectedEmployee.m365Password) && (
                 <Section title="บัญชี Microsoft 365">
                   <InfoGrid>
-                    <InfoItem label="อีเมล Microsoft 365"    value={selectedEmployee.m365Email}    accent />
-                    <InfoItem label="รหัสผ่าน Microsoft 365" value={selectedEmployee.m365Password} mono />
+                    <InfoItem label="อีเมล Microsoft 365" value={selectedEmployee.m365Email} accent />
+                    <PasswordReveal
+                      label="รหัสผ่าน Microsoft 365"
+                      value={selectedEmployee.m365Password}
+                    />
                   </InfoGrid>
                 </Section>
               )}
+
+              <Section title="รหัสผ่านเข้าใช้ระบบ (Staff Portal)">
+                <SetStaffPasswordForm empDocId={selectedEmployee.id} empName={selectedEmployee.fullName} />
+              </Section>
             </div>
           )}
 
@@ -261,7 +269,7 @@ export default function EmployeeDetailsModal({
                                 });
                               } else {
                                 // license — ไม่มีสภาพกายภาพ รับคืนทันที
-                                handleCheckin(item.id, category);
+                                handleCheckin(item.id, category, selectedEmployee.id);
                               }
                             }}
                             className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-all flex items-center gap-1.5"
@@ -474,6 +482,140 @@ function InfoItem({ label, value, accent, span2, mono }) {
       <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
+    </div>
+  );
+}
+
+/* ── SetStaffPasswordForm — admin ตั้ง/รีเซ็ตรหัสผ่านของพนักงาน ── */
+function SetStaffPasswordForm({ empDocId, empName }) {
+  const [pwd, setPwd] = useState('');
+  const [pwd2, setPwd2] = useState('');
+  const [show, setShow] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMsg(null);
+    if (pwd.length < 6) { setMsg({ type: 'error', text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }); return; }
+    if (pwd !== pwd2) { setMsg({ type: 'error', text: 'รหัสผ่านไม่ตรงกัน' }); return; }
+    try {
+      setSaving(true);
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('ต้อง login admin ก่อน');
+      const resp = await fetch('/api/set-staff-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ empDocId, newPassword: pwd }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'ตั้งรหัสผ่านไม่สำเร็จ');
+      setMsg({ type: 'success', text: `ตั้งรหัสผ่านสำหรับ ${empName || 'พนักงาน'} เรียบร้อยแล้ว` });
+      setPwd(''); setPwd2('');
+    } catch (err) {
+      setMsg({ type: 'error', text: err?.message || 'เกิดข้อผิดพลาด' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="px-4 py-3 space-y-2">
+      <p className="text-[12px] text-slate-500 leading-relaxed">
+        รหัสผ่านนี้ใช้สำหรับเข้าใช้ระบบในฐานะพนักงาน (Staff Portal) เท่านั้น —
+        ระบบเก็บค่าแบบ hash + salt (PBKDF2) admin ไม่สามารถดูรหัสผ่านเดิมได้
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="relative">
+          <input
+            type={show ? 'text' : 'password'}
+            value={pwd} onChange={e => setPwd(e.target.value)}
+            placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)"
+            className="w-full bg-white border border-slate-200 px-2.5 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] font-mono"
+            autoComplete="new-password"
+          />
+        </div>
+        <div className="relative">
+          <input
+            type={show ? 'text' : 'password'}
+            value={pwd2} onChange={e => setPwd2(e.target.value)}
+            placeholder="ยืนยันรหัสผ่าน"
+            className="w-full bg-white border border-slate-200 px-2.5 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] font-mono"
+            autoComplete="new-password"
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <label className="flex items-center gap-1.5 text-[12px] text-slate-500 cursor-pointer">
+          <input type="checkbox" checked={show} onChange={e => setShow(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
+          แสดงรหัสผ่าน
+        </label>
+        <button type="submit" disabled={saving}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-md shadow-sm disabled:opacity-50">
+          <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
+          {saving ? 'กำลังบันทึก...' : 'ตั้งรหัสผ่าน'}
+        </button>
+      </div>
+      {msg && (
+        <div className={`text-[12px] font-medium px-2 py-1 rounded ${
+          msg.type === 'error' ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+        }`}>{msg.text}</div>
+      )}
+    </form>
+  );
+}
+
+/* ── PasswordReveal — แสดง •••• และมีปุ่มกดเพื่อดูรหัสผ่าน ── */
+function PasswordReveal({ label, value }) {
+  const [show, setShow] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const hasValue = value && String(value).length > 0;
+
+  const handleCopy = async () => {
+    if (!hasValue) return;
+    try {
+      await navigator.clipboard.writeText(String(value));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* ignore */ }
+  };
+
+  return (
+    <div className="flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0">
+      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
+      {!hasValue ? (
+        <span className="text-sm text-slate-300">—</span>
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-800 font-mono select-all">
+            {show ? value : '•'.repeat(Math.min(String(value).length, 12))}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShow(s => !s)}
+            className="text-slate-400 hover:text-[#1E487A] transition-colors"
+            title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+            aria-label={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+          >
+            {show
+              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
+              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+          </button>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="text-slate-400 hover:text-[#1E487A] transition-colors"
+            title="คัดลอก"
+            aria-label="คัดลอก"
+          >
+            {copied
+              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

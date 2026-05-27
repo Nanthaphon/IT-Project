@@ -2,31 +2,143 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. อนุญาตให้ทุกคนอ่านข้อมูลได้ เพื่อดึงข้อมูลมาแสดงผล
-    match /{document=**} {
+    /* ══════════════════════════════════════════════════════════
+       Helper functions
+       ══════════════════════════════════════════════════════════ */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin = ผู้ใช้ที่ login ด้วย email/password และมี doc ใน admin_users
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+
+    // SuperAdmin = admin ที่ตั้ง isSuperAdmin = true
+    function isSuperAdmin() {
+      return isAdmin() &&
+        get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.isSuperAdmin == true;
+    }
+
+    // ฟิลด์ที่ staff อนุญาตให้แก้ profile ตัวเองได้เท่านั้น
+    function staffEditableFields() {
+      return ['fullName','fullNameEng','nickname','position','phone','m365Email','m365Password','updatedAt'];
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       employees — ต้อง login (admin หรือ staff via custom token),
+                   staff login ไม่ต้องอ่าน collection นี้ (CF ค้นเอง)
+       ══════════════════════════════════════════════════════════ */
+    match /employees/{empId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      // Update: admin แก้อะไรก็ได้  |  staff (via custom token) แก้เฉพาะฟิลด์ profile
+      allow update: if isAdmin() ||
+        (isSignedIn() &&
+         request.resource.data.diff(resource.data)
+           .affectedKeys()
+           .hasOnly(staffEditableFields()));
+    }
+
+    match /deleted_employees/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       settings (dropdown options, app config) — read public, write admin
+       ══════════════════════════════════════════════════════════ */
+    match /settings/{id} {
       allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 2. ให้เฉพาะคนที่ล็อกอินผ่านอีเมล (Admin/HR) เขียน/แก้ไข/ลบ ข้อมูลหลักได้
+    /* ══════════════════════════════════════════════════════════
+       assets / accessories / licenses / office_supplies
+       — ต้อง login (admin, hr, staff); write admin เท่านั้น
+       ══════════════════════════════════════════════════════════ */
+    match /assets/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /accessories/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /licenses/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /office_supplies/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       Requests — ต้อง login ก่อน create (staff via custom token),
+                  admin เท่านั้นที่ update/delete
+       ══════════════════════════════════════════════════════════ */
+    match /repair_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
+      allow update, delete: if isAdmin();
+    }
+    match /supply_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
+      allow update, delete: if isAdmin();
+    }
+    match /replacement_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
+      allow update, delete: if isAdmin();
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       Transactions & ไฟล์แนบ — admin เท่านั้น
+       (ประวัติเบิก-คืน, ภาพประกอบ, เอกสารใบกำกับ ฯลฯ)
+       ══════════════════════════════════════════════════════════ */
+    match /assets_transactions/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /accessories_transactions/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /licenses_transactions/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /transaction_attachments/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /asset_purchase_docs/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       staff_passwords — ห้ามอ่าน/เขียนจาก client เด็ดขาด
+       (เฉพาะ Cloud Function `setStaffPassword` / `staffLogin` เท่านั้น
+        ที่ใช้ admin SDK bypass rules)
+       ══════════════════════════════════════════════════════════ */
+    match /staff_passwords/{empDocId} {
+      allow read, write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       admin_users — เฉพาะ admin อ่าน, SuperAdmin จัดการ
+       ══════════════════════════════════════════════════════════ */
+    match /admin_users/{uid} {
+      allow read: if isAdmin();
+      allow create: if isSuperAdmin();
+      // Admin คนนั้นแก้ doc ตัวเองได้ (เช่นเปลี่ยน displayName)
+      allow update: if isSuperAdmin() || (isAdmin() && request.auth.uid == uid);
+      allow delete: if isSuperAdmin();
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       Default — ปฏิเสธทั้งหมด (กัน collection ที่ลืม whitelist)
+       ══════════════════════════════════════════════════════════ */
     match /{document=**} {
-      allow write: if request.auth != null;
+      allow read, write: if false;
     }
-
-    // 3. อนุญาตให้พนักงานทั่วไป (ไม่ได้ล็อกอินอีเมล) สร้าง/แก้ไขใบคำขอต่างๆ ได้
-    match /repair_requests/{document} {
-      allow write: if true;
-    }
-    match /supply_requests/{document} {
-      allow write: if true;
-    }
-    match /replacement_requests/{document} {
-      allow write: if true;
-    }
-
-    // 4. อนุญาตให้พนักงานทั่วไปแก้ไขข้อมูลส่วนตัวของตัวเองได้ (update เท่านั้น ไม่อนุญาต create/delete)
-    match /employees/{document} {
-      allow update: if true;
-    }
-
   }
 }

@@ -1,6 +1,33 @@
-import React, { useState } from 'react';
-import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import React, { useState, useRef } from 'react';
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
 import OwnershipHistory from './OwnershipHistory.jsx';
+import AssetLicenseTab from './AssetLicenseTab.jsx';
+
+/* ── Purchase-history document storage helpers ── */
+const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
+const PH_MAX_BYTES   = 2_097_152; // 2 MB per file
+
+const phFileToBase64 = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload  = () => resolve(reader.result);
+  reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
+  reader.readAsDataURL(file);
+});
+
+const openPhBase64 = (dataUrl, fileName, fileType) => {
+  try {
+    const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    const bytes  = atob(base64);
+    const arr    = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    const blob = new Blob([arr], { type: fileType || 'application/octet-stream' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.download = fileName || 'document';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  } catch (e) { console.error('[openPhBase64]', e); }
+};
 
 export default function AssetDetailsModal({
   selectedAssetDetail, setSelectedAssetDetail, selectedAssetCategory, setSelectedAssetCategory,
@@ -8,6 +35,8 @@ export default function AssetDetailsModal({
   setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert,
   transactions = [],
   employees = [],
+  handleAssignLicenseToAsset,
+  handleRevokeLicenseFromAsset,
 }) {
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
@@ -57,6 +86,10 @@ export default function AssetDetailsModal({
   const [isAddingHistory, setIsAddingHistory] = useState(false);
   const [editingHistoryId, setEditingHistoryId] = useState(null);
   const [historyForm, setHistoryForm] = useState({ purchaseDate: '', cost: '', vendor: '', model: '', note: '', documents: [] });
+  // ไฟล์รอ upload (ยังไม่เขียน Firestore — เก็บ File object ไว้ก่อน)
+  const [pendingPurchaseDocs, setPendingPurchaseDocs] = useState([]);
+  // tracking open state for referenced docs
+  const [openingPhDocId, setOpeningPhDocId] = useState(null);
 
   if (!selectedAssetDetail) return null;
 
@@ -99,25 +132,96 @@ export default function AssetDetailsModal({
     if (isSavingItem) return;
     setIsSavingItem(true);
     try {
-      const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
-      const currentHistory = currentAssetDetail.purchaseHistoryLog || [];
-      let updatedHistory;
+      const historyId = editingHistoryId || Date.now().toString();
+      const assetDocRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
 
-      if (editingHistoryId) {
-        updatedHistory = currentHistory.map(h => h.id === editingHistoryId ? { ...historyForm, id: editingHistoryId } : h);
-      } else {
-        updatedHistory = [{ ...historyForm, id: Date.now().toString() }, ...currentHistory];
+      // ── อัปโหลด pending files ไปยัง asset_purchase_docs collection ──
+      const newDocRefs = [];
+      for (const pending of pendingPurchaseDocs) {
+        const dataUrl  = await phFileToBase64(pending.file);
+        const base64   = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+        const needsChunking = base64.length > CHUNK_B64_SIZE;
+        const meta = {
+          assetId:    currentAssetDetail.id,
+          historyId,
+          fileName:   pending.name,
+          fileSize:   pending.size,
+          fileType:   pending.type,
+          fileData:   needsChunking ? null : dataUrl,
+          isChunked:  needsChunking,
+          chunkCount: 0,
+          uploadedAt: Date.now(),
+        };
+        const phRef = await addDoc(collection(db, 'asset_purchase_docs'), meta);
+        if (needsChunking) {
+          const chunks = [];
+          for (let i = 0; i < base64.length; i += CHUNK_B64_SIZE)
+            chunks.push(base64.slice(i, i + CHUNK_B64_SIZE));
+          await Promise.all(
+            chunks.map((data, index) =>
+              addDoc(collection(db, 'asset_purchase_docs', phRef.id, 'chunks'), { index, data })
+            )
+          );
+          await updateDoc(phRef, { chunkCount: chunks.length });
+        }
+        newDocRefs.push({ id: phRef.id, name: pending.name, fileSize: pending.size, fileType: pending.type });
       }
 
-      await updateDoc(docRef, { purchaseHistoryLog: updatedHistory });
-      
+      // รวม docs เดิม (เก็บ backward compat ทั้ง old base64 format และ new ref format) + docs ใหม่
+      const existingDocs = historyForm.documents || [];
+      const allDocs = [...existingDocs, ...newDocRefs];
+
+      const updatedEntry = { ...historyForm, id: historyId, documents: allDocs };
+      const currentHistory = currentAssetDetail.purchaseHistoryLog || [];
+      const updatedHistory = editingHistoryId
+        ? currentHistory.map(h => h.id === editingHistoryId ? updatedEntry : h)
+        : [updatedEntry, ...currentHistory];
+
+      await updateDoc(assetDocRef, { purchaseHistoryLog: updatedHistory });
+
+      setPendingPurchaseDocs([]);
       setIsAddingHistory(false);
       setEditingHistoryId(null);
       setHistoryForm({ purchaseDate: '', cost: '', vendor: '', model: '', note: '', documents: [] });
-    } catch(error) {
-      if(setCustomAlert) setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
+    } catch (error) {
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
     } finally {
       setIsSavingItem(false);
+    }
+  };
+
+  // 🟢 ฟังก์ชันเปิด / ดาวน์โหลดเอกสารแนบในประวัติจัดซื้อ
+  const handleOpenPurchaseDoc = async (docItem) => {
+    // Old format: inline base64 in docItem.data
+    if (docItem.data) {
+      openPhBase64(docItem.data, docItem.name, docItem.type || '');
+      return;
+    }
+    // New format: reference id → fetch from asset_purchase_docs
+    if (!docItem.id) return;
+    setOpeningPhDocId(docItem.id);
+    try {
+      const db2 = getFirestore();
+      const metaSnap = await getDoc(doc(db2, 'asset_purchase_docs', docItem.id));
+      if (!metaSnap.exists()) { setOpeningPhDocId(null); return; }
+      const meta = metaSnap.data();
+      if (!meta.isChunked) {
+        openPhBase64(meta.fileData, meta.fileName, meta.fileType);
+      } else {
+        const chunksSnap = await getDocs(
+          query(collection(db2, 'asset_purchase_docs', docItem.id, 'chunks'), orderBy('index'))
+        );
+        const parts = chunksSnap.docs
+          .map(d => ({ i: d.data().index, d: d.data().data }))
+          .sort((a, b) => a.i - b.i)
+          .map(c => c.d);
+        const dataUrl = `data:${meta.fileType};base64,${parts.join('')}`;
+        openPhBase64(dataUrl, meta.fileName, meta.fileType);
+      }
+    } catch (err) {
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'เปิดไฟล์ไม่สำเร็จ', message: err.message, type: 'error' });
+    } finally {
+      setOpeningPhDocId(null);
     }
   };
 
@@ -143,41 +247,38 @@ export default function AssetDetailsModal({
   };
 
   // 🟢 ฟังก์ชันอัปโหลดเอกสารสำหรับ ประวัติการจัดซื้อ
-  const handleHistoryDocUpload = async (e) => {
+  // (เก็บ File object ไว้ใน pendingPurchaseDocs — ยังไม่อ่าน base64 เพื่อป้องกัน Firestore เกิน 1 MB)
+  const handleHistoryDocUpload = (e) => {
     const files = Array.from(e.target.files);
+    e.target.value = null;
     if (files.length === 0) return;
-    const oversizedFiles = files.filter(f => f.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      if(setCustomAlert) setCustomAlert({ isOpen: true, title: 'ไฟล์มีขนาดใหญ่เกินไป', message: 'ขนาดไฟล์แต่ละไฟล์ต้องไม่เกิน 5MB', type: 'error' });
-      e.target.value = null;
+    const oversized = files.filter(f => f.size > PH_MAX_BYTES);
+    if (oversized.length > 0) {
+      if (setCustomAlert) setCustomAlert({
+        isOpen: true, title: 'ไฟล์ใหญ่เกินไป',
+        message: `ขนาดไฟล์แต่ละไฟล์ต้องไม่เกิน 2 MB (พบ ${oversized.map(f => f.name).join(', ')})`,
+        type: 'error',
+      });
       return;
     }
-    setIsSavingItem(true);
-    try {
-      const newDocs = await Promise.all(files.map(file => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve({ name: file.name, data: reader.result });
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      }));
-      setHistoryForm(prev => ({ ...prev, documents: [...(prev.documents || []), ...newDocs] }));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsSavingItem(false);
-      e.target.value = null;
-    }
+    setPendingPurchaseDocs(prev => [
+      ...prev,
+      ...files.map(f => ({ file: f, name: f.name, size: f.size, type: f.type })),
+    ]);
   };
 
   // 🟢 ฟังก์ชันลบเอกสารออกจากฟอร์มประวัติ
-  const handleRemoveHistoryDoc = (index) => {
-    setHistoryForm(prev => {
-      const updatedDocs = [...(prev.documents || [])];
-      updatedDocs.splice(index, 1);
-      return { ...prev, documents: updatedDocs };
-    });
+  // source: 'saved' = เอกสารที่บันทึกแล้ว (historyForm.documents), 'pending' = ไฟล์รอ upload
+  const handleRemoveHistoryDoc = (index, source = 'saved') => {
+    if (source === 'pending') {
+      setPendingPurchaseDocs(prev => prev.filter((_, i) => i !== index));
+    } else {
+      setHistoryForm(prev => {
+        const updatedDocs = [...(prev.documents || [])];
+        updatedDocs.splice(index, 1);
+        return { ...prev, documents: updatedDocs };
+      });
+    }
   };
 
   const handleAddNewPiece = async () => {
@@ -1032,6 +1133,14 @@ export default function AssetDetailsModal({
               ประวัติการครอบครอง
             </button>
           )}
+          {selectedAssetCategory === 'assets' && (
+            <button
+              onClick={() => { setActiveTab('licenses'); setIsAddingHistory(false); setEditingHistoryId(null); }}
+              className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'licenses' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            >
+              ซอฟต์แวร์ / License
+            </button>
+          )}
           <button
             onClick={() => { setActiveTab('docs'); setIsAddingHistory(false); setEditingHistoryId(null); }}
             className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'docs' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
@@ -1267,6 +1376,24 @@ export default function AssetDetailsModal({
                                 <span className="text-xs font-semibold text-slate-600">สิทธิ์ว่าง</span>
                                 <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">พร้อมใช้งาน</span>
                               </div>
+                            ) : seat.assignee.isAssetBound ? (
+                              /* ── Device-bound seat ── */
+                              <div className="flex items-center gap-2.5 overflow-hidden">
+                                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xs border border-purple-200 shrink-0">
+                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                                </div>
+                                <div className="overflow-hidden">
+                                  <p className="text-xs font-semibold text-slate-800 truncate">{seat.assignee.assignedAssetName || 'ทรัพย์สิน'}</p>
+                                  {seat.assignee.empId ? (
+                                    <p className="text-[11px] text-blue-500 font-medium truncate flex items-center gap-1">
+                                      <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                      {seat.assignee.empName}
+                                    </p>
+                                  ) : (
+                                    <p className="text-[11px] text-purple-500 font-medium">ผูกกับทรัพย์สิน</p>
+                                  )}
+                                </div>
+                              </div>
                             ) : (
                               <div className="flex items-center gap-2.5 overflow-hidden">
                                 <div className="w-7 h-7 rounded-full bg-blue-100 text-[#1E487A] flex items-center justify-center font-bold text-xs border border-blue-200 shrink-0">
@@ -1282,6 +1409,12 @@ export default function AssetDetailsModal({
                           <div className="flex items-center gap-2 shrink-0">
                             {seat.type === 'available' ? (
                               <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded transition-colors">เบิกจ่าย</button>
+                            ) : seat.assignee.isAssetBound ? (
+                              seat.assignee.empId ? (
+                                <span className="text-[10.5px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded whitespace-nowrap">กำลังใช้งาน</span>
+                              ) : (
+                                <span className="text-[10.5px] font-semibold bg-purple-50 text-purple-600 border border-purple-200 px-2 py-1 rounded">ติดตั้งบนเครื่อง</span>
+                              )
                             ) : (
                               <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors">รับคืน</button>
                             )}
@@ -1551,6 +1684,7 @@ export default function AssetDetailsModal({
                     <button
                       onClick={() => {
                         setIsAddingHistory(true);
+                        setPendingPurchaseDocs([]);
                         setHistoryForm({ purchaseDate: '', cost: '', vendor: '', model: currentAssetDetail.model || '', note: '', documents: [] });
                       }}
                       className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-[#1E487A] text-white px-3.5 py-2 rounded-lg hover:bg-[#163963] transition-colors shadow-sm"
@@ -1601,10 +1735,19 @@ export default function AssetDetailsModal({
                             <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2 items-start">
                               {hist.note && <p className="text-[13px] text-slate-500 flex-1">{hist.note}</p>}
                               {hist.documents?.map((docItem, idx) => (
-                                <a key={idx} href={docItem.data} download={docItem.name} className="flex items-center gap-1 text-[12px] bg-slate-50 text-slate-500 ring-1 ring-slate-200 py-1 px-2.5 rounded-full hover:bg-blue-50 hover:text-[#1E487A] hover:ring-blue-200 transition-colors max-w-[160px] truncate">
-                                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => handleOpenPurchaseDoc(docItem)}
+                                  disabled={openingPhDocId === docItem.id}
+                                  className="flex items-center gap-1 text-[12px] bg-slate-50 text-slate-500 ring-1 ring-slate-200 py-1 px-2.5 rounded-full hover:bg-blue-50 hover:text-[#1E487A] hover:ring-blue-200 transition-colors max-w-[160px] truncate disabled:opacity-60"
+                                >
+                                  {openingPhDocId === docItem.id
+                                    ? <svg className="w-3 h-3 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth={2} strokeDasharray="40 20"/></svg>
+                                    : <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                  }
                                   <span className="truncate">{docItem.name}</span>
-                                </a>
+                                </button>
                               ))}
                             </div>
                           )}
@@ -1649,18 +1792,43 @@ export default function AssetDetailsModal({
                     <div className="pt-3 border-t border-slate-100">
                       <label className="block text-[13.5px] font-medium text-slate-600 mb-3">เอกสารแนบการจัดซื้อ</label>
 
+                      {/* เอกสารที่บันทึกแล้ว (historyForm.documents) */}
                       {historyForm.documents && historyForm.documents.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                           {historyForm.documents.map((docItem, idx) => (
                             <div key={idx} className="flex items-center justify-between bg-slate-50 ring-1 ring-slate-200 p-2.5 rounded-lg">
-                              <span className="text-[13px] font-medium text-slate-600 truncate max-w-[180px]">{docItem.name}</span>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx)} className="text-slate-400 hover:text-red-500 bg-white ring-1 ring-slate-200 w-6 h-6 rounded-md flex items-center justify-center transition-colors">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenPurchaseDoc(docItem)}
+                                className="text-[13px] font-medium text-[#1E487A] hover:underline truncate max-w-[180px] text-left"
+                                title={docItem.name}
+                              >
+                                {openingPhDocId === docItem.id ? '⏳ ' : '📎 '}{docItem.name}
+                              </button>
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-slate-400 hover:text-red-500 bg-white ring-1 ring-slate-200 w-6 h-6 rounded-md flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
                           ))}
                         </div>
                       )}
+
+                      {/* ไฟล์รอ upload (pendingPurchaseDocs) */}
+                      {pendingPurchaseDocs.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                          {pendingPurchaseDocs.map((pd, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-amber-50 ring-1 ring-amber-200 p-2.5 rounded-lg">
+                              <span className="text-[13px] font-medium text-amber-700 truncate max-w-[180px]">
+                                🕐 {pd.name}
+                              </span>
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-amber-400 hover:text-red-500 bg-white ring-1 ring-amber-200 w-6 h-6 rounded-md flex items-center justify-center transition-colors">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-semibold py-2 px-3.5 rounded-lg ring-1 transition-colors ${isSavingItem ? 'ring-slate-200 bg-slate-50 text-slate-400' : 'ring-blue-200 bg-white text-[#1E487A] hover:bg-blue-50'}`}>
                         {isSavingItem ? 'กำลังอัปโหลด...' : (
                           <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>แนบไฟล์</>
@@ -1670,13 +1838,24 @@ export default function AssetDetailsModal({
                     </div>
 
                     <div className="flex gap-3 pt-4 border-t border-slate-100">
-                      <button type="button" onClick={() => { setIsAddingHistory(false); setEditingHistoryId(null); }} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 text-sm font-semibold transition-colors">ยกเลิก</button>
+                      <button type="button" onClick={() => { setIsAddingHistory(false); setEditingHistoryId(null); setPendingPurchaseDocs([]); }} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 text-sm font-semibold transition-colors">ยกเลิก</button>
                       <button type="submit" disabled={isSavingItem} className="flex-1 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#163963] text-sm font-semibold transition-colors shadow-sm disabled:opacity-50">บันทึกประวัติ</button>
                     </div>
                   </form>
                 </div>
               )}
             </div>
+          )}
+
+          {/* TAB: ซอฟต์แวร์ / License */}
+          {activeTab === 'licenses' && selectedAssetCategory === 'assets' && (
+            <AssetLicenseTab
+              asset={currentAssetDetail}
+              licenses={licenses}
+              onAssign={handleAssignLicenseToAsset}
+              onRevoke={handleRevokeLicenseFromAsset}
+              setCustomAlert={setCustomAlert}
+            />
           )}
 
           {/* TAB: เอกสารแนบ */}

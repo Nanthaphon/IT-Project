@@ -1,40 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
-import emailjs from '@emailjs/browser';
 
 // ═══════════════════════════════════════════════════════════════
-// 📧 ตั้งค่า Email Notification (กรอก 5 ค่าตรงนี้ ครั้งเดียวพอ)
+// 📧 Email Notification ผ่าน serverless endpoint /api/send-email
+// (EmailJS keys ย้ายไปอยู่ Vercel env vars แล้ว — ไม่ฝังใน bundle)
 // ═══════════════════════════════════════════════════════════════
-// วิธีหา 3 ID แรก: สมัครฟรีที่ https://www.emailjs.com แล้วทำตามคู่มือ 4 ขั้น
-const EMAILJS_SERVICE_ID  = 'service_yaix4t9';
-const EMAILJS_TEMPLATE_ID = 'template_3aa0ng4';
-const EMAILJS_PUBLIC_KEY  = 'Y8fJ0JAEUhLQcq9ig';
-
-// Email ปลายทาง (ค่าเริ่มต้น — ใช้เมื่อยังไม่ได้ตั้งค่าใน "ตั้งค่าระบบ")
 const DEFAULT_IT_EMAIL = 'Nanthaphon.nay@globesyndicate.co.th';
 const DEFAULT_HR_EMAIL = 'Tanat.nai@globesyndicate.co.th';
-// ═══════════════════════════════════════════════════════════════
 
 async function sendNotification({ title, notifyType, facts, settings }) {
   const itEmail = settings?.itEmail?.trim() || DEFAULT_IT_EMAIL;
   const hrEmail = settings?.hrEmail?.trim() || DEFAULT_HR_EMAIL;
   const toEmail = notifyType === 'HR' ? hrEmail : itEmail;
-  // จัดรูปแบบ facts ให้อ่านง่ายใน email
   const message = facts.map(f => `• ${f.label}: ${f.value}`).join('\n');
 
-  await emailjs.send(
-    EMAILJS_SERVICE_ID,
-    EMAILJS_TEMPLATE_ID,
-    {
-      to_email: toEmail,
-      subject: title,
-      message: message,
-      timestamp: new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }),
+  // ต้อง login admin ก่อน — ดึง Firebase ID token
+  const user = auth.currentUser;
+  if (!user) {
+    console.warn('sendNotification: ไม่มี user login — ข้ามการส่ง email');
+    return;
+  }
+  const idToken = await user.getIdToken();
+
+  const resp = await fetch('/api/send-email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
     },
-    EMAILJS_PUBLIC_KEY
-  );
+    body: JSON.stringify({ toEmail, subject: title, message }),
+  });
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`send-email failed (${resp.status}): ${errText}`);
+  }
 }
 
 import useFirebaseData from './hooks/useFirebaseData.jsx';
@@ -99,7 +100,7 @@ function App() {
     assets, accessories, employees, deletedEmployees, licenses,
     repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
     fieldOptions,
-  } = useFirebaseData();
+  } = useFirebaseData(authRole);
 
   const { isSuperAdmin, adminPermissions, displayName: adminDisplayName, permLoading } = useAdminPermissions(currentUid, authRole);
   const canEdit = isSuperAdmin || adminPermissions?.level === 'full';
@@ -218,21 +219,44 @@ function App() {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUid(user.uid);
-        // ถ้า user มี doc ใน admin_users = เป็น admin ที่จัดการสิทธิ์ผ่านระบบ RBAC
-        let isManagedAdmin = false;
+        // เช็ค custom claim จาก ID token — staff login จะมี role: 'staff'
+        let role = null;
         try {
-          const adminSnap = await getDoc(doc(db, 'admin_users', user.uid));
-          isManagedAdmin = adminSnap.exists();
+          const tokenResult = await user.getIdTokenResult();
+          role = tokenResult.claims?.role || null;
         } catch (e) { /* ignore */ }
-        if (!isManagedAdmin && user.email && user.email.toLowerCase().startsWith('hr@')) {
-          setAuthRole('hr');
-          setActiveMenu('office_supplies');
+
+        if (role === 'staff') {
+          // Staff signed in via custom token — set role + try to restore currentStaff จาก claim
+          setAuthRole('staff');
+          try {
+            const tokenResult2 = await user.getIdTokenResult();
+            const empDocId = tokenResult2.claims?.empDocId;
+            if (empDocId) {
+              const empSnap = await getDoc(doc(db, 'employees', empDocId));
+              if (empSnap.exists()) {
+                setCurrentStaff({ id: empSnap.id, ...empSnap.data() });
+              }
+            }
+          } catch (e) { /* ignore */ }
         } else {
-          setAuthRole('admin');
+          // Admin/HR — ตรวจ admin_users collection
+          let isManagedAdmin = false;
+          try {
+            const adminSnap = await getDoc(doc(db, 'admin_users', user.uid));
+            isManagedAdmin = adminSnap.exists();
+          } catch (e) { /* ignore */ }
+          if (!isManagedAdmin && user.email && user.email.toLowerCase().startsWith('hr@')) {
+            setAuthRole('hr');
+            setActiveMenu('office_supplies');
+          } else {
+            setAuthRole('admin');
+          }
         }
       } else {
         setCurrentUid(null);
-        setAuthRole(prev => prev === 'staff' ? prev : null);
+        setAuthRole(null);
+        setCurrentStaff(null);
       }
       setAuthLoading(false);
     });
@@ -300,7 +324,7 @@ function App() {
   }, [pendingAssetId, authRole, assets, accessories, licenses]);
 
   useEffect(() => {
-    setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('DX');
+    setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('');
     setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
     setAccFilterType('ทั้งหมด'); setSearchTerm(''); setAssetFilterType('ทั้งหมด');
     setAssetFilterStatus('ทั้งหมด'); setRepairFilterStatus('ทั้งหมด'); setAssetFilterDepartment('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
@@ -321,17 +345,47 @@ function App() {
     finally { setLoginLoading(false); }
   };
 
-  const handleLogout = async () => { 
-    if (authRole === 'admin' || authRole === 'hr') await signOut(auth); 
-    setAuthRole(null); setCurrentStaff(null); 
+  const handleLogout = async () => {
+    // ทุก role ที่ใช้ Firebase auth (admin/hr/staff) ให้ signOut
+    if (authRole === 'admin' || authRole === 'hr' || authRole === 'staff') {
+      try { await signOut(auth); } catch (e) { /* ignore */ }
+    }
+    setAuthRole(null); setCurrentStaff(null);
+    setStaffEmpIdInput(''); setStaffPasswordInput('');
   };
 
-  const handleStaffLogin = (e) => {
+  const handleStaffLogin = async (e) => {
     e.preventDefault();
-    if (!staffEmpIdInput.trim()) return;
-    const foundEmp = employees.find(emp => emp.empId.toLowerCase() === staffEmpIdInput.trim().toLowerCase());
-    if (foundEmp) { setCurrentStaff(foundEmp); setStaffEmpIdInput(''); setStaffPasswordInput(''); }
-    else { setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'ไม่พบรหัสพนักงานนี้ในระบบ', type: 'error' }); }
+    const empId    = staffEmpIdInput.trim();
+    const password = staffPasswordInput;
+    if (!empId)    return;
+    if (!password) {
+      setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'กรุณากรอกรหัสผ่าน', type: 'error' });
+      return;
+    }
+    try {
+      // เรียก Vercel API /api/staff-login เพื่อรับ Firebase custom token
+      const resp = await fetch('/api/staff-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empId, password }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'เข้าสู่ระบบไม่สำเร็จ');
+      const { token, empDocId } = data;
+      if (!token) throw new Error('ระบบไม่ได้คืน token');
+
+      // Sign in ด้วย custom token → request.auth.token.role === 'staff'
+      await signInWithCustomToken(auth, token);
+
+      // ดึง employee doc มา set currentStaff
+      const foundEmp = employees.find(emp => emp.id === empDocId);
+      if (foundEmp) setCurrentStaff(foundEmp);
+      setStaffEmpIdInput('');
+      setStaffPasswordInput('');
+    } catch (err) {
+      setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: err?.message || 'เกิดข้อผิดพลาด', type: 'error' });
+    }
   };
 
   // 🟢 ฟังก์ชันส่งแจ้งซ่อม + อีเมล
@@ -339,23 +393,26 @@ function App() {
     e.preventDefault(); if (!staffRepairForm.assetName.trim() || !staffRepairForm.issue.trim()) return;
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      
+      // ── ส่ง Teams + email แจ้ง IT (ผ่าน Vercel API) ──
       try {
-        await sendNotification({
-          title: '🔧 แจ้งปัญหา IT / แจ้งซ่อม',
-          notifyType: 'IT',
-          settings: notifySettings,
-          facts: [
-            { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
-            { label: 'แผนก', value: currentStaff.department || '-' },
-            { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
-            { label: 'อุปกรณ์ / ปัญหา', value: staffRepairForm.assetName },
-            { label: 'อาการที่พบ', value: staffRepairForm.issue },
-          ]
-        });
-      } catch (notifyError) {
-        console.error('แจ้งเตือนทาง email ไม่สำเร็จ:', notifyError);
-      }
+        const idToken = await auth.currentUser?.getIdToken();
+        if (idToken) {
+          await fetch('/api/staff-notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({
+              kind: 'repair',
+              facts: [
+                { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
+                { label: 'แผนก', value: currentStaff.department || '-' },
+                { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
+                { label: 'อุปกรณ์ / ปัญหา', value: staffRepairForm.assetName },
+                { label: 'อาการที่พบ', value: staffRepairForm.issue },
+              ],
+            }),
+          });
+        }
+      } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
 
       setStaffRepairForm({ assetName: '', issue: '' });
       setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และส่ง email แจ้งฝ่าย IT แล้ว', type: 'success' });
@@ -366,24 +423,26 @@ function App() {
   const handleStaffSubmitSupplyRequest = async (supplyId, supplyName, reqQty, note) => {
     try {
       await addDoc(collection(db, 'supply_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, supplyId: supplyId, supplyName: supplyName, requestedQty: Number(reqQty), note: note, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      
       try {
-        await sendNotification({
-          title: '📦 คำขอเบิกอุปกรณ์สำนักงาน',
-          notifyType: 'HR',
-          settings: notifySettings,
-          facts: [
-            { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
-            { label: 'แผนก', value: currentStaff.department || '-' },
-            { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
-            { label: 'อุปกรณ์ที่ขอเบิก', value: supplyName },
-            { label: 'จำนวน', value: `${reqQty} ชิ้น` },
-            { label: 'หมายเหตุ', value: note || '-' },
-          ]
-        });
-      } catch (notifyError) {
-        console.error('แจ้งเตือนทาง email ไม่สำเร็จ:', notifyError);
-      }
+        const idToken = await auth.currentUser?.getIdToken();
+        if (idToken) {
+          await fetch('/api/staff-notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({
+              kind: 'supply',
+              facts: [
+                { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
+                { label: 'แผนก', value: currentStaff.department || '-' },
+                { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
+                { label: 'อุปกรณ์ที่ขอเบิก', value: supplyName },
+                { label: 'จำนวน', value: `${reqQty} ชิ้น` },
+                { label: 'หมายเหตุ', value: note || '-' },
+              ],
+            }),
+          });
+        }
+      } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
 
       setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และส่ง email แจ้งฝ่าย HR เรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
@@ -404,23 +463,25 @@ function App() {
         timestamp: Date.now(),
         createdAt: serverTimestamp()
       });
-
       try {
-        await sendNotification({
-          title: '💻 คำขอเปลี่ยนเครื่อง',
-          notifyType: 'IT',
-          settings: notifySettings,
-          facts: [
-            { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
-            { label: 'แผนก', value: currentStaff.department || '-' },
-            { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
-            { label: 'สถานะเครื่องปัจจุบัน', value: currentStatus || '-' },
-            { label: 'เหตุผลขอเปลี่ยน', value: reason || '-' },
-          ]
-        });
-      } catch (notifyError) {
-        console.error('แจ้งเตือนทาง email ไม่สำเร็จ:', notifyError);
-      }
+        const idToken = await auth.currentUser?.getIdToken();
+        if (idToken) {
+          await fetch('/api/staff-notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({
+              kind: 'replacement',
+              facts: [
+                { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
+                { label: 'แผนก', value: currentStaff.department || '-' },
+                { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
+                { label: 'สถานะเครื่องปัจจุบัน', value: currentStatus || '-' },
+                { label: 'เหตุผลขอเปลี่ยน', value: reason || '-' },
+              ],
+            }),
+          });
+        }
+      } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
 
       setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และส่ง email แจ้งฝ่าย IT เรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
     } catch (error) {
@@ -577,33 +638,61 @@ function App() {
     try {
       const idsToDelete = Array.isArray(id) ? id : [id];
       let deletedEmpStringIds = [];
+      let deletedEmpsForCascade = [];
       if (collectionName === 'employees') {
         const deletedEmps = employees.filter(emp => idsToDelete.includes(emp.id));
         deletedEmpStringIds = deletedEmps.map(emp => String(emp.empId).toLowerCase());
+        deletedEmpsForCascade = deletedEmps.map(e => ({ id: e.id, empId: e.empId }));
         for (const emp of deletedEmps) {
           const empData = { ...emp }; delete empData.id;
           await setDoc(doc(db, 'deleted_employees', emp.id), { ...empData, deletedAt: serverTimestamp() });
         }
       }
       for (const targetId of idsToDelete) { await deleteDoc(doc(db, collectionName, targetId)); }
-      
+
+      // ── เรียก Vercel API /api/cascade-delete เพื่อลบ orphan data ที่ผูกอยู่ ──
+      const cascadeKindMap = { employees: 'employee', assets: 'asset', licenses: 'license', accessories: 'accessory' };
+      const cascadeKind = cascadeKindMap[collectionName];
+      if (cascadeKind) {
+        try {
+          const idToken = await auth.currentUser?.getIdToken();
+          if (idToken) {
+            if (cascadeKind === 'employee') {
+              for (const emp of deletedEmpsForCascade) {
+                await fetch('/api/cascade-delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+                  body: JSON.stringify({ kind: 'employee', id: emp.id, empId: emp.empId }),
+                });
+              }
+            } else {
+              for (const targetId of idsToDelete) {
+                await fetch('/api/cascade-delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+                  body: JSON.stringify({ kind: cascadeKind, id: targetId }),
+                });
+              }
+            }
+          }
+        } catch (cascadeErr) { console.error('cascade-delete failed:', cascadeErr); }
+      }
+
       if (collectionName === 'employees') {
+        // unassign asset/accessory/license ที่ผูกกับพนักงานที่ถูกลบ (client-side fallback)
         const userAssets = assets.filter(item => idsToDelete.includes(item.assignedTo));
         for (const asset of userAssets) { await updateDoc(doc(db, 'assets', asset.id), { status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null }); }
-        
+
         const userAccessories = accessories.filter(item => item.assignees && item.assignees.some(a => idsToDelete.includes(a.empId)));
         for (const acc of userAccessories) {
-            const remainingAssignees = acc.assignees.filter(a => !idsToDelete.includes(a.empId));
-            await updateDoc(doc(db, 'accessories', acc.id), { assignees: remainingAssignees });
+          const remainingAssignees = acc.assignees.filter(a => !idsToDelete.includes(a.empId));
+          await updateDoc(doc(db, 'accessories', acc.id), { assignees: remainingAssignees });
         }
         const userLicenses = licenses.filter(item => item.assignees && item.assignees.some(a => idsToDelete.includes(a.empId)));
         for (const lic of userLicenses) {
-            const remainingAssignees = lic.assignees.filter(a => !idsToDelete.includes(a.empId));
-            await updateDoc(doc(db, 'licenses', lic.id), { assignees: remainingAssignees });
+          const remainingAssignees = lic.assignees.filter(a => !idsToDelete.includes(a.empId));
+          await updateDoc(doc(db, 'licenses', lic.id), { assignees: remainingAssignees });
         }
-
-        const reqsToDelete = repairRequests.filter(req => deletedEmpStringIds.includes(String(req.empId).toLowerCase()));
-        for (const req of reqsToDelete) { await deleteDoc(doc(db, 'repair_requests', req.id)); }
       }
       setConfirmDeleteModal({ isOpen: false, id: null, collectionName: null });
       setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]); setSelectedLicenseIds([]);
@@ -1156,11 +1245,11 @@ function App() {
           empId: emp.id, assetName: item.name, category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       } else {
-        await updateDoc(doc(db, checkoutModal.collectionName, checkoutModal.assetId), {
-          status: 'ถูกใช้งาน', assignedTo: emp.id, assignedName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`
-        });
         const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
         const empName = `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`;
+        await updateDoc(doc(db, checkoutModal.collectionName, checkoutModal.assetId), {
+          status: 'ถูกใช้งาน', assignedTo: emp.id, assignedName: empName,
+        });
         {
           const flat = flattenFields(checkoutCondition.fields);
           await addDoc(collection(db, 'assets_transactions'), {
@@ -1168,6 +1257,23 @@ function App() {
             checkoutFields: checkoutCondition.fields,
             checkoutChecklist: flat.checklist,
             checkoutNotes: checkoutCondition.notes,
+          });
+        }
+
+        // ── Auto-assign device-bound licenses กับพนักงานที่รับเครื่องนี้ ──
+        const deviceBoundLics = licenses.filter(lic =>
+          (lic.assignees || []).some(a => a.isAssetBound && a.assignedAssetId === checkoutModal.assetId)
+        );
+        for (const lic of deviceBoundLics) {
+          const updatedAssignees = (lic.assignees || []).map(a =>
+            (a.isAssetBound && a.assignedAssetId === checkoutModal.assetId)
+              ? { ...a, empId: emp.id, empName }
+              : a
+          );
+          await updateDoc(doc(db, 'licenses', lic.id), {
+            assignees:    updatedAssignees,
+            assignedTo:   updatedAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
+            assignedName: updatedAssignees.map(a => a.empName || a.assignedAssetName || '-').join(', '),
           });
         }
       }
@@ -1178,20 +1284,198 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
   };
 
-  const handleCheckin = (id, collectionName) => {
+  /* ══════════════════════════════════════════════════════════
+     handleAssignLicenseToAsset — ผูก License seat กับ asset
+     (device-bound: empId = null, isAssetBound = true)
+     ══════════════════════════════════════════════════════════ */
+  const handleAssignLicenseToAsset = async (licenseId, seatIndex, assetId, assetName, remarks = '') => {
+    try {
+      const item = licenses.find(l => l.id === licenseId);
+      if (!item) return;
+      const totalQty        = Number(item.quantity || 1);
+      const currentAssignees = item.assignees || [];
+      if (currentAssignees.length >= totalQty) {
+        setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'สิทธิ์ License ถูกใช้งานครบแล้ว', type: 'error' });
+        return;
+      }
+      const availableKeys      = [...(item.availableKeys || [])];
+      const availableKeyCodes  = [...(item.availableKeyCodes || [])];
+      const availableSeatCosts = [...(item.availableSeatCosts || [])];
+      const oldDocMap          = { ...(item.availableSeatDocs || {}) };
+      const seatProductKey     = availableKeys[seatIndex]      || '';
+      const seatKeyCode        = availableKeyCodes[seatIndex]  || '';
+      const seatCost           = availableSeatCosts[seatIndex] || '';
+      const seatDocuments      = oldDocMap[String(seatIndex)]  || [];
+
+      availableKeys.splice(seatIndex, 1);
+      availableKeyCodes.splice(seatIndex, 1);
+      availableSeatCosts.splice(seatIndex, 1);
+
+      const totalAvailBefore = Math.max(0, totalQty - currentAssignees.length);
+      const newDocMap = {};
+      let newIdx = 0;
+      for (let i = 0; i < totalAvailBefore; i++) {
+        if (i === seatIndex) continue;
+        if (oldDocMap[String(i)]) newDocMap[String(newIdx)] = oldDocMap[String(i)];
+        newIdx++;
+      }
+
+      // ── ถ้า asset นั้นถูก checkout อยู่แล้ว ให้ใส่ empId/empName ทันที ──
+      const currentAsset   = assets.find(a => a.id === assetId);
+      const currentEmpId   = currentAsset?.assignedTo   || null;
+      const currentEmpName = currentAsset?.assignedName || null;
+
+      const newAssignee = {
+        checkoutId:        Date.now().toString(),
+        empId:             currentEmpId,
+        empName:           currentEmpName,
+        isAssetBound:      true,
+        assignedAssetId:   assetId,
+        assignedAssetName: assetName,
+        checkoutDate:      new Date().toLocaleDateString('th-TH'),
+        remarks:           remarks.trim(),
+        productKey:        seatProductKey,
+        keyCode:           seatKeyCode,
+        seatCost,
+        seatDocuments,
+      };
+      const newAssignees = [...currentAssignees, newAssignee];
+      const newStatus    = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+
+      await updateDoc(doc(db, 'licenses', licenseId), {
+        assignees:         newAssignees,
+        status:            newStatus,
+        assignedTo:        newAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
+        assignedName:      newAssignees.filter(a => a.empName || a.assignedAssetName)
+                             .map(a => a.empName || a.assignedAssetName).join(', ') || null,
+        availableKeys,
+        availableKeyCodes,
+        availableSeatCosts,
+        availableSeatDocs: newDocMap,
+      });
+      await addDoc(collection(db, 'licenses_transactions'), {
+        empId: null, assetId, assetName, licenseName: item.name,
+        category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ',
+        remarks: remarks.trim() || '-', timestamp: Date.now(), isAssetBound: true,
+      });
+      setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: `ผูก ${item.name} กับ ${assetName} เรียบร้อยแล้ว`, type: 'success' });
+    } catch (err) {
+      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
+    }
+  };
+
+  /* ══════════════════════════════════════════════════════════
+     handleRevokeLicenseFromAsset — ยกเลิกการผูก License seat
+     ══════════════════════════════════════════════════════════ */
+  const handleRevokeLicenseFromAsset = async (licenseId, checkoutId) => {
+    try {
+      const item = licenses.find(l => l.id === licenseId);
+      if (!item) return;
+      const seat = (item.assignees || []).find(a => a.checkoutId === checkoutId);
+      if (!seat) return;
+
+      const newAssignees       = (item.assignees || []).filter(a => a.checkoutId !== checkoutId);
+      const totalQty           = Number(item.quantity || 1);
+      const newAvailableKeys   = [...(item.availableKeys || []),      seat.productKey || ''];
+      const newAvailKeyCodes   = [...(item.availableKeyCodes || []),  seat.keyCode    || ''];
+      const newAvailSeatCosts  = [...(item.availableSeatCosts || []), seat.seatCost   || ''];
+      const newDocMap          = { ...(item.availableSeatDocs || {}) };
+      if (seat.seatDocuments?.length > 0)
+        newDocMap[String(newAvailableKeys.length - 1)] = seat.seatDocuments;
+
+      const newStatus = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+      await updateDoc(doc(db, 'licenses', licenseId), {
+        assignees:         newAssignees,
+        status:            newStatus,
+        assignedTo:        newAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
+        assignedName:      newAssignees.map(a => a.empName || a.assignedAssetName || '-').join(', '),
+        availableKeys:     newAvailableKeys,
+        availableKeyCodes: newAvailKeyCodes,
+        availableSeatCosts:newAvailSeatCosts,
+        availableSeatDocs: newDocMap,
+      });
+      await addDoc(collection(db, 'licenses_transactions'), {
+        empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName,
+        licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
+        remarks: '-', timestamp: Date.now(), isAssetBound: true,
+      });
+      setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: `ยกเลิกการผูก ${item.name} เรียบร้อยแล้ว`, type: 'success' });
+    } catch (err) {
+      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
+    }
+  };
+
+  /* handleCheckin — รับ optional empId เพื่อให้รู้ว่าพนักงานคนไหนคืน license */
+  const handleCheckin = (id, collectionName, callerEmpId = null) => {
     showConfirm('ยืนยันการรับคืน', 'ต้องการรับคืนรายการนี้ใช่หรือไม่?', async () => {
-        try {
-          const itemArray = collectionName === 'assets' ? assets : licenses;
+      try {
+        if (collectionName === 'licenses') {
+          // ── License: ต้องอัปเดต assignees[] และคืน seat data กลับ available pool ──
+          const item = licenses.find(l => l.id === id);
+          if (!item) return;
+
+          // หา seats ที่ต้องคืน (ของพนักงานคนนี้เท่านั้น ถ้าระบุ empId)
+          const toRemove  = (item.assignees || []).filter(a =>
+            callerEmpId ? a.empId === callerEmpId : (a.empId && !a.isAssetBound)
+          );
+          const remaining = (item.assignees || []).filter(a =>
+            callerEmpId ? a.empId !== callerEmpId : (!a.empId || a.isAssetBound)
+          );
+
+          // คืน seat data กลับ available pools
+          const newKeys      = [...(item.availableKeys      || [])];
+          const newKeyCodes  = [...(item.availableKeyCodes  || [])];
+          const newSeatCosts = [...(item.availableSeatCosts || [])];
+          const newDocMap    = { ...(item.availableSeatDocs || {}) };
+
+          for (const a of toRemove) {
+            const idx = newKeys.length;
+            newKeys.push(a.productKey || '');
+            newKeyCodes.push(a.keyCode || '');
+            newSeatCosts.push(a.seatCost || '');
+            if (a.seatDocuments?.length > 0) newDocMap[String(idx)] = a.seatDocuments;
+
+            await addDoc(collection(db, 'licenses_transactions'), {
+              empId: a.empId, assetName: item.name,
+              category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
+              remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
+            });
+          }
+
+          const totalQty  = Number(item.quantity || 1);
+          const newStatus = remaining.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+          await updateDoc(doc(db, 'licenses', id), {
+            assignees:         remaining,
+            status:            newStatus,
+            assignedTo:        remaining.filter(a => a.empId).map(a => a.empId).join(',') || null,
+            assignedName:      remaining.length
+              ? remaining.map(a => a.empName || a.assignedAssetName || '-').join(', ')
+              : null,
+            availableKeys:      newKeys,
+            availableKeyCodes:  newKeyCodes,
+            availableSeatCosts: newSeatCosts,
+            availableSeatDocs:  newDocMap,
+          });
+
+        } else {
+          // ── Assets / Accessories: logic เดิม ──
+          const itemArray   = collectionName === 'assets' ? assets : accessories;
           const itemToReturn = itemArray.find(a => a.id === id);
-          const empId = itemToReturn?.assignedTo;
+          const empId       = itemToReturn?.assignedTo;
           await updateDoc(doc(db, collectionName, id), { status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null });
           if (empId) {
-            const txCollection = collectionName === 'assets' ? 'assets_transactions' : 'licenses_transactions';
-            await addDoc(collection(db, txCollection), { empId: empId, assetName: itemToReturn ? itemToReturn.name : '-', category: collectionName, action: 'รับคืน', condition: 'ปกติ', remarks: '-', timestamp: Date.now() });
+            const txCollection = collectionName === 'assets' ? 'assets_transactions' : 'accessories_transactions';
+            await addDoc(collection(db, txCollection), {
+              empId, assetName: itemToReturn?.name || '-',
+              category: collectionName, action: 'รับคืน', condition: 'ปกติ',
+              remarks: '-', timestamp: Date.now(),
+            });
           }
-        } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
-      }, { confirmText: 'รับคืน', icon: 'return' }
-    );
+        }
+      } catch (error) {
+        setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
+      }
+    }, { confirmText: 'รับคืน', icon: 'return' });
   };
 
   const handleConfirmReturn = async (e) => {
@@ -1278,6 +1562,26 @@ function App() {
             returnFields: returnConditionData.fields,
             returnChecklist: flat.checklist,
             returnNotes: returnConditionData.notes,
+          });
+        }
+
+        // Auto-unassign device-bound licenses when asset is returned
+        const deviceBoundLicsForReturn = licenses.filter(lic =>
+          (lic.assignees || []).some(a =>
+            a.isAssetBound && a.assignedAssetId === returnModal.assetId && a.empId
+          )
+        );
+        for (const lic of deviceBoundLicsForReturn) {
+          const updatedAssignees = (lic.assignees || []).map(a =>
+            (a.isAssetBound && a.assignedAssetId === returnModal.assetId)
+              ? { ...a, empId: null, empName: null }
+              : a
+          );
+          await updateDoc(doc(db, 'licenses', lic.id), {
+            assignees:    updatedAssignees,
+            assignedTo:   updatedAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
+            assignedName: updatedAssignees.filter(a => a.empName || a.assignedAssetName)
+                            .map(a => a.empName || a.assignedAssetName).join(', ') || null,
           });
         }
       }
@@ -1490,7 +1794,7 @@ function App() {
         setAuthRole={setAuthRole} currentStaff={currentStaff} setCurrentStaff={setCurrentStaff} 
         staffEmpIdInput={staffEmpIdInput} setStaffEmpIdInput={setStaffEmpIdInput} 
         staffPasswordInput={staffPasswordInput} setStaffPasswordInput={setStaffPasswordInput} 
-        handleStaffLogin={handleStaffLogin} 
+        handleStaffLogin={handleStaffLogin} handleLogout={handleLogout}
         staffRepairForm={staffRepairForm} setStaffRepairForm={setStaffRepairForm} handleSubmitRepairRequest={handleSubmitRepairRequest} 
         repairRequests={repairRequests} editStaffRepairModal={editStaffRepairModal} setEditStaffRepairModal={setEditStaffRepairModal} 
         handleStaffUpdateRepair={handleStaffUpdateRepair} handleStaffDeleteRepair={handleStaffDeleteRepair} 
@@ -1651,6 +1955,8 @@ function App() {
         confirmModal={confirmModal} handleConfirmModalOk={handleConfirmModalOk} closeConfirmModal={closeConfirmModal}
         resetPasswordModal={resetPasswordModal} setResetPasswordModal={setResetPasswordModal}
         changePasswordModal={changePasswordModal} setChangePasswordModal={setChangePasswordModal}
+        handleAssignLicenseToAsset={handleAssignLicenseToAsset}
+        handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
       />
       <ITReportModal
         isOpen={isITReportOpen}

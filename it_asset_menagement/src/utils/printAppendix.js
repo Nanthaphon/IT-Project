@@ -3,6 +3,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { DAMAGE_FEE_TABLE } from './printHandoverForm.js';
+import { e } from './htmlEscape.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
@@ -40,7 +41,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
     <div style="text-align:center;margin-bottom:8px;padding-top:6px">
       <div style="font-size:15px;font-weight:700;color:#000">รายละเอียดแนบท้าย</div>
       <div style="font-size:11px;color:#000">เอกสารส่งมอบและรับคืนทรัพย์สิน IT &nbsp;|&nbsp; IT-FORM-001 &amp; IT-FORM-002</div>
-      <div style="font-size:10.5px;color:#000">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; ${companyNameTh}</div>
+      <div style="font-size:10.5px;color:#000">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; ${e(companyNameTh)}</div>
     </div>
 
     ${appendixBar(1, 'วัตถุประสงค์และขอบเขต')}
@@ -207,7 +208,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">พนักงาน</div>
           <div style="font-size:10.5px;color:#000;margin-bottom:6px">รับทราบและยอมรับเงื่อนไขทั้งหมด</div>
           <div style="border-bottom:1px solid #000;margin:34px 14px 6px"></div>
-          <div style="font-size:11.5px;font-weight:700">( ${employeeName || '.....................................'} )</div>
+          <div style="font-size:11.5px;font-weight:700">( ${e(employeeName) || '.....................................'} )</div>
           <div style="font-size:11px;margin-top:6px">วันที่ .....................................</div>
         </td>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
@@ -228,7 +229,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
     </table>
 
     <div style="text-align:center;font-size:10px;color:#000;margin-top:12px">
-      ออกโดยระบบ IT Asset Management &nbsp;·&nbsp; ${thDate} &nbsp;·&nbsp; ${docNo}
+      ออกโดยระบบ IT Asset Management &nbsp;·&nbsp; ${thDate} &nbsp;·&nbsp; ${e(docNo)}
     </div>
 
   </div>`;

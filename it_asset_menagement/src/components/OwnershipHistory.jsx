@@ -80,8 +80,9 @@ export default function OwnershipHistory({
   const [printReturnPeriod, setPrintReturnPeriod] = useState(null);
 
   // กรอง transactions ของ asset นี้ เรียงใหม่ → เก่า
+  // ตัด isAssetBound ออก (license ที่ผูกกับเครื่อง — แสดงใน "ซอฟต์แวร์ / License" แทน)
   const relevant = transactions
-    .filter(t => t.assetId === assetId)
+    .filter(t => t.assetId === assetId && !t.isAssetBound)
     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
   // จับคู่ checkout-return เป็น "ช่วงครอบครอง"

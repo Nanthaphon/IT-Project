@@ -6,6 +6,7 @@
 import { renderAppendix } from './printAppendix.js';
 import { printViaIframe } from './printViaIframe.js';
 import { getCompanyInfo } from './companyInfo.js';
+import { e, safeUrl } from './htmlEscape.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
@@ -151,11 +152,11 @@ export function printHandoverForm({
   const assetRows = empAssets.map((a, i) => `
     <tr>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${a.name || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${a.model || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${a.tier || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${a.assetTag || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${a.sn || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${e(a.name) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(a.model) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${e(a.tier) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${e(a.assetTag) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${e(a.sn) || '-'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:right;font-size:11px;font-variant-numeric:tabular-nums">${a.cost ? fmtTHB(a.cost) : '-'}</td>
     </tr>`).join('');
 
@@ -163,8 +164,8 @@ export function printHandoverForm({
   const softwareRows = empLicenses.map((l, i) => `
     <tr>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${l.name || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${l.supplier || l.vendor || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(l.name) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(l.supplier || l.vendor) || '-'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${l.expirationDate ? new Date(l.expirationDate).toLocaleDateString('th-TH') : 'ไม่มีวันหมดอายุ'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px"></td>
     </tr>`).join('');
@@ -173,8 +174,8 @@ export function printHandoverForm({
   const accessoryRows = empAccessories.map((a, i) => `
     <tr>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${a.name || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${a.sn || a.serialNumber || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(a.name) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${e(a.sn || a.serialNumber) || '-'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">พร้อมใช้งาน</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">1</td>
     </tr>`).join('');
@@ -221,10 +222,10 @@ export function printHandoverForm({
     const src = photos[key];
     return `
     <td style="border:1px solid #cbd5e1;padding:5px;vertical-align:top;width:33.33%">
-      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:3px;text-align:center">${label}</div>
+      <div style="font-size:10.5px;font-weight:700;color:#000;margin-bottom:3px;text-align:center">${e(label)}</div>
       ${src
         ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:130px;overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
-             <img src="${src}" alt="${label}" style="max-width:100%;max-height:100%;object-fit:contain"/>
+             <img src="${safeUrl(src)}" alt="${e(label)}" style="max-width:100%;max-height:100%;object-fit:contain"/>
            </div>`
         : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:130px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px">[ แนบรูปภาพ ]</div>`
       }
@@ -241,14 +242,14 @@ export function printHandoverForm({
   const ic = (label, value) => `
     <div style="padding:3px 0">
       <div style="font-size:9.5px;color:#000;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px">${label}</div>
-      <div style="font-size:11px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px;min-height:18px">${value || ''}</div>
+      <div style="font-size:11px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px;min-height:18px">${e(value) || ''}</div>
     </div>`;
 
   const html = `<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8"/>
-  <title>${docNo} - ใบส่งมอบทรัพย์สิน - ${employee.fullName}</title>
+  <title>${e(docNo)} - ใบส่งมอบทรัพย์สิน - ${e(employee.fullName)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -284,7 +285,7 @@ export function printHandoverForm({
 
     <!-- Title strip -->
     <div style="text-align:center;margin-bottom:6px">
-      <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${docNo}</div>
+      <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${e(docNo)}</div>
       <div style="font-size:18px;font-weight:700;color:#000;line-height:1.2;margin-top:2px">ใบส่งมอบทรัพย์สิน IT</div>
       <div style="font-size:10.5px;color:#000">Pre-Handover Asset Transfer Form</div>
     </div>
@@ -294,18 +295,18 @@ export function printHandoverForm({
       <tr>
         <td style="border:1px solid #000;padding:8px 10px;width:30%;vertical-align:middle;background:#f8fafc">
           <div style="display:flex;align-items:center;gap:8px">
-            <img src="${companyInfo.logoUrl}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
+            <img src="${safeUrl(companyInfo.logoUrl)}" alt="logo" style="height:38px;width:auto;object-fit:contain"/>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#000;line-height:1.2">${companyInfo.nameEn}</div>
+              <div style="font-size:10px;font-weight:700;color:#000;line-height:1.2">${e(companyInfo.nameEn)}</div>
             </div>
           </div>
         </td>
         <td style="border:1px solid #000;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบส่งมอบทรัพย์สิน IT</div>
-          <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
+          <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${e(companyInfo.nameTh)}</div>
         </td>
         <td style="border:1px solid #000;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
-          <div><b>เลขที่:</b> ${docNo}</div>
+          <div><b>เลขที่:</b> ${e(docNo)}</div>
           <div><b>วันที่:</b> ${thDate}</div>
           <div><b>Rev:</b> 01 &nbsp;|&nbsp; IT-POL-LAP-001</div>
         </td>
@@ -427,7 +428,7 @@ export function printHandoverForm({
     <div style="border:1px solid #cbd5e1;padding:6px 12px;border-radius:3px">
       <div style="font-size:11px;color:#000;margin-bottom:3px">บันทึกตำหนิ / ความเสียหายที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")</div>
       ${defectsNote
-        ? `<div style="font-size:11.5px;white-space:pre-wrap;line-height:1.6;padding:2px 0">${defectsNote.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+        ? `<div style="font-size:11.5px;white-space:pre-wrap;line-height:1.6;padding:2px 0">${e(defectsNote)}</div>`
         : `<div style="border-bottom:1px dotted #94a3b8;height:16px"></div>
            <div style="border-bottom:1px dotted #94a3b8;height:16px;margin-top:3px"></div>`
       }
@@ -459,7 +460,7 @@ export function printHandoverForm({
         <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">พนักงานผู้รับมอบ</div>
           <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
-          <div style="font-size:11.5px;font-weight:700">( ${employee.fullName || '.....................................'} )</div>
+          <div style="font-size:11.5px;font-weight:700">( ${e(employee.fullName) || '.....................................'} )</div>
           <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
         <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
@@ -471,7 +472,7 @@ export function printHandoverForm({
         <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">ผู้บังคับบัญชา</div>
           <div style="border-bottom:1px solid #000;margin:28px 14px 5px"></div>
-          <div style="font-size:11.5px;font-weight:700">( ${employee.manager || '.....................................'} )</div>
+          <div style="font-size:11.5px;font-weight:700">( ${e(employee.manager) || '.....................................'} )</div>
           <div style="font-size:11px;margin-top:5px">วันที่ .....................................</div>
         </td>
       </tr>

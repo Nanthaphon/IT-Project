@@ -280,8 +280,8 @@ export default function ITReportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-4xl flex flex-col max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-3 z-[80]">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-7xl flex flex-col max-h-[96vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* Header */}
         <div className="px-7 py-5 flex justify-between items-start border-b border-slate-100 shrink-0">
@@ -310,7 +310,7 @@ export default function ITReportModal({
         <div className="flex flex-1 overflow-hidden">
 
           {/* LEFT: Config form */}
-          <div className="w-[55%] border-r border-slate-100 overflow-y-auto p-6 space-y-5">
+          <div className="w-[52%] border-r border-slate-100 overflow-y-auto p-6 space-y-5">
 
             {/* Basic config */}
             <div className="bg-blue-50/40 ring-1 ring-inset ring-blue-200 rounded-xl p-4 space-y-4">

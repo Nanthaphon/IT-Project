@@ -28,7 +28,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
         <td style="border:1px solid #cbd5e1;padding:3px 6px;text-align:right;font-size:10px;font-variant-numeric:tabular-nums">${cellVal(gen)}</td>
         <td style="border:1px solid #cbd5e1;padding:3px 6px;text-align:right;font-size:10px;font-variant-numeric:tabular-nums">${cellVal(data)}</td>
         <td style="border:1px solid #cbd5e1;padding:3px 6px;text-align:right;font-size:10px;font-variant-numeric:tabular-nums">${cellVal(gx)}</td>
-        <td style="border:1px solid #cbd5e1;padding:3px 6px;font-size:9.5px;color:#475569">${note || ''}</td>
+        <td style="border:1px solid #cbd5e1;padding:3px 6px;font-size:9.5px;color:#000">${note || ''}</td>
       </tr>`;
   }).join('');
 
@@ -39,8 +39,8 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
   <div class="page">
     <div style="text-align:center;margin-bottom:8px;padding-top:6px">
       <div style="font-size:15px;font-weight:700;color:#1E487A">รายละเอียดแนบท้าย</div>
-      <div style="font-size:11px;color:#475569">เอกสารส่งมอบและรับคืนทรัพย์สิน IT &nbsp;|&nbsp; IT-FORM-001 &amp; IT-FORM-002</div>
-      <div style="font-size:10.5px;color:#475569">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; ${companyNameTh}</div>
+      <div style="font-size:11px;color:#000">เอกสารส่งมอบและรับคืนทรัพย์สิน IT &nbsp;|&nbsp; IT-FORM-001 &amp; IT-FORM-002</div>
+      <div style="font-size:10.5px;color:#000">อ้างอิง: IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; ${companyNameTh}</div>
     </div>
 
     ${appendixBar(1, 'วัตถุประสงค์และขอบเขต')}
@@ -130,7 +130,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
       </thead>
       <tbody>${feeRows}</tbody>
     </table>
-    <div style="font-size:9.5px;color:#475569;margin-top:4px">* ค่าปรับใช้ราคาในตารางเป็นขั้นต่ำ หากราคาซ่อมจริงสูงกว่าให้ใช้ราคาตามใบเสนอราคา</div>
+    <div style="font-size:9.5px;color:#000;margin-top:4px">* ค่าปรับใช้ราคาในตารางเป็นขั้นต่ำ หากราคาซ่อมจริงสูงกว่าให้ใช้ราคาตามใบเสนอราคา</div>
     <div style="margin-top:6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:3px;font-size:10px;line-height:1.65;color:#78350f">
       <b>หมายเหตุ:</b> ตัวเลขที่ระบุในตารางค่าปรับเป็นราคาอ้างอิงเบื้องต้น (Preliminary Reference Price) ไม่ถือเป็นค่าใช้จ่ายที่ผูกพันทางสัญญา ค่าใช้จ่ายที่แท้จริงจะกำหนดตามใบเสนอราคาจากผู้ให้บริการซ่อมที่ได้รับการอนุมัติจากบริษัท และจะแจ้งให้พนักงานรับทราบเป็นลายลักษณ์อักษรก่อนดำเนินการหักเงินทุกกรณี
     </div>
@@ -197,7 +197,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
         <div>• อายุเกิน 3 ปี : <b>ไม่คิดค่าปรับ</b>ทุกกรณี</div>
       </div>
       <div style="margin-top:6px">นโยบายนี้ครอบคลุมทุกกรณี ได้แก่ ความเสียหายทางกายภาพ การสูญหาย น้ำเข้า และการถูกโจรกรรม</div>
-      <div style="font-size:10px;color:#475569;margin-top:4px">* อายุอุปกรณ์นับจากวันที่ IT-FORM-001 ลงนาม ถึงวันที่ IT-FORM-002 ลงนาม</div>
+      <div style="font-size:10px;color:#000;margin-top:4px">* อายุอุปกรณ์นับจากวันที่ IT-FORM-001 ลงนาม ถึงวันที่ IT-FORM-002 ลงนาม</div>
     </div>
 
     ${appendixBar(10, 'ลายมือชื่อรับทราบนโยบายและเงื่อนไข')}
@@ -205,21 +205,21 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
       <tr>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">พนักงาน</div>
-          <div style="font-size:10.5px;color:#475569;margin-bottom:6px">รับทราบและยอมรับเงื่อนไขทั้งหมด</div>
+          <div style="font-size:10.5px;color:#000;margin-bottom:6px">รับทราบและยอมรับเงื่อนไขทั้งหมด</div>
           <div style="border-bottom:1px solid #000;margin:34px 14px 6px"></div>
           <div style="font-size:11.5px;font-weight:700">( ${employeeName || '.....................................'} )</div>
           <div style="font-size:11px;margin-top:6px">วันที่ .....................................</div>
         </td>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">เจ้าหน้าที่ IT (ตัวแทน)</div>
-          <div style="font-size:10.5px;color:#475569;margin-bottom:6px">รับทราบและยอมรับเงื่อนไขทั้งหมด</div>
+          <div style="font-size:10.5px;color:#000;margin-bottom:6px">รับทราบและยอมรับเงื่อนไขทั้งหมด</div>
           <div style="border-bottom:1px solid #000;margin:34px 14px 6px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
           <div style="font-size:11px;margin-top:6px">วันที่ .....................................</div>
         </td>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">แผนกบุคคล (HR)</div>
-          <div style="font-size:10.5px;color:#475569;margin-bottom:6px">รับทราบนโยบาย</div>
+          <div style="font-size:10.5px;color:#000;margin-bottom:6px">รับทราบนโยบาย</div>
           <div style="border-bottom:1px solid #000;margin:34px 14px 6px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
           <div style="font-size:11px;margin-top:6px">วันที่ .....................................</div>
@@ -227,7 +227,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
       </tr>
     </table>
 
-    <div style="text-align:center;font-size:10px;color:#64748b;margin-top:12px">
+    <div style="text-align:center;font-size:10px;color:#000;margin-top:12px">
       ออกโดยระบบ IT Asset Management &nbsp;·&nbsp; ${thDate} &nbsp;·&nbsp; ${docNo}
     </div>
 

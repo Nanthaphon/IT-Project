@@ -197,19 +197,19 @@ export function printHandoverForm({
       <tr>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px;text-align:center;width:34px">${no}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10.5px">${name}</td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10px;color:#475569">${criteria}</td>
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;font-size:10px;color:#000">${criteria}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">${mark(cell.status === 'normal')}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">${mark(cell.status === 'scratch')}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:38px">${mark(cell.status === 'broken')}</td>
-        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px;color:#475569">${itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</td>
+        <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px;color:#000">${itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</td>
         <td style="border:1px solid #cbd5e1;padding:4px 6px;text-align:center;width:42px;font-size:10.5px;font-weight:600">${score != null ? (score % 1 === 0 ? score : score.toFixed(2)) : ''}</td>
       </tr>`;
     }).join('');
     grandTotal += sectionScore;
     const subtotalRow = `
       <tr style="background:#f8fafc">
-        <td colspan="6" style="border:1px solid #cbd5e1;padding:3px 8px;font-size:10px;text-align:right;font-style:italic;color:#475569">รวมหมวด</td>
-        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;color:#475569">${sec.max}</td>
+        <td colspan="6" style="border:1px solid #cbd5e1;padding:3px 8px;font-size:10px;text-align:right;font-style:italic;color:#000">รวมหมวด</td>
+        <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;color:#000">${sec.max}</td>
         <td style="border:1px solid #cbd5e1;padding:3px;text-align:center;font-size:10.5px;font-weight:700;color:#1E487A">${sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(2)}</td>
       </tr>`;
     return headerRow + itemRows + subtotalRow;
@@ -226,7 +226,7 @@ export function printHandoverForm({
         ? `<div style="border:1px solid #cbd5e1;border-radius:4px;height:130px;overflow:hidden;background:#f8fafc;display:flex;align-items:center;justify-content:center">
              <img src="${src}" alt="${label}" style="max-width:100%;max-height:100%;object-fit:contain"/>
            </div>`
-        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:130px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">[ แนบรูปภาพ ]</div>`
+        : `<div style="border:1.5px dashed #94a3b8;border-radius:4px;height:130px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px">[ แนบรูปภาพ ]</div>`
       }
     </td>`;
   };
@@ -240,7 +240,7 @@ export function printHandoverForm({
   /* ── Info cell ── */
   const ic = (label, value) => `
     <div style="padding:3px 0">
-      <div style="font-size:9.5px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px">${label}</div>
+      <div style="font-size:9.5px;color:#000;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px">${label}</div>
       <div style="font-size:11px;font-weight:600;color:#000;border-bottom:1px dotted #94a3b8;padding-bottom:3px;min-height:18px">${value || ''}</div>
     </div>`;
 
@@ -277,9 +277,9 @@ export function printHandoverForm({
 
     <!-- Title strip -->
     <div style="text-align:center;margin-bottom:6px">
-      <div style="font-size:11px;color:#475569;font-weight:600;letter-spacing:0.08em">${docNo}</div>
+      <div style="font-size:11px;color:#000;font-weight:600;letter-spacing:0.08em">${docNo}</div>
       <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.2;margin-top:2px">ใบส่งมอบทรัพย์สิน IT</div>
-      <div style="font-size:10.5px;color:#475569">Pre-Handover Asset Transfer Form</div>
+      <div style="font-size:10.5px;color:#000">Pre-Handover Asset Transfer Form</div>
     </div>
 
     <!-- Header band -->
@@ -295,7 +295,7 @@ export function printHandoverForm({
         </td>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:42%;vertical-align:middle;background:#fff">
           <div style="font-size:12px;font-weight:700;color:#000">ใบส่งมอบทรัพย์สิน IT</div>
-          <div style="font-size:10px;color:#475569;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
+          <div style="font-size:10px;color:#000;margin-top:1px">IT Asset Management &nbsp;|&nbsp; ${companyInfo.nameTh}</div>
         </td>
         <td style="border:1px solid #1E487A;padding:8px 10px;width:28%;vertical-align:middle;background:#fff;font-size:10.5px">
           <div><b>เลขที่:</b> ${docNo}</div>
@@ -340,7 +340,7 @@ export function printHandoverForm({
         </tr>
       </thead>
       <tbody>
-        ${assetRows || `<tr><td colspan="7" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#64748b;font-size:10.5px">ไม่มีทรัพย์สินหลักที่ผูกกับพนักงาน</td></tr>`}
+        ${assetRows || `<tr><td colspan="7" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#000;font-size:10.5px">ไม่มีทรัพย์สินหลักที่ผูกกับพนักงาน</td></tr>`}
       </tbody>
     </table>
 
@@ -357,7 +357,7 @@ export function printHandoverForm({
         </tr>
       </thead>
       <tbody>
-        ${softwareRows || `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#64748b;font-size:10.5px">ไม่มีซอฟต์แวร์ที่ผูกกับพนักงาน</td></tr>`}
+        ${softwareRows || `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#000;font-size:10.5px">ไม่มีซอฟต์แวร์ที่ผูกกับพนักงาน</td></tr>`}
       </tbody>
     </table>
 
@@ -374,7 +374,7 @@ export function printHandoverForm({
         </tr>
       </thead>
       <tbody>
-        ${accessoryRows || `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#64748b;font-size:10.5px">ไม่มีอุปกรณ์เสริม</td></tr>`}
+        ${accessoryRows || `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#000;font-size:10.5px">ไม่มีอุปกรณ์เสริม</td></tr>`}
       </tbody>
     </table>
 
@@ -418,7 +418,7 @@ export function printHandoverForm({
     <!-- ── 6. บันทึกตำหนิที่มีอยู่แล้ว ── -->
     ${sectionBar(6, 'บันทึกตำหนิที่มีอยู่แล้ว')}
     <div style="border:1px solid #cbd5e1;padding:6px 12px;border-radius:3px">
-      <div style="font-size:11px;color:#475569;margin-bottom:3px">บันทึกตำหนิ / ความเสียหายที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")</div>
+      <div style="font-size:11px;color:#000;margin-bottom:3px">บันทึกตำหนิ / ความเสียหายที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")</div>
       ${defectsNote
         ? `<div style="font-size:11.5px;white-space:pre-wrap;line-height:1.6;padding:2px 0">${defectsNote.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
         : `<div style="border-bottom:1px dotted #94a3b8;height:16px"></div>
@@ -428,7 +428,7 @@ export function printHandoverForm({
 
     <!-- ── 7. รูปภาพ 6 มุม ── -->
     ${sectionBar(7, 'รูปภาพสภาพอุปกรณ์ก่อนส่งมอบ')}
-    <div style="font-size:10.5px;color:#475569;margin-bottom:3px">แนบรูปภาพ 6 มุม: ฝา / ฐาน / ซ้าย / ขวา / จอ+คีย์บอร์ด / ตำหนิเดิม</div>
+    <div style="font-size:10.5px;color:#000;margin-bottom:3px">แนบรูปภาพ 6 มุม: ฝา / ฐาน / ซ้าย / ขวา / จอ+คีย์บอร์ด / ตำหนิเดิม</div>
     <table>
       <tr>${photoCell('topLid', 'ฝาด้านบน')}${photoCell('base', 'ฐานเครื่อง')}${photoCell('left', 'ด้านซ้าย')}</tr>
       <tr>${photoCell('right', 'ด้านขวา')}${photoCell('screenKeyboard', 'จอ + คีย์บอร์ด')}${photoCell('existingDefect', 'ตำหนิเดิม')}</tr>

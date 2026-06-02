@@ -71,6 +71,9 @@ export default function PreReturnAssessmentModal({
   // ── Pre-fill 18 sub-items จาก 6 หมวด in-app (Option B mapping) ──
   inAppFieldsReturn   = null,  // returnFields ของ tx รับคืน
   inAppFieldsHandover = null,  // checkoutFields ของ tx เบิกจ่าย
+  // ── ซอฟต์แวร์ / License + อุปกรณ์เสริม (ใบรับคืนรวม — empty array = ไม่มีหรือไม่ส่ง) ──
+  empLicenses   = [],
+  empAccessories = [],
 }) {
   const [assessmentReturn,   setAssessmentReturn]   = useState(() =>
     presetAssessment || inAppFieldsToAssessment(inAppFieldsReturn)
@@ -137,6 +140,7 @@ export default function PreReturnAssessmentModal({
       assessmentHandover: showHandover ? assessmentHandover : null,
       photosReturn, photosDamage,
       damages, notes, tier,
+      empLicenses, empAccessories,
     });
     onClose();
   };

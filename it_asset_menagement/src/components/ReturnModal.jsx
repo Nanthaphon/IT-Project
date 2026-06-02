@@ -10,7 +10,8 @@ export default function ReturnModal({
   returnConditionData, setReturnConditionData,
 }) {
   if (!returnModal.isOpen) return null;
-  const isLicense = returnModal.collectionName === 'licenses';
+  const isLicense   = returnModal.collectionName === 'licenses';
+  const isAccessory = returnModal.collectionName === 'accessories';
 
   const close = () => {
     setReturnModal({ isOpen: false, assetId: null, checkoutId: null, empId: null, empName: null, assetName: null });
@@ -97,8 +98,9 @@ export default function ReturnModal({
             </div>
           )}
 
-          {/* Condition Capture — เก็บหลักฐานสภาพตอนรับคืน (assets/accessories) */}
-          {!isLicense && returnConditionData && setReturnConditionData && (
+          {/* Condition Capture — เฉพาะ assets หลัก (notebook/computer) เท่านั้น
+              accessories ใช้แค่ toggle "ปกติ / ชำรุด" ด้านบนพอ ไม่ต้อง 100-point checklist */}
+          {!isLicense && !isAccessory && returnConditionData && setReturnConditionData && (
             <ConditionCapture
               mode="return"
               fields={returnConditionData.fields}

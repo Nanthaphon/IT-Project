@@ -27,6 +27,7 @@ export default function EmployeeDetailsModal({
   const [historyFilter, setHistoryFilter] = useState('all');
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
+  const [returnPickerOpen, setReturnPickerOpen] = useState(false); // เลือกเครื่องเมื่อมีหลายตัว
   if (!selectedEmployee) return null;
 
   /* ── Helper: open return-form pre-print modal for a given return-tx row ── */
@@ -87,6 +88,36 @@ export default function EmployeeDetailsModal({
 
   // เปิด modal ให้ติ๊ก checklist + แนบรูปก่อนพิมพ์ (modal จะเรียก printHandoverForm เองเมื่อ submit)
   const handlePrint = () => setAssessmentOpen(true);
+
+  /* ── Helper: เปิด PreReturnAssessmentModal สำหรับทรัพย์สินที่กำลังถือครอง ── */
+  const openReturnFormFor = (asset) => {
+    if (!asset) return;
+    // หาประวัติเบิกจ่ายล่าสุดของ asset นี้ + พนักงานคนนี้
+    const allTx = transactions || [];
+    const matchedCheckout = allTx
+      .filter(t => t.assetId === asset.id && t.empId === selectedEmployee.id && t.action === 'เบิกจ่าย')
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))[0];
+    setPrintReturnFor({
+      period: { checkout: matchedCheckout || null, return: null },
+      asset,
+      includeHoldings: true,   // flag: ใบรับคืนแบบรวม (มี License + อุปกรณ์เสริม)
+    });
+  };
+
+  const handlePrintReturn = () => {
+    if (empAssets.length === 0) {
+      // ไม่มีทรัพย์สินหลัก — alert ผ่าน inline state แต่หา channel ส่ง alert ไม่ได้ตรง ๆ
+      // ใช้ window.alert แบบเรียบง่ายเพราะ component นี้ไม่ได้รับ setCustomAlert
+      alert('พนักงานคนนี้ไม่มีทรัพย์สินหลัก (คอมพิวเตอร์/โน๊ตบุ๊ค) ที่ต้องรับคืน');
+      return;
+    }
+    if (empAssets.length === 1) {
+      openReturnFormFor(empAssets[0]);
+      return;
+    }
+    // มีหลายเครื่อง → เปิด picker
+    setReturnPickerOpen(true);
+  };
 
   return (
     <div
@@ -396,19 +427,53 @@ export default function EmployeeDetailsModal({
         {/* ── Footer ── */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white shrink-0">
 
-          {/* ปุ่มพิมพ์ใบส่งมอบ */}
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#1E487A] border border-[#1E487A]/30 bg-blue-50 hover:bg-[#1E487A] hover:text-white rounded-lg transition group"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            พิมพ์ใบส่งมอบทรัพย์สิน
-            <span className="text-[11px] font-semibold bg-[#1E487A]/10 group-hover:bg-white/20 text-[#1E487A] group-hover:text-white px-1.5 py-0.5 rounded-md transition">
-              {allHeld.length} รายการ
-            </span>
-          </button>
+          {/* ปุ่มพิมพ์ใบส่งมอบ + ปุ่มพิมพ์ใบรับคืน */}
+          <div className="flex items-center gap-2">
+            <div className="relative group/tooltip">
+              <button
+                onClick={handlePrint}
+                disabled={allHeld.length === 0}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition group ${
+                  allHeld.length === 0
+                    ? 'text-slate-400 border border-slate-200 bg-slate-50 cursor-not-allowed'
+                    : 'text-[#1E487A] border border-[#1E487A]/30 bg-blue-50 hover:bg-[#1E487A] hover:text-white'
+                }`}
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                พิมพ์ใบส่งมอบทรัพย์สิน
+                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md transition ${
+                  allHeld.length === 0
+                    ? 'bg-slate-100 text-slate-400'
+                    : 'bg-[#1E487A]/10 group-hover:bg-white/20 text-[#1E487A] group-hover:text-white'
+                }`}>
+                  {allHeld.length} รายการ
+                </span>
+              </button>
+              {allHeld.length === 0 && (
+                <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-10 pointer-events-none">
+                  <div className="bg-slate-800 text-white text-[11.5px] font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                    พนักงานไม่มีทรัพย์สินในครอบครอง
+                  </div>
+                  <div className="w-2 h-2 bg-slate-800 rotate-45 ml-4 -mt-1"></div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handlePrintReturn}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-teal-700 border border-teal-300/60 bg-teal-50 hover:bg-teal-600 hover:text-white rounded-lg transition group"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              พิมพ์ใบรับคืนทรัพย์สิน
+              <span className="text-[11px] font-semibold bg-teal-100 group-hover:bg-white/20 text-teal-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition">
+                {empAssets.length} เครื่อง
+              </span>
+            </button>
+          </div>
 
           <div className="flex items-center gap-2">
             {!selectedEmployee.deletedAt && (
@@ -443,6 +508,40 @@ export default function EmployeeDetailsModal({
         empAccessories={empAccessories}
       />
 
+      {/* ── Picker เลือกเครื่องที่จะพิมพ์ใบรับคืน (เมื่อพนักงานถือหลายเครื่อง) ── */}
+      {returnPickerOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setReturnPickerOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[15px] font-semibold text-slate-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
+              <button onClick={() => setReturnPickerOpen(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+            </div>
+            <p className="text-[12.5px] text-slate-500 mb-3">
+              พนักงานคนนี้ถือทรัพย์สินหลัก {empAssets.length} เครื่อง — เลือก 1 เครื่อง
+            </p>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {empAssets.map(asset => (
+                <button
+                  key={asset.id}
+                  onClick={() => { openReturnFormFor(asset); setReturnPickerOpen(false); }}
+                  className="w-full flex items-center justify-between gap-3 px-3 py-2.5 border border-slate-200 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition text-left"
+                >
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{asset.name || '-'}</p>
+                    <p className="text-[12px] text-slate-500 truncate">
+                      {asset.model || '-'} · {asset.sn || asset.assetTag || '-'}
+                    </p>
+                  </div>
+                  <svg className="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Pre-Return Assessment Modal (พิมพ์ IT-FORM-002 จากแถว "รับคืน") ── */}
       {printReturnFor && (
         <PreReturnAssessmentModal
@@ -455,6 +554,9 @@ export default function EmployeeDetailsModal({
           // Pre-fill 18 sub-items จาก 6 หมวด in-app
           inAppFieldsReturn={printReturnFor.period.return?.returnFields}
           inAppFieldsHandover={printReturnFor.period.checkout?.checkoutFields}
+          // ใบรับคืนรวม → ส่ง License + อุปกรณ์เสริมทั้งหมดของพนักงาน
+          empLicenses={printReturnFor.includeHoldings ? empLicenses : []}
+          empAccessories={printReturnFor.includeHoldings ? empAccessories : []}
         />
       )}
     </div>

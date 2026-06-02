@@ -12,7 +12,15 @@ const appendixBar = (n, label) => `
     ส่วนที่ ${n} — ${label}
   </div>`;
 
-export function renderAppendix({ employeeName = '', docNo = '', thDate = '', companyInfo = null } = {}) {
+export function renderAppendix({
+  employeeName = '', docNo = '', thDate = '', companyInfo = null,
+  formType = 'handover',   // 'handover' (IT-FORM-001) | 'return' (IT-FORM-002)
+} = {}) {
+  /* ── ข้อความ HR ปรับตามชนิดฟอร์ม ── */
+  const hrSubtitle = formType === 'return'
+    ? 'รับทราบการส่งคืนทรัพย์สิน'
+    : 'รับทราบการส่งมอบทรัพย์สิน';
+
   // ── ใช้ชื่อบริษัทตามที่ส่งมา (จาก employee.company) — fallback เป็น Globe Syndicate ──
   const companyNameTh = companyInfo?.nameTh || 'บริษัท โกลบ ซินดิเคท (ประเทศไทย) จำกัด';
   // ── Build fee rows from shared table ──
@@ -201,7 +209,64 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
       <div style="font-size:10px;color:#000;margin-top:4px">* อายุอุปกรณ์นับจากวันที่ IT-FORM-001 ลงนาม ถึงวันที่ IT-FORM-002 ลงนาม</div>
     </div>
 
-    ${appendixBar(10, 'ลายมือชื่อรับทราบนโยบายและเงื่อนไข')}
+    ${appendixBar(10, 'ค่าปรับอุปกรณ์เสริม (Accessory Damage Policy)')}
+    <div style="border:1px solid #cbd5e1;padding:10px 14px;border-radius:3px;font-size:11px;line-height:1.7">
+      <div style="font-weight:700;margin-bottom:4px">อายุการใช้งานอ้างอิงต่อประเภทอุปกรณ์</div>
+      <table style="margin-bottom:6px">
+        <thead>
+          <tr style="background:#e2e8f0">
+            <th style="border:1px solid #94a3b8;padding:5px 8px;font-size:10.5px;width:50%">ประเภทอุปกรณ์เสริม</th>
+            <th style="border:1px solid #94a3b8;padding:5px 8px;font-size:10.5px;width:25%">อายุอ้างอิง</th>
+            <th style="border:1px solid #94a3b8;padding:5px 8px;font-size:10.5px">หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10.5px">Mouse / Keyboard / Headset / สาย USB / Adapter / อะแดปเตอร์</td><td style="border:1px solid #cbd5e1;padding:4px 8px;text-align:center;font-size:10.5px;font-weight:700">1 ปี</td><td style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10px">อุปกรณ์ใช้สอยทั่วไป</td></tr>
+          <tr><td style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10.5px">Webcam / Microphone / Speaker / Docking Station</td><td style="border:1px solid #cbd5e1;padding:4px 8px;text-align:center;font-size:10.5px;font-weight:700">2 ปี</td><td style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10px">อุปกรณ์ peripheral กลาง</td></tr>
+          <tr><td style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10.5px">External Monitor / External SSD / External HDD / NAS</td><td style="border:1px solid #cbd5e1;padding:4px 8px;text-align:center;font-size:10.5px;font-weight:700">3 ปี</td><td style="border:1px solid #cbd5e1;padding:4px 8px;font-size:10px">อุปกรณ์มูลค่าสูง</td></tr>
+        </tbody>
+      </table>
+
+      <div style="font-weight:700;margin-bottom:4px;margin-top:8px">เกณฑ์การคิดค่าปรับ</div>
+      <div style="padding:6px 10px;background:#f8fafc;border-left:3px solid #000;margin-bottom:6px">
+        <div>• <b>ภายในอายุการใช้งาน</b> &nbsp;: คิดค่าปรับ <b>100%</b> ของราคาซื้อ</div>
+        <div>• <b>เกินอายุการใช้งาน</b> &nbsp;: <b>ไม่คิดค่าปรับ</b></div>
+      </div>
+
+      <div style="font-weight:700;margin-bottom:4px;margin-top:4px">ข้อยกเว้น</div>
+      <div>1. <b>ชำรุดจากการใช้งานปกติ</b> (เช่น switch mouse หมดอายุ, สาย USB เริ่มเสื่อม, ปุ่ม keyboard หลวมจากการใช้งาน) → ไม่คิดค่าปรับ แม้ยังไม่ครบอายุ</div>
+      <div>2. <b>ชำรุดจากความประมาท</b> (ตก หล่น น้ำหก กระแทก ทำของหล่นทับ) → คิดค่าปรับเต็มภายในอายุ</div>
+      <div>3. <b>สูญหาย / ทำหาย</b> → คิด <b>100%</b> ของราคาซื้อ ทุกอายุ ไม่มีข้อยกเว้น</div>
+      <div style="margin-top:6px;font-size:10px;color:#000">* ราคาซื้ออ้างอิงจากใบเสร็จ / ราคาในระบบ IT Asset Management ณ วันส่งมอบ</div>
+    </div>
+
+    ${appendixBar(11, 'ข้อตกลงการใช้งานซอฟต์แวร์ / License')}
+    <div style="border:1px solid #cbd5e1;padding:10px 14px;border-radius:3px;font-size:11px;line-height:1.85">
+      <div style="font-weight:700;margin-bottom:4px">ความรับผิดชอบของพนักงาน</div>
+      <div>1. <b>Product Key, รหัสผ่าน, Account login</b> ที่ได้รับเป็นทรัพย์สินของบริษัท — ห้ามเปิดเผยให้บุคคลภายนอก หรือเก็บไว้ในที่ที่ไม่ปลอดภัย</div>
+      <div>2. <b>License ผูกกับการเป็นพนักงาน</b> — เมื่อลาออก / พ้นสภาพ ต้อง deactivate และส่งคืน Product Key ทันที</div>
+      <div>3. ห้าม <b>ติดตั้ง / Sign in license</b> บนเครื่องส่วนตัว หรืออุปกรณ์นอกระบบโดยไม่ได้รับอนุญาตจาก IT</div>
+      <div>4. ห้าม <b>share account หรือ Product Key</b> กับเพื่อนร่วมงาน / บุคคลภายนอก</div>
+      <div>5. License แบบ <b>Device-bound</b> (เช่น Windows OEM, Office Per-Seat ที่ผูกกับเครื่อง) — ต้องคืนพร้อมเครื่อง</div>
+
+      <div style="font-weight:700;margin-bottom:4px;margin-top:8px">กรณีที่ต้องชดใช้ราคา License เต็ม</div>
+      <div style="padding:6px 10px;background:#fef3c7;border-left:3px solid #d97706;color:#78350f">
+        <div>• Product Key ถูก vendor deactivate จากการใช้ผิด (เช่น install เกินจำนวนสิทธิ์ที่ซื้อ, ใช้บนเครื่องส่วนตัว)</div>
+        <div>• License ถูกระงับจาก vendor เนื่องจากพฤติกรรมที่ไม่เหมาะสม</div>
+        <div>• Product Key สูญหาย / ถูกเปิดเผย จนต้องซื้อใหม่</div>
+        <div>• ฝ่าฝืนเงื่อนไขในข้อ 3-5 ข้างต้น</div>
+      </div>
+
+      <div style="margin-top:6px;font-size:10px;color:#000">* License ที่หมดอายุตามวงรอบปกติ (Subscription renewal) ไม่ถือเป็นความรับผิดของพนักงาน</div>
+    </div>
+    </div><!-- end appendix page 3 -->
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!--          ภาคผนวก หน้า 4 — ลายมือชื่อรับทราบ          -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page">
+
+    ${appendixBar(12, 'ลายมือชื่อรับทราบนโยบายและเงื่อนไข')}
     <table>
       <tr>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
@@ -220,7 +285,7 @@ export function renderAppendix({ employeeName = '', docNo = '', thDate = '', com
         </td>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">แผนกบุคคล (HR)</div>
-          <div style="font-size:10.5px;color:#000;margin-bottom:6px">รับทราบนโยบาย</div>
+          <div style="font-size:10.5px;color:#000;margin-bottom:6px">${hrSubtitle}</div>
           <div style="border-bottom:1px solid #000;margin:34px 14px 6px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
           <div style="font-size:11px;margin-top:6px">วันที่ .....................................</div>

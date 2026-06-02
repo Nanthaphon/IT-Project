@@ -49,6 +49,9 @@ export function printReturnForm({
   notes = '',
   // ── tier (for fee column header) ──
   tier = 'General',
+  // ── ซอฟต์แวร์ / License + อุปกรณ์เสริมของพนักงาน (สำหรับใบรับคืนรวม) ──
+  empLicenses = [],
+  empAccessories = [],
 }) {
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
@@ -279,8 +282,64 @@ export function printReturnForm({
       </tr>
     </table>
 
-    <!-- ── 2. แบบประเมินสภาพรับคืน ── -->
-    ${sectionBar(2, 'แบบประเมินสภาพอุปกรณ์ตอนรับคืน (100 คะแนน)')}
+    <!-- ── 2. ซอฟต์แวร์ / License ที่รับคืน ── -->
+    ${sectionBar(2, `ซอฟต์แวร์ / License ที่รับคืน${empLicenses.length > 0 ? ` (${empLicenses.length} รายการ)` : ''}`)}
+    <table>
+      <thead>
+        <tr style="background:#e2e8f0">
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:34px">ลำดับ</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px">ชื่อซอฟต์แวร์ / License</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px">รายละเอียด</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:50px">คืน</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:50px">ค้าง</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:50px">ชำรุด</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:120px">หมายเหตุ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${empLicenses.length > 0 ? empLicenses.map((l, i) => `
+          <tr>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${e(l.name) || '-'}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:10.5px;color:#000">${e(l.supplier || l.vendor) || ''}${l.expirationDate ? ` &nbsp;|&nbsp; หมดอายุ ${fmtTHDate(l.expirationDate)}` : ''}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center">${mark(false)}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center">${mark(false)}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center">${mark(false)}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:10.5px"></td>
+          </tr>`).join('') : `<tr><td colspan="7" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#64748b;font-size:10.5px">ไม่มีซอฟต์แวร์ / License ที่ผูกกับพนักงาน</td></tr>`}
+      </tbody>
+    </table>
+
+    <!-- ── 3. อุปกรณ์เสริมที่รับคืน ── -->
+    ${sectionBar(3, `อุปกรณ์เสริมที่รับคืน${empAccessories.length > 0 ? ` (${empAccessories.length} รายการ)` : ''}`)}
+    <table>
+      <thead>
+        <tr style="background:#e2e8f0">
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:34px">ลำดับ</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px">รายการอุปกรณ์เสริม</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:140px">Serial / รหัส</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:50px">คืน</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:50px">ค้าง</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:50px">ชำรุด</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:120px">หมายเหตุ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${empAccessories.length > 0 ? empAccessories.map((a, i) => `
+          <tr>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${e(a.name) || '-'}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:10.5px;font-family:monospace">${e(a.sn || a.serialNumber) || '-'}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center">${mark(false)}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center">${mark(false)}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center">${mark(false)}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:10.5px"></td>
+          </tr>`).join('') : `<tr><td colspan="7" style="border:1px solid #cbd5e1;padding:8px;text-align:center;color:#64748b;font-size:10.5px">ไม่มีอุปกรณ์เสริมที่ผูกกับพนักงาน</td></tr>`}
+      </tbody>
+    </table>
+
+    <!-- ── 4. แบบประเมินสภาพรับคืน ── -->
+    ${sectionBar(4, 'แบบประเมินสภาพอุปกรณ์ตอนรับคืน (100 คะแนน)')}
     <table>
       <thead>
         <tr style="background:#e2e8f0">
@@ -305,7 +364,7 @@ export function printReturnForm({
 
     <!-- ── 3. สรุปคะแนนเปรียบเทียบ (flow ต่อจาก assessment, ไม่บังคับขึ้นหน้าใหม่) ── -->
     <div class="keep-together">
-    ${sectionBar(3, 'สรุปคะแนนเปรียบเทียบ ขา 1 vs ขา 2')}
+    ${sectionBar(5, 'สรุปคะแนนเปรียบเทียบ ขา 1 vs ขา 2')}
     <table>
       <thead>
         <tr style="background:#e2e8f0">
@@ -330,7 +389,7 @@ export function printReturnForm({
 
     <!-- ── 4. รายการความเสียหายและค่าปรับ ── -->
     <div class="keep-together">
-    ${sectionBar(4, 'รายการความเสียหายและการคำนวณค่าปรับ')}
+    ${sectionBar(6, 'รายการความเสียหายและการคำนวณค่าปรับ')}
     <table>
       <thead>
         <tr style="background:#e2e8f0">
@@ -361,7 +420,7 @@ export function printReturnForm({
   <div class="page">
 
     <!-- ── 5. รูปภาพรับคืน 6 มุม ── -->
-    ${sectionBar(5, 'รูปภาพสภาพอุปกรณ์ตอนรับคืน')}
+    ${sectionBar(7, 'รูปภาพสภาพอุปกรณ์ตอนรับคืน')}
     <div style="font-size:10.5px;color:#000;margin-bottom:4px">รูปภาพทั่วไป 6 มุม</div>
     <table>
       <tr>${photoCell(photosReturn.topLid, 'ฝาด้านบน')}${photoCell(photosReturn.base, 'ฐานเครื่อง')}${photoCell(photosReturn.left, 'ด้านซ้าย')}</tr>
@@ -375,19 +434,22 @@ export function printReturnForm({
     </table>
 
     <!-- ── 6. เงื่อนไขรับคืน ── -->
-    ${sectionBar(6, 'เงื่อนไขการรับคืนทรัพย์สิน')}
+    ${sectionBar(8, 'เงื่อนไขการรับคืนทรัพย์สิน')}
     <div style="border:1px solid #cbd5e1;padding:7px 12px;border-radius:3px;font-size:11px;line-height:1.6">
       <div style="font-weight:700;margin-bottom:2px">ข้อตกลงและเงื่อนไข</div>
       <div>1. IT เจ้าหน้าที่และพนักงานรับทราบผลการประเมินสภาพตามที่บันทึกไว้ในเอกสารนี้</div>
       <div>2. ค่าปรับ (ถ้ามี) จะถูกหักจากเงินเดือนงวดสุดท้าย หรือตามข้อตกลงกับแผนกบุคคล (HR)</div>
-      <div>3. อ้างอิงค่าปรับตามตาราง IT-POL-LAP-001 Rev.01 &nbsp;|&nbsp; Tier: ${e(tier)}</div>
+      <div>3. อ้างอิงค่าปรับ:</div>
+      <div style="padding-left:14px">3.1 <b>Notebook / Computer</b> → ตาราง IT-POL-LAP-001 Rev.01 (ภาคผนวกส่วนที่ 5) &nbsp;|&nbsp; Tier: ${e(tier)}</div>
+      <div style="padding-left:14px">3.2 <b>อุปกรณ์เสริม</b> → ตารางค่าปรับอายุการใช้งาน (ภาคผนวกส่วนที่ 10)</div>
+      <div style="padding-left:14px">3.3 <b>License / ซอฟต์แวร์</b> → ตามข้อตกลงในภาคผนวกส่วนที่ 11</div>
       <div>4. กรณีออกพนักงาน: แผนกบุคคลต้องลงนามรับทราบก่อนดำเนินการด้านเอกสารลาออก/เลิกจ้าง</div>
-      <div>5. การโต้แย้งผลการประเมินต้องทำภายใน 3 วันทำการหลังลงนาม</div>
+      <div>5. IT ตรวจรับร่วมกับพนักงานแล้ว มีการถ่ายรูป มี Check List มีลายเซ็นรับรองทั้งสองฝ่าย ถือเป็นการตรวจรับที่เสร็จสมบูรณ์</div>
       ${notes ? `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #cbd5e1"><b>หมายเหตุ:</b> ${e(notes)}</div>` : ''}
     </div>
 
     <!-- ── 7. ลายมือชื่อ 3 ฝ่าย (IT / พนักงาน / HR) ── -->
-    ${sectionBar(7, 'ลายมือชื่อ 3 ฝ่าย (IT / พนักงาน / แผนกบุคคล)')}
+    ${sectionBar(9, 'ลายมือชื่อ 3 ฝ่าย (IT / พนักงาน / แผนกบุคคล)')}
     <table>
       <tr>
         <td style="border:1px solid #000;padding:10px 14px;width:33.33%;text-align:center;vertical-align:top">
@@ -414,7 +476,7 @@ export function printReturnForm({
   </div><!-- end page 3 -->
 
   <!-- ═══════════════ ภาคผนวก (shared with IT-FORM-001) ═══════════════ -->
-  ${renderAppendix({ employeeName: employee.fullName, docNo, thDate, companyInfo })}
+  ${renderAppendix({ employeeName: employee.fullName, docNo, thDate, companyInfo, formType: 'return' })}
 
 </body>
 </html>`;

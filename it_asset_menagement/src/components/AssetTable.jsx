@@ -22,7 +22,6 @@ export default function AssetTable({
         <tr>
           {visibleAssetColumns.name && <th className={TH}>ชื่ออุปกรณ์</th>}
           {visibleAssetColumns.type && <th className={TH}>ประเภท</th>}
-          {visibleAssetColumns.department && <th className={`${TH} text-center`}>แผนก</th>}
           {visibleAssetColumns.assetTag && <th className={TH}>รหัสทรัพย์สิน</th>}
           {visibleAssetColumns.sn && <th className={TH}>Serial Number</th>}
           {visibleAssetColumns.model && <th className={TH}>ยี่ห้อ/รุ่น</th>}
@@ -74,9 +73,6 @@ export default function AssetTable({
               </td>
             )}
 
-            {visibleAssetColumns.department && (
-              <td className={`${TD} text-center font-medium text-slate-700`}>{item.department || '-'}</td>
-            )}
             {visibleAssetColumns.assetTag && (
               <td className={`${TD} font-mono text-slate-600 text-[13.5px]`}>{item.assetTag || '-'}</td>
             )}

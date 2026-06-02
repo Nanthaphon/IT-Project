@@ -62,7 +62,7 @@ export default function ActionBar({
   };
 
   const columnLabels = {
-    name: 'ชื่ออุปกรณ์', type: 'ประเภท', department: 'แผนก', cost: 'ราคา', status: 'สถานะ',
+    name: 'ชื่ออุปกรณ์', type: 'ประเภท', cost: 'ราคา', status: 'สถานะ',
     assetTag: 'รหัสทรัพย์สิน', sn: 'Serial Number', model: 'ยี่ห้อ/รุ่น', vendor: 'ผู้จัดจำหน่าย', company: 'บริษัท',
     purchaseDate: 'วันที่ซื้อ', warrantyDate: 'วันหมด Warranty', assignedName: 'ผู้ครอบครอง',
   };

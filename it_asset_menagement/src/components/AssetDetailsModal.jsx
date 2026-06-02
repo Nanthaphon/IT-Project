@@ -46,10 +46,11 @@ export default function AssetDetailsModal({
   const [tempCostValue, setTempCostValue] = useState('');
   const [tempPurchaseDateValue, setTempPurchaseDateValue] = useState('');
   const [tempWarrantyDateValue, setTempWarrantyDateValue] = useState('');
+  const [tempAccDocs, setTempAccDocs] = useState([]);  // ไฟล์แนบสำหรับชิ้นย่อยที่กำลังแก้ไข
   const [isSavingItem, setIsSavingItem] = useState(false);
 
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [newItemData, setNewItemData] = useState({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1 });
+  const [newItemData, setNewItemData] = useState({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] });
 
   const [showLabelPreview, setShowLabelPreview] = useState(false);
 
@@ -281,6 +282,77 @@ export default function AssetDetailsModal({
     }
   };
 
+  /* ── คำนวณอายุการใช้งานจากวันที่ซื้อ → "X ปี Y เดือน Z วัน" ── */
+  const calcAccessoryAge = (purchaseDate) => {
+    if (!purchaseDate) return null;
+    const start = new Date(purchaseDate);
+    if (isNaN(start.getTime())) return null;
+    const now = new Date();
+    if (start > now) return { text: 'ยังไม่เริ่มใช้งาน', tone: 'slate', years: 0 };
+
+    let years = now.getFullYear() - start.getFullYear();
+    let months = now.getMonth() - start.getMonth();
+    let days = now.getDate() - start.getDate();
+    if (days < 0) {
+      months--;
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += prevMonth.getDate();
+    }
+    if (months < 0) { years--; months += 12; }
+
+    const parts = [];
+    if (years > 0) parts.push(`${years} ปี`);
+    if (months > 0) parts.push(`${months} เดือน`);
+    if (days > 0 && years === 0) parts.push(`${days} วัน`);
+    if (parts.length === 0) parts.push('วันนี้');
+
+    // อิงนโยบาย accessory: <1ปี = emerald (ภายในอายุ Mouse/KB), 1-2ปี = amber, >2ปี = slate (เกินแล้ว)
+    const tone = years === 0 ? 'emerald' : years < 2 ? 'amber' : 'slate';
+    return { text: parts.join(' '), tone, years };
+  };
+
+  /* ── อัปโหลดไฟล์แนบสำหรับชิ้นย่อย (base64 inline, จำกัด 5MB/ไฟล์) ── */
+  const handleAccItemDocUpload = async (e, target) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ไฟล์ใหญ่เกินไป', message: 'แต่ละไฟล์ต้องไม่เกิน 5MB', type: 'error' });
+      e.target.value = null; return;
+    }
+    try {
+      const newDocs = await Promise.all(files.map(file => new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onloadend = () => res({ name: file.name, data: reader.result });
+        reader.onerror = rej;
+        reader.readAsDataURL(file);
+      })));
+      if (target === 'edit') {
+        setTempAccDocs(prev => [...prev, ...newDocs]);
+      } else if (target === 'new') {
+        setNewItemData(prev => ({ ...prev, documents: [...(prev.documents || []), ...newDocs] }));
+      }
+    } catch (err) { console.error(err); }
+    finally { e.target.value = null; }
+  };
+
+  /* ── เปิดไฟล์แนบในแท็บใหม่ ── */
+  const handleOpenAccDoc = (doc) => {
+    if (!doc?.data) return;
+    const w = window.open();
+    if (!w) return;
+    if (doc.data.startsWith('data:application/pdf')) {
+      w.document.write(`<iframe src="${doc.data}" style="width:100%;height:100vh;border:none"></iframe>`);
+    } else if (doc.data.startsWith('data:image/')) {
+      w.document.write(`<img src="${doc.data}" style="max-width:100%;height:auto" alt="${doc.name}">`);
+    } else {
+      // For other types, force download
+      const a = w.document.createElement('a');
+      a.href = doc.data; a.download = doc.name;
+      a.click();
+    }
+  };
+
   const handleAddNewPiece = async () => {
     if (isSavingItem) return;
     setIsSavingItem(true);
@@ -310,6 +382,7 @@ export default function AssetDetailsModal({
           cost: newItemData.cost.trim(),
           purchaseDate: newItemData.purchaseDate,
           warrantyDate: newItemData.warrantyDate,
+          documents: newItemData.documents || [],
         });
       }
 
@@ -319,7 +392,7 @@ export default function AssetDetailsModal({
       });
 
       setIsAddingNew(false);
-      setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1 });
+      setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] });
     } catch (error) {
       console.error(error);
     } finally {
@@ -338,7 +411,7 @@ export default function AssetDetailsModal({
         if (Array.isArray(currentAssetDetail.availableItems)) {
           const newItems = [...currentAssetDetail.availableItems];
           if (newItems[idx]) {
-            newItems[idx] = { ...newItems[idx], sn: tempSNValue.trim(), model: tempModelValue.trim(), cost: tempCostValue.trim(), purchaseDate: tempPurchaseDateValue, warrantyDate: tempWarrantyDateValue };
+            newItems[idx] = { ...newItems[idx], sn: tempSNValue.trim(), model: tempModelValue.trim(), cost: tempCostValue.trim(), purchaseDate: tempPurchaseDateValue, warrantyDate: tempWarrantyDateValue, documents: tempAccDocs };
           }
           await updateDoc(docRef, { availableItems: newItems });
         } else {
@@ -368,7 +441,7 @@ export default function AssetDetailsModal({
         if (Array.isArray(currentAssetDetail.brokenItems)) {
           const newItems = [...currentAssetDetail.brokenItems];
           if (newItems[idx]) {
-            newItems[idx] = { ...newItems[idx], sn: tempSNValue.trim(), model: tempModelValue.trim(), cost: tempCostValue.trim(), purchaseDate: tempPurchaseDateValue, warrantyDate: tempWarrantyDateValue };
+            newItems[idx] = { ...newItems[idx], sn: tempSNValue.trim(), model: tempModelValue.trim(), cost: tempCostValue.trim(), purchaseDate: tempPurchaseDateValue, warrantyDate: tempWarrantyDateValue, documents: tempAccDocs };
           }
           await updateDoc(docRef, { brokenItems: newItems });
         } else {
@@ -1580,8 +1653,28 @@ export default function AssetDetailsModal({
                         <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันหมดประกัน" />
                         <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="จำนวน (ชิ้น)" />
                       </div>
+                      {/* ไฟล์แนบ */}
+                      <div className="pt-2 border-t border-slate-200 mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ (ใบเสร็จ / รูป / ใบรับประกัน)</span>
+                          <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                            + แนบไฟล์
+                            <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
+                          </label>
+                        </div>
+                        {(newItemData.documents || []).length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {newItemData.documents.map((d, i) => (
+                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
+                                <span className="text-slate-600 truncate max-w-[140px]">{d.name}</span>
+                                <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => setIsAddingNew(false)} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-md">ยกเลิก</button>
+                        <button onClick={() => { setIsAddingNew(false); setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] }); }} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-md">ยกเลิก</button>
                         <button onClick={handleAddNewPiece} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] hover:bg-[#133257] rounded-md disabled:opacity-50">บันทึก</button>
                       </div>
                     </div>
@@ -1625,22 +1718,73 @@ export default function AssetDetailsModal({
                                   <input type="date" value={tempPurchaseDateValue} onChange={(e) => setTempPurchaseDateValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันที่ซื้อ" />
                                   <input type="date" value={tempWarrantyDateValue} onChange={(e) => setTempWarrantyDateValue(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันหมดประกัน" />
                                 </div>
+                                {/* ไฟล์แนบ */}
+                                <div className="pt-2 border-t border-slate-200">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ (ใบเสร็จ / รูป / ใบรับประกัน)</span>
+                                    <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                                      + แนบไฟล์
+                                      <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'edit')} disabled={isSavingItem} className="hidden" />
+                                    </label>
+                                  </div>
+                                  {tempAccDocs.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {tempAccDocs.map((d, i) => (
+                                        <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
+                                          <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-slate-600 hover:text-[#1E487A] truncate max-w-[140px]">{d.name}</button>
+                                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                                 <div className="flex justify-end gap-2 pt-2">
-                                  <button onClick={() => setEditingItemId(null)} className="px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-100">ยกเลิก</button>
+                                  <button onClick={() => { setEditingItemId(null); setTempAccDocs([]); }} className="px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-100">ยกเลิก</button>
                                   <button onClick={() => handleSaveItemDetails(item)} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] rounded-md hover:bg-[#133257] disabled:opacity-50">บันทึก</button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-                                <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2 text-xs">
-                                  <div><span className="text-slate-400 block text-[11px]">รุ่น/โมเดล</span><span className="font-medium text-slate-800">{item.model || '-'}</span></div>
-                                  <div><span className="text-slate-400 block text-[11px]">ราคา/ชิ้น</span><span className="font-medium text-slate-800">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
-                                  <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{item.purchaseDate || '-'}</span></div>
-                                  <div><span className="text-slate-400 block text-[11px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{item.warrantyDate || '-'}</span></div>
+                              <div className="space-y-3">
+                                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                                  <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2 text-xs">
+                                    <div><span className="text-slate-400 block text-[11px]">รุ่น/โมเดล</span><span className="font-medium text-slate-800">{item.model || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">ราคา/ชิ้น</span><span className="font-medium text-slate-800">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{item.purchaseDate || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{item.warrantyDate || '-'}</span></div>
+                                    {(() => {
+                                      const age = calcAccessoryAge(item.purchaseDate);
+                                      if (!age) return null;
+                                      const toneCls = {
+                                        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        amber:   'bg-amber-50 text-amber-700 border-amber-200',
+                                        slate:   'bg-slate-100 text-slate-600 border-slate-200',
+                                      }[age.tone] || 'bg-slate-100 text-slate-600 border-slate-200';
+                                      return (
+                                        <div>
+                                          <span className="text-slate-400 block text-[11px]">อายุการใช้งาน</span>
+                                          <span className={`inline-block font-semibold text-[11.5px] px-1.5 py-0.5 rounded border ${toneCls}`}>{age.text}</span>
+                                        </div>
+                                      );
+                                    })()}
+                                  </div>
+                                  <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); setTempAccDocs(item.documents || []); }} className="text-[11px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap">
+                                    แก้ไขข้อมูล
+                                  </button>
                                 </div>
-                                <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); }} className="text-[11px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap">
-                                  แก้ไขข้อมูล
-                                </button>
+                                {/* ไฟล์แนบ (read-only) */}
+                                {(item.documents || []).length > 0 && (
+                                  <div className="pt-2 border-t border-slate-200">
+                                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">ไฟล์แนบ ({item.documents.length})</span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {item.documents.map((d, i) => (
+                                        <button key={i} type="button" onClick={() => handleOpenAccDoc(d)} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 px-2.5 py-1 rounded text-[11.5px] text-slate-700 hover:text-[#1E487A] transition-colors">
+                                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9" /></svg>
+                                          {d.name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

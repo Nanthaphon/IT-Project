@@ -244,8 +244,9 @@ export default function CheckoutModal({
             />
           </Field>
 
-          {/* Condition Capture — เฉพาะ assets / accessories (ไม่ใช่ license) */}
-          {!isLicense && checkoutCondition && setCheckoutCondition && (
+          {/* Condition Capture — เฉพาะ assets หลัก (notebook/computer) เท่านั้น
+              license = ไม่ต้องมี | accessory = ไม่ต้องมี (อุปกรณ์เสริมไม่ต้องการ 100-point checklist) */}
+          {!isLicense && !isAccessory && checkoutCondition && setCheckoutCondition && (
             <ConditionCapture
               mode="checkout"
               fields={checkoutCondition.fields}

@@ -177,7 +177,7 @@ function App() {
   const [changePasswordModal, setChangePasswordModal] = useState(false);
 
   const [visibleAssetColumns, setVisibleAssetColumns] = useState({
-    name: true, type: true, department: true, cost: true, status: true,
+    name: true, type: true, cost: true, status: true,
     assetTag: false, sn: false, model: false, vendor: false, company: false,
     purchaseDate: false, warrantyDate: false, assignedName: false
   });
@@ -1171,20 +1171,12 @@ function App() {
             assignees: [...(item.assignees || []), newAssignee],
             availableItems: availItems,
           });
-          {
-            const flat = flattenFields(checkoutCondition.fields);
-            // NOTE: photos live in checkoutFields per-field; don't duplicate as flat
-            // checkoutPhotos[] (would double doc size and hit Firestore's 1 MiB limit).
-            // Only checklist (status-only, small) is kept for damage comparison.
-            await addDoc(collection(db, 'accessories_transactions'), {
-              empId: emp.id, empName: newAssignee.empName, assetId: checkoutModal.assetId, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
-              condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now(),
-              checkoutFields: checkoutCondition.fields,
-              checkoutChecklist: flat.checklist,
-              checkoutNotes: checkoutCondition.notes,
-              checkoutId: newAssignee.checkoutId,
-            });
-          }
+          // อุปกรณ์เสริมไม่ต้องเก็บ ConditionCapture fields (ไม่มี 100-point checklist)
+          await addDoc(collection(db, 'accessories_transactions'), {
+            empId: emp.id, empName: newAssignee.empName, assetId: checkoutModal.assetId, assetName: item.name, category: 'accessories', action: 'เบิกจ่าย',
+            condition: 'ปกติ', remarks: `SN: ${newAssignee.serialNumber || '-'} | ${checkoutRemarks.trim() || '-'}`, timestamp: Date.now(),
+            checkoutId: newAssignee.checkoutId,
+          });
         } else {
           return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'จำนวนอุปกรณ์ไม่เพียงพอ', type: 'error' });
         }
@@ -1414,21 +1406,35 @@ function App() {
           const item = licenses.find(l => l.id === id);
           if (!item) return;
 
-          // หา seats ที่ต้องคืน (ของพนักงานคนนี้เท่านั้น ถ้าระบุ empId)
-          const toRemove  = (item.assignees || []).filter(a =>
+          // หา seats ของพนักงานคนนี้
+          const empSeats = (item.assignees || []).filter(a =>
             callerEmpId ? a.empId === callerEmpId : (a.empId && !a.isAssetBound)
           );
-          const remaining = (item.assignees || []).filter(a =>
-            callerEmpId ? a.empId !== callerEmpId : (!a.empId || a.isAssetBound)
-          );
+          // แยก seats เป็น 2 กลุ่ม:
+          //   regular  — ผูกกับพนักงานโดยตรง → ลบ seat ทิ้ง + คืน key เข้า pool
+          //   asset-bound — ผูกกับเครื่อง → เก็บ seat ไว้ (เครื่องยังถือ license) แค่ clear empId/empName
+          const regularToRemove    = empSeats.filter(a => !a.isAssetBound);
+          const assetBoundToClear  = empSeats.filter(a =>  a.isAssetBound);
 
-          // คืน seat data กลับ available pools
+          // สร้าง assignees ใหม่:
+          //  - ลบ regular ของพนักงานคนนี้ออก
+          //  - asset-bound ของพนักงานคนนี้ → เก็บไว้แต่ clear empId/empName
+          const newAssignees = (item.assignees || [])
+            .filter(a => !regularToRemove.some(r => r.checkoutId === a.checkoutId))
+            .map(a => {
+              if (assetBoundToClear.some(b => b.checkoutId === a.checkoutId)) {
+                return { ...a, empId: null, empName: null };
+              }
+              return a;
+            });
+
+          // คืน seat data กลับ available pools (เฉพาะ regular)
           const newKeys      = [...(item.availableKeys      || [])];
           const newKeyCodes  = [...(item.availableKeyCodes  || [])];
           const newSeatCosts = [...(item.availableSeatCosts || [])];
           const newDocMap    = { ...(item.availableSeatDocs || {}) };
 
-          for (const a of toRemove) {
+          for (const a of regularToRemove) {
             const idx = newKeys.length;
             newKeys.push(a.productKey || '');
             newKeyCodes.push(a.keyCode || '');
@@ -1441,16 +1447,24 @@ function App() {
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
             });
           }
+          // log asset-bound returns ด้วย แต่ mark isAssetBound เพื่อไม่ขึ้นใน OwnershipHistory
+          for (const a of assetBoundToClear) {
+            await addDoc(collection(db, 'licenses_transactions'), {
+              empId: a.empId, assetName: item.name,
+              category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
+              remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
+              isAssetBound: true,
+            });
+          }
 
           const totalQty  = Number(item.quantity || 1);
-          const newStatus = remaining.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
+          const newStatus = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
           await updateDoc(doc(db, 'licenses', id), {
-            assignees:         remaining,
+            assignees:         newAssignees,
             status:            newStatus,
-            assignedTo:        remaining.filter(a => a.empId).map(a => a.empId).join(',') || null,
-            assignedName:      remaining.length
-              ? remaining.map(a => a.empName || a.assignedAssetName || '-').join(', ')
-              : null,
+            assignedTo:        newAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
+            assignedName:      newAssignees.filter(a => a.empName || a.assignedAssetName)
+                                 .map(a => a.empName || a.assignedAssetName).join(', ') || null,
             availableKeys:      newKeys,
             availableKeyCodes:  newKeyCodes,
             availableSeatCosts: newSeatCosts,
@@ -1538,18 +1552,13 @@ function App() {
         }
         await updateDoc(doc(db, collectionName, returnModal.assetId), updateData);
         const txCollection = collectionName === 'accessories' ? 'accessories_transactions' : 'licenses_transactions';
-        {
-          const flat = flattenFields(returnConditionData.fields);
-          await addDoc(collection(db, txCollection), {
-            empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน',
-            condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
-            remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
-            returnFields: returnConditionData.fields,
-            returnChecklist: flat.checklist,
-            returnNotes: returnConditionData.notes,
-            checkoutId: returnModal.checkoutId,
-          });
-        }
+        // อุปกรณ์เสริม / License ไม่เก็บ returnFields (ไม่มี 100-point checklist)
+        await addDoc(collection(db, txCollection), {
+          empId: returnModal.empId, empName: returnModal.empName, assetId: returnModal.assetId, assetName: returnModal.assetName, category: collectionName, action: 'รับคืน',
+          condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
+          remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
+          checkoutId: returnModal.checkoutId,
+        });
 
       } else {
         await updateDoc(doc(db, 'assets', returnModal.assetId), { status: returnCondition === 'broken' ? 'ชำรุดเสียหาย' : 'พร้อมใช้งาน', assignedTo: null, assignedName: null });

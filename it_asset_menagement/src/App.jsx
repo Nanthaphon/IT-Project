@@ -459,7 +459,7 @@ function App() {
   };
 
   // ฟังก์ชันบันทึกคำขอเปลี่ยนเครื่อง + ส่ง email แจ้ง IT
-  const handleStaffSubmitReplacement = async (currentStatus, reason) => {
+  const handleStaffSubmitReplacement = async (currentStatus, reason, damagePhotos = []) => {
     if (!currentStaff) return;
     await withLoading(async () => {
     try {
@@ -470,6 +470,7 @@ function App() {
         managerName: currentStaff.manager || '-',
         currentStatus: currentStatus,
         reason: reason,
+        damagePhotos: damagePhotos || [],  // [{ name, data(base64) }] — max 6 รูป compressed
         status: 'รอดำเนินการ',
         timestamp: Date.now(),
         createdAt: serverTimestamp()

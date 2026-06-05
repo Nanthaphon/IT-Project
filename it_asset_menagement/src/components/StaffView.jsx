@@ -16,7 +16,7 @@ function getCompanyLogo(company) {
 /* ════════════════════════════════════════════════
    พิมพ์ฟอร์มขอเปลี่ยนเครื่อง
 ════════════════════════════════════════════════ */
-function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
+function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePhotos = [] }) {
   const logoUrl = getCompanyLogo(staff.company);
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -107,7 +107,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
     </svg>
-    เครื่องคอมพิวเตอร์ที่ถือครองปัจจุบัน
+    ทรัพย์สินที่ถือครองปัจจุบัน
   </div>
   <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
     <thead>
@@ -139,6 +139,26 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets }) {
       <div style="font-size:13px;color:#000;line-height:1.7;min-height:40px;white-space:pre-wrap">${e(reason)}</div>
     </div>
   </div>
+
+  ${damagePhotos.length > 0 ? `
+  <!-- รูปสภาพเครื่องชำรุด -->
+  <div style="font-size:12px;font-weight:700;color:#1E487A;margin-bottom:5px;display:flex;align-items:center;gap:5px">
+    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+    </svg>
+    หลักฐานสภาพเครื่องชำรุด / เสียหาย (${damagePhotos.length} รูป)
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+    ${damagePhotos.map((p, i) => `
+      <div style="border:1px solid #cbd5e1;border-radius:4px;padding:4px;background:#fff;page-break-inside:avoid">
+        <div style="position:relative;width:100%;padding-top:75%;background:#f1f5f9;border-radius:3px;overflow:hidden">
+          <img src="${p.data}" alt="รูปที่ ${i + 1}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain" />
+        </div>
+        <div style="font-size:9.5px;color:#000;margin-top:3px;text-align:center;font-weight:600">รูปที่ ${i + 1}</div>
+      </div>
+    `).join('')}
+  </div>
+  ` : ''}
 
   <!-- เงื่อนไข -->
   <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:4px">เงื่อนไขและข้อตกลง</div>
@@ -213,7 +233,41 @@ export default function StaffView({
 
   const [replaceStatusForm, setReplaceStatusForm] = useState('เครื่องช้า / ค้างบ่อย');
   const [replaceReasonForm, setReplaceReasonForm] = useState('');
+  const [replaceDamagePhotos, setReplaceDamagePhotos] = useState([]); // [{ name, data (base64) }]
+  const [isUploadingDamagePhoto, setIsUploadingDamagePhoto] = useState(false);
   const [isSubmittingReplace, setIsSubmittingReplace] = useState(false);
+
+  const handleDamagePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    e.target.value = '';
+    if (replaceDamagePhotos.length + files.length > 6) {
+      alert('แนบรูปได้สูงสุด 6 รูป (ตอนนี้มี ' + replaceDamagePhotos.length + ' รูปแล้ว)');
+      return;
+    }
+    const oversized = files.filter(f => f.size > 10 * 1024 * 1024);
+    if (oversized.length > 0) {
+      alert('ไฟล์ใหญ่เกิน 10MB: ' + oversized.map(f => f.name).join(', '));
+      return;
+    }
+    setIsUploadingDamagePhoto(true);
+    try {
+      const { compressImage } = await import('../utils/compressImage.js');
+      const compressed = await Promise.all(files.map(async (f) => ({
+        name: f.name,
+        data: await compressImage(f, { maxDim: 1000, quality: 0.7 }),
+      })));
+      setReplaceDamagePhotos(prev => [...prev, ...compressed]);
+    } catch (err) {
+      alert('แนบรูปไม่สำเร็จ: ' + err.message);
+    } finally {
+      setIsUploadingDamagePhoto(false);
+    }
+  };
+
+  const handleRemoveDamagePhoto = (idx) => {
+    setReplaceDamagePhotos(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const [repairPage, setRepairPage] = useState(1);
   const [supplyPage, setSupplyPage] = useState(1);
@@ -322,17 +376,19 @@ export default function StaffView({
     setIsSubmittingReplace(true);
     try {
       if (handleStaffSubmitReplacement) {
-        await handleStaffSubmitReplacement(replaceStatusForm, replaceReasonForm);
+        await handleStaffSubmitReplacement(replaceStatusForm, replaceReasonForm, replaceDamagePhotos);
         // พิมพ์ฟอร์มหลังบันทึกสำเร็จ
-        const myAssets = assets.filter(item => item.assignedTo === currentStaff?.id && item.type === 'คอมพิวเตอร์');
+        const myAssets = assets.filter(item => item.assignedTo === currentStaff?.id);
         printReplacementForm({
           staff: currentStaff,
           currentStatus: replaceStatusForm,
           reason: replaceReasonForm,
-          myAssets
+          myAssets,
+          damagePhotos: replaceDamagePhotos,
         });
         setReplaceStatusForm('เครื่องช้า / ค้างบ่อย');
         setReplaceReasonForm('');
+        setReplaceDamagePhotos([]);
       }
     } finally {
       setIsSubmittingReplace(false);
@@ -833,6 +889,75 @@ export default function StaffView({
                     required
                   />
                 </div>
+
+                {/* ── รูปสภาพเครื่องชำรุด ── */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className={labelCls + ' mb-0'}>
+                      รูปสภาพเครื่องชำรุด <span className="text-slate-400 text-[11px] font-normal normal-case">(ไม่บังคับ · สูงสุด 6 รูป)</span>
+                    </label>
+                    {replaceDamagePhotos.length > 0 && (
+                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-200 px-1.5 py-0.5 rounded">
+                        {replaceDamagePhotos.length}/6
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Photo grid */}
+                  {replaceDamagePhotos.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                      {replaceDamagePhotos.map((p, i) => (
+                        <div key={i} className="relative group/photo aspect-square rounded-lg overflow-hidden ring-1 ring-slate-200 bg-slate-50">
+                          <img src={p.data} alt={p.name} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDamagePhoto(i)}
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs hover:bg-rose-600 transition-colors flex items-center justify-center"
+                            title="ลบรูปนี้"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload button */}
+                  {replaceDamagePhotos.length < 6 && (
+                    <label className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors text-[13px] font-semibold ${
+                      isUploadingDamagePhoto
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'text-[#1E487A] bg-white border border-dashed border-blue-300 hover:border-[#1E487A] hover:bg-blue-50'
+                    }`}>
+                      {isUploadingDamagePhoto ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-blue-200 border-t-[#1E487A] rounded-full animate-spin" />
+                          กำลังประมวลผลรูป...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                          </svg>
+                          เพิ่มรูปสภาพเครื่อง
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        capture="environment"
+                        onChange={handleDamagePhotoUpload}
+                        disabled={isUploadingDamagePhoto}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    💡 ถ่ายรูปจุดที่ชำรุด จอ คีย์บอร์ด หรือส่วนที่เสียหาย — รูปจะถูกใส่ลงในฟอร์ม PDF
+                  </p>
+                </div>
+
                 <div className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5 leading-relaxed flex items-start gap-2">
                   <svg className="h-3.5 w-3.5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -882,7 +1007,8 @@ export default function StaffView({
                                 staff: currentStaff,
                                 currentStatus: req.currentStatus,
                                 reason: req.reason,
-                                myAssets: assets.filter(a => a.assignedTo === currentStaff?.id && a.type === 'คอมพิวเตอร์')
+                                myAssets: assets.filter(a => a.assignedTo === currentStaff?.id),
+                                damagePhotos: req.damagePhotos || [],
                               })}
                               title="พิมพ์ฟอร์มซ้ำ"
                               className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-100 hover:border-blue-600 px-2.5 py-1.5 rounded-lg transition-all"

@@ -122,6 +122,7 @@ export default function ReplacementRequestTable({
 /* ─── Replacement Card ───────────────────────────────────── */
 function ReplacementCard({ req, onUpdateStatus, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const [viewPhoto, setViewPhoto] = useState(null);
 
   const cfg        = STATUS[req.status] ?? STATUS['รอดำเนินการ'];
   const StatusIcon = cfg.icon;
@@ -132,6 +133,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
   });
 
   return (
+    <>
     <div className="relative bg-white rounded-2xl ring-1 ring-slate-200 hover:ring-[#1E487A]/40 hover:shadow-lg shadow-sm transition-all duration-200 group flex flex-col overflow-hidden">
 
       {/* colored top bar */}
@@ -194,6 +196,28 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
                   {expanded ? 'ย่อ ▲' : 'อ่านเพิ่ม ▼'}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* damage photos */}
+          {(req.damagePhotos || []).length > 0 && (
+            <div className="bg-rose-50/50 rounded-xl px-3 py-2.5 ring-1 ring-rose-100">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[11.5px] font-semibold text-rose-700">📷 หลักฐานสภาพชำรุด ({req.damagePhotos.length} รูป)</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {req.damagePhotos.map((p, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setViewPhoto(p.data); }}
+                    className="aspect-square rounded-md overflow-hidden ring-1 ring-rose-200 hover:ring-2 hover:ring-rose-500 transition-all bg-white"
+                    title="คลิกเพื่อขยาย"
+                  >
+                    <img src={p.data} alt={p.name || `รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -274,6 +298,23 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
         </button>
       </div>
     </div>
+
+    {/* ── Lightbox ── */}
+    {viewPhoto && (
+      <div
+        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 cursor-zoom-out"
+        onClick={() => setViewPhoto(null)}
+      >
+        <img src={viewPhoto} alt="damage preview" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+        <button
+          onClick={() => setViewPhoto(null)}
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 

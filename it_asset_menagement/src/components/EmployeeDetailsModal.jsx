@@ -56,7 +56,11 @@ export default function EmployeeDetailsModal({
 
   /* ── derived data ── */
   const empAssets = assets.filter(i => i.assignedTo === selectedEmployee.id);
-  const empLicenses = licenses.filter(i => i.assignedTo === selectedEmployee.id);
+  // License ใช้ assignees[] array (เหมือน accessories) — ไม่ใช่ assignedTo string เดี่ยว
+  // กรองเฉพาะ seat ที่ผูกกับพนักงานโดยตรง (ไม่ใช่ device-bound ที่ผูกผ่านเครื่อง)
+  const empLicenses = licenses.filter(i =>
+    (i.assignees || []).some(a => a.empId === selectedEmployee.id && !a.isAssetBound)
+  );
   const empAccessories = accessories.reduce((acc, item) => {
     if (item.assignees) {
       item.assignees.filter(a => a.empId === selectedEmployee.id).forEach(co =>

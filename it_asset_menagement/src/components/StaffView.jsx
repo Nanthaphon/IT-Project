@@ -352,7 +352,9 @@ export default function StaffView({
   const getMyAssets = () => {
     if (!currentStaff) return [];
     const empAssets = assets.filter(item => item.assignedTo === currentStaff.id);
-    const empLicenses = licenses.filter(item => item.assignedTo === currentStaff.id);
+    const empLicenses = licenses.filter(item =>
+      (item.assignees || []).some(a => a.empId === currentStaff.id && !a.isAssetBound)
+    );
     const empAccessories = accessories.reduce((accList, acc) => {
       if (acc.assignees) {
         acc.assignees.filter(a => a.empId === currentStaff.id).forEach(checkout => {

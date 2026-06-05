@@ -1925,8 +1925,27 @@ function App() {
   if (searchTerm.trim() !== '') {
     const lowerCaseTerm = searchTerm.toLowerCase();
     currentData = baseData.filter(item => {
-      if (activeMenu === 'employees') return (item.fullName?.toLowerCase().includes(lowerCaseTerm) || item.fullNameEng?.toLowerCase().includes(lowerCaseTerm) || item.empId?.toLowerCase().includes(lowerCaseTerm) || item.nickname?.toLowerCase().includes(lowerCaseTerm));
-      else return (item.name?.toLowerCase().includes(lowerCaseTerm) || item.type?.toLowerCase().includes(lowerCaseTerm));
+      if (activeMenu === 'employees') {
+        return (
+          item.fullName?.toLowerCase().includes(lowerCaseTerm) ||
+          item.fullNameEng?.toLowerCase().includes(lowerCaseTerm) ||
+          item.empId?.toLowerCase().includes(lowerCaseTerm) ||
+          item.nickname?.toLowerCase().includes(lowerCaseTerm) ||
+          item.department?.toLowerCase().includes(lowerCaseTerm) ||
+          item.position?.toLowerCase().includes(lowerCaseTerm)
+        );
+      }
+      // assets / accessories / licenses / office_supplies
+      return (
+        item.name?.toLowerCase().includes(lowerCaseTerm) ||
+        item.type?.toLowerCase().includes(lowerCaseTerm) ||
+        item.sn?.toLowerCase().includes(lowerCaseTerm) ||
+        item.assetTag?.toLowerCase().includes(lowerCaseTerm) ||
+        item.model?.toLowerCase().includes(lowerCaseTerm) ||
+        item.vendor?.toLowerCase().includes(lowerCaseTerm) ||
+        item.company?.toLowerCase().includes(lowerCaseTerm) ||
+        item.assignedName?.toLowerCase().includes(lowerCaseTerm)
+      );
     });
   }
 

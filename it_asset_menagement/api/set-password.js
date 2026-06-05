@@ -47,16 +47,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { idToken, targetUid, newPassword } = req.body || {};
+    const { idToken, targetUid, targetEmail, newPassword, lookupByEmail } = req.body || {};
 
     /* ── ตรวจ input ── */
     if (!idToken || typeof idToken !== 'string') {
       return res.status(400).json({ error: 'ไม่พบ idToken' });
     }
-    if (!targetUid || typeof targetUid !== 'string') {
-      return res.status(400).json({ error: 'ไม่พบ targetUid' });
+    if (!targetUid && !targetEmail) {
+      return res.status(400).json({ error: 'ไม่พบ targetUid หรือ targetEmail' });
     }
-    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+    if (!lookupByEmail && typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'ไม่พบ newPassword' });
+    }
+    if (newPassword && newPassword.length < 6) {
       return res.status(400).json({ error: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
     }
 
@@ -84,8 +87,24 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'ไม่มีสิทธิ์รีเซ็ตรหัสผ่าน' });
     }
 
+    /* ── lookupByEmail mode — คืน UID ของ email ที่มีอยู่ใน Auth (สำหรับ reuse orphan account) ── */
+    if (lookupByEmail && targetEmail) {
+      try {
+        const userRecord = await admin.auth().getUserByEmail(targetEmail);
+        // รีเซ็ตรหัสผ่านใหม่ให้ด้วยเลย
+        if (newPassword) await admin.auth().updateUser(userRecord.uid, { password: newPassword });
+        return res.status(200).json({ success: true, uid: userRecord.uid });
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          return res.status(404).json({ error: 'ไม่พบ email นี้ใน Firebase Auth' });
+        }
+        throw err;
+      }
+    }
+
     /* ── ห้าม admin ที่ไม่ใช่ SuperAdmin รีเซ็ตรหัส SuperAdmin ── */
-    const targetSnap = await db.collection('admin_users').doc(targetUid).get();
+    const resolvedUid = targetUid;
+    const targetSnap = await db.collection('admin_users').doc(resolvedUid).get();
     if (
       targetSnap.exists &&
       targetSnap.data().isSuperAdmin === true &&
@@ -97,7 +116,7 @@ export default async function handler(req, res) {
     }
 
     /* ── อัปเดตรหัสผ่าน ── */
-    await admin.auth().updateUser(targetUid, { password: newPassword });
+    await admin.auth().updateUser(resolvedUid, { password: newPassword });
     return res.status(200).json({ success: true });
 
   } catch (err) {

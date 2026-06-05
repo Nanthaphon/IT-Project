@@ -55,6 +55,9 @@ export default function EditEmpModal({
               <Field label="เบอร์โทร">
                 <input type="tel" name="phone" value={data.phone || ''} onChange={handleEditEmpChange} className={cls.input} />
               </Field>
+              <Field label="วันที่เริ่มงาน">
+                <input type="date" name="startDate" value={data.startDate || ''} onChange={handleEditEmpChange} className={cls.input} />
+              </Field>
             </div>
           </section>
 

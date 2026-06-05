@@ -73,6 +73,10 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
+    match /bundled_items/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
 
     /* ══════════════════════════════════════════════════════════
        Requests — ต้อง login ก่อน create (staff via custom token),
@@ -112,6 +116,15 @@ service cloud.firestore {
     }
     match /asset_purchase_docs/{id} {
       allow read, write: if isAdmin();
+    }
+    match /printed_documents/{docId} {
+      allow read, write: if isAdmin();
+      match /chunks/{chunkId} {
+        allow read, write: if isAdmin();
+      }
+      match /signed_chunks/{chunkId} {
+        allow read, write: if isAdmin();
+      }
     }
 
     /* ══════════════════════════════════════════════════════════

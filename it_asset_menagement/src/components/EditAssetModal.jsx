@@ -169,7 +169,7 @@ export default function EditAssetModal({
                   onChange={handleEditAssetChange}
                   options={
                     isAssets
-                      ? ['คอมพิวเตอร์', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
+                      ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
                       : isSupplies
                         ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
                         : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
@@ -224,14 +224,13 @@ export default function EditAssetModal({
                       placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
-                  <Field label="สำหรับแผนก" required>
+                  <Field label="สำหรับแผนก">
                     <FieldOptionSelect
                       name="forDepartment"
                       value={editAssetModal.data.forDepartment || ''}
                       onChange={handleEditAssetChange}
                       options={fieldOptions.forDepartments || []}
                       placeholder="เลือกหรือพิมพ์ใหม่"
-                      required
                     />
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
@@ -243,6 +242,28 @@ export default function EditAssetModal({
                       placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
+                  {isAssets && (
+                    <Field label="สถานะเครื่อง">
+                      <div className="flex gap-2">
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ring-1 ring-inset text-sm font-medium ${
+                          (editAssetModal.data.purchaseCondition || 'new') === 'new'
+                            ? 'bg-emerald-50 ring-2 ring-emerald-500 text-emerald-700'
+                            : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
+                        }`}>
+                          <input type="radio" name="purchaseCondition" value="new" checked={(editAssetModal.data.purchaseCondition || 'new') === 'new'} onChange={handleEditAssetChange} className="sr-only" />
+                          <span>✨ เครื่องใหม่</span>
+                        </label>
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ring-1 ring-inset text-sm font-medium ${
+                          editAssetModal.data.purchaseCondition === 'used'
+                            ? 'bg-amber-50 ring-2 ring-amber-500 text-amber-700'
+                            : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
+                        }`}>
+                          <input type="radio" name="purchaseCondition" value="used" checked={editAssetModal.data.purchaseCondition === 'used'} onChange={handleEditAssetChange} className="sr-only" />
+                          <span>♻️ เครื่องเก่า / มือสอง</span>
+                        </label>
+                      </div>
+                    </Field>
+                  )}
                 </div>
               </section>
             )}

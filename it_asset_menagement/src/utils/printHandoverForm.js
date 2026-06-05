@@ -6,6 +6,7 @@
 import { renderAppendix } from './printAppendix.js';
 import { printViaIframe } from './printViaIframe.js';
 import { getCompanyInfo } from './companyInfo.js';
+import { savePrintedDocument } from './printedDocumentStore.js';
 import { e, safeUrl } from './htmlEscape.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
@@ -137,6 +138,8 @@ export function printHandoverForm({
   photos = {},       // { topLid, base, left, right, screenKeyboard, existingDefect }
   defectsNote = '',  // pre-existing defects text
   handoverDate = '', // user-entered handover date
+  bundledItems = [], // ของแถม: กระเป๋า/สายชาร์จ — [{ name, type, model, note }]
+  saveToSystem = true,  // บันทึก HTML ลง Firestore เพื่อ retrieve ภายหลัง
 }) {
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -148,11 +151,19 @@ export function printHandoverForm({
     ? `<span style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-weight:700;color:#fff;background:#000;border:1px solid #000;border-radius:2px;font-size:10px">✓</span>`
     : `<span style="display:inline-block;width:14px;height:14px;border:1.2px solid #94a3b8;border-radius:2px"></span>`;
 
+  /* ── Helper: render badge "เครื่องใหม่ / เครื่องเก่า" ── */
+  const conditionBadge = (cond) => {
+    if (cond === 'used') {
+      return `<span style="display:inline-block;font-size:9.5px;font-weight:700;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;padding:1px 5px;border-radius:3px;white-space:nowrap">เครื่องเก่า</span>`;
+    }
+    return `<span style="display:inline-block;font-size:9.5px;font-weight:700;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;padding:1px 5px;border-radius:3px;white-space:nowrap">เครื่องใหม่</span>`;
+  };
+
   /* ── ส่วน 2: ข้อมูลอุปกรณ์ — แสดงทุกตัวที่พนักงานถือครอง ── */
   const assetRows = empAssets.map((a, i) => `
     <tr>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${e(a.name) || '-'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${e(a.name) || '-'}<br/>${conditionBadge(a.purchaseCondition)}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(a.model) || '-'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${e(a.tier) || '-'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;font-family:'Courier New',monospace;font-size:10.5px">${e(a.assetTag) || '-'}</td>
@@ -268,6 +279,7 @@ export function printHandoverForm({
     }
     .page { page-break-after:always; }
     .page:last-child { page-break-after:auto; }
+    .keep-together { page-break-inside: avoid; }
     table { border-collapse:collapse; width:100%; }
     @media print {
       body { padding:0; }
@@ -386,6 +398,32 @@ export function printHandoverForm({
       </tbody>
     </table>
 
+    ${bundledItems.length > 0 ? `
+    <!-- ── 4.1 ของแถม (Bundled Items) — กระเป๋า / สายชาร์จ ฯลฯ ── -->
+    ${sectionBar('4.1', `ของแถม (${bundledItems.length} รายการ)`)}
+    <table>
+      <thead>
+        <tr style="background:#e2e8f0">
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:34px">ลำดับ</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:140px">ประเภท</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px">ชื่อ / รายละเอียด</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:140px">รุ่น / สี</th>
+          <th style="border:1px solid #94a3b8;padding:5px 7px;font-size:10.5px;width:60px">จำนวน</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${bundledItems.map((b, i) => `
+          <tr>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(b.type) || 'อื่นๆ'}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px;font-weight:600">${e(b.name) || '-'}${b.note ? ` <span style="color:#64748b">(${e(b.note)})</span>` : ''}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(b.model) || '-'}</td>
+            <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">1</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    ` : ''}
+
   </div><!-- end page 1 -->
 
   <!-- ════════════════════════════════════════════════ -->
@@ -488,4 +526,24 @@ export function printHandoverForm({
 </html>`;
 
   printViaIframe(html);
+
+  // ── บันทึกเอกสารลงระบบ (background) — ไม่บล็อก print preview ──
+  if (saveToSystem && employee?.id) {
+    savePrintedDocument({
+      html,
+      metadata: {
+        employeeId:   employee.id,
+        employeeName: employee.fullName || '',
+        empCode:      employee.empId    || '',
+        formType:     'handover',
+        docNumber:    docNo,
+        formDate:     handoverDate || new Date().toISOString().slice(0, 10),
+        assetIds:     (empAssets || []).map((a) => a.id).filter(Boolean),
+        assetNames:   (empAssets || []).map((a) => a.name).filter(Boolean),
+        bundledCount: (bundledItems || []).length,
+      },
+    }).catch((err) => {
+      console.error('[savePrintedDocument][handover] failed:', err);
+    });
+  }
 }

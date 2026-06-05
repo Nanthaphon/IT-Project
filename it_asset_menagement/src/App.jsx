@@ -40,6 +40,8 @@ async function sendNotification({ title, notifyType, facts, settings }) {
 
 import useFirebaseData from './hooks/useFirebaseData.jsx';
 import useAdminPermissions from './hooks/useAdminPermissions.jsx';
+import useGlobalLoading from './hooks/useGlobalLoading.jsx';
+import GlobalLoadingOverlay from './components/GlobalLoadingOverlay.jsx';
 import UserManagementPage from './components/UserManagementPage.jsx';
 import SystemSettingsPage from './components/SystemSettingsPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -99,11 +101,14 @@ function App() {
   const {
     assets, accessories, employees, deletedEmployees, licenses,
     repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
-    fieldOptions,
+    fieldOptions, bundledItems,
   } = useFirebaseData(authRole);
 
   const { isSuperAdmin, adminPermissions, displayName: adminDisplayName, permLoading } = useAdminPermissions(currentUid, authRole);
   const canEdit = isSuperAdmin || adminPermissions?.level === 'full';
+
+  // ── Global loading overlay (สำหรับ async operations ทั้งระบบ) ──
+  const { isLoading: globalLoading, message: globalLoadingMsg, withLoading } = useGlobalLoading();
 
   // ─── ตั้งค่าอีเมลแจ้งเตือน (โหลดจาก Firestore — แก้ได้ในเมนู "ตั้งค่าระบบ") ───
   const [notifySettings, setNotifySettings] = useState({ itEmail: '', hrEmail: '' });
@@ -136,11 +141,12 @@ function App() {
   const [vendor, setVendor] = useState('');
   const [note, setNote] = useState('');
   const [assetDocument, setAssetDocument] = useState(null);
+  const [purchaseCondition, setPurchaseCondition] = useState('new'); // 'new' | 'used'
 
   const [empForm, setEmpForm] = useState({
     fullName: '', fullNameEng: '', empId: '', department: '',
     company: '', position: '', nickname: '', manager: '', phone: '',
-    m365Email: '', m365Password: ''
+    m365Email: '', m365Password: '', startDate: ''
   });
   const [licenseForm, setLicenseForm] = useState({
     name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1
@@ -177,7 +183,7 @@ function App() {
   const [changePasswordModal, setChangePasswordModal] = useState(false);
 
   const [visibleAssetColumns, setVisibleAssetColumns] = useState({
-    name: true, type: true, cost: true, status: true,
+    name: true, type: true, forDepartment: false, cost: true, status: true,
     assetTag: false, sn: false, model: false, vendor: false, company: false,
     purchaseDate: false, warrantyDate: false, assignedName: false
   });
@@ -391,6 +397,7 @@ function App() {
   // 🟢 ฟังก์ชันส่งแจ้งซ่อม + อีเมล
   const handleSubmitRepairRequest = async (e) => {
     e.preventDefault(); if (!staffRepairForm.assetName.trim() || !staffRepairForm.issue.trim()) return;
+    await withLoading(async () => {
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
       // ── ส่ง Teams + email แจ้ง IT (ผ่าน Vercel API) ──
@@ -417,10 +424,12 @@ function App() {
       setStaffRepairForm({ assetName: '', issue: '' });
       setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และส่ง email แจ้งฝ่าย IT แล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    }, 'กำลังส่งคำขอ...');
   };
 
   // 🟢 ฟังก์ชันส่งคำขอเบิกอุปกรณ์สำนักงาน + อีเมล
   const handleStaffSubmitSupplyRequest = async (supplyId, supplyName, reqQty, note) => {
+    await withLoading(async () => {
     try {
       await addDoc(collection(db, 'supply_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, supplyId: supplyId, supplyName: supplyName, requestedQty: Number(reqQty), note: note, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
       try {
@@ -446,11 +455,13 @@ function App() {
 
       setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และส่ง email แจ้งฝ่าย HR เรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    }, 'กำลังส่งคำขอ...');
   };
 
   // ฟังก์ชันบันทึกคำขอเปลี่ยนเครื่อง + ส่ง email แจ้ง IT
   const handleStaffSubmitReplacement = async (currentStatus, reason) => {
     if (!currentStaff) return;
+    await withLoading(async () => {
     try {
       await addDoc(collection(db, 'replacement_requests'), {
         empId: currentStaff.empId,
@@ -487,6 +498,7 @@ function App() {
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
+    }, 'กำลังส่งคำขอ...');
   };
 
   const handleUpdateReplacementStatus = async (id, newStatus) => {
@@ -497,6 +509,7 @@ function App() {
   // พนักงานแก้ไขข้อมูลส่วนตัวของตัวเอง
   const handleStaffUpdateProfile = async (updates) => {
     if (!currentStaff) return;
+    await withLoading(async () => {
     try {
       await updateDoc(doc(db, 'employees', currentStaff.id), updates);
       setCurrentStaff(prev => ({ ...prev, ...updates }));
@@ -505,6 +518,7 @@ function App() {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: err.message, type: 'error' });
       throw err;
     }
+    }, 'กำลังบันทึก...');
   };
 
   const handleDeleteReplacement = (id) => {
@@ -584,20 +598,24 @@ function App() {
   const handleAdd = async (e) => {
     e.preventDefault(); if (!name.trim()) return;
     const collectionName = activeMenu === 'assets' ? 'assets' : activeMenu === 'office_supplies' ? 'office_supplies' : 'accessories';
-    try {
-      const qtyToSave = Number(quantity);
-      if (activeMenu === 'office_supplies') {
-        await addDoc(collection(db, 'office_supplies'), { name, type, quantity: qtyToSave, unit, status: 'พร้อมใช้งาน', image: assetImage || null, createdAt: serverTimestamp() });
-      } else {
-        await addDoc(collection(db, collectionName), {
-          name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
-          assignees: activeMenu === 'accessories' ? [] : null,
-          forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: activeMenu === 'accessories' ? note : null, document: activeMenu === 'assets' ? assetDocument : null, createdAt: serverTimestamp()
-        });
-      }
-      setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment(''); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
-      setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
-    } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    await withLoading(async () => {
+      try {
+        const qtyToSave = Number(quantity);
+        if (activeMenu === 'office_supplies') {
+          await addDoc(collection(db, 'office_supplies'), { name, type, quantity: qtyToSave, unit, status: 'พร้อมใช้งาน', image: assetImage || null, createdAt: serverTimestamp() });
+        } else {
+          await addDoc(collection(db, collectionName), {
+            name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
+            assignees: activeMenu === 'accessories' ? [] : null,
+            forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: activeMenu === 'accessories' ? note : null, document: activeMenu === 'assets' ? assetDocument : null,
+            purchaseCondition: activeMenu === 'assets' ? purchaseCondition : null,
+            createdAt: serverTimestamp()
+          });
+        }
+        setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment(''); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null); setPurchaseCondition('new');
+        setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    }, 'กำลังบันทึก...');
   };
 
   const handleEmpChange = (e) => setEmpForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -607,27 +625,59 @@ function App() {
     e.preventDefault();
     const isDuplicate = employees.some(emp => String(emp.empId).toLowerCase() === empForm.empId.trim().toLowerCase() || String(emp.fullName).toLowerCase() === empForm.fullName.trim().toLowerCase());
     if (isDuplicate) return setCustomAlert({ isOpen: true, title: 'ข้อมูลซ้ำซ้อน!', message: `รหัสพนักงาน หรือ ชื่อ-นามสกุล นี้มีอยู่ในระบบแล้ว`, type: 'error' });
-    try {
-      await addDoc(collection(db, 'employees'), { ...empForm, createdAt: serverTimestamp() });
-      setEmpForm({ fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '' });
-      setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
-    } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    await withLoading(async () => {
+      try {
+        await addDoc(collection(db, 'employees'), { ...empForm, createdAt: serverTimestamp() });
+        setEmpForm({ fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '', startDate: '' });
+        setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    }, 'กำลังบันทึก...');
   };
 
   const handleAddLicense = async (e) => {
     e.preventDefault();
-    try {
-      await addDoc(collection(db, 'licenses'), {
-        ...licenseForm,
-        quantity: Number(licenseForm.quantity || 1),
-        assignees: [],
-        image: licenseImage || null,
-        status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, createdAt: serverTimestamp()
-      });
-      setLicenseForm({ name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1 });
-      setLicenseImage(null);
-      setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลโปรแกรม/ใบอนุญาต ใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
-    } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    await withLoading(async () => {
+      try {
+        await addDoc(collection(db, 'licenses'), {
+          ...licenseForm,
+          quantity: Number(licenseForm.quantity || 1),
+          assignees: [],
+          image: licenseImage || null,
+          status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, createdAt: serverTimestamp()
+        });
+        setLicenseForm({ name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1 });
+        setLicenseImage(null);
+        setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลโปรแกรม/ใบอนุญาต ใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    }, 'กำลังบันทึก...');
+  };
+
+  /* ── Bundled Items (ของแถม: กระเป๋า/สายชาร์จ) — no stock tracking ── */
+  const handleAddBundledItem = async ({ name, type, model = '', note = '' }) => {
+    if (!name?.trim()) return;
+    return await withLoading(async () => {
+      try {
+        const ref = await addDoc(collection(db, 'bundled_items'), {
+          name: name.trim(),
+          type: type || 'อื่นๆ',
+          model: model.trim(),
+          note: note.trim(),
+          createdAt: serverTimestamp(),
+        });
+        return ref.id;
+      } catch (err) {
+        setCustomAlert({ isOpen: true, title: 'เพิ่มไม่สำเร็จ', message: err.message, type: 'error' });
+        return null;
+      }
+    }, 'กำลังบันทึก...');
+  };
+
+  const handleDeleteBundledItem = async (id) => {
+    if (!id) return;
+    await withLoading(async () => {
+      try { await deleteDoc(doc(db, 'bundled_items', id)); }
+      catch (err) { setCustomAlert({ isOpen: true, title: 'ลบไม่สำเร็จ', message: err.message, type: 'error' }); }
+    }, 'กำลังลบ...');
   };
 
   const handleDelete = (id, collectionName) => setConfirmDeleteModal({ isOpen: true, id, collectionName });
@@ -635,7 +685,8 @@ function App() {
   const executeDelete = async () => {
     const { id, collectionName } = confirmDeleteModal;
     if (!id || !collectionName) return;
-    try {
+    await withLoading(async () => {
+      try {
       const idsToDelete = Array.isArray(id) ? id : [id];
       let deletedEmpStringIds = [];
       let deletedEmpsForCascade = [];
@@ -697,7 +748,8 @@ function App() {
       setConfirmDeleteModal({ isOpen: false, id: null, collectionName: null });
       setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]); setSelectedLicenseIds([]);
       setCustomAlert({ isOpen: true, title: 'ลบสำเร็จ!', message: 'ลบรายการออกจากระบบเรียบร้อยแล้ว', type: 'success' });
-    } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
+    }, 'กำลังลบรายการ...');
   };
 
   const handleRestoreEmployee = async (emp) => {
@@ -710,11 +762,13 @@ function App() {
   };
 
   const handleExportEmployees = () => {
-    const rows = [['รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร', 'M365 Email']];
+    const rows = [[
+      'บริษัท', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
+      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
+    ]];
     employees.forEach(emp => rows.push([
-      emp.empId || '', emp.fullName || '', emp.fullNameEng || '', emp.nickname || '',
-      emp.department || '', emp.company || '', emp.position || '', emp.manager || '',
-      emp.phone || '', emp.m365Email || '',
+      emp.company || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
+      emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', emp.fullNameEng || '', emp.startDate || '',
     ]));
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -892,14 +946,14 @@ function App() {
     }
     else {
       headers = [
-        'รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อภาษาอังกฤษ', 'ชื่อเล่น',
-        'แผนก', 'บริษัท', 'ตำแหน่ง', 'หัวหน้า', 'เบอร์โทร',
-        'M365 Email', 'M365 Password',
+        'บริษัท', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
+        'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อภาษาอังกฤษ',
+        'วันที่เริ่มงาน', 'M365 Password',
       ];
       example = [
-        'EMP001', 'นายตัวอย่าง ทดสอบ', 'Sample Test', 'ทอม',
-        'IT', 'Globe Syndicate (Thailand) Co., Ltd.', 'IT Support', '', '081-234-5678',
-        'sample@globesyndicate.com', '',
+        'Globe Syndicate (Thailand) Co., Ltd.', 'นายตัวอย่าง ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
+        'ทอม', 'EMP001', 'IT', '', 'Sample Test',
+        '2024-01-15', '',
       ];
       filename = 'template_employees.csv';
     }
@@ -977,6 +1031,7 @@ function App() {
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
             'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
             'M365 Email': 'm365Email', 'M365 Password': 'm365Password',
+            'วันที่เริ่มงาน': 'startDate',
           },
         };
 
@@ -999,7 +1054,31 @@ function App() {
         }
 
         let count = 0;
-        const skipped = [];
+        const skippedNoName = [];
+        const skippedDuplicate = [];
+
+        // ── สร้าง index ของข้อมูลที่มีอยู่แล้ว เพื่อตรวจ duplicate ──
+        // (ใช้ snapshot ปัจจุบันที่ subscribe ผ่าน useFirebaseData → ไม่ต้อง re-read Firestore)
+        const existingEmpIds = new Set(
+          (employees || []).map(e => String(e.empId || '').trim().toLowerCase()).filter(Boolean)
+        );
+        const existingAssetTags = new Set(
+          (assets || []).map(a => String(a.assetTag || '').trim().toLowerCase()).filter(Boolean)
+        );
+        const existingAssetSNs = new Set(
+          (assets || []).map(a => String(a.sn || '').trim().toLowerCase()).filter(Boolean)
+        );
+        const existingLicenseKeys = new Set(
+          (licenses || []).map(l =>
+            `${String(l.name || '').trim().toLowerCase()}|${String(l.productKey || '').trim().toLowerCase()}`
+          ).filter(k => k !== '|')
+        );
+        const existingSupplyNames = new Set(
+          (officeSupplies || []).map(s => String(s.name || '').trim().toLowerCase()).filter(Boolean)
+        );
+
+        // ── เก็บ key ของรายการที่เพิ่งนำเข้าใน batch นี้ — ป้องกัน duplicate ภายในไฟล์เดียวกัน ──
+        const seenInBatch = new Set();
 
         for (let i = 1; i < lines.length; i++) {
           const vals = parseRow(lines[i]);
@@ -1013,7 +1092,48 @@ function App() {
 
           // ── Validate required ──
           const hasName = (rec.name || rec.fullName || '').trim();
-          if (!hasName) { skipped.push(i + 1); continue; }
+          if (!hasName) { skippedNoName.push(i + 1); continue; }
+
+          // ── Duplicate check ──
+          let dupKey = null;
+          let dupReason = '';
+          if (colName === 'employees') {
+            const empId = (rec.empId || '').trim().toLowerCase();
+            if (empId) {
+              dupKey = `emp:${empId}`;
+              if (existingEmpIds.has(empId)) dupReason = `รหัสพนักงาน "${rec.empId}" มีอยู่ในระบบแล้ว`;
+              else if (seenInBatch.has(dupKey)) dupReason = `รหัสพนักงาน "${rec.empId}" ซ้ำในไฟล์`;
+            }
+          } else if (colName === 'assets') {
+            const tag = (rec.assetTag || '').trim().toLowerCase();
+            const sn  = (rec.sn       || '').trim().toLowerCase();
+            if (tag && existingAssetTags.has(tag)) { dupKey = `tag:${tag}`; dupReason = `Asset Tag "${rec.assetTag}" มีอยู่แล้ว`; }
+            else if (sn  && existingAssetSNs.has(sn))   { dupKey = `sn:${sn}`;  dupReason = `Serial Number "${rec.sn}" มีอยู่แล้ว`; }
+            else if (tag && seenInBatch.has(`tag:${tag}`)) { dupKey = `tag:${tag}`; dupReason = `Asset Tag "${rec.assetTag}" ซ้ำในไฟล์`; }
+            else if (sn  && seenInBatch.has(`sn:${sn}`))   { dupKey = `sn:${sn}`;  dupReason = `SN "${rec.sn}" ซ้ำในไฟล์`; }
+            else if (tag) dupKey = `tag:${tag}`;
+            else if (sn)  dupKey = `sn:${sn}`;
+          } else if (colName === 'licenses') {
+            const key = `${(rec.name || '').trim().toLowerCase()}|${(rec.productKey || '').trim().toLowerCase()}`;
+            if (key !== '|') {
+              dupKey = `lic:${key}`;
+              if (existingLicenseKeys.has(key)) dupReason = `License "${rec.name}" + Product Key มีอยู่แล้ว`;
+              else if (seenInBatch.has(dupKey)) dupReason = `License "${rec.name}" + Product Key ซ้ำในไฟล์`;
+            }
+          } else if (colName === 'office_supplies') {
+            const name = (rec.name || '').trim().toLowerCase();
+            if (name) {
+              dupKey = `sup:${name}`;
+              if (existingSupplyNames.has(name)) dupReason = `อุปกรณ์ "${rec.name}" มีอยู่แล้ว (ใช้แก้ไขจำนวนแทน)`;
+              else if (seenInBatch.has(dupKey)) dupReason = `อุปกรณ์ "${rec.name}" ซ้ำในไฟล์`;
+            }
+          }
+
+          if (dupReason) {
+            skippedDuplicate.push({ row: i + 1, reason: dupReason });
+            continue;
+          }
+          if (dupKey) seenInBatch.add(dupKey);
 
           // ── Defaults + type conversion per collection ──
           if (colName === 'assets') {
@@ -1053,15 +1173,20 @@ function App() {
         }
 
         setIsImportModalOpen(false);
-        const msgParts = [`นำเข้าข้อมูล ${count} รายการเรียบร้อยแล้ว`];
-        if (skipped.length > 0) {
-          msgParts.push(`(ข้ามแถวที่ไม่มีชื่อ: ${skipped.slice(0, 5).join(', ')}${skipped.length > 5 ? '...' : ''})`);
+        const msgParts = [`✅ นำเข้าสำเร็จ ${count} รายการ`];
+        if (skippedDuplicate.length > 0) {
+          const examples = skippedDuplicate.slice(0, 3).map(s => `แถวที่ ${s.row}: ${s.reason}`).join('\n');
+          const more = skippedDuplicate.length > 3 ? `\n...และอีก ${skippedDuplicate.length - 3} แถว` : '';
+          msgParts.push(`\n⚠️ ข้ามรายการซ้ำ ${skippedDuplicate.length} แถว:\n${examples}${more}`);
+        }
+        if (skippedNoName.length > 0) {
+          msgParts.push(`\nℹ️ ข้ามแถวที่ไม่มีชื่อ ${skippedNoName.length} แถว: ${skippedNoName.slice(0, 5).join(', ')}${skippedNoName.length > 5 ? '...' : ''}`);
         }
         setCustomAlert({
           isOpen: true,
-          title: count > 0 ? 'นำเข้าสำเร็จ!' : 'ไม่พบข้อมูลที่นำเข้าได้',
+          title: count > 0 ? 'นำเข้าเสร็จสิ้น' : 'ไม่มีข้อมูลใหม่ถูกนำเข้า',
           message: msgParts.join('\n'),
-          type: count > 0 ? 'success' : 'error',
+          type: count > 0 ? 'success' : (skippedDuplicate.length > 0 ? 'warning' : 'error'),
         });
       } catch (err) {
         setCustomAlert({ isOpen: true, title: 'นำเข้าไม่สำเร็จ', message: err.message, type: 'error' });
@@ -1090,15 +1215,90 @@ function App() {
   
   const openEditEmpModal = (emp) => setEditEmpModal({ isOpen: true, data: { ...emp } });
   const handleEditEmpChange = (e) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));
-  const handleUpdateEmployee = async (e) => { e.preventDefault(); try { const updatedData = { ...editEmpModal.data }; delete updatedData.id; await updateDoc(doc(db, 'employees', editEmpModal.data.id), updatedData); if (selectedEmployee && selectedEmployee.id === editEmpModal.data.id) setSelectedEmployee({ ...selectedEmployee, ...updatedData, id: editEmpModal.data.id }); setEditEmpModal({ isOpen: false, data: null }); setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขข้อมูลเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } };
+  const handleUpdateEmployee = async (e) => {
+    e.preventDefault();
+    await withLoading(async () => {
+      try {
+        const updatedData = { ...editEmpModal.data }; delete updatedData.id;
+        await updateDoc(doc(db, 'employees', editEmpModal.data.id), updatedData);
+        if (selectedEmployee && selectedEmployee.id === editEmpModal.data.id) setSelectedEmployee({ ...selectedEmployee, ...updatedData, id: editEmpModal.data.id });
+        setEditEmpModal({ isOpen: false, data: null });
+        setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขข้อมูลเรียบร้อยแล้ว', type: 'success' });
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+    }, 'กำลังบันทึก...');
+  };
 
   const openEditAssetModal = (asset, collectionName) => setEditAssetModal({ isOpen: true, data: { ...asset }, collectionName });
   const handleEditAssetChange = (e) => setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));
-  const handleUpdateAsset = async (e) => { e.preventDefault(); try { const updatedData = { ...editAssetModal.data }; delete updatedData.id; if (editAssetModal.collectionName === 'accessories' && updatedData.remainingQuantity !== undefined) { updatedData.quantity = Number(updatedData.remainingQuantity) + (updatedData.assignees?.length || 0) + Number(updatedData.brokenQuantity || 0); delete updatedData.remainingQuantity; } await updateDoc(doc(db, editAssetModal.collectionName, editAssetModal.data.id), updatedData); setEditAssetModal({ isOpen: false, data: null, collectionName: '' }); setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } };
+
+  /* ── Clone Asset — สร้างทรัพย์สินใหม่จากต้นแบบ (ไม่คัดลอกสถานะ assigned/transactions) ── */
+  const handleCloneAsset = async (sourceAsset) => {
+    if (!sourceAsset) return;
+    await withLoading(async () => {
+    try {
+      const clone = { ...sourceAsset };
+      // ลบฟิลด์ที่ไม่ควรคัดลอก
+      delete clone.id;
+      delete clone.assignedTo;
+      delete clone.assignedName;
+      delete clone.assignees;
+      delete clone.purchaseHistoryLog;
+      delete clone.createdAt;
+      // รีเซ็ตข้อมูลที่ unique
+      clone.name      = `${sourceAsset.name || 'ทรัพย์สิน'} (Clone)`;
+      clone.assetTag  = '';   // ผู้ใช้ต้องกำหนดใหม่
+      clone.sn        = '';
+      clone.status    = 'พร้อมใช้งาน';
+      clone.createdAt = serverTimestamp();
+
+      const ref = await addDoc(collection(db, 'assets'), clone);
+      setCustomAlert({
+        isOpen: true,
+        title: 'คัดลอกสำเร็จ!',
+        message: `สร้างทรัพย์สินใหม่จาก "${sourceAsset.name}" เรียบร้อย — กรุณากำหนด Serial Number / Asset Tag ใหม่`,
+        type: 'success',
+      });
+      // เปิด edit modal ของรายการใหม่อัตโนมัติ
+      const newDocSnap = await getDoc(ref);
+      if (newDocSnap.exists()) openEditAssetModal({ id: ref.id, ...newDocSnap.data() }, 'assets');
+    } catch (err) {
+      setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
+    }
+    }, 'กำลังคัดลอก...');
+  };
+  const handleUpdateAsset = async (e) => {
+    e.preventDefault();
+    await withLoading(async () => {
+      try {
+        const updatedData = { ...editAssetModal.data }; delete updatedData.id;
+        if (editAssetModal.collectionName === 'accessories' && updatedData.remainingQuantity !== undefined) {
+          updatedData.quantity = Number(updatedData.remainingQuantity) + (updatedData.assignees?.length || 0) + Number(updatedData.brokenQuantity || 0);
+          delete updatedData.remainingQuantity;
+        }
+        await updateDoc(doc(db, editAssetModal.collectionName, editAssetModal.data.id), updatedData);
+        setEditAssetModal({ isOpen: false, data: null, collectionName: '' });
+        setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขเรียบร้อยแล้ว', type: 'success' });
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+    }, 'กำลังบันทึก...');
+  };
 
   const openEditLicenseModal = (license) => setEditLicenseModal({ isOpen: true, data: { ...license } });
   const handleEditLicenseChange = (e) => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));
-  const handleUpdateLicense = async (e) => { e.preventDefault(); try { const updatedData = { ...editLicenseModal.data }; delete updatedData.id; if (updatedData.remainingQuantity !== undefined) { updatedData.quantity = Number(updatedData.remainingQuantity) + (updatedData.assignees?.length || 0); delete updatedData.remainingQuantity; } await updateDoc(doc(db, 'licenses', editLicenseModal.data.id), updatedData); setEditLicenseModal({ isOpen: false, data: null }); setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } };
+  const handleUpdateLicense = async (e) => {
+    e.preventDefault();
+    await withLoading(async () => {
+      try {
+        const updatedData = { ...editLicenseModal.data }; delete updatedData.id;
+        if (updatedData.remainingQuantity !== undefined) {
+          updatedData.quantity = Number(updatedData.remainingQuantity) + (updatedData.assignees?.length || 0);
+          delete updatedData.remainingQuantity;
+        }
+        await updateDoc(doc(db, 'licenses', editLicenseModal.data.id), updatedData);
+        setEditLicenseModal({ isOpen: false, data: null });
+        setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขเรียบร้อยแล้ว', type: 'success' });
+      } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+    }, 'กำลังบันทึก...');
+  };
 
   const [isITReportOpen, setIsITReportOpen] = useState(false);
   const [savingFieldOptions, setSavingFieldOptions] = useState(false);
@@ -1143,6 +1343,7 @@ function App() {
     const emp = employees.find(e => e.id === checkoutEmpId);
     if (!emp) return;
 
+    await withLoading(async () => {
     try {
       if (checkoutModal.collectionName === 'accessories') {
         const item = accessories.find(a => a.id === checkoutModal.assetId);
@@ -1274,6 +1475,7 @@ function App() {
       setCheckoutCondition({ fields: EMPTY_FIELDS, notes: '' });
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: 'ทำรายการเบิกจ่ายเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
+    }, 'กำลังเบิกจ่าย...');
   };
 
   /* ══════════════════════════════════════════════════════════
@@ -1281,6 +1483,7 @@ function App() {
      (device-bound: empId = null, isAssetBound = true)
      ══════════════════════════════════════════════════════════ */
   const handleAssignLicenseToAsset = async (licenseId, seatIndex, assetId, assetName, remarks = '') => {
+    await withLoading(async () => {
     try {
       const item = licenses.find(l => l.id === licenseId);
       if (!item) return;
@@ -1354,12 +1557,14 @@ function App() {
     } catch (err) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
     }
+    }, 'กำลังผูก License...');
   };
 
   /* ══════════════════════════════════════════════════════════
      handleRevokeLicenseFromAsset — ยกเลิกการผูก License seat
      ══════════════════════════════════════════════════════════ */
   const handleRevokeLicenseFromAsset = async (licenseId, checkoutId) => {
+    await withLoading(async () => {
     try {
       const item = licenses.find(l => l.id === licenseId);
       if (!item) return;
@@ -1395,6 +1600,7 @@ function App() {
     } catch (err) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
     }
+    }, 'กำลังยกเลิกการผูก...');
   };
 
   /* handleCheckin — รับ optional empId เพื่อให้รู้ว่าพนักงานคนไหนคืน license */
@@ -1494,6 +1700,7 @@ function App() {
 
   const handleConfirmReturn = async (e) => {
     e.preventDefault();
+    await withLoading(async () => {
     try {
       let collectionName = 'assets';
       let item = assets.find(a => a.id === returnModal.assetId);
@@ -1600,10 +1807,12 @@ function App() {
       setReturnConditionData({ fields: EMPTY_FIELDS, notes: '' });
       setCustomAlert({ isOpen: true, title: 'รับคืนสำเร็จ', message: 'รับคืนเข้าระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' }); }
+    }, 'กำลังรับคืน...');
   };
 
   const handleConfirmRepair = async (e) => {
     e.preventDefault();
+    await withLoading(async () => {
     try {
       const { assetId, brokenIndex, brokenSN, brokenModel, brokenCost, brokenPurchaseDate, brokenWarrantyDate } = repairModal;
       const item = accessories.find(a => a.id === assetId);
@@ -1648,6 +1857,7 @@ function App() {
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด', message: error.message, type: 'error' });
     }
+    }, 'กำลังบันทึก...');
   };
 
   // ── Helper: ชื่อเดือนภาษาไทยแบบสั้น ──
@@ -1792,14 +2002,16 @@ function App() {
   
   if (authRole === null) return (
     <React.Fragment>
+      <GlobalLoadingOverlay show={globalLoading} message={globalLoadingMsg} />
       <LoginView showAdminLogin={showAdminLogin} setShowAdminLogin={setShowAdminLogin} setAuthRole={setAuthRole} loginForm={loginForm} setLoginForm={setLoginForm} handleAdminLogin={handleAdminLogin} loginError={loginError} setLoginError={setLoginError} loginLoading={loginLoading} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </React.Fragment>
   );
-  
+
   if (authRole === 'staff') return (
     <React.Fragment>
-      <StaffView 
+      <GlobalLoadingOverlay show={globalLoading} message={globalLoadingMsg} />
+      <StaffView
         setAuthRole={setAuthRole} currentStaff={currentStaff} setCurrentStaff={setCurrentStaff} 
         staffEmpIdInput={staffEmpIdInput} setStaffEmpIdInput={setStaffEmpIdInput} 
         staffPasswordInput={staffPasswordInput} setStaffPasswordInput={setStaffPasswordInput} 
@@ -1820,6 +2032,7 @@ function App() {
 
   return (
     <div className="flex h-screen bg-[#F1F5FA] text-slate-900 font-sans">
+      <GlobalLoadingOverlay show={globalLoading} message={globalLoadingMsg} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar
         activeMenu={activeMenu}
@@ -1939,7 +2152,7 @@ function App() {
                     ) : activeMenu === 'accessories' ? (
                       <AccessoryTable currentData={currentData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} />
+                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} />
                     ) : null}
                   </div>
                 )}
@@ -1950,7 +2163,7 @@ function App() {
       </main>
       
       <ModalsContainer 
-        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} assetDocument={assetDocument} setAssetDocument={setAssetDocument} fieldOptions={fieldOptions}
+        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} assetDocument={assetDocument} setAssetDocument={setAssetDocument} purchaseCondition={purchaseCondition} setPurchaseCondition={setPurchaseCondition} fieldOptions={fieldOptions}
         checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} checkoutCondition={checkoutCondition} setCheckoutCondition={setCheckoutCondition}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}
         selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} showConfirm={showConfirm} setCustomAlert={setCustomAlert}
@@ -1966,6 +2179,7 @@ function App() {
         changePasswordModal={changePasswordModal} setChangePasswordModal={setChangePasswordModal}
         handleAssignLicenseToAsset={handleAssignLicenseToAsset}
         handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
+        bundledItems={bundledItems} handleAddBundledItem={handleAddBundledItem} handleDeleteBundledItem={handleDeleteBundledItem}
       />
       <ITReportModal
         isOpen={isITReportOpen}

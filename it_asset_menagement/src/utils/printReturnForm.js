@@ -7,6 +7,7 @@ import { renderAppendix } from './printAppendix.js';
 import { printViaIframe } from './printViaIframe.js';
 import { getCompanyInfo } from './companyInfo.js';
 import { e, safeUrl } from './htmlEscape.js';
+import { savePrintedDocument } from './printedDocumentStore.js';
 import {
   ASSESSMENT_SECTIONS,
   itemMaxScore,
@@ -52,6 +53,7 @@ export function printReturnForm({
   // ── ซอฟต์แวร์ / License + อุปกรณ์เสริมของพนักงาน (สำหรับใบรับคืนรวม) ──
   empLicenses = [],
   empAccessories = [],
+  saveToSystem = true,
 }) {
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
@@ -482,4 +484,23 @@ export function printReturnForm({
 </html>`;
 
   printViaIframe(html);
+
+  // ── บันทึกเอกสารลงระบบ (background) ──
+  if (saveToSystem && employee?.id) {
+    savePrintedDocument({
+      html,
+      metadata: {
+        employeeId:   employee.id,
+        employeeName: employee.fullName || '',
+        empCode:      employee.empId    || '',
+        formType:     'return',
+        docNumber:    docNo,
+        formDate:     returnDate || new Date().toISOString().slice(0, 10),
+        assetIds:     mainAsset?.id ? [mainAsset.id] : [],
+        assetNames:   mainAsset?.name ? [mainAsset.name] : [],
+      },
+    }).catch((err) => {
+      console.error('[savePrintedDocument][return] failed:', err);
+    });
+  }
 }

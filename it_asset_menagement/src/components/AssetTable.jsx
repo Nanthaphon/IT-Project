@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Trash2, Monitor, User as UserIcon, LogIn, RotateCcw } from 'lucide-react';
+import { Pencil, Trash2, Monitor, User as UserIcon, LogIn, RotateCcw, Copy } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
 const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
@@ -13,6 +13,7 @@ export default function AssetTable({
   setReturnModal,
   openEditAssetModal,
   setConfirmDeleteModal,
+  handleCloneAsset,
   visibleAssetColumns,
   canEdit,
 }) {
@@ -22,6 +23,7 @@ export default function AssetTable({
         <tr>
           {visibleAssetColumns.name && <th className={TH}>ชื่ออุปกรณ์</th>}
           {visibleAssetColumns.type && <th className={TH}>ประเภท</th>}
+          {visibleAssetColumns.forDepartment && <th className={TH}>สำหรับแผนก</th>}
           {visibleAssetColumns.assetTag && <th className={TH}>รหัสทรัพย์สิน</th>}
           {visibleAssetColumns.sn && <th className={TH}>Serial Number</th>}
           {visibleAssetColumns.model && <th className={TH}>ยี่ห้อ/รุ่น</th>}
@@ -73,6 +75,13 @@ export default function AssetTable({
               </td>
             )}
 
+            {visibleAssetColumns.forDepartment && (
+              <td className={`${TD} text-slate-700`}>
+                {item.forDepartment
+                  ? <span className="inline-flex items-center bg-blue-50 text-[#1E487A] text-[12px] px-2 py-0.5 rounded-full font-medium ring-1 ring-inset ring-blue-200">{item.forDepartment}</span>
+                  : <span className="text-slate-400">-</span>}
+              </td>
+            )}
             {visibleAssetColumns.assetTag && (
               <td className={`${TD} font-mono text-slate-600 text-[13.5px]`}>{item.assetTag || '-'}</td>
             )}
@@ -124,6 +133,11 @@ export default function AssetTable({
                 {canEdit && (
                   <IconBtn onClick={() => openEditAssetModal(item, 'assets')} title="แก้ไข" kind="warning">
                     <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                  </IconBtn>
+                )}
+                {canEdit && handleCloneAsset && (
+                  <IconBtn onClick={() => handleCloneAsset(item)} title="คัดลอก (Clone) ทรัพย์สิน" kind="info">
+                    <Copy className="h-3.5 w-3.5" strokeWidth={2} />
                   </IconBtn>
                 )}
                 {canEdit && (
@@ -189,6 +203,7 @@ function IconBtn({ onClick, title, children, kind }) {
   const map = {
     warning: 'text-amber-600 hover:bg-amber-50 hover:ring-amber-300',
     danger:  'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
+    info:    'text-[#1E487A] hover:bg-blue-50 hover:ring-blue-300',
   }[kind];
   return (
     <button

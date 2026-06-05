@@ -25,6 +25,7 @@ export default function useFirebaseData(authRole = null) {
   const [transactions, setTransactions] = useState([]);
   const [replacementRequests, setReplacementRequests] = useState([]);
   const [fieldOptions, setFieldOptions] = useState({});
+  const [bundledItems, setBundledItems] = useState([]);  // ของแถม เช่น กระเป๋า/สายชาร์จ (ไม่ track stock)
 
   useEffect(() => {
     const unsubs = [];
@@ -61,6 +62,9 @@ export default function useFirebaseData(authRole = null) {
     unsubs.push(onSnapshot(doc(db, 'settings', 'fieldOptions'),
       (snap) => setFieldOptions(snap.exists() ? snap.data() : {}),
       onErr('settings/fieldOptions')));
+    unsubs.push(onSnapshot(collection(db, 'bundled_items'),
+      (s) => setBundledItems(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
+      onErr('bundled_items')));
 
     // ── Collections ที่ admin เท่านั้น (ตาม firestore.rules) ──
     if (isAdmin) {
@@ -96,6 +100,6 @@ export default function useFirebaseData(authRole = null) {
   return {
     assets, accessories, employees, deletedEmployees, licenses,
     repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
-    fieldOptions,
+    fieldOptions, bundledItems,
   };
 }

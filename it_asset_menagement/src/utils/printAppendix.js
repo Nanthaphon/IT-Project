@@ -16,7 +16,10 @@ export function renderAppendix({
   employeeName = '', docNo = '', thDate = '', companyInfo = null,
   formType = 'handover',   // 'handover' (IT-FORM-001) | 'return' (IT-FORM-002)
 } = {}) {
-  /* ── ข้อความ HR ปรับตามชนิดฟอร์ม ── */
+  /* ── ข้อความ IT / HR ปรับตามชนิดฟอร์ม ── */
+  const itSubtitle = formType === 'return'
+    ? 'รับทราบการส่งคืนทรัพย์สิน'
+    : 'รับทราบการส่งมอบทรัพย์สิน';
   const hrSubtitle = formType === 'return'
     ? 'รับทราบการส่งคืนทรัพย์สิน'
     : 'รับทราบการส่งมอบทรัพย์สิน';
@@ -259,13 +262,9 @@ export function renderAppendix({
 
       <div style="margin-top:6px;font-size:10px;color:#000">* License ที่หมดอายุตามวงรอบปกติ (Subscription renewal) ไม่ถือเป็นความรับผิดของพนักงาน</div>
     </div>
-    </div><!-- end appendix page 3 -->
 
-  <!-- ════════════════════════════════════════════════ -->
-  <!--          ภาคผนวก หน้า 4 — ลายมือชื่อรับทราบ          -->
-  <!-- ════════════════════════════════════════════════ -->
-  <div class="page">
-
+    <!-- ภาคผนวก ส่วนที่ 12 — ลายมือชื่อ (flow ต่อจากส่วน 10+11, keep-together กันแยกหน้า) -->
+    <div class="keep-together">
     ${appendixBar(12, 'ลายมือชื่อรับทราบนโยบายและเงื่อนไข')}
     <table>
       <tr>
@@ -278,7 +277,7 @@ export function renderAppendix({
         </td>
         <td style="border:1px solid #000;padding:14px 16px;width:33.33%;text-align:center;vertical-align:top">
           <div style="font-size:12px;font-weight:700;margin-bottom:3px">เจ้าหน้าที่ IT (ตัวแทน)</div>
-          <div style="font-size:10.5px;color:#000;margin-bottom:6px">รับทราบและยอมรับเงื่อนไขทั้งหมด</div>
+          <div style="font-size:10.5px;color:#000;margin-bottom:6px">${itSubtitle}</div>
           <div style="border-bottom:1px solid #000;margin:34px 14px 6px"></div>
           <div style="font-size:11.5px;font-weight:700">( ..................................... )</div>
           <div style="font-size:11px;margin-top:6px">วันที่ .....................................</div>
@@ -296,6 +295,7 @@ export function renderAppendix({
     <div style="text-align:center;font-size:10px;color:#000;margin-top:12px">
       ออกโดยระบบ IT Asset Management &nbsp;·&nbsp; ${thDate} &nbsp;·&nbsp; ${e(docNo)}
     </div>
+    </div><!-- /keep-together (section 12) -->
 
   </div>`;
 }

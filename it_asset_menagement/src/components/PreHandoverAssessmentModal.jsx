@@ -24,13 +24,40 @@ const STATUS_COLOR_CLS = {
 
 export default function PreHandoverAssessmentModal({
   isOpen, onClose, employee, empAssets, empLicenses, empAccessories,
+  bundledItems = [], handleAddBundledItem, handleDeleteBundledItem,
 }) {
   const [assessment,   setAssessment]   = useState(() => buildEmptyAssessment());
   const [photos,       setPhotos]       = useState({}); // { topLid, base, left, right, screenKeyboard, existingDefect }
   const [defectsNote,  setDefectsNote]  = useState('');
   const [handoverDate, setHandoverDate] = useState(() => new Date().toISOString().slice(0, 10));
 
+  // ── Bundled items (ของแถม) — เก็บ id ที่ติ๊กเลือก ──
+  const [selectedBundleIds, setSelectedBundleIds] = useState([]);
+  const [showAddBundleForm, setShowAddBundleForm] = useState(false);
+  const [newBundle, setNewBundle] = useState({ name: '', type: 'กระเป๋า', model: '', note: '' });
+  const [savingBundle, setSavingBundle] = useState(false);
+
   if (!isOpen) return null;
+
+  const toggleBundle = (id) =>
+    setSelectedBundleIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const handleSaveNewBundle = async () => {
+    if (!newBundle.name.trim() || !handleAddBundledItem) return;
+    setSavingBundle(true);
+    try {
+      const newId = await handleAddBundledItem(newBundle);
+      if (newId) {
+        setSelectedBundleIds(prev => [...prev, newId]);
+        setShowAddBundleForm(false);
+        setNewBundle({ name: '', type: 'กระเป๋า', model: '', note: '' });
+      }
+    } finally {
+      setSavingBundle(false);
+    }
+  };
+
+  const selectedBundles = bundledItems.filter(b => selectedBundleIds.includes(b.id));
 
   /* ── update item status + auto-set score from status ── */
   const setItemStatus = (no, status, sectionIdx) => {
@@ -53,6 +80,7 @@ export default function PreHandoverAssessmentModal({
     printHandoverForm({
       employee, empAssets, empLicenses, empAccessories,
       assessment, photos, defectsNote, handoverDate,
+      bundledItems: selectedBundles,
     });
     onClose();
   };
@@ -217,6 +245,139 @@ export default function PreHandoverAssessmentModal({
               <p className="text-[12.5px] text-blue-700 leading-relaxed">
                 แนะนำให้แนบครบทั้ง 6 มุม รูปจะถูกฝังลงในเอกสาร PDF ที่พิมพ์ออก
               </p>
+            </div>
+          </Section>
+
+          {/* ── Section: ของแถม (กระเป๋า / สายชาร์จ / ฯลฯ) ── */}
+          <Section title="ของแถม (กระเป๋า / สายชาร์จ ที่มอบให้พนักงาน)">
+            <div className="space-y-3">
+              {bundledItems.length === 0 && !showAddBundleForm ? (
+                <div className="text-center py-6 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                  <p className="text-[13.5px] text-slate-500 mb-2.5">ยังไม่มีของแถมในระบบ — กดปุ่มด้านล่างเพื่อเพิ่มเป็นรายการแรก</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {bundledItems.map(item => {
+                    const checked = selectedBundleIds.includes(item.id);
+                    return (
+                      <label
+                        key={item.id}
+                        className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-all ring-1 ring-inset ${
+                          checked
+                            ? 'bg-blue-50 ring-2 ring-[#1E487A]'
+                            : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleBundle(item.id)}
+                          className="mt-1 w-4 h-4 text-[#1E487A] focus:ring-[#1E487A] border-slate-300 rounded shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[13.5px] font-semibold text-slate-800 truncate">{item.name}</span>
+                            <span className="text-[11px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{item.type || 'อื่นๆ'}</span>
+                          </div>
+                          {(item.model || item.note) && (
+                            <div className="mt-0.5 text-[12px] text-slate-500 truncate">
+                              {item.model || ''}{item.model && item.note ? ' · ' : ''}{item.note || ''}
+                            </div>
+                          )}
+                        </div>
+                        {handleDeleteBundledItem && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault(); e.stopPropagation();
+                              if (window.confirm(`ลบ "${item.name}" ออกจากระบบของแถม?`)) {
+                                handleDeleteBundledItem(item.id);
+                                setSelectedBundleIds(prev => prev.filter(x => x !== item.id));
+                              }
+                            }}
+                            title="ลบออกจาก catalog"
+                            className="text-slate-300 hover:text-rose-500 transition-colors shrink-0 p-0.5"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                          </button>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add new bundle item form */}
+              {showAddBundleForm ? (
+                <div className="bg-blue-50/40 ring-1 ring-inset ring-blue-200 rounded-xl p-3 space-y-2 animate-in fade-in">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={newBundle.name}
+                      onChange={e => setNewBundle({ ...newBundle, name: e.target.value })}
+                      placeholder="ชื่อ (เช่น Lenovo Bag, USB-C 65W)"
+                      className="border border-slate-300 px-2.5 py-1.5 rounded-md text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A]"
+                      autoFocus
+                    />
+                    <select
+                      value={newBundle.type}
+                      onChange={e => setNewBundle({ ...newBundle, type: e.target.value })}
+                      className="border border-slate-300 px-2.5 py-1.5 rounded-md text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
+                    >
+                      <option>กระเป๋า</option>
+                      <option>สายชาร์จ / Adapter</option>
+                      <option>สาย HDMI</option>
+                      <option>สาย LAN</option>
+                      <option>อื่นๆ</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={newBundle.model}
+                      onChange={e => setNewBundle({ ...newBundle, model: e.target.value })}
+                      placeholder="รุ่น / สี (ถ้ามี)"
+                      className="border border-slate-300 px-2.5 py-1.5 rounded-md text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
+                    />
+                    <input
+                      type="text"
+                      value={newBundle.note}
+                      onChange={e => setNewBundle({ ...newBundle, note: e.target.value })}
+                      placeholder="หมายเหตุ (ถ้ามี)"
+                      className="border border-slate-300 px-2.5 py-1.5 rounded-md text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddBundleForm(false); setNewBundle({ name: '', type: 'กระเป๋า', model: '', note: '' }); }}
+                      className="px-3 py-1.5 text-[12.5px] text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveNewBundle}
+                      disabled={!newBundle.name.trim() || savingBundle}
+                      className="px-3 py-1.5 text-[12.5px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-md disabled:opacity-50"
+                    >
+                      {savingBundle ? 'กำลังเพิ่ม...' : 'เพิ่มเข้า Catalog + เลือก'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAddBundleForm(true)}
+                  className="w-full px-3 py-2 text-[13px] font-semibold text-[#1E487A] bg-white border border-dashed border-blue-300 rounded-lg hover:bg-blue-50 hover:border-[#1E487A] transition-colors"
+                >
+                  + เพิ่มของแถมใหม่เข้า Catalog
+                </button>
+              )}
+
+              {selectedBundles.length > 0 && (
+                <div className="text-[12.5px] text-slate-600 bg-emerald-50/60 ring-1 ring-inset ring-emerald-200 rounded-lg px-3 py-2">
+                  <span className="font-semibold text-emerald-700">เลือกแล้ว {selectedBundles.length} รายการ</span> — จะแสดงในส่วนที่ 4.1 ของใบส่งมอบ
+                </div>
+              )}
             </div>
           </Section>
         </div>

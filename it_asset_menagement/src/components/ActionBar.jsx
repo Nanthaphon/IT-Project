@@ -62,7 +62,7 @@ export default function ActionBar({
   };
 
   const columnLabels = {
-    name: 'ชื่ออุปกรณ์', type: 'ประเภท', cost: 'ราคา', status: 'สถานะ',
+    name: 'ชื่ออุปกรณ์', type: 'ประเภท', forDepartment: 'สำหรับแผนก', cost: 'ราคา', status: 'สถานะ',
     assetTag: 'รหัสทรัพย์สิน', sn: 'Serial Number', model: 'ยี่ห้อ/รุ่น', vendor: 'ผู้จัดจำหน่าย', company: 'บริษัท',
     purchaseDate: 'วันที่ซื้อ', warrantyDate: 'วันหมด Warranty', assignedName: 'ผู้ครอบครอง',
   };
@@ -122,8 +122,10 @@ export default function ActionBar({
             <FilterSelect value={assetFilterType} onChange={setAssetFilterType}>
               <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>
               <option value="คอมพิวเตอร์">คอมพิวเตอร์</option>
+              <option value="โน๊ตบุ๊ค">โน๊ตบุ๊ค</option>
               <option value="หน้าจอ">หน้าจอ</option>
               <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
+              <option value="อุปกรณ์สำนักงาน">อุปกรณ์สำนักงาน</option>
               <option value="อื่นๆ">อื่นๆ</option>
             </FilterSelect>
             <FilterSelect value={assetFilterStatus} onChange={setAssetFilterStatus}>

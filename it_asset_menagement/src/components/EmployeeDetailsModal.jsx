@@ -4,6 +4,7 @@ import { auth } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
+import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -23,6 +24,7 @@ export default function EmployeeDetailsModal({
   selectedEmployee, setSelectedEmployee, empModalTab, setEmpModalTab,
   assets, licenses, accessories, transactions, openEditEmpModal, handleCheckin, setReturnModal,
   setSelectedAssetDetail, setSelectedAssetCategory,
+  bundledItems = [], handleAddBundledItem, handleDeleteBundledItem,
 }) {
   const [historyFilter, setHistoryFilter] = useState('all');
   const [assessmentOpen, setAssessmentOpen] = useState(false);
@@ -82,6 +84,7 @@ export default function EmployeeDetailsModal({
     { id: 'info',    label: 'ข้อมูลทั่วไป' },
     { id: 'assets',  label: 'ครอบครองปัจจุบัน', count: allHeld.length },
     { id: 'history', label: 'ประวัติเบิก-คืน',   count: empHistory.length },
+    { id: 'docs',    label: 'เอกสารที่พิมพ์' },
   ];
 
   const initial = selectedEmployee.fullName?.charAt(0) || '?';
@@ -106,9 +109,13 @@ export default function EmployeeDetailsModal({
 
   const handlePrintReturn = () => {
     if (empAssets.length === 0) {
-      // ไม่มีทรัพย์สินหลัก — alert ผ่าน inline state แต่หา channel ส่ง alert ไม่ได้ตรง ๆ
-      // ใช้ window.alert แบบเรียบง่ายเพราะ component นี้ไม่ได้รับ setCustomAlert
-      alert('พนักงานคนนี้ไม่มีทรัพย์สินหลัก (คอมพิวเตอร์/โน๊ตบุ๊ค) ที่ต้องรับคืน');
+      // ไม่มี Notebook/คอมพิวเตอร์หลัก → ใบรับคืนต้องผูกกับ "mainAsset" จึงพิมพ์ไม่ได้
+      // ถ้ามีแค่ License/อุปกรณ์เสริม ให้รับคืนทีละรายการผ่านปุ่ม "รับคืน" ในแต่ละบรรทัด
+      alert(
+        allHeld.length > 0
+          ? 'ใบรับคืน (IT-FORM-002) ต้องผูกกับ Notebook/Computer หลัก\n\nLicense และอุปกรณ์เสริม ให้รับคืนผ่านปุ่ม "รับคืน" ในแต่ละบรรทัด ไม่ต้องใช้ใบฟอร์ม'
+          : 'พนักงานคนนี้ไม่มีทรัพย์สินที่ต้องรับคืน'
+      );
       return;
     }
     if (empAssets.length === 1) {
@@ -202,6 +209,9 @@ export default function EmployeeDetailsModal({
                 <InfoGrid>
                   <InfoItem label="เบอร์โทรศัพท์" value={selectedEmployee.phone} />
                   <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} />
+                  <InfoItem label="วันที่เริ่มงาน" value={selectedEmployee.startDate
+                    ? new Date(selectedEmployee.startDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+                    : ''} />
                 </InfoGrid>
               </Section>
 
@@ -422,6 +432,11 @@ export default function EmployeeDetailsModal({
               }
             </div>
           )}
+
+          {/* ======= TAB: เอกสารที่พิมพ์ ======= */}
+          {empModalTab === 'docs' && (
+            <PrintedDocumentsTab employeeId={selectedEmployee.id} employeeName={selectedEmployee.fullName} />
+          )}
         </div>
 
         {/* ── Footer ── */}
@@ -461,18 +476,37 @@ export default function EmployeeDetailsModal({
               )}
             </div>
 
-            <button
-              onClick={handlePrintReturn}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-teal-700 border border-teal-300/60 bg-teal-50 hover:bg-teal-600 hover:text-white rounded-lg transition group"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              พิมพ์ใบรับคืนทรัพย์สิน
-              <span className="text-[11px] font-semibold bg-teal-100 group-hover:bg-white/20 text-teal-700 group-hover:text-white px-1.5 py-0.5 rounded-md transition">
-                {empAssets.length} เครื่อง
-              </span>
-            </button>
+            <div className="relative group/tooltip">
+              <button
+                onClick={handlePrintReturn}
+                disabled={allHeld.length === 0}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition group ${
+                  allHeld.length === 0
+                    ? 'text-slate-400 border border-slate-200 bg-slate-50 cursor-not-allowed'
+                    : 'text-teal-700 border border-teal-300/60 bg-teal-50 hover:bg-teal-600 hover:text-white'
+                }`}
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                พิมพ์ใบรับคืนทรัพย์สิน
+                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md transition ${
+                  allHeld.length === 0
+                    ? 'bg-slate-100 text-slate-400'
+                    : 'bg-teal-100 group-hover:bg-white/20 text-teal-700 group-hover:text-white'
+                }`}>
+                  {allHeld.length} รายการ
+                </span>
+              </button>
+              {allHeld.length === 0 && (
+                <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-10 pointer-events-none">
+                  <div className="bg-slate-800 text-white text-[11.5px] font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                    พนักงานไม่มีทรัพย์สินที่ต้องรับคืน
+                  </div>
+                  <div className="w-2 h-2 bg-slate-800 rotate-45 ml-4 -mt-1"></div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -506,6 +540,9 @@ export default function EmployeeDetailsModal({
         empAssets={empAssets}
         empLicenses={empLicenses}
         empAccessories={empAccessories}
+        bundledItems={bundledItems}
+        handleAddBundledItem={handleAddBundledItem}
+        handleDeleteBundledItem={handleDeleteBundledItem}
       />
 
       {/* ── Picker เลือกเครื่องที่จะพิมพ์ใบรับคืน (เมื่อพนักงานถือหลายเครื่อง) ── */}

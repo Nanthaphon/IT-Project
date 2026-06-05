@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from './firebase.js';
+import { db, auth, VERCEL_API_BASE } from './firebase.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
@@ -24,7 +24,7 @@ async function sendNotification({ title, notifyType, facts, settings }) {
   }
   const idToken = await user.getIdToken();
 
-  const resp = await fetch('/api/send-email', {
+  const resp = await fetch(`${VERCEL_API_BASE}/api/send-email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -371,7 +371,7 @@ function App() {
     }
     try {
       // เรียก Vercel API /api/staff-login เพื่อรับ Firebase custom token
-      const resp = await fetch('/api/staff-login', {
+      const resp = await fetch(`${VERCEL_API_BASE}/api/staff-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ empId, password }),
@@ -404,7 +404,7 @@ function App() {
       try {
         const idToken = await auth.currentUser?.getIdToken();
         if (idToken) {
-          await fetch('/api/staff-notify', {
+          await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
             body: JSON.stringify({
@@ -435,7 +435,7 @@ function App() {
       try {
         const idToken = await auth.currentUser?.getIdToken();
         if (idToken) {
-          await fetch('/api/staff-notify', {
+          await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
             body: JSON.stringify({
@@ -477,7 +477,7 @@ function App() {
       try {
         const idToken = await auth.currentUser?.getIdToken();
         if (idToken) {
-          await fetch('/api/staff-notify', {
+          await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
             body: JSON.stringify({
@@ -710,7 +710,7 @@ function App() {
           if (idToken) {
             if (cascadeKind === 'employee') {
               for (const emp of deletedEmpsForCascade) {
-                await fetch('/api/cascade-delete', {
+                await fetch(`${VERCEL_API_BASE}/api/cascade-delete`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
                   body: JSON.stringify({ kind: 'employee', id: emp.id, empId: emp.empId }),
@@ -718,7 +718,7 @@ function App() {
               }
             } else {
               for (const targetId of idsToDelete) {
-                await fetch('/api/cascade-delete', {
+                await fetch(`${VERCEL_API_BASE}/api/cascade-delete`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
                   body: JSON.stringify({ kind: cascadeKind, id: targetId }),

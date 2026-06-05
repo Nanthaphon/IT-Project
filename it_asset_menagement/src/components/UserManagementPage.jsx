@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../firebase.js';
+import { db, auth, VERCEL_API_BASE } from '../firebase.js';
 import {
   collection, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp,
 } from 'firebase/firestore';
@@ -127,7 +127,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
     try {
       // ── เรียก Vercel API endpoint (api/set-password.js) ──
       const idToken = await auth.currentUser.getIdToken();
-      const resp = await fetch('/api/set-password', {
+      const resp = await fetch(`${VERCEL_API_BASE}/api/set-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken, targetUid: pwUser.id, newPassword: pwValue }),

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Printer, Key } from 'lucide-react';
-import { auth } from '../firebase.js';
+import { auth, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
@@ -646,7 +646,7 @@ function SetStaffPasswordForm({ empDocId, empName }) {
       setSaving(true);
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) throw new Error('ต้อง login admin ก่อน');
-      const resp = await fetch('/api/set-staff-password', {
+      const resp = await fetch(`${VERCEL_API_BASE}/api/set-staff-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
         body: JSON.stringify({ empDocId, newPassword: pwd }),

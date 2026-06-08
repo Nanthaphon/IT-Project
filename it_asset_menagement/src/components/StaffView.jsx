@@ -219,6 +219,51 @@ export default function StaffView({
 }) {
   const [showM365Password, setShowM365Password] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // ── First-time password setup mode ──
+  const [showFirstSetup, setShowFirstSetup] = useState(false);
+  const [setupEmpId, setSetupEmpId] = useState('');
+  const [setupEmail, setSetupEmail] = useState('');
+  const [setupPassword, setSetupPassword] = useState('');
+  const [setupPasswordConfirm, setSetupPasswordConfirm] = useState('');
+  const [setupSubmitting, setSetupSubmitting] = useState(false);
+  const [setupError, setSetupError] = useState('');
+  const [setupSuccess, setSetupSuccess] = useState('');
+
+  const handleFirstSetup = async (e) => {
+    e.preventDefault();
+    setSetupError('');
+    setSetupSuccess('');
+    if (setupPassword.length < 6) { setSetupError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+    if (setupPassword !== setupPasswordConfirm) { setSetupError('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
+    setSetupSubmitting(true);
+    try {
+      const { VERCEL_API_BASE } = await import('../firebase.js');
+      const resp = await fetch(`${VERCEL_API_BASE}/api/staff-first-setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empId: setupEmpId.trim(),
+          m365Email: setupEmail.trim(),
+          newPassword: setupPassword,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'ตั้งรหัสผ่านไม่สำเร็จ');
+      setSetupSuccess(`ตั้งรหัสผ่านสำหรับ ${data.empName || 'พนักงาน'} เรียบร้อย — กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่`);
+      // Pre-fill login form
+      setStaffEmpIdInput(setupEmpId.trim());
+      setStaffPasswordInput?.('');
+      setSetupEmpId(''); setSetupEmail(''); setSetupPassword(''); setSetupPasswordConfirm('');
+      // กลับไปหน้า login หลัง 2 วินาที
+      setTimeout(() => { setShowFirstSetup(false); setSetupSuccess(''); }, 2200);
+    } catch (err) {
+      setSetupError(err.message || 'เกิดข้อผิดพลาด');
+    } finally {
+      setSetupSubmitting(false);
+    }
+  };
   /* ── satisfaction survey state ── */
   const [surveyModal, setSurveyModal] = useState({ isOpen: false, repair: null });
   const [autoPopupShown, setAutoPopupShown] = useState(false);
@@ -395,14 +440,20 @@ export default function StaffView({
     }
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
     if (rememberMe) {
       const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
       localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput, expiry }));
     } else {
       localStorage.removeItem('staffRemember');
     }
-    handleStaffLogin(e);
+    setIsLoggingIn(true);
+    try {
+      await handleStaffLogin(e);
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const getMyAssets = () => {
@@ -506,7 +557,71 @@ export default function StaffView({
           </div>
 
           <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-7 shadow-xl shadow-slate-950/5">
-            <h2 className="text-[16px] font-semibold text-slate-800 mb-5 tracking-tight">เข้าสู่ระบบ</h2>
+            <h2 className="text-[16px] font-semibold text-slate-800 mb-5 tracking-tight">
+              {showFirstSetup ? 'ตั้งรหัสผ่านครั้งแรก' : 'เข้าสู่ระบบ'}
+            </h2>
+
+            {showFirstSetup ? (
+              <form onSubmit={handleFirstSetup} className="space-y-4">
+                <div className="bg-blue-50/60 border border-blue-200 rounded-lg px-3 py-2.5 text-[12.5px] text-blue-800 leading-relaxed">
+                  สำหรับพนักงานที่ยังไม่เคยตั้งรหัสผ่าน — กรอกข้อมูลด้านล่างเพื่อยืนยันตัวตน
+                </div>
+                <div>
+                  <label className={labelCls}>รหัสพนักงาน</label>
+                  <input
+                    type="text" value={setupEmpId} onChange={e => setSetupEmpId(e.target.value)}
+                    className={inputCls} placeholder="เช่น 1010145" required autoFocus
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>M365 Email (เพื่อยืนยันตัวตน)</label>
+                  <input
+                    type="email" value={setupEmail} onChange={e => setSetupEmail(e.target.value)}
+                    className={inputCls} placeholder="firstname.lastname@globesyndicate.co.th" required
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)</label>
+                  <input
+                    type="password" value={setupPassword} onChange={e => setSetupPassword(e.target.value)}
+                    className={inputCls} placeholder="••••••••" required minLength={6}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>ยืนยันรหัสผ่าน</label>
+                  <input
+                    type="password" value={setupPasswordConfirm} onChange={e => setSetupPasswordConfirm(e.target.value)}
+                    className={inputCls} placeholder="พิมพ์รหัสผ่านอีกครั้ง" required minLength={6}
+                  />
+                </div>
+                {setupError && (
+                  <div className="text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{setupError}</div>
+                )}
+                {setupSuccess && (
+                  <div className="text-[13px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">{setupSuccess}</div>
+                )}
+                <button
+                  type="submit"
+                  disabled={setupSubmitting}
+                  className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
+                  style={{ boxShadow: '0 4px 14px rgba(30,72,122,0.25)' }}
+                >
+                  {setupSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      กำลังบันทึก...
+                    </>
+                  ) : 'ตั้งรหัสผ่าน'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowFirstSetup(false); setSetupError(''); setSetupSuccess(''); }}
+                  className="w-full text-[13.5px] text-slate-500 hover:text-[#1E487A] transition-colors text-center"
+                >
+                  ← กลับไปหน้าเข้าสู่ระบบ
+                </button>
+              </form>
+            ) : (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className={labelCls}>รหัสพนักงาน</label>
@@ -546,12 +661,31 @@ export default function StaffView({
               </label>
               <button
                 type="submit"
-                className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1"
+                disabled={isLoggingIn}
+                className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
                 style={{ boxShadow: '0 4px 14px rgba(30,72,122,0.25)' }}
               >
-                เข้าสู่ระบบ
+                {isLoggingIn ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    กำลังเข้าสู่ระบบ...
+                  </>
+                ) : 'เข้าสู่ระบบ'}
               </button>
             </form>
+            )}
+
+            {!showFirstSetup && (
+              <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowFirstSetup(true)}
+                  className="text-[13px] text-[#1E487A] hover:text-[#163963] font-semibold transition-colors"
+                >
+                  ครั้งแรก? ตั้งรหัสผ่านที่นี่ →
+                </button>
+              </div>
+            )}
           </div>
 
           <button

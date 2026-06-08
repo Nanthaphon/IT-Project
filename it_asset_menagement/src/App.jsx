@@ -912,8 +912,8 @@ function App() {
       ];
       example = [
         'Lenovo ThinkPad X1', 'คอมพิวเตอร์', 'Business Development', 'AST-001', 'SN12345',
-        'T14 Gen 4', 'Globe Syndicate (Thailand) Co., Ltd.', 'IT CITY', '2026-01-15', '2027-01-15',
-        '35000', 'Data', 'เครื่องตัวอย่าง — ลบแถวนี้ก่อน import จริง', 'พร้อมใช้งาน',
+        'T14 Gen 4', 'Globe Syndicate', 'IT CITY', '2026-01-15', '2027-01-15',
+        '35000', 'Data', 'เครื่องตัวอย่าง — ลบแถวนี้ก่อน import จริง (บริษัทใช้ "Globe Syndicate" หรือ "Besthrm")', 'พร้อมใช้งาน',
       ];
       filename = 'template_assets.csv';
     }
@@ -957,7 +957,7 @@ function App() {
         'วันที่เริ่มงาน', 'M365 Password',
       ];
       example = [
-        'Globe Syndicate (Thailand) Co., Ltd.', 'นายตัวอย่าง ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
+        'Globe Syndicate', 'นายตัวอย่าง ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
         'ทอม', 'EMP001', 'IT', '', 'Sample Test',
         '2024-01-15', '',
       ];

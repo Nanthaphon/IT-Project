@@ -1,5 +1,6 @@
 import React from 'react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import { COMPANIES } from '../ui/theme.js';
 
 const BRAND = '#1E487A';
 
@@ -215,13 +216,13 @@ export default function EditAssetModal({
                       className={inputCls}
                     />
                   </Field>
-                  <Field label="บริษัท / ผู้ผลิต">
+                  <Field label="บริษัทเจ้าของ">
                     <FieldOptionSelect
                       name="company"
                       value={editAssetModal.data.company || ''}
                       onChange={handleEditAssetChange}
-                      options={fieldOptions.companies || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
+                      placeholder="เลือก Globe Syndicate หรือ Besthrm"
                     />
                   </Field>
                   <Field label="สำหรับแผนก">

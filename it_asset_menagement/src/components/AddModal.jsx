@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
-import { cls } from '../ui/theme.js';
+import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 
 export default function AddModal({
@@ -92,13 +92,13 @@ export default function AddModal({
 
             <section className="space-y-4">
               <SectionHeader>สังกัด</SectionHeader>
-              <Field label="บริษัท">
+              <Field label="บริษัท" required>
                 <FieldOptionSelect
                   name="company"
                   value={empForm.company || ''}
                   onChange={handleEmpChange}
-                  options={fieldOptions.companies || []}
-                  placeholder="ชื่อบริษัท"
+                  options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
+                  placeholder="เลือก Globe Syndicate หรือ Besthrm"
                 />
               </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -277,12 +277,12 @@ export default function AddModal({
                   <Field label="ยี่ห้อ / รุ่น (Model)">
                     <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className={cls.input} />
                   </Field>
-                  <Field label="บริษัท / ผู้ผลิต">
+                  <Field label="บริษัทเจ้าของ" required>
                     <FieldOptionSelect
                       value={company}
                       onChange={setCompany}
-                      options={fieldOptions.companies || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
+                      placeholder="เลือก Globe Syndicate หรือ Besthrm"
                     />
                   </Field>
                   <Field label="สำหรับแผนก">

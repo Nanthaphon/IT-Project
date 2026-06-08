@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Pencil, ShieldCheck } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
-import { cls } from '../ui/theme.js';
+import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 
 export default function EditEmpModal({
@@ -68,8 +68,8 @@ export default function EditEmpModal({
                 name="company"
                 value={data.company || ''}
                 onChange={handleEditEmpChange}
-                options={fieldOptions.companies || []}
-                placeholder="เลือกหรือพิมพ์ใหม่"
+                options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
+                placeholder="เลือก Globe Syndicate หรือ Besthrm"
               />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,6 +1,9 @@
 // Unified design tokens — keep the whole app on one visual language.
 // น้ำเงิน-ขาว, minimal, สบายตา
 
+// ── Companies — ใช้กับ employee และ asset records ──
+export const COMPANIES = ['Globe Syndicate', 'Besthrm'];
+
 export const BRAND = {
   primary:      '#1E487A',  // main navy (action, accent, active state)
   primaryDark:  '#163963',  // hover / pressed

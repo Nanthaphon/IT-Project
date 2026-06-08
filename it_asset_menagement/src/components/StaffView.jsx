@@ -210,6 +210,7 @@ export default function StaffView({
   setAuthRole, currentStaff, setCurrentStaff,
   staffEmpIdInput, setStaffEmpIdInput, staffPasswordInput, setStaffPasswordInput, handleStaffLogin,
   handleLogout,
+  staffMustChangePassword, setStaffMustChangePassword,
   staffRepairForm, setStaffRepairForm, handleSubmitRepairRequest, repairRequests, editStaffRepairModal, setEditStaffRepairModal, handleStaffUpdateRepair, handleStaffDeleteRepair,
   officeSupplies = [], supplyRequests = [], handleStaffSubmitSupplyRequest,
   assets = [], accessories = [], licenses = [],
@@ -221,47 +222,38 @@ export default function StaffView({
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // ── First-time password setup mode ──
-  const [showFirstSetup, setShowFirstSetup] = useState(false);
-  const [setupEmpId, setSetupEmpId] = useState('');
-  const [setupEmail, setSetupEmail] = useState('');
-  const [setupPassword, setSetupPassword] = useState('');
-  const [setupPasswordConfirm, setSetupPasswordConfirm] = useState('');
-  const [setupSubmitting, setSetupSubmitting] = useState(false);
-  const [setupError, setSetupError] = useState('');
-  const [setupSuccess, setSetupSuccess] = useState('');
+  // ── Force change password state (หลัง login ครั้งแรก / หลัง admin reset) ──
+  const [changePwd, setChangePwd] = useState({ current: '', next: '', confirm: '' });
+  const [changeError, setChangeError] = useState('');
+  const [changeSubmitting, setChangeSubmitting] = useState(false);
 
-  const handleFirstSetup = async (e) => {
+  const handleForceChangePassword = async (e) => {
     e.preventDefault();
-    setSetupError('');
-    setSetupSuccess('');
-    if (setupPassword.length < 6) { setSetupError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
-    if (setupPassword !== setupPasswordConfirm) { setSetupError('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
-    setSetupSubmitting(true);
+    setChangeError('');
+    if (changePwd.next.length < 6) { setChangeError('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+    if (changePwd.next !== changePwd.confirm) { setChangeError('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
+    if (changePwd.next === changePwd.current) { setChangeError('รหัสผ่านใหม่ต้องไม่เหมือนรหัสผ่านเดิม'); return; }
+    setChangeSubmitting(true);
     try {
-      const { VERCEL_API_BASE } = await import('../firebase.js');
-      const resp = await fetch(`${VERCEL_API_BASE}/api/staff-first-setup`, {
+      const { auth, VERCEL_API_BASE } = await import('../firebase.js');
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Session หมดอายุ — กรุณา login ใหม่');
+      const resp = await fetch(`${VERCEL_API_BASE}/api/staff-change-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
         body: JSON.stringify({
-          empId: setupEmpId.trim(),
-          m365Email: setupEmail.trim(),
-          newPassword: setupPassword,
+          currentPassword: changePwd.current,
+          newPassword: changePwd.next,
         }),
       });
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'ตั้งรหัสผ่านไม่สำเร็จ');
-      setSetupSuccess(`ตั้งรหัสผ่านสำหรับ ${data.empName || 'พนักงาน'} เรียบร้อย — กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่`);
-      // Pre-fill login form
-      setStaffEmpIdInput(setupEmpId.trim());
-      setStaffPasswordInput?.('');
-      setSetupEmpId(''); setSetupEmail(''); setSetupPassword(''); setSetupPasswordConfirm('');
-      // กลับไปหน้า login หลัง 2 วินาที
-      setTimeout(() => { setShowFirstSetup(false); setSetupSuccess(''); }, 2200);
+      if (!resp.ok) throw new Error(data.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      setChangePwd({ current: '', next: '', confirm: '' });
+      setStaffMustChangePassword?.(false);
     } catch (err) {
-      setSetupError(err.message || 'เกิดข้อผิดพลาด');
+      setChangeError(err.message || 'เกิดข้อผิดพลาด');
     } finally {
-      setSetupSubmitting(false);
+      setChangeSubmitting(false);
     }
   };
   /* ── satisfaction survey state ── */
@@ -318,7 +310,7 @@ export default function StaffView({
   const [supplyPage, setSupplyPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);  // default = true (จดจำตลอด)
 
   /* ── Edit profile state ── */
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -380,11 +372,10 @@ export default function StaffView({
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          if (Date.now() < parsed.expiry) {
+          // จดจำตลอด — ไม่มี expiry แล้ว (รองรับข้อมูลเก่าที่มี expiry ด้วย)
+          if (!parsed.expiry || Date.now() < parsed.expiry) {
             setStaffEmpIdInput(parsed.empId || '');
             setRememberMe(true);
-          } else {
-            localStorage.removeItem('staffRemember');
           }
         } catch (e) {
           console.error('Error parsing stored login', e);
@@ -443,8 +434,8 @@ export default function StaffView({
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (rememberMe) {
-      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput, expiry }));
+      // จดจำตลอด — ไม่ต้องมี expiry
+      localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput }));
     } else {
       localStorage.removeItem('staffRemember');
     }
@@ -557,71 +548,11 @@ export default function StaffView({
           </div>
 
           <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-7 shadow-xl shadow-slate-950/5">
-            <h2 className="text-[16px] font-semibold text-slate-800 mb-5 tracking-tight">
-              {showFirstSetup ? 'ตั้งรหัสผ่านครั้งแรก' : 'เข้าสู่ระบบ'}
-            </h2>
+            <h2 className="text-[16px] font-semibold text-slate-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
+            <p className="text-[12.5px] text-slate-500 mb-5 leading-relaxed">
+              <span className="font-semibold text-[#1E487A]">ครั้งแรก:</span> ใช้รหัสพนักงานเป็นทั้ง username + password (เช่น 1010145 / 1010145) — ระบบจะให้ตั้งรหัสใหม่ตอนเข้า
+            </p>
 
-            {showFirstSetup ? (
-              <form onSubmit={handleFirstSetup} className="space-y-4">
-                <div className="bg-blue-50/60 border border-blue-200 rounded-lg px-3 py-2.5 text-[12.5px] text-blue-800 leading-relaxed">
-                  สำหรับพนักงานที่ยังไม่เคยตั้งรหัสผ่าน — กรอกข้อมูลด้านล่างเพื่อยืนยันตัวตน
-                </div>
-                <div>
-                  <label className={labelCls}>รหัสพนักงาน</label>
-                  <input
-                    type="text" value={setupEmpId} onChange={e => setSetupEmpId(e.target.value)}
-                    className={inputCls} placeholder="เช่น 1010145" required autoFocus
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>M365 Email (เพื่อยืนยันตัวตน)</label>
-                  <input
-                    type="email" value={setupEmail} onChange={e => setSetupEmail(e.target.value)}
-                    className={inputCls} placeholder="firstname.lastname@globesyndicate.co.th" required
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)</label>
-                  <input
-                    type="password" value={setupPassword} onChange={e => setSetupPassword(e.target.value)}
-                    className={inputCls} placeholder="••••••••" required minLength={6}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>ยืนยันรหัสผ่าน</label>
-                  <input
-                    type="password" value={setupPasswordConfirm} onChange={e => setSetupPasswordConfirm(e.target.value)}
-                    className={inputCls} placeholder="พิมพ์รหัสผ่านอีกครั้ง" required minLength={6}
-                  />
-                </div>
-                {setupError && (
-                  <div className="text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{setupError}</div>
-                )}
-                {setupSuccess && (
-                  <div className="text-[13px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">{setupSuccess}</div>
-                )}
-                <button
-                  type="submit"
-                  disabled={setupSubmitting}
-                  className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
-                  style={{ boxShadow: '0 4px 14px rgba(30,72,122,0.25)' }}
-                >
-                  {setupSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      กำลังบันทึก...
-                    </>
-                  ) : 'ตั้งรหัสผ่าน'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowFirstSetup(false); setSetupError(''); setSetupSuccess(''); }}
-                  className="w-full text-[13.5px] text-slate-500 hover:text-[#1E487A] transition-colors text-center"
-                >
-                  ← กลับไปหน้าเข้าสู่ระบบ
-                </button>
-              </form>
-            ) : (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className={labelCls}>รหัสพนักงาน</label>
@@ -657,7 +588,7 @@ export default function StaffView({
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
-                <span className="text-[14px] text-slate-500">จดจำฉันไว้ 30 วัน</span>
+                <span className="text-[14px] text-slate-500">จดจำรหัสพนักงาน</span>
               </label>
               <button
                 type="submit"
@@ -673,19 +604,6 @@ export default function StaffView({
                 ) : 'เข้าสู่ระบบ'}
               </button>
             </form>
-            )}
-
-            {!showFirstSetup && (
-              <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-                <button
-                  type="button"
-                  onClick={() => setShowFirstSetup(true)}
-                  className="text-[13px] text-[#1E487A] hover:text-[#163963] font-semibold transition-colors"
-                >
-                  ครั้งแรก? ตั้งรหัสผ่านที่นี่ →
-                </button>
-              </div>
-            )}
           </div>
 
           <button
@@ -694,6 +612,78 @@ export default function StaffView({
           >
             ← กลับไปหน้าเลือกบทบาท
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ========================================
+     FORCE CHANGE PASSWORD (หลัง login ครั้งแรก / admin reset)
+  ======================================== */
+  if (staffMustChangePassword) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{
+          background: 'radial-gradient(60% 50% at 50% 0%, rgba(30,72,122,0.10) 0%, rgba(30,72,122,0) 60%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F8 100%)',
+        }}
+      >
+        <div className="w-full max-w-md">
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-amber-500/25 ring-1 ring-white/50"
+              style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' }}>
+              <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            </div>
+            <h1 className="text-[21px] font-semibold text-slate-800 tracking-tight">ตั้งรหัสผ่านใหม่</h1>
+            <p className="text-[13.5px] text-slate-500 mt-1.5 text-center px-4 leading-relaxed">
+              สวัสดี <span className="font-semibold text-[#1E487A]">{currentStaff?.fullName}</span> —<br />
+              กรุณาตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัย (เข้าใช้ครั้งแรก)
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-7 shadow-xl shadow-slate-950/5">
+            <form onSubmit={handleForceChangePassword} className="space-y-4">
+              <div>
+                <label className={labelCls}>รหัสผ่านเดิม</label>
+                <input type="password" value={changePwd.current}
+                  onChange={e => setChangePwd(p => ({ ...p, current: e.target.value }))}
+                  className={inputCls} placeholder="รหัสพนักงานของคุณ (ครั้งแรก)" required autoFocus />
+              </div>
+              <div>
+                <label className={labelCls}>รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)</label>
+                <input type="password" value={changePwd.next}
+                  onChange={e => setChangePwd(p => ({ ...p, next: e.target.value }))}
+                  className={inputCls} placeholder="••••••••" required minLength={6} />
+              </div>
+              <div>
+                <label className={labelCls}>ยืนยันรหัสผ่านใหม่</label>
+                <input type="password" value={changePwd.confirm}
+                  onChange={e => setChangePwd(p => ({ ...p, confirm: e.target.value }))}
+                  className={inputCls} placeholder="พิมพ์รหัสผ่านอีกครั้ง" required minLength={6} />
+              </div>
+              {changeError && (
+                <div className="text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+                  {changeError}
+                </div>
+              )}
+              <button type="submit" disabled={changeSubmitting}
+                className="w-full py-3 bg-[#1E487A] hover:bg-[#163963] text-white text-[14.5px] font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
+                style={{ boxShadow: '0 4px 14px rgba(30,72,122,0.25)' }}>
+                {changeSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    กำลังบันทึก...
+                  </>
+                ) : 'ตั้งรหัสผ่านใหม่'}
+              </button>
+              <button type="button" onClick={() => (handleLogout || (() => { setAuthRole(null); setCurrentStaff(null); }))()}
+                className="w-full text-[13px] text-slate-500 hover:text-rose-600 transition-colors text-center">
+                ออกจากระบบ
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     );

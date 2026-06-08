@@ -66,26 +66,51 @@ export default async function handler(req, res) {
     const empDoc = allSnap.docs.find(d => (d.data().empId || '').toLowerCase() === inputEmpId.toLowerCase());
     if (!empDoc) return res.status(404).json({ error: 'ไม่พบรหัสพนักงานนี้ในระบบ' });
 
+    const empData = empDoc.data();
+    const empIdFromDb = String(empData.empId || '').trim();
+    let mustChangePassword = false;
+
     // ตรวจ password
     const pwdSnap = await dbRef.collection('staff_passwords').doc(empDoc.id).get();
+
     if (!pwdSnap.exists) {
-      return res.status(412).json({ error: 'ยังไม่ได้ตั้งรหัสผ่าน กรุณาติดต่อ IT เพื่อขอรหัสผ่าน' });
-    }
-    const { hash, salt } = pwdSnap.data();
-    const inputHash = hashPassword(password, salt);
-    if (!timingSafeEqual(inputHash, hash)) {
-      return res.status(403).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
+      // ── First-time login: ถ้ายังไม่เคยตั้งรหัสผ่าน + user กรอก password = empId
+      //    → auto-create + บังคับให้เปลี่ยนรหัสผ่านครั้งแรก ──
+      if (String(password).trim() !== empIdFromDb) {
+        return res.status(403).json({
+          error: 'รหัสผ่านไม่ถูกต้อง — เข้าใช้ครั้งแรก ให้ใช้รหัสผ่านเหมือนรหัสพนักงาน',
+        });
+      }
+      // create initial password = empId
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hash = hashPassword(empIdFromDb, salt);
+      await dbRef.collection('staff_passwords').doc(empDoc.id).set({
+        hash, salt,
+        iterations: PBKDF2_ITERATIONS,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedBy: 'auto-first-login',
+        mustChangePassword: true,
+      });
+      mustChangePassword = true;
+    } else {
+      // ── Normal login ──
+      const { hash, salt, mustChangePassword: must } = pwdSnap.data();
+      const inputHash = hashPassword(password, salt);
+      if (!timingSafeEqual(inputHash, hash)) {
+        return res.status(403).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
+      }
+      mustChangePassword = must === true;
     }
 
     // ออก custom token (uid = staff_<empDocId>, claim role='staff')
     const uid = `staff_${empDoc.id}`;
     const claims = {
       role: 'staff',
-      empId: empDoc.data().empId,
+      empId: empData.empId,
       empDocId: empDoc.id,
     };
     const token = await admin.auth().createCustomToken(uid, claims);
-    return res.status(200).json({ token, empDocId: empDoc.id });
+    return res.status(200).json({ token, empDocId: empDoc.id, mustChangePassword });
   } catch (err) {
     console.error('staff-login error:', err);
     return res.status(500).json({ error: err.message || 'login failed' });

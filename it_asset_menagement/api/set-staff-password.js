@@ -73,6 +73,7 @@ export default async function handler(req, res) {
       iterations: PBKDF2_ITERATIONS,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: decoded.uid,
+      mustChangePassword: true,  // admin reset → ให้ staff เปลี่ยนรหัสตอน login ถัดไป
     });
 
     return res.status(200).json({ success: true });

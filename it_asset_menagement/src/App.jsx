@@ -75,8 +75,9 @@ function App() {
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [staffEmpIdInput, setStaffEmpIdInput] = useState('');
-  const [staffPasswordInput, setStaffPasswordInput] = useState(''); 
+  const [staffPasswordInput, setStaffPasswordInput] = useState('');
   const [currentStaff, setCurrentStaff] = useState(null);
+  const [staffMustChangePassword, setStaffMustChangePassword] = useState(false);
   const [staffRepairForm, setStaffRepairForm] = useState({ assetName: '', issue: '' });
   const [editStaffRepairModal, setEditStaffRepairModal] = useState({ isOpen: false, data: null });
 
@@ -358,6 +359,7 @@ function App() {
     }
     setAuthRole(null); setCurrentStaff(null);
     setStaffEmpIdInput(''); setStaffPasswordInput('');
+    setStaffMustChangePassword(false);
   };
 
   const handleStaffLogin = async (e) => {
@@ -378,7 +380,7 @@ function App() {
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'เข้าสู่ระบบไม่สำเร็จ');
-      const { token, empDocId } = data;
+      const { token, empDocId, mustChangePassword } = data;
       if (!token) throw new Error('ระบบไม่ได้คืน token');
 
       // Sign in ด้วย custom token → request.auth.token.role === 'staff'
@@ -389,6 +391,9 @@ function App() {
       if (foundEmp) setCurrentStaff(foundEmp);
       setStaffEmpIdInput('');
       setStaffPasswordInput('');
+
+      // ถ้าต้องเปลี่ยนรหัสผ่าน → set flag
+      setStaffMustChangePassword(!!mustChangePassword);
     } catch (err) {
       setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: err?.message || 'เกิดข้อผิดพลาด', type: 'error' });
     }
@@ -2036,6 +2041,7 @@ function App() {
         staffEmpIdInput={staffEmpIdInput} setStaffEmpIdInput={setStaffEmpIdInput} 
         staffPasswordInput={staffPasswordInput} setStaffPasswordInput={setStaffPasswordInput} 
         handleStaffLogin={handleStaffLogin} handleLogout={handleLogout}
+        staffMustChangePassword={staffMustChangePassword} setStaffMustChangePassword={setStaffMustChangePassword}
         staffRepairForm={staffRepairForm} setStaffRepairForm={setStaffRepairForm} handleSubmitRepairRequest={handleSubmitRepairRequest} 
         repairRequests={repairRequests} editStaffRepairModal={editStaffRepairModal} setEditStaffRepairModal={setEditStaffRepairModal} 
         handleStaffUpdateRepair={handleStaffUpdateRepair} handleStaffDeleteRepair={handleStaffDeleteRepair} 

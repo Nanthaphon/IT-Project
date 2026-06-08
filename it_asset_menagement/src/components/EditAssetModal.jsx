@@ -420,6 +420,23 @@ export default function EditAssetModal({
                 </Field>
               </section>
             )}
+
+            {/* ── หมายเหตุสำหรับ assets ── */}
+            {isAssets && (
+              <section className="space-y-4">
+                <SectionHeader>หมายเหตุ</SectionHeader>
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, สภาพเครื่อง, ผู้ติดต่อ ฯลฯ">
+                  <textarea
+                    name="note"
+                    value={editAssetModal.data.note || ''}
+                    onChange={handleEditAssetChange}
+                    rows={3}
+                    className={inputCls + ' resize-none'}
+                    placeholder="ใส่รายละเอียดที่ต้องการบันทึก..."
+                  />
+                </Field>
+              </section>
+            )}
           </div>
 
           {/* Footer */}

@@ -1321,6 +1321,14 @@ export default function AssetDetailsModal({
                       <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
                       <DetailItem label="อายุการใช้งาน" value={calculateAge(currentAssetDetail.purchaseDate)} />
                       <DetailItem label="วันที่หมด Warranty" value={currentAssetDetail.warrantyDate} />
+                      {currentAssetDetail.note && (
+                        <div className="col-span-2 md:col-span-4">
+                          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
+                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          </div>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <>

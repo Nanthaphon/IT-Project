@@ -380,7 +380,13 @@ export default function AddModal({
                     placeholder="เลือกหรือพิมพ์ใหม่"
                   />
                 </Field>
-                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, ผู้ติดต่อ ฯลฯ">
+              </section>
+            )}
+
+            {/* ── หมายเหตุ — แสดงทั้ง assets และ accessories ── */}
+            {(activeMenu === 'assets' || activeMenu === 'accessories') && (
+              <section className="space-y-4">
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, สภาพเครื่อง, ผู้ติดต่อ ฯลฯ">
                   <textarea value={note || ''} onChange={(e) => setNote(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่รายละเอียดที่ต้องการบันทึก..." />
                 </Field>
               </section>

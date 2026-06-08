@@ -608,7 +608,7 @@ function App() {
           await addDoc(collection(db, collectionName), {
             name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
             assignees: activeMenu === 'accessories' ? [] : null,
-            forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: activeMenu === 'accessories' ? note : null, document: activeMenu === 'assets' ? assetDocument : null,
+            forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: (activeMenu === 'assets' || activeMenu === 'accessories') ? note : null, document: activeMenu === 'assets' ? assetDocument : null,
             purchaseCondition: activeMenu === 'assets' ? purchaseCondition : null,
             createdAt: serverTimestamp()
           });

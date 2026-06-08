@@ -133,6 +133,8 @@ export default function ActionBar({
               <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
               <option value="ถูกใช้งาน">ถูกใช้งาน</option>
               <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
+              <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
+              <option value="รอดำเนินการ">รอดำเนินการ</option>
             </FilterSelect>
 
             <div className="relative" ref={columnDropdownRef}>

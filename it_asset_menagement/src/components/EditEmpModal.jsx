@@ -68,8 +68,8 @@ export default function EditEmpModal({
                 name="company"
                 value={data.company || ''}
                 onChange={handleEditEmpChange}
-                options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
-                placeholder="เลือก Globe Syndicate หรือ Besthrm"
+                options={fieldOptions.companies || []}
+                placeholder="เลือกหรือพิมพ์ใหม่"
               />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

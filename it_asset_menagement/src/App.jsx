@@ -608,7 +608,7 @@ function App() {
       try {
         const qtyToSave = Number(quantity);
         if (activeMenu === 'office_supplies') {
-          await addDoc(collection(db, 'office_supplies'), { name, type, quantity: qtyToSave, unit, status: 'พร้อมใช้งาน', image: assetImage || null, createdAt: serverTimestamp() });
+          await addDoc(collection(db, 'office_supplies'), { name, type, quantity: qtyToSave, unit, company: company || null, status: 'พร้อมใช้งาน', image: assetImage || null, createdAt: serverTimestamp() });
         } else {
           await addDoc(collection(db, collectionName), {
             name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
@@ -796,10 +796,10 @@ function App() {
   };
 
   const handleExportOfficeSupplies = () => {
-    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'หน่วยนับ', 'ราคา', 'วันที่ซื้อ', 'ผู้จัดจำหน่าย', 'หมายเหตุ', 'สถานะ']];
+    const rows = [['ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'หน่วยนับ', 'บริษัท', 'ราคา', 'วันที่ซื้อ', 'ผู้จัดจำหน่าย', 'หมายเหตุ', 'สถานะ']];
     officeSupplies.forEach(item => rows.push([
       item.name || '', item.type || '', item.quantity || 0, item.unit || 'ชิ้น',
-      item.cost || '', item.purchaseDate || '', item.vendor || '',
+      item.company || '', item.cost || '', item.purchaseDate || '', item.vendor || '',
       item.note || '', item.status || 'พร้อมใช้งาน',
     ]));
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -912,8 +912,8 @@ function App() {
       ];
       example = [
         'Lenovo ThinkPad X1', 'คอมพิวเตอร์', 'Business Development', 'AST-001', 'SN12345',
-        'T14 Gen 4', 'Globe Syndicate', 'IT CITY', '2026-01-15', '2027-01-15',
-        '35000', 'Data', 'เครื่องตัวอย่าง — ลบแถวนี้ก่อน import จริง (บริษัทใช้ "Globe Syndicate" หรือ "Besthrm")', 'พร้อมใช้งาน',
+        'T14 Gen 4', 'Globe Syndicate (Thailand) Co., Ltd.', 'IT CITY', '2026-01-15', '2027-01-15',
+        '35000', 'Data', 'เครื่องตัวอย่าง — ลบแถวนี้ก่อน import จริง', 'พร้อมใช้งาน',
       ];
       filename = 'template_assets.csv';
     }
@@ -941,11 +941,11 @@ function App() {
     }
     else if (activeMenu === 'office_supplies') {
       headers = [
-        'ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'หน่วยนับ',
+        'ชื่ออุปกรณ์', 'ประเภท', 'จำนวน', 'หน่วยนับ', 'บริษัท',
         'ราคา', 'วันที่ซื้อ', 'ผู้จัดจำหน่าย', 'หมายเหตุ',
       ];
       example = [
-        'ปากกาลูกลื่น สีน้ำเงิน', 'เครื่องเขียน', '50', 'ด้าม',
+        'ปากกาลูกลื่น สีน้ำเงิน', 'เครื่องเขียน', '50', 'ด้าม', 'Globe Syndicate',
         '15', '2026-01-15', 'Officemate', 'อุปกรณ์ตัวอย่าง — ลบแถวนี้ก่อน import จริง',
       ];
       filename = 'template_office_supplies.csv';
@@ -957,7 +957,7 @@ function App() {
         'วันที่เริ่มงาน', 'M365 Password',
       ];
       example = [
-        'Globe Syndicate', 'นายตัวอย่าง ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
+        'Globe Syndicate (Thailand) Co., Ltd.', 'นายตัวอย่าง ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
         'ทอม', 'EMP001', 'IT', '', 'Sample Test',
         '2024-01-15', '',
       ];
@@ -1029,6 +1029,7 @@ function App() {
           },
           office_supplies: {
             'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'จำนวน': 'quantity', 'หน่วยนับ': 'unit',
+            'บริษัท': 'company',
             'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'ผู้จัดจำหน่าย': 'vendor', 'หมายเหตุ': 'note',
           },
           employees: {

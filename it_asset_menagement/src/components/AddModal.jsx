@@ -92,13 +92,13 @@ export default function AddModal({
 
             <section className="space-y-4">
               <SectionHeader>สังกัด</SectionHeader>
-              <Field label="บริษัท" required>
+              <Field label="บริษัท">
                 <FieldOptionSelect
                   name="company"
                   value={empForm.company || ''}
                   onChange={handleEmpChange}
-                  options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
-                  placeholder="เลือก Globe Syndicate หรือ Besthrm"
+                  options={fieldOptions.companies || []}
+                  placeholder="ชื่อบริษัท"
                 />
               </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -277,12 +277,12 @@ export default function AddModal({
                   <Field label="ยี่ห้อ / รุ่น (Model)">
                     <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className={cls.input} />
                   </Field>
-                  <Field label="บริษัทเจ้าของ" required>
+                  <Field label="บริษัท / ผู้ผลิต">
                     <FieldOptionSelect
                       value={company}
                       onChange={setCompany}
-                      options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
-                      placeholder="เลือก Globe Syndicate หรือ Besthrm"
+                      options={fieldOptions.companies || []}
+                      placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
                   <Field label="สำหรับแผนก">
@@ -361,6 +361,19 @@ export default function AddModal({
                     <input type="text" value={unit} onChange={(e) => setUnit(e.target.value)} className={cls.input} placeholder="เช่น ชิ้น, กล่อง, ด้าม..." required />
                   </Field>
                 </div>
+                <Field label="บริษัท" required>
+                  <select
+                    value={company || ''}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className={cls.input}
+                    required
+                  >
+                    <option value="">— เลือกบริษัท —</option>
+                    {COMPANIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
               </section>
             ) : activeMenu === 'accessories' && (
               <section className="space-y-4">

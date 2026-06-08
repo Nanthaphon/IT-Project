@@ -216,13 +216,13 @@ export default function EditAssetModal({
                       className={inputCls}
                     />
                   </Field>
-                  <Field label="บริษัทเจ้าของ">
+                  <Field label="บริษัท / ผู้ผลิต">
                     <FieldOptionSelect
                       name="company"
                       value={editAssetModal.data.company || ''}
                       onChange={handleEditAssetChange}
-                      options={[...COMPANIES, ...(fieldOptions.companies || []).filter(c => !COMPANIES.includes(c))]}
-                      placeholder="เลือก Globe Syndicate หรือ Besthrm"
+                      options={fieldOptions.companies || []}
+                      placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
                   <Field label="สำหรับแผนก">
@@ -356,6 +356,19 @@ export default function EditAssetModal({
                     />
                   </Field>
                 </div>
+                <Field label="บริษัท">
+                  <select
+                    name="company"
+                    value={editAssetModal.data.company || ''}
+                    onChange={handleEditAssetChange}
+                    className={inputCls}
+                  >
+                    <option value="">— เลือกบริษัท —</option>
+                    {COMPANIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
               </section>
             )}
 

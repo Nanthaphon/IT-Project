@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X } from 'lucide-react';
+import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X, KeyRound } from 'lucide-react';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
+import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
 import { e, safeUrl } from '../utils/htmlEscape.js';
 
 /* ════════════════════════════════════════════════
@@ -21,16 +22,64 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   const today = new Date();
   const thDate = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
+  /* ── คำนวณอายุการใช้งานจากวันที่ซื้อ (เป็น "X ปี Y เดือน") ── */
+  const calcUsageAge = (purchaseDateStr) => {
+    if (!purchaseDateStr) return '-';
+    const pd = new Date(purchaseDateStr);
+    if (isNaN(pd.getTime())) return '-';
+    const now = today;
+    let years = now.getFullYear() - pd.getFullYear();
+    let months = now.getMonth() - pd.getMonth();
+    if (now.getDate() < pd.getDate()) months--;
+    if (months < 0) { years--; months += 12; }
+    if (years < 0) return '-'; // ซื้อในอนาคต
+    if (years === 0 && months === 0) return 'น้อยกว่า 1 เดือน';
+    const parts = [];
+    if (years > 0) parts.push(`${years} ปี`);
+    if (months > 0) parts.push(`${months} เดือน`);
+    return parts.join(' ');
+  };
+
+  /* ── format วันที่เป็นภาษาไทย (สั้น) ── */
+  const fmtThaiDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  /* ── แสดงสถานะ Warranty (เหลืออายุ / หมดแล้ว) ── */
+  const warrantyStatus = (warrantyStr) => {
+    if (!warrantyStr) return { date: '-', badge: '', color: '#000' };
+    const w = new Date(warrantyStr);
+    if (isNaN(w.getTime())) return { date: '-', badge: '', color: '#000' };
+    const diffMs = w.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const dateText = fmtThaiDate(warrantyStr);
+    if (diffDays < 0) return { date: dateText, badge: 'หมดแล้ว', color: '#b91c1c' };
+    if (diffDays <= 30) return { date: dateText, badge: `เหลือ ${diffDays} วัน`, color: '#b45309' };
+    return { date: dateText, badge: '', color: '#000' };
+  };
+
   const assetRows = myAssets.length > 0
-    ? myAssets.map((item, i) => `
+    ? myAssets.map((item, i) => {
+        const ws = warrantyStatus(item.warrantyDate);
+        return `
         <tr>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;text-align:center">${i + 1}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${e(item.name) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000">${e(item.type) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 10px;font-size:12px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
-        </tr>`).join('')
-    : `<tr><td colspan="5" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;text-align:center">${i + 1}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000">${e(item.name) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000">${e(item.type) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap">${e(fmtThaiDate(item.purchaseDate))}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap;font-weight:600">${e(calcUsageAge(item.purchaseDate))}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 6px;font-size:11px;color:${ws.color};text-align:center;line-height:1.4;font-weight:600">
+            <div>${e(ws.date)}</div>
+            ${ws.badge ? `<div style="font-size:10px;font-weight:500;margin-top:1px">(${e(ws.badge)})</div>` : ''}
+          </td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="8" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
 
   const html = `<!DOCTYPE html>
 <html lang="th">
@@ -109,14 +158,17 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
     </svg>
     ทรัพย์สินที่ถือครองปัจจุบัน
   </div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
+  <table style="width:100%;border-collapse:collapse;margin-bottom:10px;table-layout:fixed">
     <thead>
       <tr>
-        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center;white-space:nowrap">#</th>
-        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">ชื่ออุปกรณ์</th>
-        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">ประเภท</th>
-        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">Serial Number</th>
-        <th style="border:1px solid #94a3b8;padding:7px 10px;background:#e2e8f0;font-size:12px;font-weight:700;color:#000;text-align:center">รหัสทรัพย์สิน</th>
+        <th style="border:1px solid #94a3b8;padding:6px 4px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:24px">#</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center">ชื่ออุปกรณ์</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:62px">ประเภท</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:90px">Serial Number</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:92px">รหัสทรัพย์สิน</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:72px">วันที่ซื้อ</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:78px">อายุการใช้งาน</th>
+        <th style="border:1px solid #94a3b8;padding:6px 6px;background:#e2e8f0;font-size:10.5px;font-weight:700;color:#000;text-align:center;width:96px">วันหมด Warranty</th>
       </tr>
     </thead>
     <tbody>${assetRows}</tbody>
@@ -169,33 +221,35 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
     <div>4. ต้องผ่านการอนุมัติจากหัวหน้าแผนกก่อนนำมายื่นฝ่าย IT</div>
   </div>
 
-  <!-- ลายเซ็น 3 ช่อง -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-    <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
-      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">ผู้ยื่นคำขอ (พนักงาน)</div>
-      <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(${e(staff.fullName)})</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">${e(staff.position) || '............................'}</div>
-      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
+  <!-- ลายเซ็น 3 ช่อง + footer (เก็บอยู่กลุ่มเดียวกัน ไม่ตกหน้า) -->
+  <div style="page-break-inside:avoid">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div style="border:1px solid #000;border-radius:5px;padding:8px 10px;text-align:center">
+        <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:3px">ผู้ยื่นคำขอ (พนักงาน)</div>
+        <div style="border-bottom:1px solid #000;margin:26px 6px 6px"></div>
+        <div style="font-size:12px;font-weight:700;color:#000">(${e(staff.fullName)})</div>
+        <div style="font-size:11px;color:#000;margin-top:1px">${e(staff.position) || '............................'}</div>
+        <div style="font-size:11px;color:#000;margin-top:3px">วันที่ ............................</div>
+      </div>
+      <div style="border:1px solid #000;border-radius:5px;padding:8px 10px;text-align:center">
+        <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:3px">หัวหน้าแผนก (ผู้อนุมัติ)</div>
+        <div style="border-bottom:1px solid #000;margin:26px 6px 6px"></div>
+        <div style="font-size:12px;font-weight:700;color:#000">(${e(staff.manager) || '............................'})</div>
+        <div style="font-size:11px;color:#000;margin-top:1px">หัวหน้าแผนก ${e(staff.department) || ''}</div>
+        <div style="font-size:11px;color:#000;margin-top:3px">วันที่ ............................</div>
+      </div>
+      <div style="border:1px solid #000;border-radius:5px;padding:8px 10px;text-align:center">
+        <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:3px">เจ้าหน้าที่ IT (รับเรื่อง)</div>
+        <div style="border-bottom:1px solid #000;margin:26px 6px 6px"></div>
+        <div style="font-size:12px;font-weight:700;color:#000">(.............................)</div>
+        <div style="font-size:11px;color:#000;margin-top:1px">เจ้าหน้าที่ IT</div>
+        <div style="font-size:11px;color:#000;margin-top:3px">วันที่ ............................</div>
+      </div>
     </div>
-    <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
-      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">หัวหน้าแผนก (ผู้อนุมัติ)</div>
-      <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(${e(staff.manager) || '............................'})</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">หัวหน้าแผนก ${e(staff.department) || ''}</div>
-      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
-    </div>
-    <div style="border:1px solid #000;border-radius:5px;padding:12px 14px;text-align:center">
-      <div style="font-size:13px;font-weight:700;color:#000;margin-bottom:4px">เจ้าหน้าที่ IT (รับเรื่อง)</div>
-      <div style="border-bottom:1px solid #000;margin:36px 6px 8px"></div>
-      <div style="font-size:13px;font-weight:700;color:#000">(.............................)</div>
-      <div style="font-size:12px;color:#000;margin-top:2px">เจ้าหน้าที่ IT</div>
-      <div style="font-size:12px;color:#000;margin-top:4px">วันที่ ............................</div>
-    </div>
-  </div>
 
-  <div style="text-align:center;font-size:10px;color:#64748b;margin-top:12px">
-    ออกโดยระบบ IT Asset Management · ${thDate}
+    <div style="text-align:center;font-size:9.5px;color:#64748b;margin-top:6px">
+      ออกโดยระบบ IT Asset Management · ${thDate}
+    </div>
   </div>
 
 </body>
@@ -222,10 +276,14 @@ export default function StaffView({
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // ── Force change password state (หลัง login ครั้งแรก / หลัง admin reset) ──
+  // ── Force change password state (legacy — flag จาก admin reset) ──
   const [changePwd, setChangePwd] = useState({ current: '', next: '', confirm: '' });
   const [changeError, setChangeError] = useState('');
   const [changeSubmitting, setChangeSubmitting] = useState(false);
+
+  // ── Set password modal (optional — staff เลือกตั้งรหัสผ่านเองได้) ──
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [setPwdToast, setSetPwdToast] = useState('');
 
   const handleForceChangePassword = async (e) => {
     e.preventDefault();
@@ -318,6 +376,7 @@ export default function StaffView({
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const startEditProfile = () => {
+    // ❗ ไม่รวม manager — admin จัดการเท่านั้น
     setProfileForm({
       fullName:     currentStaff.fullName     || '',
       fullNameEng:  currentStaff.fullNameEng  || '',
@@ -326,7 +385,6 @@ export default function StaffView({
       department:   currentStaff.department   || '',
       company:      currentStaff.company      || '',
       phone:        currentStaff.phone        || '',
-      manager:      currentStaff.manager      || '',
       m365Email:    currentStaff.m365Email    || '',
       m365Password: currentStaff.m365Password || '',
     });
@@ -372,9 +430,14 @@ export default function StaffView({
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          // จดจำตลอด — ไม่มี expiry แล้ว (รองรับข้อมูลเก่าที่มี expiry ด้วย)
+          // จดจำตลอด — ไม่มี expiry (รองรับข้อมูลเก่าที่มี expiry ด้วย)
           if (!parsed.expiry || Date.now() < parsed.expiry) {
             setStaffEmpIdInput(parsed.empId || '');
+            // ถอดรหัส password เก่า (base64 encode/decode — กัน shoulder-surfing เบื้องต้น)
+            if (parsed.password) {
+              try { setStaffPasswordInput(atob(parsed.password)); }
+              catch { /* ignore */ }
+            }
             setRememberMe(true);
           }
         } catch (e) {
@@ -382,7 +445,7 @@ export default function StaffView({
         }
       }
     }
-  }, [currentStaff, setStaffEmpIdInput]);
+  }, [currentStaff, setStaffEmpIdInput, setStaffPasswordInput]);
 
   const filteredSupplies = officeSupplies.filter(supply =>
     supply.name?.toLowerCase().includes(supplySearchTerm.toLowerCase())
@@ -434,8 +497,11 @@ export default function StaffView({
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (rememberMe) {
-      // จดจำตลอด — ไม่ต้องมี expiry
-      localStorage.setItem('staffRemember', JSON.stringify({ empId: staffEmpIdInput }));
+      // จดจำตลอด — encode password เบา ๆ (base64) กัน plaintext ใน localStorage
+      localStorage.setItem('staffRemember', JSON.stringify({
+        empId: staffEmpIdInput,
+        password: btoa(staffPasswordInput || ''),
+      }));
     } else {
       localStorage.removeItem('staffRemember');
     }
@@ -550,7 +616,7 @@ export default function StaffView({
           <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-7 shadow-xl shadow-slate-950/5">
             <h2 className="text-[16px] font-semibold text-slate-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
             <p className="text-[12.5px] text-slate-500 mb-5 leading-relaxed">
-              <span className="font-semibold text-[#1E487A]">ครั้งแรก:</span> ใช้รหัสพนักงานเป็นทั้ง username + password (เช่น 1010145 / 1010145) — ระบบจะให้ตั้งรหัสใหม่ตอนเข้า
+              💡 รหัสผ่านเริ่มต้น = <span className="font-semibold text-[#1E487A]">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
             </p>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -588,7 +654,7 @@ export default function StaffView({
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
-                <span className="text-[14px] text-slate-500">จดจำรหัสพนักงาน</span>
+                <span className="text-[14px] text-slate-500">จดจำการเข้าสู่ระบบ</span>
               </label>
               <button
                 type="submit"
@@ -618,7 +684,8 @@ export default function StaffView({
   }
 
   /* ========================================
-     FORCE CHANGE PASSWORD (หลัง login ครั้งแรก / admin reset)
+     FORCE CHANGE PASSWORD — legacy flow (เผื่อ admin reset แล้วยังตั้ง flag ไว้)
+     ปกติ default จะไม่บังคับ — staff เลือกตั้งรหัสผ่านเองได้ในเมนู "จัดการรหัสผ่าน"
   ======================================== */
   if (staffMustChangePassword) {
     return (
@@ -706,13 +773,46 @@ export default function StaffView({
           </div>
           <span className="text-[14.5px] font-semibold text-slate-700 hidden sm:block tracking-tight">ระบบพนักงาน</span>
         </div>
-        <button
-          onClick={() => { (handleLogout || (() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }))(); }}
-          className="text-[13.5px] font-medium text-slate-600 hover:text-rose-600 ring-1 ring-slate-200 hover:ring-rose-300 hover:bg-rose-50 px-3.5 py-1.5 rounded-lg transition-colors"
-        >
-          ออกจากระบบ
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSetPasswordModal(true)}
+            className="text-[13.5px] font-medium text-[#1E487A] hover:text-[#163963] ring-1 ring-slate-200 hover:ring-[#1E487A]/40 hover:bg-[#1E487A]/5 px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+            title="ตั้ง / รีเซ็ตรหัสผ่าน"
+          >
+            <KeyRound className="h-3.5 w-3.5" strokeWidth={2} />
+            <span className="hidden sm:inline">จัดการรหัสผ่าน</span>
+          </button>
+          <button
+            onClick={() => { (handleLogout || (() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }))(); }}
+            className="text-[13.5px] font-medium text-slate-600 hover:text-rose-600 ring-1 ring-slate-200 hover:ring-rose-300 hover:bg-rose-50 px-3.5 py-1.5 rounded-lg transition-colors"
+          >
+            ออกจากระบบ
+          </button>
+        </div>
       </header>
+
+      {/* ── Toast แสดงผลตอนตั้งรหัสผ่านสำเร็จ ── */}
+      {setPwdToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-emerald-500 text-white px-5 py-3 rounded-xl shadow-2xl shadow-emerald-500/30 font-medium text-[14px] animate-in slide-in-from-top duration-300">
+          ✅ {setPwdToast}
+        </div>
+      )}
+
+      {/* ── Set password modal ── */}
+      <StaffSetPasswordModal
+        isOpen={showSetPasswordModal}
+        onClose={() => setShowSetPasswordModal(false)}
+        empId={currentStaff?.empId || ''}
+        vercelApiBase={(() => { try { return new URL(window.location.href).hostname.endsWith('.web.app') ? 'https://itassetmenagement.vercel.app' : ''; } catch { return ''; } })()}
+        getIdToken={async () => {
+          const { auth } = await import('../firebase.js');
+          return auth.currentUser?.getIdToken();
+        }}
+        onSuccess={(msg) => {
+          setSetPwdToast(msg);
+          setTimeout(() => setSetPwdToast(''), 4500);
+        }}
+      />
 
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 md:px-8 py-7 space-y-5">
 
@@ -862,8 +962,9 @@ export default function StaffView({
 
             <Section title="ข้อมูลการติดต่อ">
               <InfoGrid>
-                <EditableItem label="เบอร์โทรศัพท์" name="phone"   editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.phone} />
-                <EditableItem label="หัวหน้างาน"   name="manager" editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.manager} />
+                <EditableItem label="เบอร์โทรศัพท์" name="phone" editing={isEditingProfile} form={profileForm} setForm={setProfileForm} value={currentStaff.phone} />
+                {/* หัวหน้างาน — admin จัดการเท่านั้น (staff อ่านได้ แก้ไม่ได้) */}
+                <InfoItem label="หัวหน้างาน" value={currentStaff.manager} />
               </InfoGrid>
             </Section>
 

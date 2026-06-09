@@ -1,40 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { db, auth, VERCEL_API_BASE } from './firebase.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
 // ═══════════════════════════════════════════════════════════════
-// 📧 Email Notification ผ่าน serverless endpoint /api/send-email
-// (EmailJS keys ย้ายไปอยู่ Vercel env vars แล้ว — ไม่ฝังใน bundle)
+// 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
+// (รองรับทั้ง staff submit และ admin event เช่น license expiry)
 // ═══════════════════════════════════════════════════════════════
-const DEFAULT_IT_EMAIL = 'Nanthaphon.nay@globesyndicate.co.th';
-const DEFAULT_HR_EMAIL = 'Tanat.nai@globesyndicate.co.th';
-
-async function sendNotification({ title, notifyType, facts, settings }) {
-  const itEmail = settings?.itEmail?.trim() || DEFAULT_IT_EMAIL;
-  const hrEmail = settings?.hrEmail?.trim() || DEFAULT_HR_EMAIL;
-  const toEmail = notifyType === 'HR' ? hrEmail : itEmail;
-  const message = facts.map(f => `• ${f.label}: ${f.value}`).join('\n');
-
-  // ต้อง login admin ก่อน — ดึง Firebase ID token
+async function sendLineNotification({ kind, facts }) {
   const user = auth.currentUser;
   if (!user) {
-    console.warn('sendNotification: ไม่มี user login — ข้ามการส่ง email');
+    console.warn('sendLineNotification: ไม่มี user login — ข้ามการแจ้งเตือน');
     return;
   }
   const idToken = await user.getIdToken();
 
-  const resp = await fetch(`${VERCEL_API_BASE}/api/send-email`, {
+  const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({ toEmail, subject: title, message }),
+    body: JSON.stringify({ kind, facts }),
   });
   if (!resp.ok) {
     const errText = await resp.text().catch(() => '');
-    throw new Error(`send-email failed (${resp.status}): ${errText}`);
+    throw new Error(`LINE notify failed (${resp.status}): ${errText}`);
   }
 }
 
@@ -62,9 +53,10 @@ import LicenseTable from './components/LicenseTable.jsx';
 import OfficeSupplyTable from './components/OfficeSupplyTable.jsx';
 import AssetTable from './components/AssetTable.jsx';       
 import AccessoryTable from './components/AccessoryTable.jsx'; 
-import RepairTable from './components/RepairTable.jsx';               
-import SupplyRequestTable from './components/SupplyRequestTable.jsx'; 
+import RepairTable from './components/RepairTable.jsx';
+import SupplyRequestTable from './components/SupplyRequestTable.jsx';
 import ReplacementRequestTable from './components/ReplacementRequestTable.jsx';
+import TablePagination from './components/TablePagination.jsx';
 
 function App() {
   const [authRole, setAuthRole] = useState(null);
@@ -111,8 +103,8 @@ function App() {
   // ── Global loading overlay (สำหรับ async operations ทั้งระบบ) ──
   const { isLoading: globalLoading, message: globalLoadingMsg, withLoading } = useGlobalLoading();
 
-  // ─── ตั้งค่าอีเมลแจ้งเตือน (โหลดจาก Firestore — แก้ได้ในเมนู "ตั้งค่าระบบ") ───
-  const [notifySettings, setNotifySettings] = useState({ itEmail: '', hrEmail: '' });
+  // ─── ตั้งค่า LINE recipient (แก้ได้ในเมนู "ตั้งค่าระบบ") ───
+  const [notifySettings, setNotifySettings] = useState({ itLineUserId: '', hrLineUserId: '' });
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'settings', 'notifications'), (snap) => {
       if (snap.exists()) setNotifySettings(snap.data());
@@ -309,12 +301,10 @@ function App() {
       const diff = Math.ceil((new Date(lic.expirationDate) - today) / (1000 * 60 * 60 * 24));
       return { label: lic.name, value: `หมดอายุ ${lic.expirationDate} (อีก ${diff} วัน)` };
     });
-    sendNotification({
-      title: `⚠️ แจ้งเตือน: โปรแกรม/License ใกล้หมดอายุ ${expiringSoon.length} รายการ`,
-      notifyType: 'IT',
-      facts,
-      settings: notifySettings,
-    }).catch(err => console.error('License expiry email failed:', err));
+    sendLineNotification({
+      kind: 'license',
+      facts: [{ label: 'จำนวนรายการ', value: `${expiringSoon.length} รายการ` }, ...facts],
+    }).catch(err => console.error('License expiry LINE notify failed:', err));
   }, [authRole, licenses, isSuperAdmin, adminPermissions]);
 
   useEffect(() => {
@@ -406,28 +396,38 @@ function App() {
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
       // ── ส่ง Teams + email แจ้ง IT (ผ่าน Vercel API) ──
+      let notifyOk = false; let notifyErrMsg = '';
       try {
         const idToken = await auth.currentUser?.getIdToken();
-        if (idToken) {
-          await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
+        if (!idToken) { notifyErrMsg = 'ไม่มี idToken — auth.currentUser เป็น null'; }
+        else {
+          const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
             body: JSON.stringify({
               kind: 'repair',
               facts: [
-                { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
-                { label: 'แผนก', value: currentStaff.department || '-' },
-                { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
-                { label: 'อุปกรณ์ / ปัญหา', value: staffRepairForm.assetName },
-                { label: 'อาการที่พบ', value: staffRepairForm.issue },
+                { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+                ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+                { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+                { label: '🏢 แผนก', value: currentStaff.department || '-' },
+                { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
+                { label: '💻 อุปกรณ์', value: staffRepairForm.assetName },
+                { label: '⚠️ อาการที่พบ', value: staffRepairForm.issue },
               ],
             }),
           });
+          if (resp.ok) notifyOk = true;
+          else notifyErrMsg = `HTTP ${resp.status}: ${await resp.text().catch(() => '')}`;
         }
-      } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
+      } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); console.error('staff-notify failed:', notifyErr); }
 
       setStaffRepairForm({ assetName: '', issue: '' });
-      setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และส่ง email แจ้งฝ่าย IT แล้ว', type: 'success' });
+      if (notifyOk) {
+        setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และส่ง LINE แจ้งฝ่าย IT แล้ว', type: 'success' });
+      } else {
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง LINE ไม่สำเร็จ', message: `ระบบบันทึกเรื่องแจ้งซ่อมเรียบร้อย แต่ไม่สามารถส่ง LINE แจ้ง IT ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า LINE OA`, type: 'warning' });
+      }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
   };
@@ -437,28 +437,38 @@ function App() {
     await withLoading(async () => {
     try {
       await addDoc(collection(db, 'supply_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, supplyId: supplyId, supplyName: supplyName, requestedQty: Number(reqQty), note: note, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
+      let notifyOk = false; let notifyErrMsg = '';
       try {
         const idToken = await auth.currentUser?.getIdToken();
-        if (idToken) {
-          await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
+        if (!idToken) { notifyErrMsg = 'ไม่มี idToken — auth.currentUser เป็น null'; }
+        else {
+          const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
             body: JSON.stringify({
               kind: 'supply',
               facts: [
-                { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
-                { label: 'แผนก', value: currentStaff.department || '-' },
-                { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
-                { label: 'อุปกรณ์ที่ขอเบิก', value: supplyName },
-                { label: 'จำนวน', value: `${reqQty} ชิ้น` },
-                { label: 'หมายเหตุ', value: note || '-' },
+                { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+                ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+                { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+                { label: '🏢 แผนก', value: currentStaff.department || '-' },
+                { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
+                { label: '📦 อุปกรณ์ที่ขอเบิก', value: supplyName },
+                { label: '🔢 จำนวน', value: `${reqQty} ชิ้น` },
+                { label: '📝 หมายเหตุ', value: note || '-' },
               ],
             }),
           });
+          if (resp.ok) notifyOk = true;
+          else notifyErrMsg = `HTTP ${resp.status}: ${await resp.text().catch(() => '')}`;
         }
-      } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
+      } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); console.error('staff-notify failed:', notifyErr); }
 
-      setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และส่ง email แจ้งฝ่าย HR เรียบร้อยแล้ว', type: 'success' });
+      if (notifyOk) {
+        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และส่ง LINE แจ้งฝ่าย HR เรียบร้อยแล้ว', type: 'success' });
+      } else {
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง LINE ไม่สำเร็จ', message: `ระบบบันทึกคำขอเบิกอุปกรณ์เรียบร้อย แต่ไม่สามารถส่ง LINE แจ้ง HR ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า LINE OA`, type: 'warning' });
+      }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
   };
@@ -489,18 +499,20 @@ function App() {
             body: JSON.stringify({
               kind: 'replacement',
               facts: [
-                { label: 'พนักงาน', value: `${currentStaff.fullName} (${currentStaff.empId})` },
-                { label: 'แผนก', value: currentStaff.department || '-' },
-                { label: 'หัวหน้างาน', value: currentStaff.manager || '-' },
-                { label: 'สถานะเครื่องปัจจุบัน', value: currentStatus || '-' },
-                { label: 'เหตุผลขอเปลี่ยน', value: reason || '-' },
+                { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+                ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+                { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+                { label: '🏢 แผนก', value: currentStaff.department || '-' },
+                { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
+                { label: '💻 สถานะเครื่องปัจจุบัน', value: currentStatus || '-' },
+                { label: '📝 เหตุผลขอเปลี่ยน', value: reason || '-' },
               ],
             }),
           });
         }
       } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
 
-      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และส่ง email แจ้งฝ่าย IT เรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
+      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และส่ง LINE แจ้งฝ่าย IT เรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
@@ -517,9 +529,17 @@ function App() {
     if (!currentStaff) return;
     await withLoading(async () => {
     try {
-      await updateDoc(doc(db, 'employees', currentStaff.id), updates);
-      setCurrentStaff(prev => ({ ...prev, ...updates }));
-      setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว', type: 'success' });
+      // ✅ Whitelist เฉพาะ field ที่ staff อนุญาตให้แก้ (ตรงกับ Firestore rules)
+      // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
+      const ALLOWED = ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password'];
+      const safe = {};
+      for (const k of ALLOWED) {
+        if (k in updates) safe[k] = updates[k];
+      }
+      safe.updatedAt = serverTimestamp();
+      await updateDoc(doc(db, 'employees', currentStaff.id), safe);
+      setCurrentStaff(prev => ({ ...prev, ...safe }));
+      setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว — ข้อมูลในระบบ admin จะอัปเดตทันที', type: 'success' });
     } catch (err) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: err.message, type: 'error' });
       throw err;
@@ -1912,49 +1932,99 @@ function App() {
     return `${Number(d)} ${monthName} ${year}`;
   };
 
-  let baseData = [];
-  if (activeMenu === 'assets') baseData = assets.filter(item => (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) && (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) && (assetFilterDepartment === 'ทั้งหมด' || item.forDepartment === assetFilterDepartment));
-  else if (activeMenu === 'licenses') baseData = licenses;
-  else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees;
-  else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
-  else if (activeMenu === 'office_supplies') {
-    baseData = officeSupplies.filter(item => {
-      if (officeSupplyStockFilter === 'ทั้งหมด') return true;
-      const qty = Number(item.quantity);
-      if (officeSupplyStockFilter === 'หมดสต็อก') return qty <= 0;
-      if (officeSupplyStockFilter === 'ใกล้หมด') return qty > 0 && qty <= 5;
-      if (officeSupplyStockFilter === 'ปกติ') return qty > 5;
-      return true;
-    });
-  }
+  // ⚡ Debounced search — ค้นหาช้าลง 250ms กันแลคตอนพิมพ์ในข้อมูลใหญ่ ⚡
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 250);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
-  let currentData = baseData;
-  if (searchTerm.trim() !== '') {
-    const lowerCaseTerm = searchTerm.toLowerCase();
-    currentData = baseData.filter(item => {
-      if (activeMenu === 'employees') {
+  // ⚡ Memoize filtered/searched/sorted data — re-compute เฉพาะตอน dep เปลี่ยน ⚡
+  const currentData = useMemo(() => {
+    let baseData = [];
+    if (activeMenu === 'assets') baseData = assets.filter(item => (assetFilterType === 'ทั้งหมด' || item.type === assetFilterType) && (assetFilterStatus === 'ทั้งหมด' || (item.status || 'พร้อมใช้งาน') === assetFilterStatus) && (assetFilterDepartment === 'ทั้งหมด' || item.forDepartment === assetFilterDepartment));
+    else if (activeMenu === 'licenses') baseData = licenses;
+    else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees;
+    else if (activeMenu === 'accessories') baseData = accessories.filter(item => accFilterType === 'ทั้งหมด' || item.type === accFilterType);
+    else if (activeMenu === 'office_supplies') {
+      baseData = officeSupplies.filter(item => {
+        if (officeSupplyStockFilter === 'ทั้งหมด') return true;
+        const qty = Number(item.quantity);
+        if (officeSupplyStockFilter === 'หมดสต็อก') return qty <= 0;
+        if (officeSupplyStockFilter === 'ใกล้หมด') return qty > 0 && qty <= 5;
+        if (officeSupplyStockFilter === 'ปกติ') return qty > 5;
+        return true;
+      });
+    }
+
+    let result = baseData;
+    if (debouncedSearch.trim() !== '') {
+      const lowerCaseTerm = debouncedSearch.toLowerCase();
+      result = baseData.filter(item => {
+        if (activeMenu === 'employees') {
+          return (
+            item.fullName?.toLowerCase().includes(lowerCaseTerm) ||
+            item.fullNameEng?.toLowerCase().includes(lowerCaseTerm) ||
+            item.empId?.toLowerCase().includes(lowerCaseTerm) ||
+            item.nickname?.toLowerCase().includes(lowerCaseTerm) ||
+            item.department?.toLowerCase().includes(lowerCaseTerm) ||
+            item.position?.toLowerCase().includes(lowerCaseTerm)
+          );
+        }
         return (
-          item.fullName?.toLowerCase().includes(lowerCaseTerm) ||
-          item.fullNameEng?.toLowerCase().includes(lowerCaseTerm) ||
-          item.empId?.toLowerCase().includes(lowerCaseTerm) ||
-          item.nickname?.toLowerCase().includes(lowerCaseTerm) ||
-          item.department?.toLowerCase().includes(lowerCaseTerm) ||
-          item.position?.toLowerCase().includes(lowerCaseTerm)
+          item.name?.toLowerCase().includes(lowerCaseTerm) ||
+          item.type?.toLowerCase().includes(lowerCaseTerm) ||
+          item.sn?.toLowerCase().includes(lowerCaseTerm) ||
+          item.assetTag?.toLowerCase().includes(lowerCaseTerm) ||
+          item.model?.toLowerCase().includes(lowerCaseTerm) ||
+          item.vendor?.toLowerCase().includes(lowerCaseTerm) ||
+          item.company?.toLowerCase().includes(lowerCaseTerm) ||
+          item.assignedName?.toLowerCase().includes(lowerCaseTerm)
         );
-      }
-      // assets / accessories / licenses / office_supplies
-      return (
-        item.name?.toLowerCase().includes(lowerCaseTerm) ||
-        item.type?.toLowerCase().includes(lowerCaseTerm) ||
-        item.sn?.toLowerCase().includes(lowerCaseTerm) ||
-        item.assetTag?.toLowerCase().includes(lowerCaseTerm) ||
-        item.model?.toLowerCase().includes(lowerCaseTerm) ||
-        item.vendor?.toLowerCase().includes(lowerCaseTerm) ||
-        item.company?.toLowerCase().includes(lowerCaseTerm) ||
-        item.assignedName?.toLowerCase().includes(lowerCaseTerm)
-      );
-    });
-  }
+      });
+    }
+
+    // ── จัดเรียงทรัพย์สินตามสถานะ ──
+    if (activeMenu === 'assets') {
+      const STATUS_RANK = {
+        'ถูกใช้งาน': 1,
+        'พร้อมใช้งาน': 2,
+        'ชำรุดเสียหาย': 3,
+        'ไม่สามารถใช้งานได้': 4,
+      };
+      const rankOf = (s) => STATUS_RANK[s || 'พร้อมใช้งาน'] ?? 99;
+      result = [...result].sort((a, b) => {
+        const ra = rankOf(a.status);
+        const rb = rankOf(b.status);
+        if (ra !== rb) return ra - rb;
+        return (a.assetTag || a.name || '').localeCompare(b.assetTag || b.name || '', 'th');
+      });
+    }
+
+    return result;
+  }, [
+    activeMenu, assets, accessories, employees, deletedEmployees, licenses, officeSupplies,
+    assetFilterType, assetFilterStatus, assetFilterDepartment,
+    accFilterType, showDeletedEmployees, officeSupplyStockFilter,
+    debouncedSearch,
+  ]);
+
+  // ⚡ Pagination — render แค่ 50 แถวต่อหน้า เพื่อให้ DOM ไม่หนัก ⚡
+  const TABLE_ITEMS_PER_PAGE = 50;
+  const [tablePage, setTablePage] = useState(1);
+  // reset page เมื่อ menu / filter / search เปลี่ยน
+  useEffect(() => {
+    setTablePage(1);
+  }, [activeMenu, debouncedSearch, assetFilterType, assetFilterStatus, assetFilterDepartment, accFilterType, showDeletedEmployees, officeSupplyStockFilter]);
+  const tableTotalPages = Math.max(1, Math.ceil(currentData.length / TABLE_ITEMS_PER_PAGE));
+  // ป้องกัน page เกิน
+  useEffect(() => {
+    if (tablePage > tableTotalPages) setTablePage(tableTotalPages);
+  }, [tablePage, tableTotalPages]);
+  const paginatedTableData = useMemo(() => {
+    const start = (tablePage - 1) * TABLE_ITEMS_PER_PAGE;
+    return currentData.slice(start, start + TABLE_ITEMS_PER_PAGE);
+  }, [currentData, tablePage]);
 
   // ── Filter repair requests ──
   let currentRepairRequests = repairRequests.filter(req => {
@@ -2157,10 +2227,10 @@ function App() {
                 ) : (
                   <div className="overflow-x-auto flex-1 rounded-xl ring-1 ring-slate-200 bg-white">
                     {activeMenu === 'employees' ? (
-                      <EmployeeTable currentData={currentData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
+                      <EmployeeTable currentData={paginatedTableData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'licenses' ? (
                       <LicenseTable
-                        currentData={currentData}
+                        currentData={paginatedTableData}
                         selectedLicenseIds={selectedLicenseIds}
                         handleSelectAllLicenses={handleSelectAllLicenses}
                         handleSelectLicense={handleSelectLicense}
@@ -2175,13 +2245,24 @@ function App() {
                         canEdit={canEdit}
                       />
                     ) : activeMenu === 'office_supplies' ? (
-                      <OfficeSupplyTable currentData={currentData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
+                      <OfficeSupplyTable currentData={paginatedTableData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
                     ) : activeMenu === 'accessories' ? (
-                      <AccessoryTable currentData={currentData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
+                      <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={currentData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} />
+                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} />
                     ) : null}
                   </div>
+                )}
+
+                {/* ── Pagination footer (โชว์เมื่อ ≥ 2 หน้า) ── */}
+                {currentData.length > 0 && tableTotalPages > 1 && (
+                  <TablePagination
+                    currentPage={tablePage}
+                    totalPages={tableTotalPages}
+                    totalItems={currentData.length}
+                    itemsPerPage={TABLE_ITEMS_PER_PAGE}
+                    onPageChange={setTablePage}
+                  />
                 )}
               </div>
             </div>

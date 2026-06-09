@@ -22,8 +22,9 @@ service cloud.firestore {
     }
 
     // ฟิลด์ที่ staff อนุญาตให้แก้ profile ตัวเองได้เท่านั้น
+    // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
     function staffEditableFields() {
-      return ['fullName','fullNameEng','nickname','position','phone','m365Email','m365Password','updatedAt'];
+      return ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password','updatedAt'];
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -128,12 +129,21 @@ service cloud.firestore {
     }
 
     /* ══════════════════════════════════════════════════════════
-       staff_passwords — ห้ามอ่าน/เขียนจาก client เด็ดขาด
-       (เฉพาะ Cloud Function `setStaffPassword` / `staffLogin` เท่านั้น
-        ที่ใช้ admin SDK bypass rules)
+       staff_passwords — admin อ่านได้ (เพื่อ visibility),
+                         เขียนได้เฉพาะ Vercel API (admin SDK bypass)
        ══════════════════════════════════════════════════════════ */
     match /staff_passwords/{empDocId} {
-      allow read, write: if false;
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       line_users — เก็บโดย Cloud webhook (admin SDK)
+       admin อ่านได้เพื่อหยิบ userId ไปตั้งใน "ตั้งค่าระบบ"
+       ══════════════════════════════════════════════════════════ */
+    match /line_users/{userId} {
+      allow read: if isAdmin();
+      allow write: if false; // webhook ใช้ admin SDK bypass rules
     }
 
     /* ══════════════════════════════════════════════════════════

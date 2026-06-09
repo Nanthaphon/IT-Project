@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Printer, Key } from 'lucide-react';
-import { auth, VERCEL_API_BASE } from '../firebase.js';
+import React, { useState, useEffect } from 'react';
+import { Printer, Key, Eye, EyeOff, Copy, CheckCircle2, RotateCcw, Shield } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
@@ -232,7 +233,11 @@ export default function EmployeeDetailsModal({
               )}
 
               <Section title="รหัสผ่านเข้าใช้ระบบ (Staff Portal)">
-                <SetStaffPasswordForm empDocId={selectedEmployee.id} empName={selectedEmployee.fullName} />
+                <SetStaffPasswordForm
+                  empDocId={selectedEmployee.id}
+                  empName={selectedEmployee.fullName}
+                  empId={selectedEmployee.empId}
+                />
               </Section>
             </div>
           )}
@@ -629,19 +634,46 @@ function InfoItem({ label, value, accent, span2, mono }) {
   );
 }
 
-/* ── SetStaffPasswordForm — admin ตั้ง/รีเซ็ตรหัสผ่านของพนักงาน ── */
-function SetStaffPasswordForm({ empDocId, empName }) {
-  const [pwd, setPwd] = useState('');
-  const [pwd2, setPwd2] = useState('');
+/* ── SetStaffPasswordForm — admin ดู / แก้ / รีเซ็ต รหัสผ่าน Staff Portal
+       - แสดงรหัสผ่านปัจจุบัน (sync real-time จาก Firestore)
+       - admin แก้ + กด "บันทึก" → API hash + เก็บ plaintext กลับ
+       - มีปุ่ม "ใช้รหัสพนักงาน" รีเซ็ตเร็วๆ ── */
+function SetStaffPasswordForm({ empDocId, empName, empId }) {
+  const [snapshot, setSnapshot] = useState(null);     // current data from Firestore
+  const [pwd, setPwd] = useState('');                 // input value (admin editing)
+  const [isDirty, setIsDirty] = useState(false);
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ── Live sync รหัสผ่านปัจจุบันจาก Firestore ──
+  useEffect(() => {
+    if (!empDocId) return;
+    const unsub = onSnapshot(doc(db, 'staff_passwords', empDocId), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setSnapshot(data);
+        if (!isDirty) setPwd(data.plaintext || '');
+      } else {
+        setSnapshot(null);
+        if (!isDirty) setPwd('');
+      }
+    });
+    return unsub;
+  }, [empDocId, isDirty]);
+
+  const currentPlaintext = snapshot?.plaintext || '';
+  const isDefault = snapshot?.isDefault === true;
+  const isUnset = !snapshot;
+  const updatedAt = snapshot?.updatedAt?.toDate?.();
+
+  const handleChange = (v) => { setPwd(v); setIsDirty(true); setMsg(null); };
+
+  const handleSave = async () => {
     setMsg(null);
     if (pwd.length < 6) { setMsg({ type: 'error', text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }); return; }
-    if (pwd !== pwd2) { setMsg({ type: 'error', text: 'รหัสผ่านไม่ตรงกัน' }); return; }
     try {
       setSaving(true);
       const idToken = await auth.currentUser?.getIdToken();
@@ -652,9 +684,9 @@ function SetStaffPasswordForm({ empDocId, empName }) {
         body: JSON.stringify({ empDocId, newPassword: pwd }),
       });
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'ตั้งรหัสผ่านไม่สำเร็จ');
-      setMsg({ type: 'success', text: `ตั้งรหัสผ่านสำหรับ ${empName || 'พนักงาน'} เรียบร้อยแล้ว` });
-      setPwd(''); setPwd2('');
+      if (!resp.ok) throw new Error(data.error || 'บันทึกไม่สำเร็จ');
+      setMsg({ type: 'success', text: `บันทึกรหัสผ่านสำหรับ ${empName || 'พนักงาน'} เรียบร้อยแล้ว` });
+      setIsDirty(false);
     } catch (err) {
       setMsg({ type: 'error', text: err?.message || 'เกิดข้อผิดพลาด' });
     } finally {
@@ -662,51 +694,148 @@ function SetStaffPasswordForm({ empDocId, empName }) {
     }
   };
 
+  const handleResetToEmpId = async () => {
+    if (!empId) { setMsg({ type: 'error', text: 'ไม่พบรหัสพนักงาน' }); return; }
+    setMsg(null);
+    try {
+      setResetting(true);
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('ต้อง login admin ก่อน');
+      const resp = await fetch(`${VERCEL_API_BASE}/api/set-staff-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ empDocId, newPassword: empId }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'รีเซ็ตไม่สำเร็จ');
+      setMsg({ type: 'success', text: `รีเซ็ตรหัสผ่านเป็น "${empId}" (รหัสพนักงาน) เรียบร้อย` });
+      setIsDirty(false);
+    } catch (err) {
+      setMsg({ type: 'error', text: err?.message || 'เกิดข้อผิดพลาด' });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!currentPlaintext) return;
+    try {
+      await navigator.clipboard.writeText(currentPlaintext);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+
+  const fmtTime = (d) => d ? d.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+
   return (
-    <form onSubmit={handleSubmit} className="px-4 py-3 space-y-2">
-      <p className="text-[12px] text-slate-500 leading-relaxed">
-        รหัสผ่านนี้ใช้สำหรับเข้าใช้ระบบในฐานะพนักงาน (Staff Portal) เท่านั้น —
-        ระบบเก็บค่าแบบ hash + salt (PBKDF2) admin ไม่สามารถดูรหัสผ่านเดิมได้
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <div className="relative">
-          <input
-            type={show ? 'text' : 'password'}
-            value={pwd} onChange={e => setPwd(e.target.value)}
-            placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)"
-            className="w-full bg-white border border-slate-200 px-2.5 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] font-mono"
-            autoComplete="new-password"
-          />
-        </div>
-        <div className="relative">
-          <input
-            type={show ? 'text' : 'password'}
-            value={pwd2} onChange={e => setPwd2(e.target.value)}
-            placeholder="ยืนยันรหัสผ่าน"
-            className="w-full bg-white border border-slate-200 px-2.5 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] font-mono"
-            autoComplete="new-password"
-          />
-        </div>
+    <div className="px-4 py-3 space-y-3">
+
+      {/* Info banner */}
+      <div className="bg-blue-50/40 ring-1 ring-blue-200 rounded-lg px-3 py-2 flex items-start gap-2">
+        <Shield className="h-3.5 w-3.5 text-[#1E487A] shrink-0 mt-0.5" strokeWidth={2.2} />
+        <p className="text-[11.5px] text-blue-900/85 leading-relaxed">
+          ระบบเก็บทั้ง <strong>hash + salt</strong> (สำหรับ login) และ <strong>plaintext</strong> (visibility สำหรับ admin) —
+          Firestore rules จำกัดให้เฉพาะ admin เท่านั้นที่อ่านได้
+        </p>
       </div>
-      <div className="flex items-center justify-between gap-2 pt-1">
-        <label className="flex items-center gap-1.5 text-[12px] text-slate-500 cursor-pointer">
-          <input type="checkbox" checked={show} onChange={e => setShow(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
-          แสดงรหัสผ่าน
+
+      {/* Status badges */}
+      <div className="flex flex-wrap items-center gap-2">
+        {isUnset ? (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-[11.5px] font-semibold">
+            ยังไม่เคยตั้งรหัสผ่าน
+          </span>
+        ) : isDefault ? (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 text-amber-700 ring-1 ring-amber-200 text-[11.5px] font-semibold">
+            🔓 ใช้รหัสพนักงานเป็นรหัสผ่าน
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 text-[11.5px] font-semibold">
+            🔐 ตั้งรหัสผ่านส่วนตัว
+          </span>
+        )}
+        {updatedAt && (
+          <span className="text-[11px] text-slate-400">อัปเดตล่าสุด: {fmtTime(updatedAt)}</span>
+        )}
+      </div>
+
+      {/* Password input */}
+      <div>
+        <label className="block text-[11.5px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+          รหัสผ่าน (Staff Portal)
         </label>
-        <button type="submit" disabled={saving}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-md shadow-sm disabled:opacity-50">
+        <div className="relative">
+          <input
+            type={show ? 'text' : 'password'}
+            value={pwd}
+            onChange={e => handleChange(e.target.value)}
+            placeholder={isUnset ? 'พนักงานยังไม่เคย login — รหัสจะเป็นรหัสพนักงานอัตโนมัติ' : 'รหัสผ่าน'}
+            className="w-full bg-white border border-slate-200 pl-3 pr-24 py-2 rounded-lg text-[14px] font-mono focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A]"
+            autoComplete="new-password"
+            spellCheck={false}
+          />
+          <div className="absolute right-1 top-1 bottom-1 flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => setShow(v => !v)}
+              className="px-2 py-1 text-slate-400 hover:text-slate-600 transition-colors"
+              title={show ? 'ซ่อน' : 'แสดง'}
+            >
+              {show ? <EyeOff className="h-3.5 w-3.5" strokeWidth={1.8} /> : <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={!currentPlaintext}
+              className="px-2 py-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 transition-colors"
+              title="คัดลอกรหัสผ่านปัจจุบัน"
+            >
+              {copied
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" strokeWidth={2.2} />
+                : <Copy className="h-3.5 w-3.5" strokeWidth={1.8} />}
+            </button>
+          </div>
+        </div>
+        {isDirty && (
+          <p className="text-[11.5px] text-amber-700 mt-1.5 flex items-center gap-1">
+            ● มีการแก้ไข — กด "บันทึก" เพื่อยืนยัน
+          </p>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+        <button
+          type="button"
+          onClick={handleResetToEmpId}
+          disabled={resetting || saving || !empId || (isDefault && !isDirty)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 ring-1 ring-amber-300 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
+        >
+          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.2} />
+          {resetting ? 'กำลังรีเซ็ต...' : 'ใช้รหัสพนักงาน'}
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || resetting || !isDirty}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-md shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
           <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
-          {saving ? 'กำลังบันทึก...' : 'ตั้งรหัสผ่าน'}
+          {saving ? 'กำลังบันทึก...' : 'บันทึก'}
         </button>
       </div>
+
+      {/* Message */}
       {msg && (
-        <div className={`text-[12px] font-medium px-2 py-1 rounded ${
-          msg.type === 'error' ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+        <div className={`text-[12.5px] font-medium px-2.5 py-1.5 rounded-md ${
+          msg.type === 'error'
+            ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'
+            : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
         }`}>{msg.text}</div>
       )}
-    </form>
+    </div>
   );
 }
 

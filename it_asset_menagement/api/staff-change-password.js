@@ -57,15 +57,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { currentPassword, newPassword } = req.body || {};
+    const { currentPassword, newPassword, resetToDefault } = req.body || {};
     if (typeof currentPassword !== 'string' || !currentPassword) {
       return res.status(400).json({ error: 'กรุณากรอกรหัสผ่านเดิม' });
-    }
-    if (typeof newPassword !== 'string' || newPassword.length < 6) {
-      return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' });
-    }
-    if (currentPassword === newPassword) {
-      return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องไม่เหมือนรหัสผ่านเดิม' });
     }
 
     const dbRef = admin.firestore();
@@ -78,9 +72,31 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'รหัสผ่านเดิมไม่ถูกต้อง' });
     }
 
+    // ── โหมด "reset to default": ตั้งรหัสผ่านกลับเป็น empId ──
+    let finalNewPassword;
+    let isDefault = false;
+    if (resetToDefault === true) {
+      // ดึง empId จาก employees doc (อย่าใช้ claim เผื่อข้อมูลเปลี่ยน)
+      const empSnap = await dbRef.collection('employees').doc(decoded.empDocId).get();
+      if (!empSnap.exists) return res.status(404).json({ error: 'ไม่พบข้อมูลพนักงาน' });
+      const empId = String(empSnap.data().empId || '').trim();
+      if (!empId) return res.status(500).json({ error: 'ไม่พบรหัสพนักงาน' });
+      finalNewPassword = empId;
+      isDefault = true;
+    } else {
+      // ── โหมดตั้งรหัสผ่านใหม่ ──
+      if (typeof newPassword !== 'string' || newPassword.length < 6) {
+        return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' });
+      }
+      if (currentPassword === newPassword) {
+        return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องไม่เหมือนรหัสผ่านเดิม' });
+      }
+      finalNewPassword = newPassword;
+    }
+
     // generate new salt + hash, clear mustChangePassword
     const newSalt = crypto.randomBytes(16).toString('hex');
-    const newHash = hashPassword(newPassword, newSalt);
+    const newHash = hashPassword(finalNewPassword, newSalt);
 
     await dbRef.collection('staff_passwords').doc(decoded.empDocId).set({
       hash: newHash,
@@ -89,9 +105,11 @@ export default async function handler(req, res) {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: decoded.uid,
       mustChangePassword: false,
+      isDefault,
+      plaintext: finalNewPassword,  // ⚠️ visibility สำหรับ admin
     }, { merge: true });
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, isDefault });
   } catch (err) {
     console.error('staff-change-password error:', err);
     return res.status(500).json({ error: err.message || 'failed' });

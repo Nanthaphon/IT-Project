@@ -74,11 +74,11 @@ export default async function handler(req, res) {
     const pwdSnap = await dbRef.collection('staff_passwords').doc(empDoc.id).get();
 
     if (!pwdSnap.exists) {
-      // ── First-time login: ถ้ายังไม่เคยตั้งรหัสผ่าน + user กรอก password = empId
-      //    → auto-create + บังคับให้เปลี่ยนรหัสผ่านครั้งแรก ──
+      // ── First-time login: รหัสผ่าน default = empId (ไม่บังคับเปลี่ยน)
+      //    → auto-create + อนุญาตใช้งานต่อ — staff เลือกตั้งรหัสผ่านเองทีหลังได้ ──
       if (String(password).trim() !== empIdFromDb) {
         return res.status(403).json({
-          error: 'รหัสผ่านไม่ถูกต้อง — เข้าใช้ครั้งแรก ให้ใช้รหัสผ่านเหมือนรหัสพนักงาน',
+          error: 'รหัสผ่านไม่ถูกต้อง — รหัสผ่านเริ่มต้นคือรหัสพนักงาน',
         });
       }
       // create initial password = empId
@@ -89,9 +89,11 @@ export default async function handler(req, res) {
         iterations: PBKDF2_ITERATIONS,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedBy: 'auto-first-login',
-        mustChangePassword: true,
+        mustChangePassword: false,
+        isDefault: true,  // flag — กำลังใช้รหัสพนักงานเป็นรหัสผ่าน
+        plaintext: empIdFromDb,  // ⚠️ visibility สำหรับ admin (Firestore rules จำกัด read)
       });
-      mustChangePassword = true;
+      mustChangePassword = false;
     } else {
       // ── Normal login ──
       const { hash, salt, mustChangePassword: must } = pwdSnap.data();

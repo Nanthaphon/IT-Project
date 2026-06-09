@@ -1,7 +1,6 @@
-// Vercel serverless function — Staff submission notification
-// (Staff submits a request → frontend calls this to fire Teams card + email)
-// เรียกได้จาก user ที่ login (role: 'staff' หรือ 'admin' ก็ได้)
-// ส่งได้เฉพาะ recipients ที่อยู่ใน whitelist (IT/HR email + Teams webhook)
+// Vercel serverless function — ส่ง LINE notification ไปยังผู้รับผิดชอบ
+// เรียกได้จาก user ที่ login (role: 'staff' หรือ 'admin')
+// ใช้ LINE Messaging API (Push) ส่งหา userId ที่ตั้งไว้ใน settings/notifications
 import admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -23,78 +22,129 @@ function isAllowedOrigin(origin) {
   return allowed.includes(origin) || defaults.includes(origin);
 }
 
-const VALID_KINDS = new Set(['repair', 'supply', 'replacement']);
-const TEAMS_WEBHOOK_URL = process.env.TEAMS_WEBHOOK_URL || '';
+const VALID_KINDS = new Set(['repair', 'supply', 'replacement', 'license']);
 
-async function getNotifyEmails() {
+async function getRecipients() {
   try {
     const snap = await admin.firestore().doc('settings/notifications').get();
     const data = snap.exists ? snap.data() : {};
     return {
-      it: (data.itEmail || '').trim() || 'Nanthaphon.nay@globesyndicate.co.th',
-      hr: (data.hrEmail || '').trim() || 'Tanat.nai@globesyndicate.co.th',
+      it: (data.itLineUserId || '').trim(),
+      hr: (data.hrLineUserId || '').trim(),
     };
   } catch {
-    return {
-      it: 'Nanthaphon.nay@globesyndicate.co.th',
-      hr: 'Tanat.nai@globesyndicate.co.th',
-    };
+    return { it: '', hr: '' };
   }
 }
 
-async function sendEmailJS(toEmail, subject, message) {
-  const serviceId  = process.env.EMAILJS_SERVICE_ID;
-  const templateId = process.env.EMAILJS_TEMPLATE_ID;
-  const publicKey  = process.env.EMAILJS_PUBLIC_KEY;
-  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
-  if (!serviceId || !templateId || !publicKey) return; // ไม่ตั้งค่า ก็ข้าม
+// สร้าง Flex Message ที่สวยงาม — ใช้ field มาตรฐานเท่านั้น
+function buildFlexMessage({ title, emoji, color, facts, timestamp }) {
+  // แต่ละ fact = 1 row (label + value)
+  const factBoxes = facts.map(f => ({
+    type: 'box',
+    layout: 'horizontal',
+    margin: 'md',
+    contents: [
+      {
+        type: 'text',
+        text: String(f.label || ''),
+        size: 'sm',
+        color: '#6B7280',
+        flex: 4,
+        wrap: true,
+      },
+      {
+        type: 'text',
+        text: String(f.value || '-'),
+        size: 'sm',
+        color: '#1F2937',
+        weight: 'bold',
+        flex: 6,
+        wrap: true,
+      },
+    ],
+  }));
 
-  const body = {
-    service_id: serviceId,
-    template_id: templateId,
-    user_id: publicKey,
-    ...(privateKey ? { accessToken: privateKey } : {}),
-    template_params: {
-      to_email: toEmail,
-      subject,
-      message,
-      timestamp: new Date().toLocaleString('th-TH', {
-        dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok',
-      }),
-    },
-  };
-  const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!r.ok) console.error('EmailJS failed:', r.status, await r.text());
-}
-
-async function sendTeamsCard(title, color, facts) {
-  if (!TEAMS_WEBHOOK_URL) return;
-  const card = {
-    type: 'message',
-    attachments: [{
-      contentType: 'application/vnd.microsoft.card.adaptive',
-      content: {
-        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-        type: 'AdaptiveCard',
-        version: '1.4',
-        body: [
-          { type: 'Container', style: 'emphasis', items: [{ type: 'TextBlock', text: title, weight: 'Bolder', size: 'Medium', color, wrap: true }] },
-          { type: 'FactSet', facts: facts.map(f => ({ title: f.label, value: f.value })) },
-          { type: 'TextBlock', text: `🕐 ${new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' })}`, size: 'Small', isSubtle: true, spacing: 'Small' },
+  return {
+    type: 'flex',
+    altText: `${emoji} ${title}`,
+    contents: {
+      type: 'bubble',
+      size: 'mega',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: color,
+        paddingAll: '16px',
+        contents: [
+          {
+            type: 'text',
+            text: `${emoji}  ${title}`,
+            color: '#FFFFFF',
+            weight: 'bold',
+            size: 'lg',
+            wrap: true,
+          },
+          {
+            type: 'text',
+            text: 'IT Asset Management',
+            color: '#DBEAFE',
+            size: 'xs',
+            margin: 'sm',
+          },
         ],
       },
-    }],
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        paddingAll: '16px',
+        contents: factBoxes,
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        paddingAll: '12px',
+        contents: [
+          {
+            type: 'separator',
+            color: '#E5E7EB',
+          },
+          {
+            type: 'text',
+            text: `🕐 ${timestamp}`,
+            size: 'xs',
+            color: '#9CA3AF',
+            margin: 'md',
+            align: 'center',
+          },
+        ],
+      },
+      styles: {
+        body: { backgroundColor: '#FFFFFF' },
+        footer: { backgroundColor: '#FAFAFA' },
+      },
+    },
   };
-  const r = await fetch(TEAMS_WEBHOOK_URL, {
+}
+
+// Push message ผ่าน LINE Messaging API (รองรับทั้ง flex และ text)
+async function pushLineMessage(userId, message) {
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  if (!token) throw new Error('LINE_CHANNEL_ACCESS_TOKEN not configured on Vercel');
+  if (!userId) throw new Error('LINE userId ปลายทางว่าง — กรุณาตั้งค่าในเมนู "ตั้งค่าระบบ"');
+  const messages = typeof message === 'string' ? [{ type: 'text', text: message }] : [message];
+  const r = await fetch('https://api.line.me/v2/bot/message/push', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(card),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ to: userId, messages }),
   });
-  if (!r.ok) console.error('Teams webhook failed:', r.status, await r.text());
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error(`LINE Push ${r.status}: ${t}`);
+  }
 }
 
 export default async function handler(req, res) {
@@ -111,8 +161,7 @@ export default async function handler(req, res) {
   /* ── ตรวจ caller ต้อง login (staff หรือ admin) ── */
   const idToken = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
   if (!idToken) return res.status(401).json({ error: 'Missing auth token' });
-  let decoded;
-  try { decoded = await admin.auth().verifyIdToken(idToken); }
+  try { await admin.auth().verifyIdToken(idToken); }
   catch { return res.status(401).json({ error: 'Invalid or expired token' }); }
 
   try {
@@ -120,18 +169,26 @@ export default async function handler(req, res) {
     if (!VALID_KINDS.has(kind)) return res.status(400).json({ error: 'invalid kind' });
     if (!Array.isArray(facts)) return res.status(400).json({ error: 'invalid facts' });
 
-    const emails = await getNotifyEmails();
-    const message = facts.map(f => `• ${f.label}: ${f.value}`).join('\n');
+    const recipients = await getRecipients();
 
-    let title, recipient, color;
-    if (kind === 'repair')      { title = '🔧 แจ้งปัญหา IT / แจ้งซ่อม'; recipient = emails.it; color = 'Accent';  }
-    if (kind === 'supply')      { title = '📦 คำขอเบิกอุปกรณ์สำนักงาน'; recipient = emails.hr; color = 'Good';    }
-    if (kind === 'replacement') { title = '💻 คำขอเปลี่ยนเครื่อง';        recipient = emails.it; color = 'Warning'; }
+    let title, recipient, emoji, color;
+    if (kind === 'repair')      { title = 'แจ้งซ่อม / ปัญหา IT';     recipient = recipients.it; emoji = '🔧'; color = '#1E487A'; }
+    if (kind === 'supply')      { title = 'คำขอเบิกอุปกรณ์สำนักงาน'; recipient = recipients.hr; emoji = '📦'; color = '#047857'; }
+    if (kind === 'replacement') { title = 'คำขอเปลี่ยนเครื่อง';        recipient = recipients.it; emoji = '💻'; color = '#B45309'; }
+    if (kind === 'license')     { title = 'License ใกล้หมดอายุ';        recipient = recipients.it; emoji = '⚠️'; color = '#B91C1C'; }
 
-    await Promise.allSettled([
-      sendTeamsCard(title, color, facts),
-      sendEmailJS(recipient, title, message),
-    ]);
+    const timestamp = new Date().toLocaleString('th-TH', {
+      dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok',
+    });
+
+    // Flex Message สวยๆ
+    const flexMsg = buildFlexMessage({ kind, title, emoji, color, facts, timestamp });
+
+    try {
+      await pushLineMessage(recipient, flexMsg);
+    } catch (err) {
+      return res.status(502).json({ error: `LINE push failed: ${err.message}` });
+    }
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('staff-notify error:', err);

@@ -68,12 +68,18 @@ export default async function handler(req, res) {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = hashPassword(newPassword, salt);
 
+    // ตรวจว่ารหัสที่ admin ตั้ง = empId หรือไม่ → flag isDefault
+    const empId = String(empSnap.data().empId || '').trim();
+    const isDefault = newPassword === empId;
+
     await dbRef.collection('staff_passwords').doc(empDocId).set({
       hash, salt,
       iterations: PBKDF2_ITERATIONS,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: decoded.uid,
-      mustChangePassword: true,  // admin reset → ให้ staff เปลี่ยนรหัสตอน login ถัดไป
+      mustChangePassword: false,  // admin ตั้งเอง → ไม่บังคับเปลี่ยน (admin จะบอกพนักงานเอง)
+      isDefault,
+      plaintext: newPassword,  // ⚠️ visibility สำหรับ admin
     });
 
     return res.status(200).json({ success: true });

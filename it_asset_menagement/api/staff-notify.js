@@ -22,18 +22,26 @@ function isAllowedOrigin(origin) {
   return allowed.includes(origin) || defaults.includes(origin);
 }
 
-const VALID_KINDS = new Set(['repair', 'supply', 'replacement', 'license']);
+const VALID_KINDS = new Set(['repair', 'supply', 'replacement', 'license', 'accessory_request']);
+
+// 🆕 แยก User ID เป็นหลายคน — รองรับทั้ง newline และเครื่องหมาย ","
+function parseUserIds(raw) {
+  return String(raw || '')
+    .split(/[\n,]/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
 
 async function getRecipients() {
   try {
     const snap = await admin.firestore().doc('settings/notifications').get();
     const data = snap.exists ? snap.data() : {};
     return {
-      it: (data.itLineUserId || '').trim(),
-      hr: (data.hrLineUserId || '').trim(),
+      it: parseUserIds(data.itLineUserId),
+      hr: parseUserIds(data.hrLineUserId),
     };
   } catch {
-    return { it: '', hr: '' };
+    return { it: [], hr: [] };
   }
 }
 
@@ -127,6 +135,103 @@ function buildFlexMessage({ title, emoji, color, facts, timestamp }) {
   };
 }
 
+// 🆕 ────────────────────────────────────────────────────────────
+// Microsoft Teams — Adaptive Card via Power Automate Workflow
+// ─────────────────────────────────────────────────────────────
+function buildTeamsAdaptiveCard({ title, emoji, color, facts, timestamp }) {
+  // Fact rows แต่ละ row เป็น TextBlock 2 คอลัมน์
+  const factRows = facts.map(f => ({
+    type: 'ColumnSet',
+    spacing: 'Small',
+    columns: [
+      {
+        type: 'Column',
+        width: '35',
+        items: [{
+          type: 'TextBlock',
+          text: String(f.label || ''),
+          wrap: true,
+          size: 'Small',
+          color: 'Default',
+          isSubtle: true,
+        }],
+      },
+      {
+        type: 'Column',
+        width: '65',
+        items: [{
+          type: 'TextBlock',
+          text: String(f.value || '-'),
+          wrap: true,
+          size: 'Small',
+          weight: 'Bolder',
+        }],
+      },
+    ],
+  }));
+
+  return {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      contentUrl: null,
+      content: {
+        $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard',
+        version: '1.4',
+        msteams: { width: 'Full' },
+        body: [
+          {
+            type: 'Container',
+            style: 'emphasis',
+            bleed: true,
+            items: [{
+              type: 'TextBlock',
+              text: `${emoji}  ${title}`,
+              size: 'Large',
+              weight: 'Bolder',
+              color: 'Accent',
+              wrap: true,
+            },{
+              type: 'TextBlock',
+              text: 'IT Asset Management',
+              size: 'Small',
+              isSubtle: true,
+              spacing: 'None',
+            }],
+          },
+          {
+            type: 'Container',
+            spacing: 'Medium',
+            items: factRows,
+          },
+          {
+            type: 'TextBlock',
+            text: `🕐 ${timestamp}`,
+            size: 'Small',
+            isSubtle: true,
+            horizontalAlignment: 'Center',
+            spacing: 'Medium',
+          },
+        ],
+      },
+    }],
+  };
+}
+
+async function sendTeamsMessage(webhookUrl, cardPayload) {
+  if (!webhookUrl) throw new Error('Teams webhook URL ไม่ถูกตั้งค่า');
+  const r = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cardPayload),
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error(`Teams webhook ${r.status}: ${t}`);
+  }
+}
+
 // Push message ผ่าน LINE Messaging API (รองรับทั้ง flex และ text)
 async function pushLineMessage(userId, message) {
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
@@ -171,25 +276,81 @@ export default async function handler(req, res) {
 
     const recipients = await getRecipients();
 
-    let title, recipient, emoji, color;
-    if (kind === 'repair')      { title = 'แจ้งซ่อม / ปัญหา IT';     recipient = recipients.it; emoji = '🔧'; color = '#1E487A'; }
-    if (kind === 'supply')      { title = 'คำขอเบิกอุปกรณ์สำนักงาน'; recipient = recipients.hr; emoji = '📦'; color = '#047857'; }
-    if (kind === 'replacement') { title = 'คำขอเปลี่ยนเครื่อง';        recipient = recipients.it; emoji = '💻'; color = '#B45309'; }
-    if (kind === 'license')     { title = 'License ใกล้หมดอายุ';        recipient = recipients.it; emoji = '⚠️'; color = '#B91C1C'; }
+    let title, recipientList, emoji, color, teamsChannel;
+    if (kind === 'repair')              { title = 'แจ้งซ่อม / ปัญหา IT';     recipientList = recipients.it; emoji = '🔧'; color = '#1E487A'; teamsChannel = 'it'; }
+    if (kind === 'supply')              { title = 'คำขอเบิกอุปกรณ์สำนักงาน'; recipientList = recipients.hr; emoji = '📦'; color = '#047857'; teamsChannel = 'hr'; }
+    if (kind === 'replacement')         { title = 'คำขอเปลี่ยนเครื่อง';        recipientList = recipients.it; emoji = '💻'; color = '#B45309'; teamsChannel = 'it'; }
+    if (kind === 'license')             { title = 'License ใกล้หมดอายุ';        recipientList = recipients.it; emoji = '⚠️'; color = '#B91C1C'; teamsChannel = 'it'; }
+    if (kind === 'accessory_request')   { title = 'คำขออุปกรณ์เสริม';          recipientList = recipients.it; emoji = '🖱'; color = '#0891B2'; teamsChannel = 'it'; }
 
     const timestamp = new Date().toLocaleString('th-TH', {
       dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok',
     });
 
-    // Flex Message สวยๆ
-    const flexMsg = buildFlexMessage({ kind, title, emoji, color, facts, timestamp });
+    // 🆕 ────────────────────────────────────────────────────────
+    // ช่องทางแจ้งเตือน — ส่ง Teams ก่อน (ฟรี, ไม่จำกัด)
+    //                    LINE เป็น fallback (เผื่อ Teams ล้ม)
+    // ─────────────────────────────────────────────────────────
+    const teamsUrl = teamsChannel === 'hr'
+      ? process.env.TEAMS_HR_WEBHOOK_URL
+      : process.env.TEAMS_IT_WEBHOOK_URL;
 
-    try {
-      await pushLineMessage(recipient, flexMsg);
-    } catch (err) {
-      return res.status(502).json({ error: `LINE push failed: ${err.message}` });
+    const channelResults = {
+      teams:  { attempted: false, success: false, error: null },
+      line:   { attempted: false, sent: 0, total: 0, failed: 0, error: null },
+    };
+
+    // 1) พยายามส่ง Teams
+    if (teamsUrl) {
+      channelResults.teams.attempted = true;
+      try {
+        const card = buildTeamsAdaptiveCard({ title, emoji, color, facts, timestamp });
+        await sendTeamsMessage(teamsUrl, card);
+        channelResults.teams.success = true;
+      } catch (err) {
+        console.error('Teams push failed:', err.message);
+        channelResults.teams.error = err.message;
+      }
     }
-    return res.status(200).json({ success: true });
+
+    // 2) ส่ง LINE (ถ้ามีคนตั้งค่าไว้) — ทำเสมอเพื่อให้ HR/IT รับสอง channel ได้
+    if (recipientList && recipientList.length > 0) {
+      channelResults.line.attempted = true;
+      channelResults.line.total = recipientList.length;
+      try {
+        const flexMsg = buildFlexMessage({ kind, title, emoji, color, facts, timestamp });
+        const results = await Promise.allSettled(
+          recipientList.map(uid => pushLineMessage(uid, flexMsg))
+        );
+        const failed = results.filter(r => r.status === 'rejected');
+        channelResults.line.sent = recipientList.length - failed.length;
+        channelResults.line.failed = failed.length;
+        if (failed.length === recipientList.length) {
+          channelResults.line.error = failed[0].reason?.message || 'unknown';
+        }
+      } catch (err) {
+        channelResults.line.error = err.message;
+      }
+    }
+
+    // สรุปผล — ถือว่าสำเร็จถ้ามีอย่างน้อย 1 ช่องทางส่งผ่าน
+    const teamsOk = channelResults.teams.attempted && channelResults.teams.success;
+    const lineOk  = channelResults.line.attempted  && channelResults.line.sent > 0;
+    const anyOk   = teamsOk || lineOk;
+
+    if (!anyOk) {
+      // ทั้งคู่ล้มเหลว (หรือทั้งคู่ไม่ตั้งค่า)
+      if (!channelResults.teams.attempted && !channelResults.line.attempted) {
+        return res.status(400).json({ error: 'ยังไม่ได้ตั้งค่าช่องทางแจ้งเตือน (Teams หรือ LINE)' });
+      }
+      const msg = channelResults.teams.error || channelResults.line.error || 'notify failed';
+      return res.status(502).json({ error: `แจ้งเตือนล้มเหลว: ${msg}`, detail: channelResults });
+    }
+
+    return res.status(200).json({
+      success: true,
+      channels: channelResults,
+    });
   } catch (err) {
     console.error('staff-notify error:', err);
     return res.status(500).json({ error: err.message || 'notify failed' });

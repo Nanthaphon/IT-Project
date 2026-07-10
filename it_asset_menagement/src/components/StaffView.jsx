@@ -581,9 +581,9 @@ export default function StaffView({
     { id: 'profile',           label: 'ข้อมูลของฉัน',     icon: User },
     { id: 'it_repair',         label: 'แจ้งปัญหา IT',     icon: Wrench,   count: myRequests.length,         color: 'rose' },
     { id: 'replacement',       label: 'ขอเปลี่ยนเครื่อง',  icon: RefreshCw, count: myReplacementReqs.length, color: 'amber' },
-    { id: 'office_supplies',   label: 'เบิกอุปกรณ์ สนง.',   icon: Package,  count: mySupplyReqs.length,       color: 'emerald' },
+    { id: 'office_supplies',   label: 'เบิกอุปกรณ์ สนง.',   icon: Package,  color: 'emerald' },
     { id: 'accessory_request', label: 'ขออุปกรณ์เสริม',    icon: Sparkles, count: myAccessoryReqs.length,    color: 'cyan' },
-    { id: 'my_assets',         label: 'ทรัพย์สินของฉัน',   icon: Laptop,   count: myAssetsList.length,       color: 'blue' },
+    { id: 'my_assets',         label: 'ทรัพย์สินของฉัน',   icon: Laptop,   color: 'blue' },
   ];
 
   const statusBadge = (status) => {
@@ -600,10 +600,10 @@ export default function StaffView({
   const inputCls = 'w-full border border-slate-200 bg-white px-3 py-2.5 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] transition';
   const labelCls = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5';
   const primaryBtn = (disabled) =>
-    `w-full py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 ${
+    `w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
       disabled
         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-        : 'bg-[#1E487A] hover:bg-[#133257] text-white active:scale-[0.98]'
+        : 'bg-gradient-to-b from-[#22518A] to-[#1E487A] hover:from-[#1E487A] hover:to-[#163963] text-white shadow-md shadow-[#1E487A]/25 hover:shadow-lg hover:shadow-[#1E487A]/30 active:scale-[0.98]'
     }`;
 
   /* ========================================
@@ -611,18 +611,21 @@ export default function StaffView({
   ======================================== */
   if (!currentStaff) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-white to-[#E8EFF8] relative overflow-hidden">
+        {/* decorative glow */}
+        <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-[#1E487A]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-[#1E487A]/[0.07] blur-3xl" />
         <div className="w-full max-w-sm relative z-10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-7">
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-[#1E487A]">
-              <img src="/gb_icon.svg" alt="Logo" className="w-7 h-7 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-[#1E487A] to-[#112F57] shadow-lg shadow-[#1E487A]/30 ring-1 ring-white/20">
+              <img src="/gb_icon.svg" alt="Logo" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
             <h1 className="text-[21px] font-semibold text-[#1E487A] tracking-tight">พนักงานทั่วไป</h1>
             <p className="text-[14px] text-slate-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-7">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl ring-1 ring-slate-200/70 shadow-xl shadow-slate-900/[0.06] p-7">
             <h2 className="text-[16px] font-semibold text-slate-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
             <p className="text-[12.5px] text-slate-500 mb-5 leading-relaxed">
               💡 รหัสผ่านเริ่มต้น = <span className="font-semibold text-[#1E487A]">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
@@ -698,11 +701,13 @@ export default function StaffView({
   ======================================== */
   if (staffMustChangePassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-        <div className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-white to-[#E8EFF8] relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-amber-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-[#1E487A]/[0.06] blur-3xl" />
+        <div className="w-full max-w-md relative z-10">
           <div className="flex flex-col items-center mb-6">
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-amber-500">
-              <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30 ring-1 ring-white/20">
+              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
             </div>
@@ -713,7 +718,7 @@ export default function StaffView({
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-7">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl ring-1 ring-slate-200/70 shadow-xl shadow-slate-900/[0.06] p-7">
             <form onSubmit={handleForceChangePassword} className="space-y-4">
               <div>
                 <label className={labelCls}>รหัสผ่านเดิม</label>
@@ -808,23 +813,24 @@ export default function StaffView({
       } lg:translate-x-0`}>
 
         {/* Brand */}
-        <div className="px-5 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#1E487A] flex items-center justify-center shrink-0">
+        <div className="px-5 py-5 flex items-center justify-between bg-gradient-to-br from-[#1E487A] to-[#112F57] relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-8 -right-6 w-28 h-28 rounded-full bg-white/[0.06] blur-2xl" />
+          <div className="flex items-center gap-2.5 relative">
+            <div className="w-8 h-8 rounded-lg bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0 backdrop-blur-sm">
               <img src="/gb_icon.svg" alt="Logo" className="w-4 h-4 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
-            <p className="text-[15px] font-semibold text-slate-900 tracking-tight">ระบบพนักงาน</p>
+            <p className="text-[15px] font-semibold text-white tracking-tight">ระบบพนักงาน</p>
           </div>
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-lg"
+            className="lg:hidden w-8 h-8 flex items-center justify-center text-white/70 hover:bg-white/15 rounded-lg relative"
           >
             <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto px-3 pt-3 space-y-0.5">
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -832,18 +838,32 @@ export default function StaffView({
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 text-[13.5px] rounded-lg transition-colors relative ${
+                className={`group w-full flex items-center gap-3 px-3 py-2.5 text-[13.5px] rounded-xl transition-all relative ${
                   isActive
-                    ? 'bg-[#1E487A]/8 text-[#1E487A] font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 font-medium'
+                    ? 'bg-gradient-to-r from-[#1E487A]/[0.12] to-[#1E487A]/[0.04] text-[#1E487A] font-semibold shadow-sm shadow-[#1E487A]/10'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                 }`}
               >
                 {/* Active left bar indicator */}
                 {isActive && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-[#1E487A]" />
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-[#1E487A] to-[#112F57]" />
                 )}
-                {Icon && <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />}
+                {Icon && (
+                  <Icon
+                    className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive ? 'text-[#1E487A]' : 'text-slate-400 group-hover:text-slate-500'}`}
+                    strokeWidth={isActive ? 2.2 : 1.8}
+                  />
+                )}
                 <span className="flex-1 text-left truncate">{tab.label}</span>
+                {tab.count > 0 && (
+                  <span className={`shrink-0 min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${
+                    isActive
+                      ? 'bg-[#1E487A] text-white'
+                      : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -887,8 +907,15 @@ export default function StaffView({
         </div>
 
         {/* Page header (desktop) */}
-        <div className="hidden lg:flex items-center justify-between bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-30">
-          <p className="text-[18px] font-semibold text-slate-800 leading-tight tracking-tight">{activeTabInfo?.label}</p>
+        <div className="hidden lg:flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-8 py-4 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            {activeTabInfo?.icon && (
+              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1E487A]/[0.12] to-[#1E487A]/[0.04] ring-1 ring-[#1E487A]/10 flex items-center justify-center">
+                <activeTabInfo.icon className="h-[18px] w-[18px] text-[#1E487A]" strokeWidth={2} />
+              </span>
+            )}
+            <p className="text-[18px] font-semibold text-slate-800 leading-tight tracking-tight">{activeTabInfo?.label}</p>
+          </div>
         </div>
 
         <main className="px-3 sm:px-4 md:px-6 py-4 sm:py-5 space-y-4 max-w-[1400px] mx-auto">
@@ -897,32 +924,35 @@ export default function StaffView({
         {activeTab === 'profile' && (
           <>
           {/* ── Hero card ── */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1E487A] flex items-center justify-center text-white font-semibold text-[28px] sm:text-[32px] shrink-0">
+          <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-[#1E487A] via-[#1A3F6D] to-[#112F57] shadow-lg shadow-[#1E487A]/25 ring-1 ring-white/10">
+            {/* decorative glow */}
+            <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/[0.07] blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -left-10 w-56 h-56 rounded-full bg-white/[0.04] blur-3xl" />
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/15 backdrop-blur-sm ring-2 ring-white/25 flex items-center justify-center text-white font-semibold text-[28px] sm:text-[32px] shrink-0 shadow-lg shadow-black/20">
                 {currentStaff.fullName?.charAt(0) || '?'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[17px] sm:text-[19px] font-semibold text-slate-900 leading-tight break-words">
+                <p className="text-[17px] sm:text-[19px] font-semibold text-white leading-tight break-words">
                   {currentStaff.fullName}
                   {currentStaff.nickname && (
-                    <span className="text-slate-500 font-normal text-[15px] sm:text-[17px] ml-1">({currentStaff.nickname})</span>
+                    <span className="text-white/60 font-normal text-[15px] sm:text-[17px] ml-1">({currentStaff.nickname})</span>
                   )}
                 </p>
-                <p className="text-[13px] sm:text-[14px] text-slate-600 mt-1">
+                <p className="text-[13px] sm:text-[14px] text-white/80 mt-1">
                   {currentStaff.position || '—'}
                 </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[12px] text-slate-500">
-                  <span className="font-mono font-semibold text-slate-700">{currentStaff.empId}</span>
-                  {currentStaff.department && <><span>·</span><span>{currentStaff.department}</span></>}
-                  {currentStaff.company && <><span>·</span><span>{currentStaff.company}</span></>}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2.5 text-[12px] text-white/60">
+                  <span className="font-mono font-semibold text-white bg-white/10 ring-1 ring-white/15 rounded-md px-2 py-0.5">{currentStaff.empId}</span>
+                  {currentStaff.department && <span>{currentStaff.department}</span>}
+                  {currentStaff.company && <><span className="text-white/30">·</span><span>{currentStaff.company}</span></>}
                 </div>
               </div>
               <div className="w-full sm:w-auto sm:shrink-0">
                 {!isEditingProfile ? (
                   <button
                     onClick={startEditProfile}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold text-[#1E487A] bg-[#1E487A]/8 hover:bg-[#1E487A]/15 transition-colors"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-white/15 hover:bg-white/25 ring-1 ring-white/20 backdrop-blur-sm transition-colors"
                   >
                     <Pencil className="h-3.5 w-3.5" strokeWidth={2.2} />
                     แก้ไขข้อมูล
@@ -932,17 +962,17 @@ export default function StaffView({
                     <button
                       onClick={cancelEditProfile}
                       disabled={isSavingProfile}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-semibold text-white bg-white/15 hover:bg-white/25 ring-1 ring-white/20 disabled:opacity-50"
                     >
                       <X className="h-3.5 w-3.5" strokeWidth={2.2} /> ยกเลิก
                     </button>
                     <button
                       onClick={saveProfile}
                       disabled={isSavingProfile}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] disabled:opacity-60"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-[#1E487A] bg-white hover:bg-white/90 shadow-sm disabled:opacity-60"
                     >
                       {isSavingProfile
-                        ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังบันทึก...</>
+                        ? <><div className="w-3.5 h-3.5 border-2 border-[#1E487A]/30 border-t-[#1E487A] rounded-full animate-spin" /> กำลังบันทึก...</>
                         : <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึก</>
                       }
                     </button>
@@ -955,7 +985,7 @@ export default function StaffView({
           {/* ── ข้อมูลทั่วไป ── */}
           {isEditingProfile ? (
             /* ── EDIT MODE — แสดงทุกฟิลด์เพื่อแก้ไข ── */
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 p-5">
                 <EditableItem label="ชื่อ-นามสกุล (TH)"  name="fullName"     editing form={profileForm} setForm={setProfileForm} value={currentStaff.fullName} />
                 <EditableItem label="ชื่อ-นามสกุล (EN)"  name="fullNameEng"  editing form={profileForm} setForm={setProfileForm} value={currentStaff.fullNameEng} />
@@ -970,7 +1000,7 @@ export default function StaffView({
             </div>
           ) : (
             /* ── VIEW MODE — ไม่ซ้ำกับ Hero card; แสดงเฉพาะข้อมูลที่ยังไม่มีบน hero ── */
-            <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+            <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] divide-y divide-slate-100">
               <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-slate-100">
                 <CompactItem label="ชื่อ (EN)"       value={currentStaff.fullNameEng} />
                 <CompactItem label="เบอร์โทรศัพท์"    value={currentStaff.phone} />
@@ -995,7 +1025,7 @@ export default function StaffView({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {/* Form */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 h-fit space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-6 h-fit space-y-4">
               <h3 className="text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3">เปิดใบแจ้งปัญหาใหม่</h3>
               <form onSubmit={onRepairSubmit} className="space-y-4">
                 <div>
@@ -1031,7 +1061,7 @@ export default function StaffView({
             </div>
 
             {/* History */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 flex flex-col">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-6 flex flex-col">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-sm font-semibold text-slate-800">ประวัติการแจ้งปัญหา</h3>
                 {totalRepairPages > 1 && (
@@ -1094,7 +1124,7 @@ export default function StaffView({
         {activeTab === 'replacement' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 h-fit space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-6 h-fit space-y-4">
               <h3 className="text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3">ฟอร์มขอเปลี่ยนเครื่อง</h3>
               <form onSubmit={onReplacementSubmit} className="space-y-4">
                 <div>
@@ -1205,7 +1235,7 @@ export default function StaffView({
               </form>
             </div>
 
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 flex flex-col">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-6 flex flex-col">
               <h3 className="text-sm font-semibold text-slate-800 mb-4">ประวัติคำขอเปลี่ยนเครื่อง</h3>
               {myReplacementReqs.length === 0 ? (
                 <EmptyState label="ยังไม่มีประวัติการขอเปลี่ยนเครื่อง" />
@@ -1263,7 +1293,7 @@ export default function StaffView({
             {/* ─── LEFT: Catalog ─── */}
             <div className="space-y-5">
               {/* Search bar + Company filter */}
-              <div className="bg-white rounded-xl border border-slate-200 p-3 space-y-2.5">
+              <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-3 space-y-2.5">
                 <div className="relative">
                   <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1362,7 +1392,7 @@ export default function StaffView({
               )}
 
               {/* History */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
                 <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100">
                   <p className="text-[14px] font-semibold text-slate-800">ประวัติคำขอ</p>
                   {totalSupplyPages > 1 && <span className="text-[11.5px] text-slate-400">หน้า {supplyPage} / {totalSupplyPages}</span>}
@@ -1396,7 +1426,7 @@ export default function StaffView({
 
             {/* ─── RIGHT: Cart panel (sticky on desktop) ─── */}
             <div className="lg:sticky lg:top-24">
-              <form onSubmit={onSupplySubmit} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <form onSubmit={onSupplySubmit} className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                   <p className="text-[14.5px] font-semibold text-slate-800">รายการที่เลือก</p>
                   {supplyCart.length > 0 && (
@@ -1499,7 +1529,7 @@ export default function StaffView({
 
         {/* ==================== TAB: ทรัพย์สินของฉัน ==================== */}
         {activeTab === 'my_assets' && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-6">
             <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
               <h3 className="text-sm font-semibold text-slate-800">ทรัพย์สินของคุณ</h3>
               <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">{myAssetsList.length} รายการ</span>
@@ -1922,7 +1952,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
       {/* ─── LEFT: Catalog + History ─── */}
       <div className="space-y-5">
         {/* Search bar */}
-        <div className="bg-white rounded-xl border border-slate-200 p-3">
+        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-3">
           <div className="relative">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1996,7 +2026,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
         )}
 
         {/* History */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
           <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100">
             <p className="text-[14px] font-semibold text-slate-800">ประวัติคำขอของฉัน</p>
             <span className="text-[11.5px] text-slate-400">{myAccessoryReqs.length} รายการ</span>
@@ -2033,7 +2063,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
 
       {/* ─── RIGHT: Selected item panel (sticky) ─── */}
       <div className="lg:sticky lg:top-24">
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
             <p className="text-[14.5px] font-semibold text-slate-800">รายการที่เลือก</p>
           </div>

@@ -321,8 +321,9 @@ function App() {
         setCurrentUid(user.uid);
         // เช็ค custom claim จาก ID token — staff login จะมี role: 'staff'
         let role = null;
+        let tokenResult = null;
         try {
-          const tokenResult = await user.getIdTokenResult();
+          tokenResult = await user.getIdTokenResult();
           role = tokenResult.claims?.role || null;
         } catch (e) { /* ignore */ }
 
@@ -330,8 +331,8 @@ function App() {
           // Staff signed in via custom token — set role + try to restore currentStaff จาก claim
           setAuthRole('staff');
           try {
-            const tokenResult2 = await user.getIdTokenResult();
-            const empDocId = tokenResult2.claims?.empDocId;
+            // ใช้ token เดิมที่ดึงมาแล้ว — ไม่ต้องเรียก getIdTokenResult ซ้ำ
+            const empDocId = tokenResult?.claims?.empDocId;
             if (empDocId) {
               const empSnap = await getDoc(doc(db, 'employees', empDocId));
               if (empSnap.exists()) {
@@ -340,13 +341,17 @@ function App() {
             }
           } catch (e) { /* ignore */ }
         } else {
-          // Admin/HR — ตรวจ admin_users collection
+          // Admin/HR — อ่าน admin_users เฉพาะเมื่อ email ขึ้นต้น hr@ เท่านั้น
+          //   (isManagedAdmin มีผลต่อการแยก hr/admin เฉพาะเคส hr@ — admin ปกติไม่ต้องอ่าน → ลด 1 round trip)
+          const isHrEmail = !!user.email && user.email.toLowerCase().startsWith('hr@');
           let isManagedAdmin = false;
-          try {
-            const adminSnap = await getDoc(doc(db, 'admin_users', user.uid));
-            isManagedAdmin = adminSnap.exists();
-          } catch (e) { /* ignore */ }
-          if (!isManagedAdmin && user.email && user.email.toLowerCase().startsWith('hr@')) {
+          if (isHrEmail) {
+            try {
+              const adminSnap = await getDoc(doc(db, 'admin_users', user.uid));
+              isManagedAdmin = adminSnap.exists();
+            } catch (e) { /* ignore */ }
+          }
+          if (!isManagedAdmin && isHrEmail) {
             setAuthRole('hr');
             setActiveMenu('office_supplies');
           } else {

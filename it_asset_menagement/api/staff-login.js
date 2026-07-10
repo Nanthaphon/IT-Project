@@ -61,9 +61,17 @@ export default async function handler(req, res) {
     const dbRef = admin.firestore();
     const inputEmpId = String(empId).trim();
 
-    // หา employee (case-insensitive)
-    const allSnap = await dbRef.collection('employees').get();
-    const empDoc = allSnap.docs.find(d => (d.data().empId || '').toLowerCase() === inputEmpId.toLowerCase());
+    // หา employee — ลองแบบ query ตรงก่อน (เร็ว, ใช้ index) แล้วค่อย fallback
+    // เป็น full-scan case-insensitive เฉพาะกรณีที่พิมพ์ตัวพิมพ์เล็ก/ใหญ่ไม่ตรง (พบน้อย)
+    let empDoc = null;
+    const exactSnap = await dbRef.collection('employees')
+      .where('empId', '==', inputEmpId).limit(1).get();
+    if (!exactSnap.empty) {
+      empDoc = exactSnap.docs[0];
+    } else {
+      const allSnap = await dbRef.collection('employees').get();
+      empDoc = allSnap.docs.find(d => (d.data().empId || '').toLowerCase() === inputEmpId.toLowerCase()) || null;
+    }
     if (!empDoc) return res.status(404).json({ error: 'ไม่พบรหัสพนักงานนี้ในระบบ' });
 
     const empData = empDoc.data();

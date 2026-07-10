@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 *, *::before, *::after {
-  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-family: 'Prompt', sans-serif;
 }
 
 /* ยกเว้นฟอร์ม — ใช้ฟ้อนระบบเดิม */

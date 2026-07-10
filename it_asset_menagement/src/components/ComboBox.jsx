@@ -95,7 +95,7 @@ export default function ComboBox({
 
       {/* ── Dropdown panel ── */}
       {isOpen && options.length > 0 && (
-        <div className="absolute z-[200] top-[calc(100%+4px)] left-0 right-0 bg-white rounded-xl shadow-xl shadow-slate-950/10 ring-1 ring-slate-200 overflow-hidden">
+        <div className="absolute z-[200] top-[calc(100%+4px)] left-0 right-0 bg-white rounded-xl shadow-sm shadow-slate-950/10 ring-1 ring-slate-200 overflow-hidden">
           <div className="max-h-52 overflow-y-auto scrollbar-hide py-1">
             {filtered.length > 0 ? (
               filtered.map((opt) => (

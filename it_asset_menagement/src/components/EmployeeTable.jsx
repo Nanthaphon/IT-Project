@@ -13,13 +13,14 @@ export default function EmployeeTable({
   setEmpModalTab,
   showDeletedEmployees,
   handleRestoreEmployee,
+  handlePermanentDeleteEmployee,
   openEditEmpModal,
   setConfirmDeleteModal,
   canEdit,
 }) {
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
-      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
+      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10">
         <tr>
           <th className="px-4 py-3 text-center w-10">
             <input
@@ -71,12 +72,21 @@ export default function EmployeeTable({
               <div className="flex items-center justify-center gap-1.5">
                 {showDeletedEmployees ? (
                   canEdit && (
-                    <button
-                      onClick={() => handleRestoreEmployee(item)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
-                    >
-                      <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> กู้คืน
-                    </button>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => handleRestoreEmployee(item)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
+                      >
+                        <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> กู้คืน
+                      </button>
+                      <button
+                        onClick={() => handlePermanentDeleteEmployee?.(item)}
+                        title="ลบถาวร — หายไปเลย"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-rose-600 ring-1 ring-inset ring-rose-300 hover:bg-rose-600 hover:text-white hover:ring-rose-600 rounded-lg font-semibold transition-colors text-[12.5px]"
+                      >
+                        <Trash2 className="h-3 w-3" strokeWidth={2.2} /> ลบถาวร
+                      </button>
+                    </div>
                   )
                 ) : (
                   <>

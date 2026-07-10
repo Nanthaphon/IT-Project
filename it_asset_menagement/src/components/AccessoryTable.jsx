@@ -24,7 +24,7 @@ export default function AccessoryTable({
 
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
-      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
+      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10">
         <tr>
           <th className="px-4 py-3 text-center w-10">
             <input
@@ -82,6 +82,11 @@ export default function AccessoryTable({
                     </div>
                   )}
                   <span className="font-medium text-slate-800 group-hover/link:text-[#1E487A] transition-colors">{item.name}</span>
+                  {item.requestDisabled && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 ring-1 ring-rose-200 px-1.5 py-0.5 rounded" title="พนักงานไม่สามารถเบิกได้">
+                      🚫 ปิดเบิก
+                    </span>
+                  )}
                 </button>
               </td>
               <td className={TD}>

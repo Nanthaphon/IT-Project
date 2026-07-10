@@ -1,6 +1,7 @@
 import React from 'react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import { COMPANIES } from '../ui/theme.js';
+import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
 const BRAND = '#1E487A';
 
@@ -27,7 +28,7 @@ function Field({ label, required, hint, children, className = '' }) {
 
 const inputCls =
   'w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 ' +
-  'placeholder:text-slate-400 outline-none transition-all ' +
+  'placeholder:text-slate-400 outline-none transition-colors ' +
   'hover:border-slate-300 focus:border-[#1E487A] focus:ring-2 focus:ring-[#1E487A]/15';
 
 const monoCls = inputCls + ' font-mono tracking-tight';
@@ -55,14 +56,11 @@ export default function EditAssetModal({
     ? 'อัปเดตจำนวนสต็อกและรายละเอียดสินค้า'
     : 'อัปเดตจำนวนคงเหลือและรายละเอียดอุปกรณ์';
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, image: reader.result } }));
-      };
-      reader.readAsDataURL(file);
+      const dataUrl = await compressImage(file, ICON_PRESET);
+      setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, image: dataUrl } }));
     }
   };
 
@@ -73,8 +71,8 @@ export default function EditAssetModal({
   const close = () => setEditAssetModal({ isOpen: false, data: null, collectionName: '' });
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-slate-200/60">
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[70]">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-slate-200/60">
         {/* Header */}
         <div className="px-7 py-5 flex items-start justify-between border-b border-slate-100">
           <div className="flex items-start gap-3.5">
@@ -170,7 +168,7 @@ export default function EditAssetModal({
                   onChange={handleEditAssetChange}
                   options={
                     isAssets
-                      ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
+                      ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'ทีวี', 'ปริ้นเตอร์', 'อุปกรณ์ IT', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
                       : isSupplies
                         ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
                         : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
@@ -246,7 +244,7 @@ export default function EditAssetModal({
                   {isAssets && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
                           (editAssetModal.data.purchaseCondition || 'new') === 'new'
                             ? 'bg-emerald-50 ring-2 ring-emerald-500 text-emerald-700'
                             : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
@@ -254,7 +252,7 @@ export default function EditAssetModal({
                           <input type="radio" name="purchaseCondition" value="new" checked={(editAssetModal.data.purchaseCondition || 'new') === 'new'} onChange={handleEditAssetChange} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
                           editAssetModal.data.purchaseCondition === 'used'
                             ? 'bg-amber-50 ring-2 ring-amber-500 text-amber-700'
                             : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
@@ -310,6 +308,24 @@ export default function EditAssetModal({
                       <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
                     </div>
                   </Field>
+                  {/* 🆕 ราคาขายซาก */}
+                  <Field label="ราคาขายซาก (บาท)">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        name="scrapValue"
+                        value={editAssetModal.data.scrapValue || ''}
+                        onChange={handleEditAssetChange}
+                        onWheel={(e) => e.target.blur()}
+                        onKeyDown={(e) => (e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.preventDefault()}
+                        className={inputCls + ' pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'}
+                        placeholder="0.00"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
+                    </div>
+                  </Field>
                   <Field label="สถานะ">
                     <select
                       name="status"
@@ -319,6 +335,7 @@ export default function EditAssetModal({
                     >
                       <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                       <option value="ถูกใช้งาน">ถูกใช้งาน</option>
+                      <option value="สำรอง">สำรอง</option>
                       <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
                       <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
                       <option value="รอดำเนินการ">รอดำเนินการ</option>
@@ -398,7 +415,7 @@ export default function EditAssetModal({
               </section>
             )}
 
-            {/* accessories: vendor + note */}
+            {/* accessories: vendor + note + disable-request toggle */}
             {isAccessories && (
               <section className="space-y-4">
                 <SectionHeader>ข้อมูลผู้จัดจำหน่ายและหมายเหตุ</SectionHeader>
@@ -432,6 +449,24 @@ export default function EditAssetModal({
                     placeholder="ใส่รายละเอียดที่ต้องการบันทึก..."
                   />
                 </Field>
+
+                {/* 🆕 Toggle ปิดการเบิก — พนักงานจะมองไม่เห็นใน catalog */}
+                <label className="flex items-start gap-3 p-3.5 rounded-lg border border-slate-200 hover:bg-slate-50/60 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="requestDisabled"
+                    checked={!!editAssetModal.data.requestDisabled}
+                    onChange={(e) => handleEditAssetChange({ target: { name: 'requestDisabled', value: e.target.checked, type: 'checkbox', checked: e.target.checked } })}
+                    className="mt-0.5 w-4 h-4 text-[#1E487A] rounded border-slate-300 focus:ring-[#1E487A]/30"
+                  />
+                  <div className="flex-1">
+                    <p className="text-[13.5px] font-semibold text-slate-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
+                    <p className="text-[12px] text-slate-500 mt-0.5">
+                      เปิดใช้เมื่อต้องการกันของให้พนักงานบางคน หรือเก็บไว้สำหรับเหตุการณ์พิเศษ
+                      — ฝั่งพนักงานจะไม่เห็นอุปกรณ์นี้ใน catalog แม้จะมีของเหลือก็ตาม
+                    </p>
+                  </div>
+                </label>
               </section>
             )}
 
@@ -464,7 +499,7 @@ export default function EditAssetModal({
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1"
+              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
               style={{ background: BRAND, boxShadow: `0 4px 14px ${BRAND}33` }}
               onMouseEnter={(e) => (e.currentTarget.style.background = '#163963')}
               onMouseLeave={(e) => (e.currentTarget.style.background = BRAND)}

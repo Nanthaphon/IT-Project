@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Columns3, Trash2, Upload, Download, ChevronDown } from 'lucide-react';
+import { Search, Plus, Columns3, Trash2, Upload, Download, ChevronDown, Sparkles, FileText } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
 export default function ActionBar({
@@ -28,6 +28,7 @@ export default function ActionBar({
   selectedOfficeSupplyIds,
   setIsAddModalOpen,
   handleExportAssets,
+  handleExportAssetsPDF,
   handleExportOfficeSupplies,
   visibleAssetColumns,
   setVisibleAssetColumns,
@@ -35,6 +36,9 @@ export default function ActionBar({
   selectedLicenseIds,
   visibleLicenseColumns,
   setVisibleLicenseColumns,
+  licenseExpFilter,
+  setLicenseExpFilter,
+  setIsSnipeITImportOpen,
   canEdit,
   fieldOptions = {},
 }) {
@@ -65,16 +69,14 @@ export default function ActionBar({
     name: 'ชื่ออุปกรณ์', type: 'ประเภท', forDepartment: 'สำหรับแผนก', cost: 'ราคา', status: 'สถานะ',
     assetTag: 'รหัสทรัพย์สิน', sn: 'Serial Number', model: 'ยี่ห้อ/รุ่น', vendor: 'ผู้จัดจำหน่าย', company: 'บริษัท',
     purchaseDate: 'วันที่ซื้อ', warrantyDate: 'วันหมด Warranty', assignedName: 'ผู้ครอบครอง',
+    note: 'หมายเหตุ',
+    age: 'อายุการใช้งาน',
+    scrapValue: 'ราคาขายซาก',
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-5 border-b border-slate-200 shrink-0">
-      {/* Title */}
-      <p className="text-[14.5px] font-semibold text-slate-700 whitespace-nowrap tracking-tight">
-        รายการ{menuTitle}
-      </p>
-
-      {/* Controls */}
+    <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 mb-5 pb-5 border-b border-slate-200 shrink-0">
+      {/* Controls — เอา title ออก (ซ้ำกับ TopHeader) */}
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         {/* Search */}
         <div className="relative">
@@ -84,7 +86,7 @@ export default function ActionBar({
             placeholder="ค้นหา..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] hover:border-slate-300 w-48"
+            className="pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 outline-none transition-colors focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] hover:border-slate-300 w-48"
           />
         </div>
 
@@ -98,8 +100,8 @@ export default function ActionBar({
             )}
             {canEdit && !showDeletedEmployees && (
               <>
-                <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>
-                <Btn icon={Download} onClick={handleExportEmployees}>ส่งออก CSV</Btn>
+                <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>
+                <Btn icon={Download} onClick={handleExportEmployees}>CSV</Btn>
                 {selectedEmployeeIds.length > 0 && (
                   <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })}>
                     ลบ ({selectedEmployeeIds.length})
@@ -113,29 +115,42 @@ export default function ActionBar({
         {/* ── Assets ── */}
         {activeMenu === 'assets' && (
           <>
-            <FilterSelect value={assetFilterDepartment} onChange={setAssetFilterDepartment}>
-              <option value="ทั้งหมด">สำหรับแผนก: ทั้งหมด</option>
-              {(fieldOptions.forDepartments || []).map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </FilterSelect>
-            <FilterSelect value={assetFilterType} onChange={setAssetFilterType}>
-              <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>
-              <option value="คอมพิวเตอร์">คอมพิวเตอร์</option>
-              <option value="โน๊ตบุ๊ค">โน๊ตบุ๊ค</option>
-              <option value="หน้าจอ">หน้าจอ</option>
-              <option value="แท็บเล็ต/มือถือ">แท็บเล็ต / มือถือ</option>
-              <option value="อุปกรณ์สำนักงาน">อุปกรณ์สำนักงาน</option>
-              <option value="อื่นๆ">อื่นๆ</option>
-            </FilterSelect>
-            <FilterSelect value={assetFilterStatus} onChange={setAssetFilterStatus}>
-              <option value="ทั้งหมด">สถานะ: ทั้งหมด</option>
-              <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-              <option value="ถูกใช้งาน">ถูกใช้งาน</option>
-              <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
-              <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
-              <option value="รอดำเนินการ">รอดำเนินการ</option>
-            </FilterSelect>
+            <MultiSelectFilter
+              label="สำหรับแผนก"
+              selected={assetFilterDepartment}
+              onChange={setAssetFilterDepartment}
+              options={(fieldOptions.forDepartments || []).map(opt => ({ value: opt, label: opt }))}
+            />
+            <MultiSelectFilter
+              label="ประเภท"
+              selected={assetFilterType}
+              onChange={setAssetFilterType}
+              options={[
+                { value: 'คอมพิวเตอร์',     label: 'คอมพิวเตอร์' },
+                { value: 'โน๊ตบุ๊ค',         label: 'โน๊ตบุ๊ค' },
+                { value: 'หน้าจอ',           label: 'หน้าจอ' },
+                { value: 'แท็บเล็ต/มือถือ', label: 'แท็บเล็ต / มือถือ' },
+                { value: 'ทีวี',             label: 'ทีวี' },
+                { value: 'ปริ้นเตอร์',       label: 'ปริ้นเตอร์' },
+                { value: 'อุปกรณ์ IT',       label: 'อุปกรณ์ IT' },
+                { value: 'อุปกรณ์สำนักงาน',  label: 'อุปกรณ์สำนักงาน' },
+                { value: 'อุปกรณ์เครือข่าย', label: 'อุปกรณ์เครือข่าย' },
+                { value: 'อื่นๆ',            label: 'อื่นๆ' },
+              ]}
+            />
+            <MultiSelectFilter
+              label="สถานะ"
+              selected={assetFilterStatus}
+              onChange={setAssetFilterStatus}
+              options={[
+                { value: 'พร้อมใช้งาน',       label: 'พร้อมใช้งาน' },
+                { value: 'ถูกใช้งาน',         label: 'ถูกใช้งาน' },
+                { value: 'สำรอง',             label: 'สำรอง' },
+                { value: 'ชำรุดเสียหาย',      label: 'ชำรุดเสียหาย' },
+                { value: 'ไม่สามารถใช้งานได้',  label: 'ไม่สามารถใช้งานได้' },
+                { value: 'รอดำเนินการ',       label: 'รอดำเนินการ' },
+              ]}
+            />
 
             <div className="relative" ref={columnDropdownRef}>
               <Btn icon={Columns3} onClick={() => setIsColumnDropdownOpen(!isColumnDropdownOpen)}>
@@ -151,22 +166,36 @@ export default function ActionBar({
               )}
             </div>
 
-            {canEdit && <Btn icon={Download} onClick={handleExportAssets}>ส่งออก CSV</Btn>}
-            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
+            {canEdit && <Btn icon={Download} onClick={handleExportAssets}>CSV</Btn>}
+            {canEdit && handleExportAssetsPDF && (
+              <button
+                onClick={handleExportAssetsPDF}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors whitespace-nowrap"
+                title="ส่งออก PDF พร้อมรูปเอกสารแนบ"
+              >
+                <FileText className="h-[14px] w-[14px]" strokeWidth={1.9} />
+                PDF
+              </button>
+            )}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>}
           </>
         )}
 
         {/* ── Accessories ── */}
         {activeMenu === 'accessories' && (
           <>
-            <FilterSelect value={accFilterType} onChange={setAccFilterType}>
-              <option value="ทั้งหมด">ประเภท: ทั้งหมด</option>
-              <option value="เมาส์ (Mouse)">เมาส์</option>
-              <option value="คีย์บอร์ด (Keyboard)">คีย์บอร์ด</option>
-              <option value="อื่นๆ">อื่นๆ</option>
-            </FilterSelect>
-            {canEdit && <Btn icon={Download} onClick={handleExportAccessories}>ส่งออก CSV</Btn>}
-            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
+            <MultiSelectFilter
+              label="ประเภท"
+              selected={accFilterType}
+              onChange={setAccFilterType}
+              options={[
+                { value: 'เมาส์ (Mouse)',       label: 'เมาส์' },
+                { value: 'คีย์บอร์ด (Keyboard)', label: 'คีย์บอร์ด' },
+                { value: 'อื่นๆ',                label: 'อื่นๆ' },
+              ]}
+            />
+            {canEdit && <Btn icon={Download} onClick={handleExportAccessories}>CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>}
             {canEdit && selectedAccessoryIds.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedAccessoryIds, collectionName: 'accessories' })}>
                 ลบ ({selectedAccessoryIds.length})
@@ -184,8 +213,8 @@ export default function ActionBar({
               <option value="ใกล้หมด">ใกล้หมด (1–5)</option>
               <option value="หมดสต็อก">หมดสต็อก (0)</option>
             </FilterSelect>
-            {canEdit && <Btn icon={Download} onClick={handleExportOfficeSupplies}>ส่งออก CSV</Btn>}
-            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
+            {canEdit && <Btn icon={Download} onClick={handleExportOfficeSupplies}>CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>}
             {canEdit && selectedOfficeSupplyIds.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })}>
                 ลบ ({selectedOfficeSupplyIds.length})
@@ -197,6 +226,18 @@ export default function ActionBar({
         {/* ── Licenses ── */}
         {activeMenu === 'licenses' && (
           <>
+            <MultiSelectFilter
+              label="วันหมดอายุ"
+              selected={licenseExpFilter}
+              onChange={setLicenseExpFilter}
+              options={[
+                { value: 'หมดอายุแล้ว', label: '⚠️ หมดอายุแล้ว' },
+                { value: '30',          label: 'ใกล้หมดอายุ ≤ 30 วัน' },
+                { value: '60',          label: 'ใกล้หมดอายุ ≤ 60 วัน' },
+                { value: '90',          label: 'ใกล้หมดอายุ ≤ 90 วัน' },
+                { value: 'ไม่ระบุ',     label: 'ไม่ระบุวันหมดอายุ' },
+              ]}
+            />
             <div className="relative" ref={licenseColumnDropdownRef}>
               <Btn icon={Columns3} onClick={() => setIsLicenseColumnDropdownOpen(!isLicenseColumnDropdownOpen)}>
                 คอลัมน์
@@ -210,8 +251,18 @@ export default function ActionBar({
                 />
               )}
             </div>
-            {canEdit && <Btn icon={Download} onClick={handleExportLicenses}>ส่งออก CSV</Btn>}
-            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า CSV</Btn>}
+            {canEdit && <Btn icon={Download} onClick={handleExportLicenses}>CSV</Btn>}
+            {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>}
+            {canEdit && setIsSnipeITImportOpen && (
+              <button
+                onClick={() => setIsSnipeITImportOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-white bg-gradient-to-r from-[#1E487A] to-[#7C3AED] rounded-lg transition-colors shadow-sm"
+                title="Smart Import จาก Snipe-IT CSV"
+              >
+                <Sparkles className="h-3.5 w-3.5" strokeWidth={2.2} />
+                Snipe-IT Import
+              </button>
+            )}
             {canEdit && selectedLicenseIds?.length > 0 && (
               <DangerBtn onClick={() => setConfirmDeleteModal({ isOpen: true, id: selectedLicenseIds, collectionName: 'licenses' })}>
                 ลบ ({selectedLicenseIds.length})
@@ -224,7 +275,7 @@ export default function ActionBar({
         {canEdit && !showDeletedEmployees && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all whitespace-nowrap shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
             style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` }}
             onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.primary)}
@@ -267,6 +318,85 @@ function DangerBtn({ onClick, children }) {
   );
 }
 
+/* ─── MultiSelectFilter — checkbox dropdown (เลือกได้หลายตัว) ───
+   - selected: array | undefined
+   - empty array = ไม่มี filter (= ทั้งหมด)
+*/
+function MultiSelectFilter({ label, options, selected = [], onChange }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggle = (value) => {
+    if (selected.includes(value)) onChange(selected.filter(v => v !== value));
+    else onChange([...selected, value]);
+  };
+  const clear = (e) => { e.stopPropagation(); onChange([]); };
+
+  let displayText;
+  if (selected.length === 0)       displayText = `${label}: ทั้งหมด`;
+  else if (selected.length === 1)  displayText = `${label}: ${options.find(o => o.value === selected[0])?.label || selected[0]}`;
+  else                             displayText = `${label}: ${selected.length} รายการ`;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1.5 pl-3 pr-2.5 py-2 text-[14px] font-medium rounded-lg transition-colors whitespace-nowrap
+          ${selected.length > 0
+            ? 'bg-[#1E487A]/8 text-[#1E487A] ring-1 ring-[#1E487A]/30 hover:bg-[#1E487A]/15'
+            : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300 hover:bg-slate-50'}`}
+      >
+        <span>{displayText}</span>
+        {selected.length > 1 && (
+          <span className="text-[10.5px] font-bold bg-[#1E487A] text-white px-1.5 py-0.5 rounded">
+            {selected.length}
+          </span>
+        )}
+        <ChevronDown className="h-3.5 w-3.5 opacity-70" strokeWidth={2.2} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full mt-1.5 left-0 bg-white rounded-xl ring-1 ring-slate-200 shadow-md shadow-slate-950/10 p-2 z-50 min-w-[240px] max-h-[320px] overflow-y-auto">
+          <div className="flex items-center justify-between px-2 py-1 mb-1 border-b border-slate-100">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.1em]">{label}</span>
+            {selected.length > 0 && (
+              <button
+                type="button"
+                onClick={clear}
+                className="text-[11px] font-medium text-[#1E487A] hover:underline"
+              >
+                ล้าง
+              </button>
+            )}
+          </div>
+          {options.map(opt => (
+            <label
+              key={opt.value}
+              className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(opt.value)}
+                onChange={() => toggle(opt.value)}
+                className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A] cursor-pointer"
+              />
+              <span className="text-[13.5px] text-slate-700">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FilterSelect({ value, onChange, children }) {
   return (
     <div className="relative">
@@ -284,7 +414,7 @@ function FilterSelect({ value, onChange, children }) {
 
 function ColumnPicker({ labels, visible, onToggle, lockedKey }) {
   return (
-    <div className="absolute right-0 mt-1.5 w-56 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 z-50 p-2 space-y-0.5 max-h-72 overflow-y-auto">
+    <div className="absolute right-0 mt-1.5 w-56 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 z-50 p-2 space-y-0.5 max-h-72 overflow-y-auto">
       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-2 py-1">แสดงคอลัมน์</p>
       {Object.keys(labels).map(col => (
         <label

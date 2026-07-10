@@ -85,11 +85,11 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]"
+      className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]"
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-md w-full overflow-hidden ring-1 ring-slate-200/60 max-h-[92vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-md w-full overflow-hidden ring-1 ring-slate-200/60 max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -123,7 +123,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           <button
             type="button"
             onClick={() => { setMode('set'); setError(''); }}
-            className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 ${
               mode === 'set'
                 ? 'bg-[#1E487A] text-white shadow-sm'
                 : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
@@ -135,7 +135,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           <button
             type="button"
             onClick={() => { setMode('reset'); setError(''); }}
-            className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 ${
               mode === 'reset'
                 ? 'bg-amber-500 text-white shadow-sm'
                 : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
@@ -248,7 +248,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !currentPassword || (mode === 'set' && (!passedAll || !matchOk))}
-            className="flex-1 py-2.5 rounded-lg text-[14px] font-semibold text-white transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-2.5 rounded-lg text-[14px] font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: mode === 'reset' ? '#F59E0B' : BRAND.primary,
               boxShadow: `0 4px 12px ${mode === 'reset' ? '#F59E0B40' : `${BRAND.primary}40`}`,
@@ -289,7 +289,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         placeholder={placeholder}
         autoFocus={autoFocus}
         required
-        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-all text-[14px] text-slate-800 placeholder:text-slate-400 ${
+        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-colors text-[14px] text-slate-800 placeholder:text-slate-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
             : 'border-slate-200 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'

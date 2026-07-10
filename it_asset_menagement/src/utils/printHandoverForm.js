@@ -8,6 +8,7 @@ import { printViaIframe } from './printViaIframe.js';
 import { getCompanyInfo } from './companyInfo.js';
 import { savePrintedDocument } from './printedDocumentStore.js';
 import { e, safeUrl } from './htmlEscape.js';
+import { formatDateShort } from './formatDate.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
@@ -177,7 +178,7 @@ export function printHandoverForm({
       <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${i + 1}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(l.name) || '-'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px">${e(l.supplier || l.vendor) || '-'}</td>
-      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${l.expirationDate ? new Date(l.expirationDate).toLocaleDateString('th-TH') : 'ไม่มีวันหมดอายุ'}</td>
+      <td style="border:1px solid #cbd5e1;padding:5px 7px;text-align:center;font-size:11px">${l.expirationDate ? formatDateShort(l.expirationDate) : 'ไม่มีวันหมดอายุ'}</td>
       <td style="border:1px solid #cbd5e1;padding:5px 7px;font-size:11px"></td>
     </tr>`).join('');
 

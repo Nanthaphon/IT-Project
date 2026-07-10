@@ -8,7 +8,7 @@ import {
   buildEmptyAssessment,
   printHandoverForm,
 } from '../utils/printHandoverForm.js';
-import { compressImages } from '../utils/compressImage.js';
+import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
 
 const STATUS_OPTIONS = [
   { value: 'normal',  label: 'ปกติ',  color: 'emerald' },
@@ -25,11 +25,61 @@ const STATUS_COLOR_CLS = {
 export default function PreHandoverAssessmentModal({
   isOpen, onClose, employee, empAssets, empLicenses, empAccessories,
   bundledItems = [], handleAddBundledItem, handleDeleteBundledItem,
+  transactions = [],
 }) {
+  // 🆕 กรองเหลือเฉพาะ notebook (ใบส่งมอบใช้ประเมิน 100 คะแนน = เฉพาะ notebook)
+  const notebooks = React.useMemo(
+    () => (empAssets || []).filter(a => {
+      const t = String(a.type || '').toLowerCase();
+      return t.includes('โน๊ตบุ๊ค') || t.includes('notebook') || t.includes('laptop');
+    }),
+    [empAssets]
+  );
+
+  // 🆕 asset picker — พนักงานอาจถือหลาย notebook
+  const [selectedAssetId, setSelectedAssetId] = useState(
+    notebooks.length === 1 ? notebooks[0].id : null
+  );
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setSelectedAssetId(notebooks.length === 1 ? notebooks[0].id : null);
+  }, [isOpen, employee?.id, notebooks.length]);
+
+  const selectedAsset = React.useMemo(
+    () => notebooks.find(a => a.id === selectedAssetId) || null,
+    [notebooks, selectedAssetId]
+  );
+
+  // 🆕 หา checkout ของ asset ที่เลือก (ไม่ใช่ latest ทั้งหมด)
+  const selectedCheckout = React.useMemo(() => {
+    if (!employee?.id || !selectedAssetId) return null;
+    return transactions
+      .filter(t => t.action === 'เบิกจ่าย' && t.empId === employee.id && t.assetId === selectedAssetId)
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))[0] || null;
+  }, [employee?.id, selectedAssetId, transactions]);
+
   const [assessment,   setAssessment]   = useState(() => buildEmptyAssessment());
-  const [photos,       setPhotos]       = useState({}); // { topLid, base, left, right, screenKeyboard, existingDefect }
+  const [photos,       setPhotos]       = useState({});
   const [defectsNote,  setDefectsNote]  = useState('');
   const [handoverDate, setHandoverDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  // 🆕 sync assessment/photos/defects เมื่อเปลี่ยน asset ที่เลือก
+  React.useEffect(() => {
+    if (!isOpen) return;
+    if (selectedCheckout) {
+      setAssessment(selectedCheckout.checkoutAssessment || buildEmptyAssessment());
+      setPhotos(selectedCheckout.checkoutPhotos || {});
+      setDefectsNote(selectedCheckout.checkoutDefectsNote || '');
+    } else if (selectedAssetId) {
+      // เลือกเครื่องแล้วแต่ไม่มี transaction (เครื่องเก่าก่อนระบบ 100-point) → เริ่มจากว่าง
+      setAssessment(buildEmptyAssessment());
+      setPhotos({});
+      setDefectsNote('');
+    }
+  }, [isOpen, selectedCheckout?.id, selectedAssetId]);
+  // 🆕 รวม License + อุปกรณ์เสริมในใบส่งมอบหรือไม่ (default = ไม่รวม — กรณีเปลี่ยนเฉพาะเครื่อง)
+  const [includeHoldings, setIncludeHoldings] = useState(false);
 
   // ── Bundled items (ของแถม) — เก็บ id ที่ติ๊กเลือก ──
   const [selectedBundleIds, setSelectedBundleIds] = useState([]);
@@ -77,8 +127,12 @@ export default function PreHandoverAssessmentModal({
   const gradeColor = { A: 'text-emerald-600', B: 'text-blue-600', C: 'text-amber-600', D: 'text-rose-600' }[grade];
 
   const handlePrint = () => {
+    if (!selectedAsset) return;   // ยังไม่เลือกเครื่อง — กันพิมพ์
     printHandoverForm({
-      employee, empAssets, empLicenses, empAccessories,
+      employee,
+      empAssets: [selectedAsset],   // 🆕 พิมพ์เฉพาะเครื่องที่เลือก
+      empLicenses:    includeHoldings ? empLicenses    : [],
+      empAccessories: includeHoldings ? empAccessories : [],
       assessment, photos, defectsNote, handoverDate,
       bundledItems: selectedBundles,
     });
@@ -96,8 +150,8 @@ export default function PreHandoverAssessmentModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-5xl max-h-[92vh] flex flex-col ring-1 ring-slate-200/60 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[80]">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-5xl max-h-[92vh] flex flex-col ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100 shrink-0">
@@ -120,6 +174,52 @@ export default function PreHandoverAssessmentModal({
         {/* ── Body ── */}
         <div className="overflow-y-auto flex-1 px-7 py-6 space-y-6 bg-slate-50/40">
 
+          {/* 🆕 Asset picker — เมื่อพนักงานถือหลาย notebook ต้องเลือกก่อน */}
+          {notebooks.length > 1 && (
+            <div className="bg-amber-50/70 ring-1 ring-amber-200 rounded-xl p-4">
+              <div className="flex items-start gap-2 mb-3">
+                <ClipboardCheck className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" strokeWidth={2} />
+                <div>
+                  <p className="text-[13.5px] font-bold text-amber-900">พนักงานถือโน๊ตบุ๊ค {notebooks.length} เครื่อง — เลือกเครื่องที่จะพิมพ์ใบส่งมอบ</p>
+                  <p className="text-[12px] text-amber-700/80 mt-0.5">ใบส่งมอบต้องออกทีละเครื่อง เพื่อให้ข้อมูลประเมินตรงกับเครื่องนั้น</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {notebooks.map(a => {
+                  const isSelected = selectedAssetId === a.id;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => setSelectedAssetId(a.id)}
+                      className={`text-left p-3 rounded-lg ring-1 ring-inset transition-colors ${
+                        isSelected
+                          ? 'bg-white ring-2 ring-[#1E487A] shadow-sm'
+                          : 'bg-white/60 ring-slate-200 hover:ring-slate-300 hover:bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-4 h-4 rounded-full ring-2 ring-inset ${isSelected ? 'ring-[#1E487A] bg-[#1E487A]' : 'ring-slate-300 bg-white'} shrink-0`}>
+                          {isSelected && (
+                            <svg viewBox="0 0 20 20" className="w-full h-full text-white p-0.5" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13.5px] font-semibold text-slate-800 truncate">{a.name}</p>
+                          <p className="text-[11.5px] text-slate-500 truncate">
+                            {[a.assetTag, a.sn].filter(Boolean).join(' · ') || (a.type || '-')}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Top: handover date */}
           <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
             <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
@@ -131,6 +231,16 @@ export default function PreHandoverAssessmentModal({
               onChange={(e) => setHandoverDate(e.target.value)}
               className="w-full sm:w-72 bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
             />
+            {selectedAsset && (
+              <p className="mt-2 text-[12px] text-slate-500">
+                📄 พิมพ์สำหรับ: <span className="font-semibold text-slate-700">{selectedAsset.name}</span>
+                {selectedCheckout ? (
+                  <span className="ml-1.5 text-emerald-700 font-medium">· ✓ pre-fill จาก transaction</span>
+                ) : (
+                  <span className="ml-1.5 text-amber-700 font-medium">· ⚠ ไม่มี transaction — เริ่มประเมินใหม่</span>
+                )}
+              </p>
+            )}
           </div>
 
           {/* Score banner */}
@@ -262,7 +372,7 @@ export default function PreHandoverAssessmentModal({
                     return (
                       <label
                         key={item.id}
-                        className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-all ring-1 ring-inset ${
+                        className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors ring-1 ring-inset ${
                           checked
                             ? 'bg-blue-50 ring-2 ring-[#1E487A]'
                             : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'
@@ -383,10 +493,25 @@ export default function PreHandoverAssessmentModal({
         </div>
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0 gap-3">
-          <div className="text-[12.5px] text-slate-500">
-            แนบรูปแล้ว <span className="font-semibold text-slate-700">{Object.keys(photos).length}/6</span> รูป
-            · คะแนนรวม <span className="font-semibold text-[#1E487A]">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
+        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0 gap-3 flex-wrap">
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[12.5px] text-slate-500">
+              แนบรูปแล้ว <span className="font-semibold text-slate-700">{Object.keys(photos).length}/6</span> รูป
+              · คะแนนรวม <span className="font-semibold text-[#1E487A]">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
+            </div>
+            {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
+            {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
+              <label className="flex items-center gap-1.5 text-[12px] text-slate-600 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeHoldings}
+                  onChange={(e) => setIncludeHoldings(e.target.checked)}
+                  className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 focus:ring-[#1E487A]/30"
+                />
+                รวม License/อุปกรณ์เสริมในใบนี้
+                <span className="text-slate-400">({(empLicenses?.length || 0) + (empAccessories?.length || 0)} รายการ)</span>
+              </label>
+            )}
           </div>
           <div className="flex gap-2.5">
             <button
@@ -397,8 +522,14 @@ export default function PreHandoverAssessmentModal({
             </button>
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white rounded-lg shadow-sm hover:shadow-md transition"
-              style={{ background: '#1E487A', boxShadow: '0 4px 14px rgba(30,72,122,0.30)' }}
+              disabled={!selectedAsset}
+              title={!selectedAsset ? 'กรุณาเลือกเครื่องก่อน' : ''}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold rounded-lg shadow-sm transition ${
+                selectedAsset
+                  ? 'text-white bg-[#1E487A] hover:bg-[#163963]'
+                  : 'text-slate-400 bg-slate-200 cursor-not-allowed'
+              }`}
+              style={selectedAsset ? { boxShadow: '0 4px 14px rgba(30,72,122,0.30)' } : undefined}
             >
               <Printer className="h-4 w-4" strokeWidth={2.2} />
               พิมพ์เอกสาร / บันทึก PDF
@@ -447,8 +578,9 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
     if (!file) return;
     setUploading(true);
     try {
-      const compressed = await compressImages([file]);
-      onUpload(compressed[0]);
+      // 🆕 upload ไป Firebase Storage → save เฉพาะ URL
+      const url = await compressAndUploadPhoto(file, 'assessment-photos');
+      if (url) onUpload(url);
     } catch (err) {
       console.error('Compress image failed:', err);
     } finally {

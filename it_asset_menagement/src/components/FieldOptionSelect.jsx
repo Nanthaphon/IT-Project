@@ -138,7 +138,7 @@ export default function FieldOptionSelect({
         onClick={() => !disabled && setOpen(o => !o)}
         className={`
           group w-full bg-white border rounded-lg px-3.5 py-2.5 text-sm text-left
-          transition-all duration-150 flex items-center gap-2
+          transition-colors flex items-center gap-2
           ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' :
             open
               ? 'border-[#1E487A] ring-2 ring-[#1E487A]/15 shadow-sm'
@@ -191,7 +191,7 @@ export default function FieldOptionSelect({
       {/* ── Dropdown Panel ── */}
       {open && (
         <div
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-xl shadow-slate-950/10 ring-1 ring-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-sm shadow-slate-950/10 ring-1 ring-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
         >
           {/* Search input */}
           <div className="relative border-b border-slate-100">

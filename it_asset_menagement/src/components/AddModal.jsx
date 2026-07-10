@@ -3,6 +3,7 @@ import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
@@ -14,6 +15,7 @@ export default function AddModal({
   assetImage, setAssetImage, assetDepartment, setAssetDepartment,
   sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor, note, setNote,
   purchaseCondition = 'new', setPurchaseCondition,
+  scrapValue = '', setScrapValue,  // 🆕 ราคาขายซาก
   employees = [],
   fieldOptions = {},
 }) {
@@ -32,21 +34,19 @@ export default function AddModal({
 
   const close = () => setIsAddModalOpen(false);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setAssetImage(reader.result);
-      reader.readAsDataURL(file);
+      const dataUrl = await compressImage(file, ICON_PRESET);
+      setAssetImage(dataUrl);
     }
   };
 
-  const handleLicenseImageUpload = (e) => {
+  const handleLicenseImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setLicenseImage(reader.result);
-      reader.readAsDataURL(file);
+      const dataUrl = await compressImage(file, ICON_PRESET);
+      setLicenseImage(dataUrl);
     }
   };
 
@@ -135,7 +135,7 @@ export default function AddModal({
                     autoComplete="off"
                   />
                   {isManagerDropdownOpen && (
-                    <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 max-h-56 overflow-y-auto">
+                    <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 max-h-56 overflow-y-auto">
                       {employees.filter(emp =>
                         emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
                         emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())
@@ -227,6 +227,17 @@ export default function AddModal({
               <Field label="ราคา (บาท)">
                 <CostInput name="cost" value={licenseForm.cost || ''} onChange={handleLicenseChange} />
               </Field>
+              {/* 🆕 หมายเหตุ */}
+              <Field label="หมายเหตุ">
+                <textarea
+                  name="note"
+                  value={licenseForm.note || ''}
+                  onChange={handleLicenseChange}
+                  rows={3}
+                  placeholder="เช่น: เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ ฯลฯ"
+                  className={cls.input + ' resize-none'}
+                />
+              </Field>
             </section>
           </ModalBody>
           <ModalFooter>
@@ -253,7 +264,7 @@ export default function AddModal({
                   onChange={setType}
                   options={
                     activeMenu === 'assets'
-                      ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
+                      ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'ทีวี', 'ปริ้นเตอร์', 'อุปกรณ์ IT', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
                       : activeMenu === 'office_supplies'
                         ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
                         : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
@@ -304,7 +315,7 @@ export default function AddModal({
                   {activeMenu === 'assets' && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
                           purchaseCondition === 'new'
                             ? 'bg-emerald-50 ring-2 ring-emerald-500 text-emerald-700'
                             : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
@@ -312,7 +323,7 @@ export default function AddModal({
                           <input type="radio" name="purchaseCondition" value="new" checked={purchaseCondition === 'new'} onChange={() => setPurchaseCondition?.('new')} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
                           purchaseCondition === 'used'
                             ? 'bg-amber-50 ring-2 ring-amber-500 text-amber-700'
                             : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
@@ -344,9 +355,21 @@ export default function AddModal({
             {activeMenu !== 'office_supplies' && (
               <section className="space-y-4">
                 {activeMenu !== 'assets' && <SectionHeader>ราคา / จำนวน</SectionHeader>}
-                <Field label="ราคา (บาท)">
-                  <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
-                </Field>
+                {activeMenu === 'assets' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field label="ราคา (บาท)">
+                      <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
+                    </Field>
+                    {/* 🆕 ราคาขายซาก — เฉพาะทรัพย์สินหลัก */}
+                    <Field label="ราคาขายซาก (บาท)" hint="ราคาประมาณตอนขายเป็นซาก / คืนทุน">
+                      <CostInput value={scrapValue} onChange={(e) => setScrapValue?.(e.target.value)} />
+                    </Field>
+                  </div>
+                ) : (
+                  <Field label="ราคา (บาท)">
+                    <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
+                  </Field>
+                )}
               </section>
             )}
 

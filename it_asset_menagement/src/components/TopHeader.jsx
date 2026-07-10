@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, BellRing, Wrench, Package, FileText, LogOut, ChevronRight, Menu } from 'lucide-react';
+import { Bell, BellRing, Wrench, Package, FileText, LogOut, ChevronRight, Menu, ArrowLeftRight, Sparkles } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
 export default function TopHeader({
@@ -10,6 +10,8 @@ export default function TopHeader({
   totalPendingCount,
   pendingRepairsCount,
   pendingSuppliesCount,
+  pendingReplacementsCount = 0,
+  pendingAccessoryReqCount = 0,
   expiringLicensesCount,
   setActiveMenu,
   handleLogout,
@@ -26,7 +28,7 @@ export default function TopHeader({
   const badgeLabel = userName || roleLabel;
 
   return (
-    <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 md:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
+    <header className="h-14 bg-white border-b border-slate-200 px-3 md:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
       {/* Page title */}
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         {/* Hamburger — แสดงเฉพาะมือถือ */}
@@ -39,7 +41,7 @@ export default function TopHeader({
             <Menu className="h-5 w-5" strokeWidth={2} />
           </button>
         )}
-        <h2 className="text-[15px] md:text-[16px] font-semibold text-slate-900 tracking-tight truncate">
+        <h2 className="text-[17px] md:text-[19px] font-bold text-slate-900 tracking-tight truncate">
           {menuTitle}
         </h2>
       </div>
@@ -82,7 +84,7 @@ export default function TopHeader({
 
           {/* Dropdown */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl shadow-slate-950/15 ring-1 ring-slate-200/70 overflow-hidden z-50">
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-md shadow-slate-950/15 ring-1 ring-slate-200/70 overflow-hidden z-50">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                 <p className="text-[14px] font-semibold text-slate-800 tracking-tight">การแจ้งเตือน</p>
                 {totalPendingCount > 0 && (
@@ -114,11 +116,29 @@ export default function TopHeader({
                     )}
                     {pendingSuppliesCount > 0 && (
                       <NotifItem
-                        label="คำขอเบิกรอดำเนินการ"
+                        label="คำขอเบิกอุปกรณ์ สนง."
                         count={pendingSuppliesCount}
                         kind="success"
                         Icon={Package}
                         onClick={() => { setActiveMenu('supply_requests'); setIsNotifOpen(false); }}
+                      />
+                    )}
+                    {pendingAccessoryReqCount > 0 && (
+                      <NotifItem
+                        label="คำขออุปกรณ์เสริม"
+                        count={pendingAccessoryReqCount}
+                        kind="cyan"
+                        Icon={Sparkles}
+                        onClick={() => { setActiveMenu('accessory_requests'); setIsNotifOpen(false); }}
+                      />
+                    )}
+                    {pendingReplacementsCount > 0 && (
+                      <NotifItem
+                        label="คำขอเปลี่ยนเครื่อง"
+                        count={pendingReplacementsCount}
+                        kind="violet"
+                        Icon={ArrowLeftRight}
+                        onClick={() => { setActiveMenu('replacement_requests'); setIsNotifOpen(false); }}
                       />
                     )}
                     {expiringLicensesCount > 0 && (
@@ -159,6 +179,8 @@ function NotifItem({ label, count, kind, Icon, onClick }) {
     info:    { bg: 'bg-blue-50',    text: 'text-blue-600',    badge: 'bg-blue-50 text-blue-700 ring-blue-200' },
     success: { bg: 'bg-emerald-50', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
     warning: { bg: 'bg-amber-50',   text: 'text-amber-600',   badge: 'bg-amber-50 text-amber-700 ring-amber-200' },
+    cyan:    { bg: 'bg-cyan-50',    text: 'text-cyan-600',    badge: 'bg-cyan-50 text-cyan-700 ring-cyan-200' },
+    violet:  { bg: 'bg-violet-50',  text: 'text-violet-600',  badge: 'bg-violet-50 text-violet-700 ring-violet-200' },
   }[kind];
 
   return (

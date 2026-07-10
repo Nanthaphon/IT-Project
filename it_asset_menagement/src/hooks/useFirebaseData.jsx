@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, getFirestore, doc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 /**
  * useFirebaseData
@@ -11,8 +12,20 @@ import { collection, onSnapshot, getFirestore, doc } from 'firebase/firestore';
  */
 export default function useFirebaseData(authRole = null) {
   const db = getFirestore();
+  const auth = getAuth();
   const isAdmin = authRole === 'admin';
   const isSignedIn = authRole === 'admin' || authRole === 'hr' || authRole === 'staff';
+
+  // 🆕 รอจนกว่า Firebase Auth SDK จะ ready จริง (มี currentUser) ก่อน subscribe
+  //    แก้บั๊ก: login ครั้งแรก authRole='staff' แต่ Firestore SDK ยังไม่มี token
+  //    → subscription ถูก reject เงียบๆ → ต้อง refresh page
+  const [authUserReady, setAuthUserReady] = useState(!!auth.currentUser);
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setAuthUserReady(!!user);
+    });
+    return () => unsubAuth();
+  }, [auth]);
 
   const [assets, setAssets] = useState([]);
   const [accessories, setAccessories] = useState([]);
@@ -24,17 +37,25 @@ export default function useFirebaseData(authRole = null) {
   const [supplyRequests, setSupplyRequests] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [replacementRequests, setReplacementRequests] = useState([]);
+  const [accessoryRequests, setAccessoryRequests] = useState([]);
   const [fieldOptions, setFieldOptions] = useState({});
   const [bundledItems, setBundledItems] = useState([]);  // ของแถม เช่น กระเป๋า/สายชาร์จ (ไม่ track stock)
 
   useEffect(() => {
+    // 🆕 BUG FIX: รอจนกว่าจะ login เสร็จ + Firebase Auth SDK propagate token แล้ว
+    //   - isSignedIn = React state ของเรา (จาก authRole)
+    //   - authUserReady = Firebase Auth client ยืนยันแล้วว่ามี currentUser
+    //   ถ้า subscribe ก่อน 2 อย่างนี้ทั้งคู่ → Firestore rules reject → listener fail เงียบ
+    //   → ผู้ใช้เห็นข้อมูลว่าง ต้อง refresh ถึงจะมาเจอ
+    if (!isSignedIn || !authUserReady) return;
+
     const unsubs = [];
     const onErr = (label) => (err) => {
       // ไม่ throw — แค่ log เพื่อ debug (เกิดได้ตอน staff ไม่มีสิทธิ์)
       console.warn(`[useFirebaseData] subscription failed: ${label}`, err.code || err.message);
     };
 
-    // ── Collections ที่ public read ได้ ──
+    // ── Collections ที่ public read ได้ (สำหรับผู้ login แล้ว) ──
     unsubs.push(onSnapshot(collection(db, 'assets'),
       (s) => setAssets(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
       onErr('assets')));
@@ -42,7 +63,13 @@ export default function useFirebaseData(authRole = null) {
       (s) => setAccessories(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
       onErr('accessories')));
     unsubs.push(onSnapshot(collection(db, 'employees'),
-      (s) => setEmployees(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
+      (s) => setEmployees(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
+        // 🆕 ใหม่สุดอยู่บน — ใช้ createdAt; ถ้า server timestamp ยังไม่มา fallback เป็น doc id
+        const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
+        const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
+        if (ta !== tb) return tb - ta;
+        return (b.id || '').localeCompare(a.id || '');
+      }) || []),
       onErr('employees')));
     unsubs.push(onSnapshot(collection(db, 'licenses'),
       (s) => setLicenses(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
@@ -59,6 +86,9 @@ export default function useFirebaseData(authRole = null) {
     unsubs.push(onSnapshot(collection(db, 'replacement_requests'),
       (s) => setReplacementRequests(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.timestamp - a.timestamp) || []),
       onErr('replacement_requests')));
+    unsubs.push(onSnapshot(collection(db, 'accessory_requests'),
+      (s) => setAccessoryRequests(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.timestamp - a.timestamp) || []),
+      onErr('accessory_requests')));
     unsubs.push(onSnapshot(doc(db, 'settings', 'fieldOptions'),
       (snap) => setFieldOptions(snap.exists() ? snap.data() : {}),
       onErr('settings/fieldOptions')));
@@ -95,11 +125,12 @@ export default function useFirebaseData(authRole = null) {
     }
 
     return () => unsubs.forEach((u) => { try { u(); } catch {} });
-  }, [db, isAdmin, isSignedIn, authRole]);
+  }, [db, isAdmin, isSignedIn, authRole, authUserReady]);
 
   return {
     assets, accessories, employees, deletedEmployees, licenses,
     repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
+    accessoryRequests,
     fieldOptions, bundledItems,
   };
 }

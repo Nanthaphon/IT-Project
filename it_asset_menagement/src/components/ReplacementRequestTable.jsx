@@ -5,6 +5,7 @@ import {
   Check, X, Monitor, User,
 } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Status config ──────────────────────────────────────── */
 const STATUS = {
@@ -75,7 +76,7 @@ export default function ReplacementRequestTable({
             <button
               key={f.value}
               onClick={() => setFilterStatus(f.value)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-semibold ring-1 ring-inset transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-semibold ring-1 ring-inset transition-colors ${
                 filterStatus === f.value
                   ? 'bg-[#1E487A] text-white ring-[#1E487A] shadow-sm shadow-[#1E487A]/20'
                   : 'bg-white text-slate-500 ring-slate-200 hover:ring-slate-300 hover:text-slate-700'
@@ -128,13 +129,11 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
   const StatusIcon = cfg.icon;
   const isPending  = req.status === 'รอดำเนินการ';
   const initial    = req.empName?.charAt(0) ?? '?';
-  const dateStr    = new Date(req.timestamp).toLocaleString('th-TH', {
-    dateStyle: 'short', timeStyle: 'short',
-  });
+  const dateStr    = formatDateTimeShort(req.timestamp);
 
   return (
     <>
-    <div className="relative bg-white rounded-2xl ring-1 ring-slate-200 hover:ring-[#1E487A]/40 hover:shadow-lg shadow-sm transition-all duration-200 group flex flex-col overflow-hidden">
+    <div className="relative bg-white rounded-2xl ring-1 ring-slate-200 hover:ring-[#1E487A]/40 shadow-sm transition-colors group flex flex-col overflow-hidden">
 
       {/* colored top bar */}
       <div className={`h-1 w-full shrink-0 ${cfg.bar}`} />
@@ -211,7 +210,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
                     key={i}
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setViewPhoto(p.data); }}
-                    className="aspect-square rounded-md overflow-hidden ring-1 ring-rose-200 hover:ring-2 hover:ring-rose-500 transition-all bg-white"
+                    className="aspect-square rounded-md overflow-hidden ring-1 ring-rose-200 hover:ring-2 hover:ring-rose-500 transition-colors bg-white"
                     title="คลิกเพื่อขยาย"
                   >
                     <img src={p.data} alt={p.name || `รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
@@ -263,14 +262,14 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             <>
               <button
                 onClick={() => onUpdateStatus(req.id, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 transition-all shadow-sm shadow-emerald-500/30"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors shadow-sm shadow-emerald-500/30"
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                 อนุมัติ
               </button>
               <button
                 onClick={() => onUpdateStatus(req.id, 'ปฏิเสธคำขอ')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-500 hover:text-white hover:ring-rose-500 active:scale-95 transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-500 hover:text-white hover:ring-rose-500 transition-colors"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                 ปฏิเสธ
@@ -302,10 +301,10 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
     {/* ── Lightbox ── */}
     {viewPhoto && (
       <div
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 cursor-zoom-out"
+        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 cursor-zoom-out"
         onClick={() => setViewPhoto(null)}
       >
-        <img src={viewPhoto} alt="damage preview" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+        <img src={viewPhoto} alt="damage preview" className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
         <button
           onClick={() => setViewPhoto(null)}
           className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-colors"

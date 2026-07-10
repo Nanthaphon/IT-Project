@@ -80,6 +80,14 @@ export default async function handler(req, res) {
     const userId = ev?.source?.userId;
     if (!userId) continue;
 
+    // 🔒 บันทึกเฉพาะ chat ส่วนตัว (1-on-1 กับบอต) — ไม่บันทึก userId จากกลุ่ม/ห้องแชต
+    // source.type: 'user' = direct chat, 'group' = LINE group, 'room' = multi-person chat
+    const sourceType = ev?.source?.type;
+    if (sourceType !== 'user') {
+      // ข้าม event จาก group/room — ไม่เก็บข้อมูล userId
+      continue;
+    }
+
     // ดึง profile (ชื่อ + รูป) — best-effort
     const profile = await fetchLineProfile(userId);
 
@@ -91,30 +99,105 @@ export default async function handler(req, res) {
         lastEventType: ev.type || 'unknown',
         lastMessage: ev.type === 'message' && ev.message?.type === 'text' ? (ev.message.text || '') : '',
         lastSeen: admin.firestore.FieldValue.serverTimestamp(),
+        sourceType: 'user',  // ⓘ บันทึกที่มา — จะมีเฉพาะ direct chat
       }, { merge: true });
     } catch (err) {
       console.error('save line_user failed:', err.message);
     }
 
-    // ตอบกลับเฉพาะ 2 กรณี (เลี่ยงรบกวนคนที่ใช้ OA เพื่อฟังก์ชันอื่น):
-    //   1. ผู้ใช้ add OA เป็นเพื่อนครั้งแรก (follow event)
-    //   2. ผู้ใช้พิมพ์ keyword "userid" / "myid" / "ไอดี" (กรณีอยากเช็ค)
+    // ตอบกลับ 4 กรณี:
+    //   1. Follow event → welcome + link + user ID
+    //   2. Keyword ขอ User ID: "userid" / "myid" / "ไอดี"
+    //   3. Keyword ขอลิงก์ระบบ: contains "ระบบ" / "link" / "เว็บ" ฯลฯ
+    //   4. Fallback: text message อื่นๆ ที่ user ส่งมา → ตอบ menu ช่วยเหลือ
+    const SYSTEM_URL = process.env.SYSTEM_URL || 'https://it-asset-management-dc883.web.app';
     const isFollow = ev.type === 'follow';
-    const text = ev.type === 'message' && ev.message?.type === 'text' ? (ev.message.text || '').trim().toLowerCase() : '';
-    const isIdRequest = ['userid', 'user id', 'myid', 'my id', 'ไอดี', 'id'].includes(text);
+    const isText = ev.type === 'message' && ev.message?.type === 'text';
+    const rawText = isText ? (ev.message.text || '').trim() : '';
+    const text = rawText.toLowerCase();
 
-    if (isFollow || isIdRequest) {
+    // ID request — match ทั้งเป๊ะและ contain
+    const idKeywords = ['userid', 'user id', 'myid', 'my id', 'ไอดี', 'ยูสไอดี', 'ไอดีของ', 'my id?'];
+    const isIdRequest = idKeywords.some(k => text === k || text.includes(k));
+
+    // 🆕 Link request — เช็คแบบ contain ให้ยืดหยุ่นขึ้น (รองรับ "เข้าระบบหน่อย" ฯลฯ)
+    const linkKeywords = [
+      'เข้าระบบ', 'เข้าสู่ระบบ', 'ระบบ', 'ลิ้งค์', 'ลิงก์', 'ลิงค์', 'link',
+      'website', 'เว็บ', 'เว็บไซต์', 'login', 'menu', 'เมนู', 'เริ่ม', 'start',
+      'home', 'ไปที่ระบบ', 'ช่วย', 'help', 'ช่วยเหลือ',
+    ];
+    const isLinkRequest = linkKeywords.some(k => text === k || text.includes(k));
+
+    // 🆕 fallback: text ใดๆ ที่ไม่ตรง keyword → ตอบ menu ช่วยเหลือ (เฉพาะข้อความอย่างเดียว ไม่ใช่ sticker/รูป)
+    const isFallback = isText && !isFollow && !isIdRequest && !isLinkRequest;
+
+    if (isFollow || isIdRequest || isLinkRequest || isFallback) {
       const replyToken = ev.replyToken;
       const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
       if (replyToken && token) {
-        const msg = isFollow
-          ? `🎉 ยินดีต้อนรับสู่ GB-ANEK!\n\nหากต้องการรับการแจ้งเตือนจากระบบ IT Asset Management (เช่น แจ้งซ่อม / เบิกอุปกรณ์) — แอดมินจะใช้ User ID ของคุณตั้งค่าให้\n\nUser ID ของคุณ:\n${userId}\n\n(พิมพ์ "userid" เมื่อใดก็ได้เพื่อดู User ID ใหม่)`
-          : `🆔 User ID ของคุณ:\n${userId}\n\nแจ้งแอดมินนำไปตั้งค่าในระบบ IT Asset Management ได้เลย`;
+        // Flex message with button — ลิงก์เข้าระบบ
+        const linkFlex = {
+          type: 'flex',
+          altText: 'ระบบ IT Asset Management',
+          contents: {
+            type: 'bubble',
+            size: 'kilo',
+            header: {
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#1E487A',
+              paddingAll: '16px',
+              contents: [
+                { type: 'text', text: '🔗 IT Asset Management', color: '#FFFFFF', weight: 'bold', size: 'md' },
+                { type: 'text', text: 'ระบบจัดการทรัพย์สิน IT', color: '#DBEAFE', size: 'xs', margin: 'sm' },
+              ],
+            },
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              paddingAll: '14px',
+              spacing: 'md',
+              contents: [
+                { type: 'text', text: 'กดปุ่มด้านล่างเพื่อเข้าสู่ระบบ', size: 'sm', color: '#475569', wrap: true },
+                {
+                  type: 'button',
+                  style: 'primary',
+                  color: '#1E487A',
+                  height: 'sm',
+                  action: { type: 'uri', label: '🚀 เข้าสู่ระบบ', uri: SYSTEM_URL },
+                },
+                { type: 'separator', margin: 'sm' },
+                { type: 'text', text: '💡 พิมพ์ "userid" เพื่อดู User ID ของคุณ', size: 'xxs', color: '#94A3B8', wrap: true },
+              ],
+            },
+          },
+        };
+
+        let messages;
+        if (isFollow) {
+          messages = [
+            { type: 'text', text: `🎉 ยินดีต้อนรับสู่ GB-ANEK!\n\nนี่คือ LINE OA ของระบบ IT Asset Management\n\n📌 User ID ของคุณ:\n${userId}\n\n(แจ้งแอดมินเพื่อรับการแจ้งเตือนอัตโนมัติ)` },
+            linkFlex,
+          ];
+        } else if (isIdRequest) {
+          messages = [
+            { type: 'text', text: `🆔 User ID ของคุณ:\n${userId}\n\nแจ้งแอดมินนำไปตั้งค่าในระบบได้เลย` },
+          ];
+        } else if (isLinkRequest) {
+          messages = [linkFlex];
+        } else {
+          // isFallback — text อื่นๆ → ตอบ menu ช่วยเหลือ + link
+          messages = [
+            { type: 'text', text: `💡 พิมพ์คำสั่งเหล่านี้:\n\n• "ระบบ" — รับลิงก์เข้าระบบ\n• "userid" — ดู User ID ของคุณ` },
+            linkFlex,
+          ];
+        }
+
         try {
           await fetch('https://api.line.me/v2/bot/message/reply', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ replyToken, messages: [{ type: 'text', text: msg }] }),
+            body: JSON.stringify({ replyToken, messages }),
           });
         } catch (err) { console.error('LINE reply failed:', err.message); }
       }

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, X, Plus, AlertCircle, ImagePlus } from 'lucide-react';
-import { compressImages } from '../utils/compressImage.js';
+import { compressAndUploadPhotos } from '../utils/uploadPhoto.js';
 
 /* ════════════════════════════════════════════════════════════════
    CHECKLIST_FIELDS — 6 หมวดใหญ่ ตรงกับ ASSESSMENT_SECTIONS ของฟอร์ม
@@ -179,7 +179,7 @@ export default function ConditionCapture({
           <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-md bg-white ring-1 ring-blue-300 text-blue-600">
             <ImagePlus className="h-3 w-3" strokeWidth={2.2} />
           </span>
-          ที่ท้ายแถวเพื่อแนบรูป (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
+          ที่ท้ายแถวเพื่อแนบรูป <span className="font-semibold">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
         </p>
       </div>
 
@@ -219,7 +219,7 @@ export default function ConditionCapture({
       {viewerImage && (
         <div
           onClick={() => setViewerImage(null)}
-          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[120] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/85 z-[120] flex items-center justify-center p-4"
         >
           <button
             onClick={() => setViewerImage(null)}
@@ -243,25 +243,65 @@ export default function ConditionCapture({
 function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, onPhotoClick }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounterRef = useRef(0);
 
   const fieldLabels = FIELD_STATUS_LABELS[field.key] || FIELD_STATUS_LABELS.body;
   const tint = ROW_TINT_BY_STATUS[status] || ROW_TINT_BY_STATUS.normal;
   const slotsLeft = MAX_PHOTOS_PER_FIELD - photos.length;
 
-  const handleSelectFiles = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0 || slotsLeft <= 0) return;
+  const processFiles = async (files) => {
+    const imageFiles = files.filter(f => f.type?.startsWith('image/'));
+    if (imageFiles.length === 0 || slotsLeft <= 0) return;
     setUploading(true);
     try {
-      const toProcess = files.slice(0, slotsLeft);
-      const compressed = await compressImages(toProcess);
-      onPhotosChange([...photos, ...compressed]);
+      const toProcess = imageFiles.slice(0, slotsLeft);
+      // 🆕 อัพโหลดไป Firebase Storage → ได้ URL กลับมา (ไม่ติดขีดจำกัด 1MB Firestore)
+      const urls = await compressAndUploadPhotos(toProcess, 'condition-photos');
+      onPhotosChange([...photos, ...urls.filter(Boolean)]);
     } catch (err) {
       console.error('Compress image failed:', err);
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleSelectFiles = async (e) => {
+    const files = Array.from(e.target.files || []);
+    await processFiles(files);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // 🆕 Drag-and-drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (slotsLeft <= 0) return;
+    dragCounterRef.current += 1;
+    if (e.dataTransfer?.types?.includes('Files')) setIsDragging(true);
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (slotsLeft > 0) e.dataTransfer.dropEffect = 'copy';
+  };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current -= 1;
+    if (dragCounterRef.current <= 0) {
+      setIsDragging(false);
+      dragCounterRef.current = 0;
+    }
+  };
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDragging(false);
+    if (slotsLeft <= 0) return;
+    const files = Array.from(e.dataTransfer?.files || []);
+    await processFiles(files);
   };
 
   const removePhoto = (i) => {
@@ -271,7 +311,28 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
   const hasPhotos = photos.length > 0;
 
   return (
-    <div className={`rounded-lg ring-1 ring-slate-200 px-3 py-2 transition-colors ${tint}`}>
+    <div
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`relative rounded-lg ring-1 px-3 py-2 transition-colors ${
+        isDragging
+          ? 'ring-2 ring-[#1E487A] bg-blue-50/70 shadow-inner'
+          : `ring-slate-200 ${tint}`
+      }`}
+    >
+      {/* Drop overlay hint */}
+      {isDragging && (
+        <div className="absolute inset-0 rounded-lg bg-[#1E487A]/5 border-2 border-dashed border-[#1E487A] pointer-events-none flex items-center justify-center z-10">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-md ring-1 ring-[#1E487A]/20">
+            <ImagePlus className="h-4 w-4 text-[#1E487A]" strokeWidth={2.4} />
+            <span className="text-[12px] font-bold text-[#1E487A]">
+              วางรูปเพื่อแนบใน "{field.label}"
+            </span>
+          </div>
+        </div>
+      )}
       {/* Single row: label + status pills + photo button */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[13.5px] font-semibold text-slate-700 flex-1 min-w-[120px] truncate">
@@ -310,7 +371,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                   ? 'ring-1 ring-inset ring-slate-200 text-slate-500 hover:ring-[#1E487A] hover:text-[#1E487A] bg-white'
                   : 'ring-1 ring-dashed ring-slate-300 text-slate-400 hover:ring-[#1E487A] hover:text-[#1E487A] hover:bg-blue-50/60 bg-white/50'
               }`}
-              title={hasPhotos ? `เพิ่มรูป (เหลือ ${slotsLeft} รูป)` : `แนบรูปของ "${field.label}"`}
+              title={hasPhotos ? `เพิ่มรูป (เหลือ ${slotsLeft} รูป) · ลากไฟล์มาวางได้` : `แนบรูปของ "${field.label}" · คลิกเลือกไฟล์ หรือลากรูปมาวางในแถวนี้`}
             >
               {uploading ? (
                 <div className="w-3 h-3 border-2 border-[#1E487A] border-t-transparent rounded-full animate-spin" />

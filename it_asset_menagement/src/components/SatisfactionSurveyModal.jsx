@@ -86,9 +86,9 @@ export default function SatisfactionSurveyModal({
     : '-';
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-[95]">
+    <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[95]">
       <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-950/30 max-w-lg w-full overflow-hidden ring-1 ring-slate-200/60 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/30 max-w-lg w-full overflow-hidden ring-1 ring-slate-200/60 flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header gradient ── */}
@@ -111,7 +111,7 @@ export default function SatisfactionSurveyModal({
           </button>
 
           <div className="relative flex items-start gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0 ring-1 ring-white/20">
+            <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center shrink-0 ring-1 ring-white/20">
               <Sparkles className="h-5 w-5" strokeWidth={2} />
             </div>
             <div className="min-w-0 flex-1">
@@ -156,7 +156,7 @@ export default function SatisfactionSurveyModal({
               <span className="flex items-center gap-1.5 text-[14px] font-semibold text-slate-700 mb-2">
                 <MessageSquare className="h-3.5 w-3.5 text-slate-400" strokeWidth={1.9} />
                 ความคิดเห็นเพิ่มเติม
-                <span className="text-[11.5px] text-slate-400 font-normal">(ไม่บังคับ)</span>
+                <span className="text-[11.5px] text-slate-400 font-normal"></span>
               </span>
               <textarea
                 value={comment}
@@ -164,7 +164,7 @@ export default function SatisfactionSurveyModal({
                 placeholder="เช่น ขอบคุณทีม IT ที่แก้ปัญหาเร็วครับ..."
                 rows={3}
                 maxLength={500}
-                className="w-full bg-slate-50/70 border border-slate-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all text-[14px] text-slate-800 placeholder:text-slate-400 resize-none"
+                className="w-full bg-slate-50/70 border border-slate-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors text-[14px] text-slate-800 placeholder:text-slate-400 resize-none"
               />
               <p className="text-[11.5px] text-slate-400 mt-1 text-right">{comment.length}/500</p>
             </label>
@@ -205,7 +205,7 @@ export default function SatisfactionSurveyModal({
             type="button"
             onClick={handleSubmit}
             disabled={!allRated || isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[14px] font-bold text-white transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[14px] font-bold text-white transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95"
             style={{ background: BRAND.primary, boxShadow: `0 8px 20px ${BRAND.primary}40` }}
           >
             {isSubmitting ? (
@@ -255,7 +255,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
                 type="button"
                 onClick={() => onChange(n)}
                 onMouseEnter={() => onHover(n)}
-                className="p-0.5 transition-transform hover:scale-110 active:scale-95"
+                className="p-0.5 transition-transform active:scale-95"
               >
                 <Star
                   className={`h-7 w-7 transition-colors ${

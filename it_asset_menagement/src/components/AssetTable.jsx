@@ -5,6 +5,24 @@ import { BRAND } from '../ui/theme.js';
 const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-3.5';
 
+/* 🆕 คำนวณอายุการใช้งานจาก purchaseDate → "X ปี Y เดือน" */
+const calcAge = (dateString) => {
+  if (!dateString) return '-';
+  const purchaseDate = new Date(dateString);
+  if (isNaN(purchaseDate.getTime())) return '-';
+  const today = new Date();
+  let years = today.getFullYear() - purchaseDate.getFullYear();
+  let months = today.getMonth() - purchaseDate.getMonth();
+  if (today.getDate() < purchaseDate.getDate()) months--;
+  if (months < 0) { years--; months += 12; }
+  if (years < 0) return '-';
+  if (years === 0 && months === 0) return '< 1 เดือน';
+  let s = '';
+  if (years > 0) s += `${years} ปี `;
+  if (months > 0) s += `${months} เดือน`;
+  return s.trim();
+};
+
 export default function AssetTable({
   currentData,
   setSelectedAssetDetail,
@@ -19,7 +37,7 @@ export default function AssetTable({
 }) {
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
-      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
+      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10">
         <tr>
           {visibleAssetColumns.name && <th className={TH}>ชื่ออุปกรณ์</th>}
           {visibleAssetColumns.type && <th className={TH}>ประเภท</th>}
@@ -31,7 +49,10 @@ export default function AssetTable({
           {visibleAssetColumns.company && <th className={TH}>บริษัท</th>}
           {visibleAssetColumns.purchaseDate && <th className={TH}>วันที่ซื้อ</th>}
           {visibleAssetColumns.warrantyDate && <th className={TH}>หมด Warranty</th>}
+          {visibleAssetColumns.age && <th className={TH}>อายุการใช้งาน</th>}
+          {visibleAssetColumns.note && <th className={TH}>หมายเหตุ</th>}
           {visibleAssetColumns.cost && <th className={`${TH} text-right`}>ราคา</th>}
+          {visibleAssetColumns.scrapValue && <th className={`${TH} text-right`}>ราคาขายซาก</th>}
           {visibleAssetColumns.assignedName && <th className={`${TH} text-center`}>ผู้ครอบครอง</th>}
           {visibleAssetColumns.status && <th className={`${TH} text-center`}>สถานะ</th>}
           <th className={`${TH} text-center`}>จัดการ</th>
@@ -93,9 +114,22 @@ export default function AssetTable({
             {visibleAssetColumns.company && <td className={`${TD} text-slate-700`}>{item.company || '-'}</td>}
             {visibleAssetColumns.purchaseDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.purchaseDate || '-'}</td>}
             {visibleAssetColumns.warrantyDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.warrantyDate || '-'}</td>}
+            {visibleAssetColumns.age && (
+              <td className={`${TD} text-slate-700 tabular-nums whitespace-nowrap`}>{calcAge(item.purchaseDate)}</td>
+            )}
+            {visibleAssetColumns.note && (
+              <td className={`${TD} text-slate-600`}>
+                <span className="block max-w-[260px] truncate" title={item.note || ''}>{item.note || '-'}</span>
+              </td>
+            )}
             {visibleAssetColumns.cost && (
               <td className={`${TD} text-right font-medium text-slate-700 tabular-nums`}>
                 {item.cost ? `฿${Number(item.cost).toLocaleString()}` : '-'}
+              </td>
+            )}
+            {visibleAssetColumns.scrapValue && (
+              <td className={`${TD} text-right font-medium text-emerald-700 tabular-nums`}>
+                {item.scrapValue ? `฿${Number(item.scrapValue).toLocaleString()}` : '-'}
               </td>
             )}
 
@@ -158,14 +192,16 @@ export default function AssetTable({
 function StatusBadge({ status, assignedName, showAssignee }) {
   const norm = !status || status === 'พร้อมใช้งาน' ? 'ready'
     : status === 'ถูกใช้งาน' ? 'inuse'
+    : status === 'สำรอง' ? 'reserve'
     : status === 'ชำรุดเสียหาย' ? 'broken'
     : 'pending';
 
   const meta = {
-    ready:  { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500 animate-pulse', label: 'พร้อมใช้งาน' },
-    inuse:  { cls: 'bg-blue-50 text-[#1E487A] ring-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
-    broken: { cls: 'bg-rose-50 text-rose-700 ring-rose-200', dot: 'bg-rose-500', label: 'ชำรุดเสียหาย' },
-    pending:{ cls: 'bg-amber-50 text-amber-700 ring-amber-200', dot: 'bg-amber-500', label: status },
+    ready:   { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500 animate-pulse', label: 'พร้อมใช้งาน' },
+    inuse:   { cls: 'bg-blue-50 text-[#1E487A] ring-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
+    reserve: { cls: 'bg-violet-50 text-violet-700 ring-violet-200', dot: 'bg-violet-500', label: 'สำรอง' },
+    broken:  { cls: 'bg-rose-50 text-rose-700 ring-rose-200', dot: 'bg-rose-500', label: 'ชำรุดเสียหาย' },
+    pending: { cls: 'bg-amber-50 text-amber-700 ring-amber-200', dot: 'bg-amber-500', label: status },
   }[norm];
 
   return (

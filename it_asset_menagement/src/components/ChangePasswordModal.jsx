@@ -72,9 +72,9 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]" onClick={handleClose}>
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={handleClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-md w-full overflow-hidden ring-1 ring-slate-200/60"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-md w-full overflow-hidden ring-1 ring-slate-200/60"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── header ── */}
@@ -174,7 +174,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <button
               type="submit"
               disabled={isLoading || !passedAll || !matchOk || !currentPassword}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
             >
               {isLoading ? 'กำลังเปลี่ยน...' : 'ยืนยันเปลี่ยนรหัสผ่าน'}
@@ -208,7 +208,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         placeholder={placeholder}
         autoFocus={autoFocus}
         required
-        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-all text-[14.5px] text-slate-800 placeholder:text-slate-400 ${
+        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-colors text-[14.5px] text-slate-800 placeholder:text-slate-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
             : 'border-slate-200 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'

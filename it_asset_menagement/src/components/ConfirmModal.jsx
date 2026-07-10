@@ -6,9 +6,9 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, canc
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]" onClick={onCancel}>
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={onCancel}>
       <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-50 text-amber-500 mb-5 ring-1 ring-amber-100">

@@ -69,7 +69,7 @@ function BigIssuesEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-all w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่ม Issue
       </button>
     </div>
@@ -125,7 +125,7 @@ function RDEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-all w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มโปรเจค
       </button>
     </div>
@@ -175,7 +175,7 @@ function FollowupEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-all w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มวาระ
       </button>
     </div>
@@ -280,8 +280,8 @@ export default function ITReportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-3 z-[80]">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-7xl flex flex-col max-h-[96vh] ring-1 ring-slate-200/60 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-3 z-[80]">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-7xl flex flex-col max-h-[96vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* Header */}
         <div className="px-7 py-5 flex justify-between items-start border-b border-slate-100 shrink-0">
@@ -444,7 +444,7 @@ export default function ITReportModal({
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm hover:shadow-md ${generating ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'text-white'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm ${generating ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'text-white'}`}
               style={!generating ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
               onMouseEnter={(e) => !generating && (e.currentTarget.style.background = BRAND.primaryDark)}
               onMouseLeave={(e) => !generating && (e.currentTarget.style.background = BRAND.primary)}

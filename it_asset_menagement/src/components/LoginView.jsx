@@ -82,7 +82,7 @@ export default function LoginView({
             <p className="text-slate-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl shadow-slate-950/5 ring-1 ring-slate-200/70 p-7">
+          <div className="bg-white rounded-2xl shadow-sm shadow-slate-950/5 ring-1 ring-slate-200/70 p-7">
             <form onSubmit={handleAdminLogin} className="space-y-4">
               {loginError && (
                 <div className="bg-rose-50 text-rose-700 p-3.5 rounded-xl text-sm font-medium ring-1 ring-rose-200 flex items-start gap-2.5">
@@ -96,7 +96,7 @@ export default function LoginView({
                   type="email"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                  className="w-full bg-slate-50/70 border border-slate-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all text-sm text-slate-800 placeholder:text-slate-400"
+                  className="w-full bg-slate-50/70 border border-slate-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors text-sm text-slate-800 placeholder:text-slate-400"
                   placeholder="admin@example.com"
                   required
                 />
@@ -107,7 +107,7 @@ export default function LoginView({
                   type="password"
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  className="w-full bg-slate-50/70 border border-slate-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all text-sm text-slate-800 placeholder:text-slate-400"
+                  className="w-full bg-slate-50/70 border border-slate-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors text-sm text-slate-800 placeholder:text-slate-400"
                   placeholder="••••••••"
                   required
                 />
@@ -116,7 +116,7 @@ export default function LoginView({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3.5 bg-[#1E487A] text-white font-semibold rounded-lg hover:bg-[#163963] shadow-lg shadow-[#1E487A]/25 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-all"
+                className="w-full py-3.5 bg-[#1E487A] text-white font-semibold rounded-lg hover:bg-[#163963] shadow-lg shadow-[#1E487A]/25 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
               >
                 {loginLoading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -184,7 +184,7 @@ export default function LoginView({
 function Logo() {
   return (
     <div
-      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-[#1E487A]/25 ring-1 ring-white/50"
+      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-[#1E487A]/25 ring-1 ring-white/50"
       style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
     >
       <img
@@ -202,7 +202,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
     <button
       onClick={onClick}
       className={`group w-full bg-white rounded-2xl ring-1 flex items-center gap-5 px-6 py-5 text-left
-                  transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl
+                  transition-colors hover:shadow-sm
                   ${accent
                     ? 'ring-[#1E487A]/15 hover:ring-[#1E487A]/40 hover:shadow-[#1E487A]/10'
                     : 'ring-slate-200/70 hover:ring-[#1E487A]/30 hover:shadow-slate-300/30'
@@ -210,7 +210,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
     >
       {/* Icon */}
       <div
-        className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
+        className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
           accent ? 'text-white' : ''
         }`}
         style={
@@ -236,7 +236,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 
       {/* Arrow */}
       <ArrowRight
-        className="h-5 w-5 text-slate-300 shrink-0 group-hover:text-[#1E487A] group-hover:translate-x-0.5 transition-all"
+        className="h-5 w-5 text-slate-300 shrink-0 group-hover:text-[#1E487A] group-hover:translate-x-0.5 transition-colors"
         strokeWidth={2.2}
       />
     </button>

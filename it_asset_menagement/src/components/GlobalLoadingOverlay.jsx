@@ -14,12 +14,13 @@ export default function GlobalLoadingOverlay({ show, message }) {
   if (!show) return null;
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 animate-in fade-in"
       role="status"
       aria-live="polite"
       aria-busy="true"
+      data-no-scroll-lock
     >
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 px-10 py-7 flex flex-col items-center gap-4 ring-1 ring-slate-200">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 px-10 py-7 flex flex-col items-center gap-4 ring-1 ring-slate-200">
         {/* Spinner */}
         <div
           className="w-12 h-12 rounded-full animate-spin"

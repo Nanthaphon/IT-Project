@@ -2,21 +2,11 @@
 // สร้างไฟล์ Excel หลายชีต สำหรับรายงาน KPI งานแจ้งซ่อม + ความพึงพอใจ
 // แต่ละชีตจะถูกออกแบบให้หัวหน้าเปิดดูได้ทันที (Summary / Repair Detail / Evaluation Detail)
 import * as XLSX from 'xlsx';
+import { formatDateShort, formatDateTimeShort, formatDateMedium } from './formatDate.js';
 
 /* ── helpers ───────────────────────────────────────── */
-const formatDateTime = (ts) => {
-  if (!ts) return '-';
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return '-';
-  return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
-};
-
-const formatDate = (ts) => {
-  if (!ts) return '-';
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return '-';
-  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
-};
+const formatDateTime = formatDateTimeShort;
+const formatDate = formatDateMedium;
 
 const hours = (ms) => {
   if (!ms || ms < 0) return null;
@@ -84,7 +74,7 @@ export function exportKpiReport({ repairRequests = [], periodLabel = 'ทั้�
   const summaryRows = [
     ['📊 รายงาน KPI ระบบ IT Asset Management'],
     [`ช่วงเวลา: ${periodLabel}`],
-    [`สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}`],
+    [`สร้างเมื่อ: ${formatDateTimeShort(new Date())}`],
     [],
     ['🔧 ส่วนที่ 1 — งานแจ้งซ่อม'],
     ['รายการ', 'ค่า', 'หน่วย'],

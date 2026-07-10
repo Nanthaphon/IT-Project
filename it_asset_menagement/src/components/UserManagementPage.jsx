@@ -303,7 +303,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
         {canFullManage && (
           <button
             onClick={openAdd}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors shadow-sm hover:shadow-md"
             style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` }}
             onMouseEnter={e => (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={e => (e.currentTarget.style.background = BRAND.primary)}
@@ -434,8 +434,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
       {/* ── Add/Edit Modal ── */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden ring-1 ring-slate-200/60 flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[85]">
+          <div className="bg-white rounded-2xl shadow-md w-full max-w-lg overflow-hidden ring-1 ring-slate-200/60 flex flex-col max-h-[92vh]">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
@@ -636,8 +636,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
       {/* ── Confirm Delete ── */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden ring-1 ring-slate-200/60">
+        <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]">
+          <div className="bg-white rounded-2xl shadow-md w-full max-w-sm overflow-hidden ring-1 ring-slate-200/60">
             <div className="p-6">
               <div className="w-12 h-12 rounded-2xl bg-rose-50 ring-1 ring-rose-200 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
@@ -668,8 +668,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
       {/* ── Reset Password Modal ── */}
       {pwUser && (
-        <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden ring-1 ring-slate-200/60">
+        <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]">
+          <div className="bg-white rounded-2xl shadow-md w-full max-w-sm overflow-hidden ring-1 ring-slate-200/60">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">

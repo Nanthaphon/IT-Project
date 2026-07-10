@@ -155,7 +155,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     key={lic.id}
                     type="button"
                     onClick={() => { setSelectedLicId(lic.id); setSelectedSeatIdx(0); }}
-                    className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                    className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
                       isSel
                         ? 'bg-[#1E487A]/8 ring-2 ring-[#1E487A]/25'
                         : 'bg-slate-50 hover:bg-slate-100 ring-1 ring-slate-200'
@@ -213,7 +213,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                 </div>
               )}
               <div>
-                <label className="block text-[12.5px] font-medium text-slate-600 mb-1">หมายเหตุ (ไม่บังคับ)</label>
+                <label className="block text-[12.5px] font-medium text-slate-600 mb-1">หมายเหตุ</label>
                 <input
                   type="text"
                   value={remarks}

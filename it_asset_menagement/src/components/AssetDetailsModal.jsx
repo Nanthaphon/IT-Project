@@ -1,7 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
+import { LogIn, Calendar, DollarSign, Tag, FileText, Pencil, Sparkles } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
+import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
 
 /* ── Purchase-history document storage helpers ── */
 const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
@@ -69,10 +72,16 @@ export default function AssetDetailsModal({
   const [newSeatCost, setNewSeatCost] = useState('');
   const [newSeatPurchaseDate, setNewSeatPurchaseDate] = useState('');
   const [newSeatExpirationDate, setNewSeatExpirationDate] = useState('');
+  const [newSeatNote, setNewSeatNote] = useState('');
+  const [newSeatLabel, setNewSeatLabel] = useState('');
   const [newSeatDocs, setNewSeatDocs] = useState([]);
   const [isImportingLicenseCSV, setIsImportingLicenseCSV] = useState(false);
   const [editingLicenseSeatId, setEditingLicenseSeatId] = useState(null);
   const [tempLicenseSupplier, setTempLicenseSupplier] = useState('');
+  const [tempLicenseNote, setTempLicenseNote] = useState('');
+  const [tempLicenseLabel, setTempLicenseLabel] = useState('');
+  // 🆕 modal สำหรับดูรายละเอียด seat (แทน inline expand)
+  const [seatDetailModal, setSeatDetailModal] = useState(null);
   const [tempLicensePurchaseDate, setTempLicensePurchaseDate] = useState('');
   const [tempLicenseExpirationDate, setTempLicenseExpirationDate] = useState('');
   const [tempLicenseProductKey, setTempLicenseProductKey] = useState('');
@@ -92,7 +101,21 @@ export default function AssetDetailsModal({
   // tracking open state for referenced docs
   const [openingPhDocId, setOpeningPhDocId] = useState(null);
 
+  // 🔒 ล็อก scroll ของ background — ใช้ global observer ใน App.jsx แทนแล้ว
+
   if (!selectedAssetDetail) return null;
+
+  // 🆕 Helper: เช็คสถานะหมดอายุ (ใกล้หมด/หมดแล้ว) — ใช้กับทั้ง parent + seat
+  const checkLicenseExpiration = (expDate) => {
+    if (!expDate) return { isExpiring: false, statusText: '', colorClass: '' };
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = new Date(expDate);
+    const diff = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+    if (diff < 0)   return { isExpiring: true, statusText: 'หมดอายุแล้ว',              colorClass: 'text-rose-600 bg-rose-50 ring-rose-200' };
+    if (diff <= 30) return { isExpiring: true, statusText: `เหลือ ${diff} วัน`,         colorClass: 'text-rose-600 bg-rose-50 ring-rose-200' };
+    if (diff <= 90) return { isExpiring: true, statusText: `เหลือ ${diff} วัน`,         colorClass: 'text-amber-700 bg-amber-50 ring-amber-200' };
+    return { isExpiring: false, statusText: '', colorClass: '' };
+  };
 
   const calculateAge = (dateString) => {
     if (!dateString) return '-';
@@ -464,10 +487,16 @@ export default function AssetDetailsModal({
   const handleDocumentUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-    
-    const oversizedFiles = files.filter(f => f.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      if(setCustomAlert) setCustomAlert({ isOpen: true, title: 'ไฟล์มีขนาดใหญ่เกินไป', message: 'ขนาดไฟล์แต่ละไฟล์ต้องไม่เกิน 5MB (เพื่อป้องกันฐานข้อมูลเต็ม)', type: 'error' });
+
+    // ไฟล์ที่ไม่ใช่รูปต้องไม่เกิน 900 KB (Firestore doc limit ~1 MB หลัง base64 = ~750 KB binary)
+    const NON_IMG_LIMIT = 900 * 1024;
+    const nonImgOversized = files.filter(f => !f.type.startsWith('image/') && f.size > NON_IMG_LIMIT);
+    if (nonImgOversized.length > 0) {
+      if (setCustomAlert) setCustomAlert({
+        isOpen: true, title: 'ไฟล์ใหญ่เกินไป',
+        message: `ไฟล์ที่ไม่ใช่รูปต้องไม่เกิน 900 KB (Firestore จำกัด 1 MB/เอกสาร)\n\nไฟล์ที่ใหญ่เกิน:\n${nonImgOversized.map(f => `• ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`).join('\n')}`,
+        type: 'error',
+      });
       e.target.value = null;
       return;
     }
@@ -475,8 +504,14 @@ export default function AssetDetailsModal({
     setIsSavingItem(true);
     try {
       const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
-      
-      const newDocs = await Promise.all(files.map(file => {
+
+      // รูปภาพ → บีบด้วย EVIDENCE_PRESET (1000px/0.7 → ~80-120 KB)
+      // ไฟล์อื่น → อ่านเป็น base64 ตามปกติ
+      const newDocs = await Promise.all(files.map(async (file) => {
+        if (file.type.startsWith('image/')) {
+          const compressed = await compressImage(file, EVIDENCE_PRESET);
+          return { name: file.name.replace(/\.(png|webp|gif|bmp|tiff?)$/i, '.jpg'), data: compressed };
+        }
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve({ name: file.name, data: reader.result });
@@ -545,6 +580,54 @@ export default function AssetDetailsModal({
     } else {
       if (!window.confirm('คุณต้องการลบเอกสารแนบนี้ออกจากระบบใช่หรือไม่?')) return;
       await executeRemove();
+    }
+  };
+
+  /* 🆕 handlers สำหรับ photoGallery — รูปที่ใช้ประกอบใน PDF (แยกจากเอกสารแนบ) */
+  const handlePhotoGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ต้องเป็นไฟล์รูปเท่านั้น', message: 'กรุณาเลือกไฟล์รูปภาพ (.jpg, .png ฯลฯ)', type: 'error' });
+      e.target.value = null;
+      return;
+    }
+    setIsSavingItem(true);
+    try {
+      const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
+      const compressed = await Promise.all(imageFiles.map(f => compressImage(f, EVIDENCE_PRESET)));
+      const existing = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
+      const combined = [...existing, ...compressed];
+      await updateDoc(docRef, { photoGallery: combined });
+    } catch (err) {
+      console.error('Photo gallery upload failed:', err);
+      if (setCustomAlert) setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'อัปโหลดรูปไม่สำเร็จ: ' + err.message, type: 'error' });
+    } finally {
+      setIsSavingItem(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleRemovePhotoGallery = async (idx) => {
+    const doRemove = async () => {
+      setIsSavingItem(true);
+      try {
+        const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
+        const existing = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
+        const updated = existing.filter((_, i) => i !== idx);
+        await updateDoc(docRef, { photoGallery: updated });
+      } catch (err) {
+        console.error('Remove gallery photo failed:', err);
+      } finally {
+        setIsSavingItem(false);
+      }
+    };
+    if (typeof showConfirm === 'function') {
+      showConfirm('ยืนยันการลบรูป', 'ต้องการลบรูปนี้ออกจากคลังใช่หรือไม่?', doRemove, { confirmText: 'ยืนยันลบ', icon: 'trash' });
+    } else {
+      if (!window.confirm('ต้องการลบรูปนี้ใช่หรือไม่?')) return;
+      await doRemove();
     }
   };
 
@@ -645,6 +728,12 @@ export default function AssetDetailsModal({
         productKey: currentAssetDetail.availableKeys?.[i] || '',
         keyCode: currentAssetDetail.availableKeyCodes?.[i] || '',
         seatCost: currentAssetDetail.availableSeatCosts?.[i] || '',
+        // 🆕 per-seat fields
+        seatLabel: currentAssetDetail.availableSeatLabels?.[i] || '',
+        seatSupplier: currentAssetDetail.availableSeatSuppliers?.[i] || '',
+        seatPurchaseDate: currentAssetDetail.availableSeatPurchaseDates?.[i] || '',
+        seatExpirationDate: currentAssetDetail.availableSeatExpirationDates?.[i] || '',
+        seatNote: currentAssetDetail.availableSeatNotes?.[i] || '',
         documents: currentAssetDetail.availableSeatDocs?.[String(i)] || [],
       });
     }
@@ -654,6 +743,12 @@ export default function AssetDetailsModal({
         productKey: a.productKey || '',
         keyCode: a.keyCode || '',
         seatCost: a.seatCost || '',
+        // 🆕 per-seat fields
+        seatLabel: a.seatLabel || '',
+        seatSupplier: a.seatSupplier || '',
+        seatPurchaseDate: a.seatPurchaseDate || '',
+        seatExpirationDate: a.seatExpirationDate || '',
+        seatNote: a.seatNote || '',
         documents: a.seatDocuments || [],
       });
     });
@@ -823,11 +918,25 @@ export default function AssetDetailsModal({
       const newKeys = [...(currentAssetDetail.availableKeys || [])];
       const newKeyCodes = [...(currentAssetDetail.availableKeyCodes || [])];
       const newCosts = [...(currentAssetDetail.availableSeatCosts || [])];
+      const newSuppliers = [...(currentAssetDetail.availableSeatSuppliers || [])];
+      const newPurchaseDates = [...(currentAssetDetail.availableSeatPurchaseDates || [])];
+      const newExpDates = [...(currentAssetDetail.availableSeatExpirationDates || [])];
+      const newNotes = [...(currentAssetDetail.availableSeatNotes || [])];
+      const newLabels = [...(currentAssetDetail.availableSeatLabels || [])];
       const newDocMap = { ...(currentAssetDetail.availableSeatDocs || {}) };
       for (let i = 0; i < count; i++) {
         newKeys.push(newSeatProductKey.trim());
         newKeyCodes.push(newSeatKeyCode.trim());
         newCosts.push(newSeatCost.trim());
+        newSuppliers.push(newSeatSupplier.trim());
+        newPurchaseDates.push(newSeatPurchaseDate);
+        newExpDates.push(newSeatExpirationDate);
+        newNotes.push(newSeatNote.trim());
+        // 🆕 label — ถ้าไม่ใส่ → ใช้ชื่อ license หลัก เป็นค่าเริ่มต้น
+        // ถ้าใส่หลายอันให้เพิ่มเลข เช่น "Sale Team #1", "Sale Team #2"
+        const lbl = newSeatLabel.trim() || (currentAssetDetail.name || '');
+        const baseIdx = (currentAssetDetail.availableSeatLabels?.length || 0) + i + 1;
+        newLabels.push(count > 1 ? `${lbl} #${baseIdx}` : lbl);
         if (newSeatDocs.length > 0) newDocMap[String(existingAvailCount + i)] = newSeatDocs;
       }
       const updateData = {
@@ -835,16 +944,19 @@ export default function AssetDetailsModal({
         availableKeys: newKeys,
         availableKeyCodes: newKeyCodes,
         availableSeatCosts: newCosts,
+        availableSeatSuppliers: newSuppliers,
+        availableSeatPurchaseDates: newPurchaseDates,
+        availableSeatExpirationDates: newExpDates,
+        availableSeatNotes: newNotes,
+        availableSeatLabels: newLabels,
         availableSeatDocs: newDocMap,
       };
-      if (newSeatSupplier.trim()) updateData.supplier = newSeatSupplier.trim();
-      if (newSeatPurchaseDate) updateData.purchaseDate = newSeatPurchaseDate;
-      if (newSeatExpirationDate) updateData.expirationDate = newSeatExpirationDate;
       await updateDoc(doc(db, 'licenses', currentAssetDetail.id), updateData);
       setIsAddingNewLicenseSeat(false);
       setNewSeatCount(1);
       setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier('');
       setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate('');
+      setNewSeatNote(''); setNewSeatLabel('');
       setNewSeatDocs([]);
     } catch (error) { console.error(error); }
     finally { setIsSavingItem(false); }
@@ -930,7 +1042,7 @@ export default function AssetDetailsModal({
     setIsSavingItem(true);
     try {
       const docRef = doc(db, 'licenses', currentAssetDetail.id);
-      const updateData = { supplier: tempLicenseSupplier, purchaseDate: tempLicensePurchaseDate, expirationDate: tempLicenseExpirationDate };
+      const updateData = {};
 
       if (seat.type === 'available') {
         const idx = seat.index;
@@ -938,15 +1050,36 @@ export default function AssetDetailsModal({
         const newKeys = pad(currentAssetDetail.availableKeys, ''); newKeys[idx] = tempLicenseProductKey;
         const newKeyCodes = pad(currentAssetDetail.availableKeyCodes, ''); newKeyCodes[idx] = tempLicenseKeyCode;
         const newCosts = pad(currentAssetDetail.availableSeatCosts, ''); newCosts[idx] = tempLicenseSeatCost;
+        // 🆕 per-seat: supplier, purchaseDate, expirationDate, note
+        const newSuppliers = pad(currentAssetDetail.availableSeatSuppliers, ''); newSuppliers[idx] = tempLicenseSupplier;
+        const newPDates = pad(currentAssetDetail.availableSeatPurchaseDates, ''); newPDates[idx] = tempLicensePurchaseDate;
+        const newEDates = pad(currentAssetDetail.availableSeatExpirationDates, ''); newEDates[idx] = tempLicenseExpirationDate;
+        const newNotes = pad(currentAssetDetail.availableSeatNotes, ''); newNotes[idx] = tempLicenseNote;
+        const newLabels = pad(currentAssetDetail.availableSeatLabels, ''); newLabels[idx] = tempLicenseLabel;
         const newDocMap = { ...(currentAssetDetail.availableSeatDocs || {}) };
         if (tempLicenseSeatDocs.length > 0) newDocMap[String(idx)] = tempLicenseSeatDocs;
         else delete newDocMap[String(idx)];
-        Object.assign(updateData, { availableKeys: newKeys, availableKeyCodes: newKeyCodes, availableSeatCosts: newCosts, availableSeatDocs: newDocMap });
+        Object.assign(updateData, {
+          availableKeys: newKeys, availableKeyCodes: newKeyCodes, availableSeatCosts: newCosts,
+          availableSeatSuppliers: newSuppliers, availableSeatPurchaseDates: newPDates,
+          availableSeatExpirationDates: newEDates, availableSeatNotes: newNotes,
+          availableSeatLabels: newLabels,
+          availableSeatDocs: newDocMap,
+        });
       } else if (seat.type === 'assigned') {
         const newAssignees = [...(currentAssetDetail.assignees || [])];
         const idx = newAssignees.findIndex(a => a.checkoutId === seat.assignee.checkoutId);
         if (idx !== -1) {
-          newAssignees[idx] = { ...newAssignees[idx], productKey: tempLicenseProductKey, keyCode: tempLicenseKeyCode, seatCost: tempLicenseSeatCost, seatDocuments: tempLicenseSeatDocs };
+          newAssignees[idx] = {
+            ...newAssignees[idx],
+            productKey: tempLicenseProductKey, keyCode: tempLicenseKeyCode, seatCost: tempLicenseSeatCost,
+            seatSupplier: tempLicenseSupplier,
+            seatPurchaseDate: tempLicensePurchaseDate,
+            seatExpirationDate: tempLicenseExpirationDate,
+            seatNote: tempLicenseNote,
+            seatLabel: tempLicenseLabel,
+            seatDocuments: tempLicenseSeatDocs,
+          };
           updateData.assignees = newAssignees;
         }
       }
@@ -1049,7 +1182,7 @@ export default function AssetDetailsModal({
     const qrDataString = `https://itassetmenagement.vercel.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
 
     return (
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
+      <div data-modal="asset-detail" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
         <style>{`
           @media print {
             body * { visibility: hidden !important; }
@@ -1065,7 +1198,7 @@ export default function AssetDetailsModal({
           }
         `}</style>
 
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden flex flex-col border border-slate-200 print:border-none print:shadow-none print:bg-transparent">
+        <div className="bg-white rounded-2xl shadow-sm max-w-md w-full overflow-hidden flex flex-col border border-slate-200 print:border-none print:shadow-none print:bg-transparent">
           <div className="bg-slate-50 border-b border-slate-200 px-5 py-4 flex justify-between items-center print:hidden">
             <h3 className="font-semibold text-slate-800">ตัวอย่างป้าย (Label Preview)</h3>
             <button onClick={() => setShowLabelPreview(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -1113,8 +1246,8 @@ export default function AssetDetailsModal({
   );
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-5xl w-full flex flex-col h-[90vh] ring-1 ring-slate-200/60 overflow-hidden">
+    <div data-modal="asset-detail" className="fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[80]">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-5xl w-full flex flex-col h-[90vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* Header */}
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
@@ -1310,6 +1443,15 @@ export default function AssetDetailsModal({
                       <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
                       <DetailItem label="วันที่หมดอายุ" value={currentAssetDetail.expirationDate} />
                       <DetailItem label="ราคา (บาท)" value={currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'} />
+                      {/* 🆕 หมายเหตุ — ใช้บันทึกข้อมูลเพิ่มเติม */}
+                      {currentAssetDetail.note && (
+                        <div className="col-span-2 md:col-span-4">
+                          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
+                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">📝 หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          </div>
+                        </div>
+                      )}
                     </>
                   ) : selectedAssetCategory === 'assets' ? (
                     <>
@@ -1358,8 +1500,74 @@ export default function AssetDetailsModal({
                           : (currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-')}
                     </span>
                   </div>
+                  {/* 🆕 ราคาขายซาก — เฉพาะ asset */}
+                  {selectedAssetCategory === 'assets' && (
+                    <div className="col-span-2 md:col-span-4 pt-2 flex items-center justify-between">
+                      <span className="text-[13px] font-medium text-slate-500 leading-[1.5]">ราคาขายซาก</span>
+                      <span className="text-[15px] font-bold text-emerald-700">
+                        {currentAssetDetail.scrapValue ? `฿${Number(currentAssetDetail.scrapValue).toLocaleString()}` : '-'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* 🆕 คลังรูปภาพ (Gallery) — ใช้ประกอบใน PDF (แยกจากเอกสารแนบ) */}
+              {selectedAssetCategory === 'assets' && (() => {
+                const gallery = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
+                return (
+                  <div className="bg-white p-4 rounded-2xl ring-1 ring-slate-200/60 shadow-sm">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
+                        <h4 className="text-[13.5px] font-semibold text-slate-600">
+                          รูปภาพประกอบ PDF
+                          {gallery.length > 0 && <span className="ml-1.5 text-[12px] font-normal text-slate-400">({gallery.length} รูป)</span>}
+                        </h4>
+                      </div>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[12.5px] font-semibold py-1.5 px-3 rounded-lg ring-1 transition-colors ${isSavingItem ? 'ring-slate-200 bg-slate-50 text-slate-400' : 'ring-blue-200 bg-white text-[#1E487A] hover:bg-blue-50'}`}>
+                        {isSavingItem ? (
+                          <><div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
+                        ) : (
+                          <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>เพิ่มรูป</>
+                        )}
+                        <input type="file" multiple accept="image/*" onChange={handlePhotoGalleryUpload} disabled={isSavingItem} className="hidden" />
+                      </label>
+                    </div>
+                    <p className="text-[11.5px] text-slate-400 mb-3 leading-relaxed">
+                      รูปที่เพิ่มที่นี่จะถูกใช้ประกอบในไฟล์ PDF ที่พิมพ์จากปุ่ม "พิมพ์ PDF" และรายงานทรัพย์สิน
+                    </p>
+                    {gallery.length === 0 ? (
+                      <div className="py-8 text-center bg-slate-50 ring-1 ring-dashed ring-slate-300 rounded-xl">
+                        <svg className="w-8 h-8 mx-auto mb-2 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                        <p className="text-[13px] font-semibold text-slate-500">ยังไม่มีรูปในคลัง</p>
+                        <p className="text-[11.5px] text-slate-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                        {gallery.map((src, idx) => (
+                          <div key={idx} className="relative group rounded-xl overflow-hidden ring-1 ring-slate-200 aspect-square bg-slate-50">
+                            <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <a href={src} target="_blank" rel="noreferrer" className="bg-white/90 text-slate-800 text-[11px] font-semibold px-2 py-1 rounded-md hover:bg-white shadow-sm">ดู</a>
+                            </div>
+                            <button
+                              onClick={() => handleRemovePhotoGallery(idx)}
+                              disabled={isSavingItem}
+                              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 ring-1 ring-slate-200 hover:ring-red-200 flex items-center justify-center shadow-sm transition-colors"
+                              title="ลบรูปนี้"
+                            >
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* รายการสิทธิ์ผู้ถือครอง (เฉพาะ licenses) */}
               {selectedAssetCategory === 'licenses' && (
@@ -1407,22 +1615,64 @@ export default function AssetDetailsModal({
                     </div>
                   )}
 
-                  {isAddingNewLicenseSeat && (
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in space-y-3">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <input type="text" value={newSeatProductKey} onChange={e => setNewSeatProductKey(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full font-mono col-span-2" placeholder="Product Key" />
-                        <input type="text" value={newSeatKeyCode} onChange={e => setNewSeatKeyCode(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="รหัสอ้างอิง Key" />
-                        <input type="text" value={newSeatSupplier} onChange={e => setNewSeatSupplier(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="Supplier ที่ซื้อ" />
-                        <input type="number" value={newSeatCost} onChange={e => setNewSeatCost(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="ราคา (บาท)" />
-                        <input type="number" min="1" value={newSeatCount} onChange={e => setNewSeatCount(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="จำนวนสิทธิ์" />
-                        <input type="date" value={newSeatPurchaseDate} onChange={e => setNewSeatPurchaseDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันที่ซื้อ" />
-                        <input type="date" value={newSeatExpirationDate} onChange={e => setNewSeatExpirationDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันหมดอายุ" />
+                  {/* 🆕 Modal popup สำหรับเพิ่มสิทธิ์ใหม่ */}
+                  <Modal open={isAddingNewLicenseSeat} onClose={() => setIsAddingNewLicenseSeat(false)} size="xl">
+                    <ModalHeader title="เพิ่มสิทธิ์ผู้ถือครอง" subtitle="กรอกรายละเอียดของสิทธิ์ใหม่" onClose={() => setIsAddingNewLicenseSeat(false)} />
+                    <ModalBody className="space-y-4">
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">ชื่อรายการย่อย</label>
+                        <input
+                          type="text"
+                          value={newSeatLabel}
+                          onChange={e => setNewSeatLabel(e.target.value)}
+                          className="border border-slate-300 p-2.5 rounded-lg text-[14px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full"
+                          placeholder="เช่น Sale Team, IT Lead, เครื่องของพีช"
+                        />
                       </div>
-                      {/* ไฟล์แนบ */}
-                      <div className="pt-2 border-t border-slate-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="md:col-span-2">
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">Product Key</label>
+                          <input type="text" value={newSeatProductKey} onChange={e => setNewSeatProductKey(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] font-mono focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="Product Key" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">รหัสอ้างอิง Key</label>
+                          <input type="text" value={newSeatKeyCode} onChange={e => setNewSeatKeyCode(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="รหัสอ้างอิง" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">Supplier</label>
+                          <input type="text" value={newSeatSupplier} onChange={e => setNewSeatSupplier(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="ที่ซื้อ" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">ราคา (บาท)</label>
+                          <input type="number" value={newSeatCost} onChange={e => setNewSeatCost(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">จำนวนสิทธิ์</label>
+                          <input type="number" min="1" value={newSeatCount} onChange={e => setNewSeatCount(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">วันที่ซื้อ</label>
+                          <input type="date" value={newSeatPurchaseDate} onChange={e => setNewSeatPurchaseDate(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">วันหมดอายุ</label>
+                          <input type="date" value={newSeatExpirationDate} onChange={e => setNewSeatExpirationDate(e.target.value)} className="border border-slate-300 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">หมายเหตุ</label>
+                        <textarea
+                          value={newSeatNote}
+                          onChange={e => setNewSeatNote(e.target.value)}
+                          rows={4}
+                          placeholder="เช่น เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ"
+                          className="border border-slate-300 p-3 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full resize-y leading-relaxed"
+                        />
+                      </div>
+                      <div className="pt-3 border-t border-slate-200">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
-                          <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                          <span className="text-[12.5px] font-semibold text-slate-600">ไฟล์แนบ</span>
+                          <label className={`cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
                             + แนบไฟล์
                             <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
                           </label>
@@ -1430,32 +1680,50 @@ export default function AssetDetailsModal({
                         {newSeatDocs.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {newSeatDocs.map((d, i) => (
-                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
-                                <span className="text-slate-600 truncate max-w-[100px]">{d.name}</span>
+                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded text-[12px]">
+                                <span className="text-slate-600 truncate max-w-[160px]">{d.name}</span>
                                 <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => { setIsAddingNewLicenseSeat(false); setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier(''); setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate(''); setNewSeatDocs([]); }} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-md">ยกเลิก</button>
-                        <button onClick={handleAddLicenseSeats} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] hover:bg-[#133257] rounded-md disabled:opacity-50">บันทึก</button>
-                      </div>
-                    </div>
-                  )}
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button variant="secondary" onClick={() => { setIsAddingNewLicenseSeat(false); setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier(''); setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate(''); setNewSeatDocs([]); }}>ยกเลิก</Button>
+                      <Button onClick={handleAddLicenseSeats} disabled={isSavingItem}>{isSavingItem ? 'กำลังบันทึก...' : 'บันทึก'}</Button>
+                    </ModalFooter>
+                  </Modal>
 
                   <div className="ring-1 ring-slate-200/60 rounded-xl overflow-hidden divide-y divide-slate-100">
                     {licenseSeats.map((seat, index) => (
                       <div key={seat.id} className="bg-white transition-colors hover:bg-slate-50">
-                        <div onClick={() => setExpandedItem(expandedItem === `lic-${index}` ? null : `lic-${index}`)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
+                        <div onClick={() => setSeatDetailModal(seat)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
                           <div className="flex items-center gap-3 overflow-hidden">
                             <input type="checkbox" checked={selectedLicenseSeatsForDelete.includes(seat.id)} onChange={(e) => { e.stopPropagation(); handleSelectLicenseSeat(seat.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 shrink-0" />
                             <span className={`w-2 h-2 rounded-full shrink-0 ${seat.type === 'available' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
                             {seat.type === 'available' ? (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-semibold text-slate-600">สิทธิ์ว่าง</span>
-                                <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">พร้อมใช้งาน</span>
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                {/* 🆕 ชื่อรายการย่อย — default เป็นชื่อ license หลัก */}
+                                <div className="overflow-hidden">
+                                  <p className="text-xs font-semibold text-slate-800 truncate">
+                                    {seat.seatLabel || currentAssetDetail.name || 'รายการย่อย'}
+                                  </p>
+                                  <p className="text-[11px] text-slate-400 truncate">สิทธิ์ว่าง</p>
+                                </div>
+                                <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold shrink-0">พร้อมใช้งาน</span>
+                                {/* 🆕 Badge ใกล้หมดอายุ */}
+                                {(() => {
+                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
+                                  return ex.isExpiring ? (
+                                    <span
+                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-bold px-2 py-0.5 rounded-full ring-1 ring-inset shrink-0 ${ex.colorClass}`}
+                                      title={`หมดอายุ ${seat.seatExpirationDate || currentAssetDetail.expirationDate}`}
+                                    >
+                                      ⚠ {ex.statusText}
+                                    </span>
+                                  ) : null;
+                                })()}
                               </div>
                             ) : seat.assignee.isAssetBound ? (
                               /* ── Device-bound seat ── */
@@ -1474,6 +1742,18 @@ export default function AssetDetailsModal({
                                     <p className="text-[11px] text-purple-500 font-medium">ผูกกับทรัพย์สิน</p>
                                   )}
                                 </div>
+                                {/* 🆕 Badge ใกล้หมดอายุ */}
+                                {(() => {
+                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
+                                  return ex.isExpiring ? (
+                                    <span
+                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-bold px-2 py-0.5 rounded-full ring-1 ring-inset shrink-0 ${ex.colorClass}`}
+                                      title={`หมดอายุ ${seat.seatExpirationDate || currentAssetDetail.expirationDate}`}
+                                    >
+                                      ⚠ {ex.statusText}
+                                    </span>
+                                  ) : null;
+                                })()}
                               </div>
                             ) : (
                               <div className="flex items-center gap-2.5 overflow-hidden">
@@ -1482,15 +1762,30 @@ export default function AssetDetailsModal({
                                 </div>
                                 <div className="overflow-hidden">
                                   <p className="text-xs font-semibold text-slate-800 truncate">{seat.assignee.empName}</p>
-                                  {seat.assignee.checkoutDate && <p className="text-[11px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>}
+                                  {/* 🆕 ชื่อรายการย่อย (label) หรือ checkoutDate */}
+                                  {seat.seatLabel ? (
+                                    <p className="text-[11px] text-slate-500 truncate font-medium">{seat.seatLabel}</p>
+                                  ) : seat.assignee.checkoutDate && (
+                                    <p className="text-[11px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>
+                                  )}
                                 </div>
+                                {/* 🆕 Badge ใกล้หมดอายุ */}
+                                {(() => {
+                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
+                                  return ex.isExpiring ? (
+                                    <span
+                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-bold px-2 py-0.5 rounded-full ring-1 ring-inset shrink-0 ${ex.colorClass}`}
+                                      title={`หมดอายุ ${seat.seatExpirationDate || currentAssetDetail.expirationDate}`}
+                                    >
+                                      ⚠ {ex.statusText}
+                                    </span>
+                                  ) : null;
+                                })()}
                               </div>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            {seat.type === 'available' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded transition-colors">เบิกจ่าย</button>
-                            ) : seat.assignee.isAssetBound ? (
+                            {seat.type === 'available' ? null : seat.assignee.isAssetBound ? (
                               seat.assignee.empId ? (
                                 <span className="text-[10.5px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded whitespace-nowrap">กำลังใช้งาน</span>
                               ) : (
@@ -1499,14 +1794,22 @@ export default function AssetDetailsModal({
                             ) : (
                               <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors">รับคืน</button>
                             )}
-                            <svg className={`h-4 w-4 text-slate-400 transition-transform ${expandedItem === `lic-${index}` ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
                         </div>
 
-                        {expandedItem === `lic-${index}` && (
+                        {false && (
                           <div className="px-4 pb-4 pt-3 bg-slate-50 border-t border-slate-100 animate-in fade-in">
                             {editingLicenseSeatId === seat.id ? (
                               <div className="space-y-3">
+                                {/* 🆕 ชื่อรายการย่อย */}
+                                <input
+                                  type="text"
+                                  value={tempLicenseLabel}
+                                  onChange={(e) => setTempLicenseLabel(e.target.value)}
+                                  className="border border-slate-300 p-2 rounded-md text-[13px] font-semibold focus:ring-1 focus:ring-[#1E487A] w-full"
+                                  placeholder="ชื่อรายการย่อย — เช่น Sale Team, IT Lead, เครื่องของพีช"
+                                />
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                   <input type="text" value={tempLicenseProductKey} onChange={(e) => setTempLicenseProductKey(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full font-mono col-span-2 md:col-span-2" placeholder="Product Key" />
                                   <input type="text" value={tempLicenseKeyCode} onChange={(e) => setTempLicenseKeyCode(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="รหัสอ้างอิง Key" />
@@ -1514,6 +1817,17 @@ export default function AssetDetailsModal({
                                   <input type="number" value={tempLicenseSeatCost} onChange={(e) => setTempLicenseSeatCost(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] w-full" placeholder="ราคา (บาท)" />
                                   <input type="date" value={tempLicensePurchaseDate} onChange={(e) => setTempLicensePurchaseDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันที่ซื้อ" />
                                   <input type="date" value={tempLicenseExpirationDate} onChange={(e) => setTempLicenseExpirationDate(e.target.value)} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] text-slate-600 w-full" title="วันหมดอายุ" />
+                                </div>
+                                {/* 🆕 หมายเหตุ — ใหญ่ขึ้น */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wide mb-1">📝 หมายเหตุ</label>
+                                  <textarea
+                                    value={tempLicenseNote}
+                                    onChange={(e) => setTempLicenseNote(e.target.value)}
+                                    rows={5}
+                                    placeholder="เช่น: เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ"
+                                    className="border border-slate-300 p-3 rounded-md text-[13px] focus:ring-1 focus:ring-[#1E487A] w-full resize-y leading-relaxed"
+                                  />
                                 </div>
                                 {/* ไฟล์แนบ */}
                                 <div className="pt-2 border-t border-slate-200">
@@ -1541,37 +1855,79 @@ export default function AssetDetailsModal({
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-                                <div className="space-y-2 text-xs flex-1">
-                                  {seat.productKey && (
-                                    <div>
-                                      <span className="text-slate-400 block text-[11px]">Product Key</span>
-                                      <span className="font-mono font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block text-[12px]">{seat.productKey}</span>
-                                    </div>
-                                  )}
-                                  <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2">
-                                    {seat.keyCode && <div><span className="text-slate-400 block text-[11px]">รหัสอ้างอิง Key</span><span className="font-medium text-slate-800">{seat.keyCode}</span></div>}
-                                    <div><span className="text-slate-400 block text-[11px]">Supplier ที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.supplier || '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">ราคา</span><span className="font-medium text-slate-800">{seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{currentAssetDetail.purchaseDate || '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">อายุการใช้งาน</span><span className="font-medium text-slate-800">{calculateAge(currentAssetDetail.purchaseDate)}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">วันหมดอายุ</span><span className="font-medium text-slate-800">{currentAssetDetail.expirationDate || '-'}</span></div>
-                                    {seat.type === 'assigned' && seat.assignee.remarks && <div><span className="text-slate-400 block text-[11px]">หมายเหตุ</span><span className="font-medium text-slate-800">{seat.assignee.remarks}</span></div>}
-                                  </div>
-                                  {seat.documents?.length > 0 && (
-                                    <div>
-                                      <span className="text-slate-400 block text-[11px] mb-1">ไฟล์แนบ</span>
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {seat.documents.map((d, i) => (
-                                          <a key={i} href={d.data} download={d.name} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px] text-[#1E487A] hover:bg-blue-50 transition-colors">
-                                            <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                            <span className="truncate max-w-[100px]">{d.name}</span>
-                                          </a>
-                                        ))}
+                              <div className="space-y-3">
+                                {/* 🆕 ดีไซน์ใหม่: Info Grid 3 cols + Note + Files */}
+                                {(() => {
+                                  const seatSupplier = seat.seatSupplier || currentAssetDetail.supplier || '-';
+                                  const seatPDate = seat.seatPurchaseDate || currentAssetDetail.purchaseDate || '-';
+                                  const seatEDate = seat.seatExpirationDate || currentAssetDetail.expirationDate || '-';
+                                  const expCheck = (seat.seatExpirationDate || currentAssetDetail.expirationDate)
+                                    ? checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate)
+                                    : null;
+                                  const age = calculateAge(seat.seatPurchaseDate || currentAssetDetail.purchaseDate);
+
+                                  return (
+                                    <>
+                                      {/* Product Key (full width) */}
+                                      {seat.productKey && (
+                                        <div className="bg-white ring-1 ring-slate-200 rounded-lg p-2.5">
+                                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Product Key</p>
+                                          <p className="font-mono text-[13px] font-semibold text-slate-800 break-all">{seat.productKey}</p>
+                                          {seat.keyCode && (
+                                            <p className="text-[11px] text-slate-500 mt-1 font-mono">รหัส Key: {seat.keyCode}</p>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Info grid — 3 cols */}
+                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                        <InfoTile icon={Tag} label="Supplier" value={seatSupplier} />
+                                        <InfoTile icon={DollarSign} label="ราคา" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
+                                        <InfoTile icon={Calendar} label="วันที่ซื้อ" value={seatPDate} />
+                                        <InfoTile icon={Sparkles} label="อายุการใช้งาน" value={age} />
+                                        <InfoTile
+                                          icon={Calendar}
+                                          label="วันหมดอายุ"
+                                          value={seatEDate}
+                                          badge={expCheck?.isExpiring ? { text: expCheck.statusText, cls: expCheck.colorClass } : null}
+                                          colspan={2}
+                                        />
                                       </div>
-                                    </div>
-                                  )}
-                                </div>
+
+                                      {/* 🆕 หมายเหตุ — ใหญ่ + เด่น */}
+                                      {seat.seatNote && (
+                                        <div className="bg-amber-50/60 ring-1 ring-amber-200 rounded-lg p-3.5">
+                                          <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <FileText className="h-3.5 w-3.5" strokeWidth={2.4} /> หมายเหตุ
+                                          </p>
+                                          <p className="text-[13px] text-slate-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
+                                        </div>
+                                      )}
+
+                                      {seat.type === 'assigned' && seat.assignee.remarks && (
+                                        <div className="bg-blue-50/40 ring-1 ring-blue-200 rounded-lg p-2.5">
+                                          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700/80 mb-1">หมายเหตุการมอบ</p>
+                                          <p className="text-[12.5px] text-slate-700">{seat.assignee.remarks}</p>
+                                        </div>
+                                      )}
+
+                                      {seat.documents?.length > 0 && (
+                                        <div className="bg-white ring-1 ring-slate-200 rounded-lg p-2.5">
+                                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">📎 ไฟล์แนบ ({seat.documents.length})</p>
+                                          <div className="flex flex-wrap gap-1.5">
+                                            {seat.documents.map((d, i) => (
+                                              <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded text-[11px] text-[#1E487A] hover:bg-blue-50 transition-colors">
+                                                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                <span className="truncate max-w-[100px]">{d.name}</span>
+                                              </a>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                                <div className="flex justify-end pt-1">
                                 <button
                                   onClick={() => {
                                     setEditingLicenseSeatId(seat.id);
@@ -1579,14 +1935,19 @@ export default function AssetDetailsModal({
                                     setTempLicenseKeyCode(seat.keyCode);
                                     setTempLicenseSeatCost(seat.seatCost);
                                     setTempLicenseSeatDocs(seat.documents || []);
-                                    setTempLicenseSupplier(currentAssetDetail.supplier || '');
-                                    setTempLicensePurchaseDate(currentAssetDetail.purchaseDate || '');
-                                    setTempLicenseExpirationDate(currentAssetDetail.expirationDate || '');
+                                    // 🆕 per-seat values (fallback ไปที่ parent ถ้าไม่มี per-seat)
+                                    setTempLicenseSupplier(seat.seatSupplier || currentAssetDetail.supplier || '');
+                                    setTempLicensePurchaseDate(seat.seatPurchaseDate || currentAssetDetail.purchaseDate || '');
+                                    setTempLicenseExpirationDate(seat.seatExpirationDate || currentAssetDetail.expirationDate || '');
+                                    setTempLicenseNote(seat.seatNote || '');
+                                    setTempLicenseLabel(seat.seatLabel || '');
                                   }}
-                                  className="text-[11px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 font-medium whitespace-nowrap self-end"
+                                  className="inline-flex items-center gap-1 text-[12px] text-[#1E487A] bg-white border border-blue-200 px-3 py-1.5 rounded-md hover:bg-blue-50 font-semibold whitespace-nowrap"
                                 >
+                                  <Pencil className="h-3 w-3" strokeWidth={2.4} />
                                   แก้ไขข้อมูล
                                 </button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1651,21 +2012,40 @@ export default function AssetDetailsModal({
                     </div>
                   )}
 
-                  {isAddingNew && (
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
-                        <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="Serial Number" />
-                        <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="รุ่น / โมเดล" />
-                        <input type="number" value={newItemData.cost} onChange={e=>setNewItemData({...newItemData, cost: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="ราคา (บาท)" />
-                        <input type="date" value={newItemData.purchaseDate} onChange={e=>setNewItemData({...newItemData, purchaseDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันที่ซื้อ" />
-                        <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full text-slate-600" title="วันหมดประกัน" />
-                        <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="border border-slate-300 p-2 rounded-md text-xs focus:ring-1 focus:ring-[#1E487A] outline-none w-full" placeholder="จำนวน (ชิ้น)" />
+                  {/* 🆕 Modal popup สำหรับเพิ่มชิ้นใหม่ */}
+                  <Modal open={isAddingNew} onClose={() => setIsAddingNew(false)} size="xl">
+                    <ModalHeader title="เพิ่มชิ้นใหม่" subtitle="กรอกรายละเอียดของชิ้นใหม่" onClose={() => setIsAddingNew(false)} />
+                    <ModalBody className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">Serial Number</label>
+                          <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="border border-slate-300 p-2.5 rounded-lg text-[13.5px] font-mono focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="SN" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">รุ่น / โมเดล</label>
+                          <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className="border border-slate-300 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="รุ่น" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">ราคา (บาท)</label>
+                          <input type="number" value={newItemData.cost} onChange={e=>setNewItemData({...newItemData, cost: e.target.value})} className="border border-slate-300 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">จำนวน (ชิ้น)</label>
+                          <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="border border-slate-300 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">วันที่ซื้อ</label>
+                          <input type="date" value={newItemData.purchaseDate} onChange={e=>setNewItemData({...newItemData, purchaseDate: e.target.value})} className="border border-slate-300 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                        </div>
+                        <div>
+                          <label className="block text-[12.5px] font-semibold text-slate-600 mb-1.5">วันหมดประกัน</label>
+                          <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="border border-slate-300 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                        </div>
                       </div>
-                      {/* ไฟล์แนบ */}
-                      <div className="pt-2 border-t border-slate-200 mb-3">
+                      <div className="pt-3 border-t border-slate-200">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ (ใบเสร็จ / รูป / ใบรับประกัน)</span>
-                          <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                          <span className="text-[12.5px] font-semibold text-slate-600">ไฟล์แนบ (ใบเสร็จ / รูป / ใบรับประกัน)</span>
+                          <label className={`cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
                             + แนบไฟล์
                             <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
                           </label>
@@ -1673,20 +2053,20 @@ export default function AssetDetailsModal({
                         {(newItemData.documents || []).length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {newItemData.documents.map((d, i) => (
-                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
-                                <span className="text-slate-600 truncate max-w-[140px]">{d.name}</span>
+                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded text-[12px]">
+                                <span className="text-slate-600 truncate max-w-[180px]">{d.name}</span>
                                 <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => { setIsAddingNew(false); setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] }); }} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-md">ยกเลิก</button>
-                        <button onClick={handleAddNewPiece} disabled={isSavingItem} className="px-3 py-1.5 text-xs text-white bg-[#1E487A] hover:bg-[#133257] rounded-md disabled:opacity-50">บันทึก</button>
-                      </div>
-                    </div>
-                  )}
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button variant="secondary" onClick={() => { setIsAddingNew(false); setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] }); }}>ยกเลิก</Button>
+                      <Button onClick={handleAddNewPiece} disabled={isSavingItem}>{isSavingItem ? 'กำลังบันทึก...' : 'บันทึก'}</Button>
+                    </ModalFooter>
+                  </Modal>
                   
                   <div className="ring-1 ring-slate-200/60 rounded-xl overflow-hidden divide-y divide-slate-100">
                     {individualItems.map((item, index) => (
@@ -1697,17 +2077,20 @@ export default function AssetDetailsModal({
                             <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-emerald-500' : item.type === 'assigned' ? 'bg-blue-500' : 'bg-red-500'}`}></span>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 truncate">
                               <span className="text-xs font-semibold text-slate-800 truncate">
-                                {item.type === 'assigned' ? `ผู้ถือครอง: ${item.assignee.empName}` : `ชิ้นที่ ${index + 1}`}
+                                {/* 🆕 ใช้ชื่อ accessory หลักเป็นชื่อรายการย่อย (เหมือน License) */}
+                                {item.type === 'assigned'
+                                  ? `${currentAssetDetail.name} — ${item.assignee.empName}`
+                                  : currentAssetDetail.name}
                               </span>
                               {item.sn && <span className="text-[11px] text-slate-500 font-mono bg-slate-100 px-1.5 rounded border border-slate-200 truncate">SN: {item.sn}</span>}
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2 shrink-0">
                             {item.type === 'available' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory, sn: item.sn, snIndex: item.originalIndex, itemModel: item.model, itemCost: item.itemCost, itemPurchaseDate: item.purchaseDate, itemWarrantyDate: item.warrantyDate }); }} className="text-[11px] font-semibold bg-white border border-blue-200 text-[#1E487A] hover:bg-blue-50 px-2 py-1 rounded">เบิกจ่าย</button>
+                              null /* 🆕 ลบปุ่มเบิกจ่ายต่อแถว — ใช้ปุ่ม "เบิกจ่าย" เดียวใน footer แทน */
                             ) : item.type === 'assigned' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name }); }} className="text-[11px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">รับคืน</button>
+                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-semibold bg-white border border-teal-200 text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">รับคืน</button>
                             ) : (
                               <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-semibold bg-white border border-slate-300 text-slate-600 hover:bg-slate-100 px-2 py-1 rounded">เข้าคลัง</button>
                             )}
@@ -1857,7 +2240,7 @@ export default function AssetDetailsModal({
                   ) : (
                     <div className="space-y-2">
                       {purchaseHistory.map((hist, index) => (
-                        <div key={hist.id} className={`bg-white rounded-2xl px-5 py-4 transition-all ring-1 ${index === 0 ? 'ring-[#1E487A]/25' : 'ring-slate-200/60 hover:ring-slate-300/60'}`}>
+                        <div key={hist.id} className={`bg-white rounded-2xl px-5 py-4 transition-colors ring-1 ${index === 0 ? 'ring-[#1E487A]/25' : 'ring-slate-200/60 hover:ring-slate-300/60'}`}>
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5 min-w-0">
                               {index === 0 && (
@@ -1921,23 +2304,23 @@ export default function AssetDetailsModal({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">วันที่จัดซื้อ</label>
-                        <input type="date" value={historyForm.purchaseDate} onChange={(e) => setHistoryForm({...historyForm, purchaseDate: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" />
+                        <input type="date" value={historyForm.purchaseDate} onChange={(e) => setHistoryForm({...historyForm, purchaseDate: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ราคา (บาท)</label>
-                        <input type="number" step="any" value={historyForm.cost} onChange={(e) => setHistoryForm({...historyForm, cost: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" placeholder="ยอดรวมหรือต่อชิ้น" />
+                        <input type="number" step="any" value={historyForm.cost} onChange={(e) => setHistoryForm({...historyForm, cost: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" placeholder="ยอดรวมหรือต่อชิ้น" />
                       </div>
                       <div>
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
-                        <input type="text" value={historyForm.vendor} onChange={(e) => setHistoryForm({...historyForm, vendor: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" placeholder="ชื่อร้าน/บริษัท" />
+                        <input type="text" value={historyForm.vendor} onChange={(e) => setHistoryForm({...historyForm, vendor: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" placeholder="ชื่อร้าน/บริษัท" />
                       </div>
                       <div>
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
-                        <input type="text" value={historyForm.model} onChange={(e) => setHistoryForm({...historyForm, model: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all" />
+                        <input type="text" value={historyForm.model} onChange={(e) => setHistoryForm({...historyForm, model: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" />
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
-                        <textarea value={historyForm.note} onChange={(e) => setHistoryForm({...historyForm, note: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-all resize-none" rows="2" placeholder="เช่น จัดซื้อทดแทนเครื่องเดิม..."></textarea>
+                        <textarea value={historyForm.note} onChange={(e) => setHistoryForm({...historyForm, note: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors resize-none" rows="2" placeholder="เช่น จัดซื้อทดแทนเครื่องเดิม..."></textarea>
                       </div>
                     </div>
 
@@ -2027,19 +2410,32 @@ export default function AssetDetailsModal({
                     
                     return docs.length > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {docs.map((docItem, idx) => (
+                        {docs.map((docItem, idx) => {
+                          // 🆕 รูปภาพ → แสดง thumbnail เล็กๆ (48px) ให้เห็นว่าแนบรูปอะไร
+                          const isImg = String(docItem.data || '').startsWith('data:image/');
+                          return (
                           <div key={idx} className="flex items-center justify-between bg-slate-50 ring-1 ring-slate-200/60 p-3 rounded-xl overflow-hidden">
-                            <a href={docItem.data} download={docItem.name} className="flex items-center gap-3 text-[13.5px] text-[#1E487A] font-medium hover:underline truncate mr-3 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-blue-50 ring-1 ring-blue-100 flex items-center justify-center shrink-0">
-                                <svg className="w-4 h-4 text-[#1E487A]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                              </div>
+                            <a href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13.5px] text-[#1E487A] font-medium hover:underline truncate mr-3 min-w-0">
+                              {isImg ? (
+                                <img
+                                  src={docItem.data}
+                                  alt={docItem.name}
+                                  loading="lazy"
+                                  className="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-200 shrink-0 bg-white"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-blue-50 ring-1 ring-blue-100 flex items-center justify-center shrink-0">
+                                  <svg className="w-5 h-5 text-[#1E487A]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                </div>
+                              )}
                               <span className="truncate">{docItem.name}</span>
                             </a>
                             <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-slate-400 hover:text-red-500 bg-white ring-1 ring-slate-200 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 hover:ring-red-200 transition-colors shrink-0" title="ลบเอกสารนี้">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="py-12 text-center bg-slate-50 ring-1 ring-dashed ring-slate-300 rounded-2xl">
@@ -2079,15 +2475,395 @@ export default function AssetDetailsModal({
             ) : null
           )}
 
+          {/* 🆕 เบิกจ่าย — สำหรับ License ที่มี seat ว่าง */}
+          {selectedAssetCategory === 'licenses' && (() => {
+            const availCount = licenseSeats.filter(s => s.type === 'available').length;
+            return availCount > 0 ? (
+              <button
+                onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); closeAll(); }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto shadow-sm"
+              >
+                <LogIn className="h-4 w-4" strokeWidth={2.4} />
+                เบิกจ่าย
+                <span className="text-[11px] font-bold bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
+              </button>
+            ) : null;
+          })()}
+
+          {/* 🆕 เบิกจ่าย — สำหรับ Accessory ที่มีชิ้นว่าง (รูปแบบเดียวกับ License) */}
+          {selectedAssetCategory === 'accessories' && (() => {
+            const availCount = individualItems.filter(it => it.type === 'available').length;
+            return availCount > 0 ? (
+              <button
+                onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'accessories' }); closeAll(); }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto shadow-sm"
+              >
+                <LogIn className="h-4 w-4" strokeWidth={2.4} />
+                เบิกจ่าย
+                <span className="text-[11px] font-bold bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
+              </button>
+            ) : null;
+          })()}
+
           {selectedAssetCategory === 'assets' && (
             <button onClick={() => setShowLabelPreview(true)} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 ring-1 ring-slate-200 rounded-xl hover:bg-slate-50 text-[14px] font-semibold transition-colors">
               พิมพ์ป้าย
             </button>
           )}
 
+          {selectedAssetCategory === 'assets' && (
+            <button
+              onClick={async () => {
+                const { printAssetDetail } = await import('../utils/printAssetDetail.js');
+                printAssetDetail({ asset: currentAssetDetail });
+              }}
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-rose-600 ring-1 ring-rose-200 rounded-xl hover:bg-rose-50 text-[14px] font-semibold transition-colors"
+              title="พิมพ์ PDF รายละเอียดทรัพย์สิน + รูปเอกสารแนบ"
+            >
+              พิมพ์ PDF
+            </button>
+          )}
+
           <button onClick={() => { if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 ring-1 ring-slate-200 rounded-xl hover:bg-slate-50 text-[14px] font-semibold transition-colors">แก้ไขข้อมูล</button>
           <button onClick={closeAll} className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 text-[14px] font-semibold transition-colors">ปิด</button>
         </div>
+      </div>
+
+      {/* 🆕 Seat Detail Modal — ดีไซน์ใหม่สวยๆ */}
+      {seatDetailModal && (
+        <SeatDetailModal
+          seat={seatDetailModal}
+          license={currentAssetDetail}
+          checkLicenseExpiration={checkLicenseExpiration}
+          calculateAge={calculateAge}
+          onClose={() => setSeatDetailModal(null)}
+          onEdit={() => {
+            // เปิด edit mode + setTempLicense*
+            setEditingLicenseSeatId(seatDetailModal.id);
+            setTempLicenseProductKey(seatDetailModal.productKey);
+            setTempLicenseKeyCode(seatDetailModal.keyCode);
+            setTempLicenseSeatCost(seatDetailModal.seatCost);
+            setTempLicenseSeatDocs(seatDetailModal.documents || []);
+            setTempLicenseSupplier(seatDetailModal.seatSupplier || currentAssetDetail.supplier || '');
+            setTempLicensePurchaseDate(seatDetailModal.seatPurchaseDate || currentAssetDetail.purchaseDate || '');
+            setTempLicenseExpirationDate(seatDetailModal.seatExpirationDate || currentAssetDetail.expirationDate || '');
+            setTempLicenseNote(seatDetailModal.seatNote || '');
+            setTempLicenseLabel(seatDetailModal.seatLabel || '');
+          }}
+          isEditing={editingLicenseSeatId === seatDetailModal.id}
+          tempLicenseLabel={tempLicenseLabel}
+          setTempLicenseLabel={setTempLicenseLabel}
+          tempLicenseProductKey={tempLicenseProductKey}
+          setTempLicenseProductKey={setTempLicenseProductKey}
+          tempLicenseKeyCode={tempLicenseKeyCode}
+          setTempLicenseKeyCode={setTempLicenseKeyCode}
+          tempLicenseSupplier={tempLicenseSupplier}
+          setTempLicenseSupplier={setTempLicenseSupplier}
+          tempLicenseSeatCost={tempLicenseSeatCost}
+          setTempLicenseSeatCost={setTempLicenseSeatCost}
+          tempLicensePurchaseDate={tempLicensePurchaseDate}
+          setTempLicensePurchaseDate={setTempLicensePurchaseDate}
+          tempLicenseExpirationDate={tempLicenseExpirationDate}
+          setTempLicenseExpirationDate={setTempLicenseExpirationDate}
+          tempLicenseNote={tempLicenseNote}
+          setTempLicenseNote={setTempLicenseNote}
+          tempLicenseSeatDocs={tempLicenseSeatDocs}
+          setTempLicenseSeatDocs={setTempLicenseSeatDocs}
+          handleLicenseSeatDocUpload={handleLicenseSeatDocUpload}
+          isSavingItem={isSavingItem}
+          onCancelEdit={() => setEditingLicenseSeatId(null)}
+          onSaveEdit={async () => {
+            await handleSaveLicenseSeatEdit(seatDetailModal);
+            // refresh modal data
+            const updated = licenseSeats.find(s => s.id === seatDetailModal.id);
+            if (updated) setSeatDetailModal(updated);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   🆕 SeatDetailModal — Modal สวยๆ แสดงรายละเอียด + edit ของ seat
+════════════════════════════════════════════════ */
+function SeatDetailModal({
+  seat, license, checkLicenseExpiration, calculateAge, onClose, onEdit, isEditing,
+  tempLicenseLabel, setTempLicenseLabel,
+  tempLicenseProductKey, setTempLicenseProductKey,
+  tempLicenseKeyCode, setTempLicenseKeyCode,
+  tempLicenseSupplier, setTempLicenseSupplier,
+  tempLicenseSeatCost, setTempLicenseSeatCost,
+  tempLicensePurchaseDate, setTempLicensePurchaseDate,
+  tempLicenseExpirationDate, setTempLicenseExpirationDate,
+  tempLicenseNote, setTempLicenseNote,
+  tempLicenseSeatDocs, setTempLicenseSeatDocs,
+  handleLicenseSeatDocUpload, isSavingItem, onCancelEdit, onSaveEdit,
+}) {
+  // 🔒 lock background scroll — ใช้ global observer แทนแล้ว
+
+  const seatSupplier = seat.seatSupplier || license.supplier || '-';
+  const seatPDate = seat.seatPurchaseDate || license.purchaseDate || '-';
+  const seatEDate = seat.seatExpirationDate || license.expirationDate || '-';
+  const expCheck = (seat.seatExpirationDate || license.expirationDate)
+    ? checkLicenseExpiration(seat.seatExpirationDate || license.expirationDate)
+    : null;
+  const age = calculateAge(seat.seatPurchaseDate || license.purchaseDate);
+
+  // Status badge
+  const statusBadge = seat.type === 'available'
+    ? { label: 'พร้อมใช้งาน', icon: '🟢', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' }
+    : seat.assignee?.isAssetBound
+    ? { label: 'ติดตั้งบนเครื่อง', icon: '💻', cls: 'bg-purple-50 text-purple-700 ring-purple-200' }
+    : { label: 'ถูกใช้งาน', icon: '👤', cls: 'bg-blue-50 text-blue-700 ring-blue-200' };
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/60 z-[95] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-md max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden ring-1 ring-slate-200/60">
+
+        {/* Header — gradient navy */}
+        <div
+          className="px-6 py-4 text-white relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #1E487A 0%, #2A5896 50%, #163963 100%)' }}
+        >
+          <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full border border-white/10 pointer-events-none" />
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold text-blue-200 uppercase tracking-[0.14em] mb-1">รายการย่อย</p>
+              <h3 className="text-[18px] font-bold truncate">
+                {seat.seatLabel || license.name || 'รายการย่อย'}
+              </h3>
+              <p className="text-[12px] text-blue-200/85 mt-0.5 truncate">{license.name}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white shrink-0 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Status row */}
+          <div className="relative mt-3 flex items-center gap-2 flex-wrap">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold ring-1 ring-inset ${statusBadge.cls}`}>
+              {statusBadge.icon} {statusBadge.label}
+            </span>
+            {seat.type === 'assigned' && seat.assignee?.empName && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-white text-[11.5px] font-semibold">
+                👤 {seat.assignee.empName}
+              </span>
+            )}
+            {expCheck?.isExpiring && (
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold ring-1 ring-inset ${expCheck.colorClass}`}>
+                ⚠ {expCheck.statusText}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/40 space-y-4">
+          {isEditing ? (
+            <>
+              {/* EDIT MODE */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ชื่อรายการย่อย</label>
+                <input
+                  type="text"
+                  value={tempLicenseLabel}
+                  onChange={(e) => setTempLicenseLabel(e.target.value)}
+                  className="w-full border border-slate-200 p-2.5 rounded-lg text-[14px] font-semibold focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none"
+                  placeholder="เช่น Sale Team, IT Lead"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Product Key</label>
+                <input
+                  type="text"
+                  value={tempLicenseProductKey}
+                  onChange={(e) => setTempLicenseProductKey(e.target.value)}
+                  className="w-full border border-slate-200 p-2.5 rounded-lg text-[13px] font-mono focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none"
+                  placeholder="Product Key"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">รหัสอ้างอิง Key</label>
+                  <input type="text" value={tempLicenseKeyCode} onChange={(e) => setTempLicenseKeyCode(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Supplier</label>
+                  <input type="text" value={tempLicenseSupplier} onChange={(e) => setTempLicenseSupplier(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ราคา (บาท)</label>
+                  <input type="number" value={tempLicenseSeatCost} onChange={(e) => setTempLicenseSeatCost(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">วันที่ซื้อ</label>
+                  <input type="date" value={tempLicensePurchaseDate} onChange={(e) => setTempLicensePurchaseDate(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">วันหมดอายุ</label>
+                  <input type="date" value={tempLicenseExpirationDate} onChange={(e) => setTempLicenseExpirationDate(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">📝 หมายเหตุ</label>
+                <textarea
+                  value={tempLicenseNote}
+                  onChange={(e) => setTempLicenseNote(e.target.value)}
+                  rows={5}
+                  placeholder="เช่น: เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ"
+                  className="w-full border border-slate-200 p-3 rounded-lg text-[13px] resize-y leading-relaxed focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">📎 ไฟล์แนบ</label>
+                  <label className="cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50">
+                    + แนบไฟล์
+                    <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
+                  </label>
+                </div>
+                {tempLicenseSeatDocs.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {tempLicenseSeatDocs.map((d, i) => (
+                      <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded text-[11px]">
+                        <span className="text-slate-600 truncate max-w-[120px]">{d.name}</span>
+                        <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* VIEW MODE */}
+              {seat.productKey && (
+                <div className="bg-white ring-1 ring-slate-200 rounded-xl p-3.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Product Key</p>
+                  <p className="font-mono text-[13px] font-semibold text-slate-800 break-all">{seat.productKey}</p>
+                  {seat.keyCode && (
+                    <p className="text-[11px] text-slate-500 mt-1 font-mono">รหัส Key: {seat.keyCode}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <InfoTile icon={Tag} label="Supplier" value={seatSupplier} />
+                <InfoTile icon={DollarSign} label="ราคา" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
+                <InfoTile icon={Calendar} label="วันที่ซื้อ" value={seatPDate} />
+                <InfoTile icon={Sparkles} label="อายุการใช้งาน" value={age} />
+                <InfoTile
+                  icon={Calendar}
+                  label="วันหมดอายุ"
+                  value={seatEDate}
+                  badge={expCheck?.isExpiring ? { text: expCheck.statusText, cls: expCheck.colorClass } : null}
+                  colspan={2}
+                />
+              </div>
+
+              {seat.seatNote && (
+                <div className="bg-amber-50/60 ring-1 ring-amber-200 rounded-xl p-4">
+                  <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5" strokeWidth={2.4} /> หมายเหตุ
+                  </p>
+                  <p className="text-[13.5px] text-slate-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
+                </div>
+              )}
+
+              {seat.type === 'assigned' && seat.assignee?.remarks && (
+                <div className="bg-blue-50/40 ring-1 ring-blue-200 rounded-xl p-3.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700/80 mb-1">หมายเหตุการมอบ</p>
+                  <p className="text-[13px] text-slate-700">{seat.assignee.remarks}</p>
+                </div>
+              )}
+
+              {seat.documents?.length > 0 && (
+                <div className="bg-white ring-1 ring-slate-200 rounded-xl p-3.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">📎 ไฟล์แนบ ({seat.documents.length})</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {seat.documents.map((d, i) => (
+                      <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-md text-[12px] text-[#1E487A] hover:bg-blue-50 transition-colors">
+                        📄 <span className="truncate max-w-[140px]">{d.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+          {isEditing ? (
+            <>
+              <button
+                onClick={onCancelEdit}
+                disabled={isSavingItem}
+                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={onSaveEdit}
+                disabled={isSavingItem}
+                className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm disabled:opacity-50"
+              >
+                {isSavingItem ? 'กำลังบันทึก...' : '✓ บันทึก'}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50"
+              >
+                ปิด
+              </button>
+              <button
+                onClick={onEdit}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm"
+              >
+                <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} />
+                แก้ไขข้อมูล
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   InfoTile — กล่อง info สำหรับรายละเอียด seat
+════════════════════════════════════════════════ */
+function InfoTile({ icon: Icon, label, value, badge, colspan }) {
+  return (
+    <div
+      className={`bg-white ring-1 ring-slate-200 rounded-lg p-2.5 ${colspan === 2 ? 'col-span-2' : ''}`}
+    >
+      <div className="flex items-center gap-1.5 mb-1">
+        {Icon && <Icon className="h-3 w-3 text-slate-400" strokeWidth={2} />}
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <p className="text-[13px] font-semibold text-slate-800 truncate">{value}</p>
+        {badge && (
+          <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded ring-1 ring-inset ${badge.cls}`}>
+            ⚠ {badge.text}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export default function LicenseTable({
 
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
-      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
+      <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10">
         <tr>
           <th className="px-4 py-3 w-10">
             <input
@@ -82,10 +82,10 @@ export default function LicenseTable({
               )}
 
               {col.name && (
-                <td className={TD}>
+                <td className={`${TD} max-w-[280px]`}>
                   <button
                     onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory('licenses'); }}
-                    className="text-left font-medium text-slate-800 group-hover:text-[#1E487A] transition-colors"
+                    className="text-left font-medium text-slate-800 group-hover:text-[#1E487A] transition-colors whitespace-normal leading-snug break-words"
                   >
                     {item.name}
                   </button>
@@ -93,11 +93,11 @@ export default function LicenseTable({
               )}
 
               {col.productKey && (
-                <td className={TD}>
-                  <div className="text-[13px] font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg w-fit ring-1 ring-inset ring-slate-200 font-semibold tracking-tight">
+                <td className={`${TD} max-w-[420px]`}>
+                  <div className="text-[13px] font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg w-fit max-w-full ring-1 ring-inset ring-slate-200 font-semibold tracking-tight whitespace-normal break-all leading-snug">
                     {item.productKey || '-'}
                   </div>
-                  {item.keyCode && <div className="text-[12px] text-slate-400 mt-1 font-mono">{item.keyCode}</div>}
+                  {item.keyCode && <div className="text-[12px] text-slate-400 mt-1 font-mono break-all">{item.keyCode}</div>}
                 </td>
               )}
 
@@ -109,12 +109,48 @@ export default function LicenseTable({
                   <div className="flex flex-col gap-1 items-start">
                     <span className="text-slate-700 tabular-nums">{item.expirationDate || '-'}</span>
                     {(() => {
-                      const exp = checkLicenseExpiration(item.expirationDate);
-                      return exp.isExpiring ? (
-                        <span className={`inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${exp.colorClass}`}>
-                          <AlertTriangle className="h-3 w-3" strokeWidth={2} /> {exp.statusText}
-                        </span>
-                      ) : null;
+                      // 🆕 เช็ค parent + รวบ per-seat ที่กำลังจะหมดอายุ
+                      const parentExp = checkLicenseExpiration(item.expirationDate);
+
+                      // เก็บ seat ที่ใกล้หมดอายุ (excluding ที่ใช้ date เดียวกับ parent)
+                      const expiringSeats = [];
+                      (item.availableSeatExpirationDates || []).forEach((d, i) => {
+                        if (!d || d === item.expirationDate) return;
+                        const ex = checkLicenseExpiration(d);
+                        if (ex.isExpiring) {
+                          const label = item.availableSeatLabels?.[i] || `สิทธิ์ #${i + 1}`;
+                          expiringSeats.push({ label, date: d, status: ex });
+                        }
+                      });
+                      (item.assignees || []).forEach((a, i) => {
+                        if (!a.seatExpirationDate || a.seatExpirationDate === item.expirationDate) return;
+                        const ex = checkLicenseExpiration(a.seatExpirationDate);
+                        if (ex.isExpiring) {
+                          const label = a.seatLabel || a.empName || `สิทธิ์ #${i + 1}`;
+                          expiringSeats.push({ label, date: a.seatExpirationDate, status: ex });
+                        }
+                      });
+
+                      return (
+                        <>
+                          {/* Parent badge */}
+                          {parentExp.isExpiring && (
+                            <span className={`inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${parentExp.colorClass}`}>
+                              <AlertTriangle className="h-3 w-3" strokeWidth={2} /> {parentExp.statusText}
+                            </span>
+                          )}
+
+                          {/* 🆕 Sub-item badge — แสดงเมื่อมี seat ใกล้หมดอายุ */}
+                          {expiringSeats.length > 0 && (
+                            <span
+                              className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-200 cursor-help"
+                              title={expiringSeats.map(s => `• ${s.label}: ${s.date} (${s.status.statusText})`).join('\n')}
+                            >
+                              ⚠ มี {expiringSeats.length} รายการย่อยใกล้หมด
+                            </span>
+                          )}
+                        </>
+                      );
                     })()}
                   </div>
                 </td>

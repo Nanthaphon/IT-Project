@@ -2,7 +2,7 @@ import React from 'react';
 import { Inbox, User, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
-import ConditionCapture from './ConditionCapture.jsx';
+import AssetAssessmentSection from './AssetAssessmentSection.jsx';
 
 export default function ReturnModal({
   returnModal, setReturnModal, returnCondition, setReturnCondition,
@@ -20,15 +20,14 @@ export default function ReturnModal({
   };
 
   const submitClass = isLicense || returnCondition === 'good'
-    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md focus:ring-emerald-200'
-    : 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm hover:shadow-md focus:ring-rose-200';
+    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm focus:ring-emerald-200'
+    : 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm focus:ring-rose-200';
 
   return (
     <Modal open={returnModal.isOpen} onClose={close} size="md">
       <ModalHeader
         icon={Inbox}
-        title={isLicense ? 'ยืนยันการรับคืนสิทธิ์' : 'ยืนยันการรับคืนอุปกรณ์'}
-        subtitle="ตรวจสอบข้อมูลและระบุสภาพก่อนยืนยัน"
+        title="รับคืน"
         onClose={close}
       />
       <form onSubmit={handleConfirmReturn} className="flex flex-col flex-1 overflow-hidden">
@@ -69,7 +68,7 @@ export default function ReturnModal({
                 />
               </div>
 
-              <div className={`transition-all duration-300 overflow-hidden ${returnCondition === 'broken' ? 'max-h-[220px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+              <div className={`transition-colors overflow-hidden ${returnCondition === 'broken' ? 'max-h-[220px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
                 <label className="block text-[14px] font-medium text-slate-600 mb-1.5">
                   หมายเหตุ <span className="text-rose-500">*</span>
                 </label>
@@ -98,23 +97,31 @@ export default function ReturnModal({
             </div>
           )}
 
-          {/* Condition Capture — เฉพาะ assets หลัก (notebook/computer) เท่านั้น
-              accessories ใช้แค่ toggle "ปกติ / ชำรุด" ด้านบนพอ ไม่ต้อง 100-point checklist */}
+          {/* 🆕 100-point checklist ตอนรับคืน — เก็บสภาพหลังใช้งาน + ใช้พิมพ์ใบรับคืน */}
           {!isLicense && !isAccessory && returnConditionData && setReturnConditionData && (
-            <ConditionCapture
-              mode="return"
-              fields={returnConditionData.fields}
-              setFields={(fields) => setReturnConditionData({ ...returnConditionData, fields })}
-              notes={returnConditionData.notes}
-              setNotes={(notes) => setReturnConditionData({ ...returnConditionData, notes })}
-            />
+            <div className="border-t border-slate-200 pt-4">
+              <AssetAssessmentSection
+                assessment={returnConditionData.assessment || {}}
+                setAssessment={(fnOrValue) => {
+                  const next = typeof fnOrValue === 'function' ? fnOrValue(returnConditionData.assessment || {}) : fnOrValue;
+                  setReturnConditionData({ ...returnConditionData, assessment: next });
+                }}
+                photos={returnConditionData.photos || {}}
+                setPhotos={(fnOrValue) => {
+                  const next = typeof fnOrValue === 'function' ? fnOrValue(returnConditionData.photos || {}) : fnOrValue;
+                  setReturnConditionData({ ...returnConditionData, photos: next });
+                }}
+                defectsNote={returnConditionData.defectsNote || ''}
+                setDefectsNote={(val) => setReturnConditionData({ ...returnConditionData, defectsNote: val })}
+              />
+            </div>
           )}
         </ModalBody>
         <ModalFooter>
           <Button variant="secondary" onClick={close}>ยกเลิก</Button>
           <button
             type="submit"
-            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-0 ${submitClass}`}
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 ${submitClass}`}
           >
             ยืนยันการรับคืน
           </button>
@@ -142,7 +149,7 @@ function ConditionOption({ selected, onClick, Icon, color, title, description })
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-start gap-3 p-4 rounded-xl ring-1 ring-inset transition-all text-left
+      className={`w-full flex items-start gap-3 p-4 rounded-xl ring-1 ring-inset transition-colors text-left
         ${selected ? colorMap.selectedBg + ' ring-2' : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'}`}
     >
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${selected ? colorMap.iconBg : 'bg-slate-100 text-slate-400'}`}>

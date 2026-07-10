@@ -27,9 +27,9 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -66,7 +66,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
               onMouseEnter={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primaryDark)}
               onMouseLeave={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primary)}

@@ -7,7 +7,7 @@ import {
 } from '../utils/printHandoverForm.js';
 import { DAMAGE_FEE_TABLE } from '../utils/printHandoverForm.js';
 import { RETURN_PHOTO_SLOTS, DAMAGE_PHOTO_SLOTS, printReturnForm } from '../utils/printReturnForm.js';
-import { compressImages } from '../utils/compressImage.js';
+import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
 import { migrateFields } from './ConditionCapture.jsx';
 
 /* ── Pre-fill 18 sub-items จาก 6 หมวด in-app
@@ -74,17 +74,25 @@ export default function PreReturnAssessmentModal({
   // ── ซอฟต์แวร์ / License + อุปกรณ์เสริม (ใบรับคืนรวม — empty array = ไม่มีหรือไม่ส่ง) ──
   empLicenses   = [],
   empAccessories = [],
+  // 🆕 100-point assessment + photos + defects note จาก transaction (pre-fill)
+  checkoutAssessment  = null,
+  checkoutPhotos      = null,
+  checkoutDefectsNote = '',
+  returnAssessment    = null,
+  returnPhotos        = null,
+  returnDefectsNote   = '',
 }) {
+  // 🆕 Priority: 100-point assessment > 6-field mapping > empty
   const [assessmentReturn,   setAssessmentReturn]   = useState(() =>
-    presetAssessment || inAppFieldsToAssessment(inAppFieldsReturn)
+    returnAssessment || presetAssessment || inAppFieldsToAssessment(inAppFieldsReturn)
   );
   const [assessmentHandover, setAssessmentHandover] = useState(() =>
-    inAppFieldsToAssessment(inAppFieldsHandover)
+    checkoutAssessment || inAppFieldsToAssessment(inAppFieldsHandover)
   );
-  // เปิดแท็บ "ขา 1" อัตโนมัติถ้ามีข้อมูล in-app ของ handover
-  const [showHandover, setShowHandover] = useState(!!inAppFieldsHandover);
-  const [photosReturn, setPhotosReturn] = useState({});
-  const [photosDamage, setPhotosDamage] = useState({});
+  // เปิดแท็บ "ขา 1" อัตโนมัติถ้ามีข้อมูลของ handover
+  const [showHandover, setShowHandover] = useState(!!(checkoutAssessment || inAppFieldsHandover));
+  const [photosReturn, setPhotosReturn] = useState(() => returnPhotos || {});
+  const [photosDamage, setPhotosDamage] = useState(() => checkoutPhotos || {});
   const [damages, setDamages] = useState([]); // [{ name, fee }]
   const [notes, setNotes] = useState('');
   const [tier, setTier] = useState(mainAsset?.tier || 'General');
@@ -95,6 +103,8 @@ export default function PreReturnAssessmentModal({
   const [editableReturnDate, setEditableReturnDate] = useState(
     returnDate ? new Date(returnDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
   );
+  // 🆕 รวม License + อุปกรณ์เสริมในใบรับคืนหรือไม่ (default = ไม่รวม — กรณีเปลี่ยนเฉพาะเครื่อง)
+  const [includeHoldings, setIncludeHoldings] = useState(false);
 
   if (!isOpen) return null;
 
@@ -140,14 +150,15 @@ export default function PreReturnAssessmentModal({
       assessmentHandover: showHandover ? assessmentHandover : null,
       photosReturn, photosDamage,
       damages, notes, tier,
-      empLicenses, empAccessories,
+      empLicenses:    includeHoldings ? empLicenses    : [],
+      empAccessories: includeHoldings ? empAccessories : [],
     });
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-5xl max-h-[92vh] flex flex-col ring-1 ring-slate-200/60 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[80]">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-5xl max-h-[92vh] flex flex-col ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100 shrink-0">
@@ -371,10 +382,25 @@ export default function PreReturnAssessmentModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0 gap-3">
-          <div className="text-[12.5px] text-slate-500">
-            แนบรูปทั่วไป <b>{Object.keys(photosReturn).length}/6</b> · ความเสียหาย <b>{Object.keys(photosDamage).length}/4</b>
-            &nbsp;·&nbsp; ค่าปรับรวม <b className="text-rose-600">{Number(totalFee).toLocaleString('th-TH')} ฿</b>
+        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0 gap-3 flex-wrap">
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[12.5px] text-slate-500">
+              แนบรูปทั่วไป <b>{Object.keys(photosReturn).length}/6</b> · ความเสียหาย <b>{Object.keys(photosDamage).length}/4</b>
+              &nbsp;·&nbsp; ค่าปรับรวม <b className="text-rose-600">{Number(totalFee).toLocaleString('th-TH')} ฿</b>
+            </div>
+            {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
+            {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
+              <label className="flex items-center gap-1.5 text-[12px] text-slate-600 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeHoldings}
+                  onChange={(e) => setIncludeHoldings(e.target.checked)}
+                  className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 focus:ring-[#1E487A]/30"
+                />
+                รวม License/อุปกรณ์เสริมในใบนี้
+                <span className="text-slate-400">({(empLicenses?.length || 0) + (empAccessories?.length || 0)} รายการ)</span>
+              </label>
+            )}
           </div>
           <div className="flex gap-2.5">
             <button onClick={onClose} className="px-5 py-2.5 text-[14px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
@@ -382,7 +408,7 @@ export default function PreReturnAssessmentModal({
             </button>
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white rounded-lg shadow-sm hover:shadow-md transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white rounded-lg shadow-sm transition"
               style={{ background: '#1E487A', boxShadow: '0 4px 14px rgba(30,72,122,0.30)' }}
             >
               <Printer className="h-4 w-4" strokeWidth={2.2} />
@@ -497,8 +523,9 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
     if (!file) return;
     setUploading(true);
     try {
-      const compressed = await compressImages([file]);
-      onUpload(compressed[0]);
+      // 🆕 upload ไป Firebase Storage → save เฉพาะ URL
+      const url = await compressAndUploadPhoto(file, 'assessment-photos');
+      if (url) onUpload(url);
     } catch (err) {
       console.error('Compress image failed:', err);
     } finally {

@@ -106,7 +106,7 @@ export default function EditEmpModal({
                   autoComplete="off"
                 />
                 {isManagerDropdownOpen && (
-                  <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 max-h-56 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 max-h-56 overflow-y-auto">
                     {employees.filter(emp =>
                       emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
                       emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())

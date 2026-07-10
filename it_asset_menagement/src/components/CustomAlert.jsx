@@ -8,9 +8,9 @@ export default function CustomAlert({ customAlert, setCustomAlert }) {
   const close = () => setCustomAlert({ ...customAlert, isOpen: false });
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[90]" onClick={close}>
+    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={close}>
       <div
-        className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -26,7 +26,7 @@ export default function CustomAlert({ customAlert, setCustomAlert }) {
         <p className="text-[15px] text-slate-500 mb-7 whitespace-pre-line leading-relaxed">{customAlert.message}</p>
         <button
           onClick={close}
-          className={`w-full py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md ${
+          className={`w-full py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm ${
             isError ? 'bg-rose-600 hover:bg-rose-700' : ''
           }`}
           style={!isError ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` } : { boxShadow: '0 4px 12px rgba(225,29,72,0.30)' }}

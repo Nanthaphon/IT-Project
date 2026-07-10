@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase.js';
-import { doc, onSnapshot, setDoc, collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
-import { Settings, MessageCircle, Save, ShieldAlert, Wrench, Package, User, Copy, RefreshCw, BookOpen, ChevronDown, AlertTriangle, Lightbulb, Server, Key } from 'lucide-react';
+import { doc, onSnapshot, setDoc, collection, query, orderBy, limit, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { Settings, MessageCircle, Save, ShieldAlert, Wrench, Package, User, Copy, RefreshCw, AlertTriangle, Trash2, CheckCircle2 } from 'lucide-react';
 import { cls, BRAND } from '../ui/theme.js';
 
 export default function SystemSettingsPage({ isSuperAdmin = false }) {
   const [itLineUserId, setItLineUserId] = useState('');
   const [hrLineUserId, setHrLineUserId] = useState('');
   const [recentUsers, setRecentUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState('');   // 🆕 search "ผู้ใช้ LINE ล่าสุด"
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // 🆕 Modal สำหรับยืนยันการลบ
+  const [deleteModal, setDeleteModal] = useState({ open: false, user: null, deleting: false, error: '' });
 
   /* ── โหลดค่าจาก Firestore ── */
   useEffect(() => {
@@ -28,7 +31,8 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
 
   /* ── โหลด LINE users ล่าสุด (ที่บอตเคยเจอ) ── */
   useEffect(() => {
-    const q = query(collection(db, 'line_users'), orderBy('lastSeen', 'desc'), limit(10));
+    // 🆕 เพิ่มลิมิตเป็น 100 (เดิม 10 น้อยเกินไป ทำให้ user บางคนไม่แสดง)
+    const q = query(collection(db, 'line_users'), orderBy('lastSeen', 'desc'), limit(100));
     const unsub = onSnapshot(q, (snap) => {
       setRecentUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
@@ -41,12 +45,22 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
     setError('');
     setSuccess('');
 
-    const it = itLineUserId.trim();
-    const hr = hrLineUserId.trim();
-    // LINE userId รูปแบบ: ขึ้นต้นด้วย U ตามด้วย hex 32 ตัว
+    // 🆕 รองรับหลาย ID (คั่นด้วย newline หรือ ",")
     const lineIdRe = /^U[0-9a-f]{32}$/i;
-    if (it && !lineIdRe.test(it)) { setError('รูปแบบ IT LINE User ID ไม่ถูกต้อง (ต้องขึ้นต้นด้วย U + 32 ตัวอักษร)'); return; }
-    if (hr && !lineIdRe.test(hr)) { setError('รูปแบบ HR LINE User ID ไม่ถูกต้อง (ต้องขึ้นต้นด้วย U + 32 ตัวอักษร)'); return; }
+    const splitAndClean = (raw) => String(raw || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+    const itList = splitAndClean(itLineUserId);
+    const hrList = splitAndClean(hrLineUserId);
+
+    // Validate ทุก ID ในลิสต์
+    for (const id of itList) {
+      if (!lineIdRe.test(id)) { setError(`IT: รูปแบบ User ID "${id}" ไม่ถูกต้อง (ต้องขึ้นต้นด้วย U + 32 ตัวอักษร)`); return; }
+    }
+    for (const id of hrList) {
+      if (!lineIdRe.test(id)) { setError(`HR: รูปแบบ User ID "${id}" ไม่ถูกต้อง (ต้องขึ้นต้นด้วย U + 32 ตัวอักษร)`); return; }
+    }
+    // Dedupe ในแต่ละกลุ่ม
+    const it = [...new Set(itList)].join('\n');
+    const hr = [...new Set(hrList)].join('\n');
 
     setSaving(true);
     try {
@@ -65,6 +79,22 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
   }
 
   const copy = (text) => { navigator.clipboard?.writeText(text); };
+
+  // 🆕 ลบ user ออกจากรายการ "ผู้ใช้ LINE ล่าสุด"
+  const openDeleteModal = (user) => {
+    setDeleteModal({ open: true, user, deleting: false, error: '' });
+  };
+  const confirmDeleteLineUser = async () => {
+    if (!deleteModal.user) return;
+    setDeleteModal(m => ({ ...m, deleting: true, error: '' }));
+    try {
+      await deleteDoc(doc(db, 'line_users', deleteModal.user.userId));
+      setDeleteModal({ open: false, user: null, deleting: false, error: '' });
+    } catch (err) {
+      console.error('Delete line_user failed:', err);
+      setDeleteModal(m => ({ ...m, deleting: false, error: err.message || 'ลบไม่สำเร็จ' }));
+    }
+  };
 
   /* ── ผู้ที่ไม่ใช่ SuperAdmin — ไม่อนุญาต ── */
   if (!isSuperAdmin) {
@@ -136,16 +166,18 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
                 LINE User ID ฝ่าย IT
               </span>
             </label>
-            <input
-              type="text"
-              className={cls.inputMono}
-              placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            <textarea
+              className={cls.inputMono + ' min-h-[80px] resize-y'}
+              placeholder={`Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nUyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy`}
               value={itLineUserId}
               onChange={e => setItLineUserId(e.target.value)}
               spellCheck={false}
+              rows={3}
             />
             <p className="text-[12px] text-slate-400 mt-1">
               รับแจ้งเตือน: แจ้งซ่อม / ปัญหา IT, ขอเปลี่ยนเครื่อง, License ใกล้หมดอายุ
+              <br />
+              💡 <span className="font-medium">แจ้งได้หลายคน</span> — ใส่ 1 User ID ต่อบรรทัด (หรือคั่นด้วยเครื่องหมาย ",")
             </p>
           </div>
 
@@ -157,16 +189,18 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
                 LINE User ID ฝ่าย HR
               </span>
             </label>
-            <input
-              type="text"
-              className={cls.inputMono}
-              placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            <textarea
+              className={cls.inputMono + ' min-h-[80px] resize-y'}
+              placeholder={`Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nUyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy`}
               value={hrLineUserId}
               onChange={e => setHrLineUserId(e.target.value)}
               spellCheck={false}
+              rows={3}
             />
             <p className="text-[12px] text-slate-400 mt-1">
               รับแจ้งเตือน: คำขอเบิกอุปกรณ์สำนักงาน
+              <br />
+              💡 <span className="font-medium">แจ้งได้หลายคน</span> — ใส่ 1 User ID ต่อบรรทัด (หรือคั่นด้วยเครื่องหมาย ",")
             </p>
           </div>
 
@@ -207,21 +241,47 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
       </form>
 
       {/* ── Recent LINE users ── */}
+      {(() => {
+        // 🆕 filter ด้วย search term (ชื่อ หรือ User ID)
+        const term = userSearch.trim().toLowerCase();
+        const filteredUsers = term
+          ? recentUsers.filter(u =>
+              (u.displayName || '').toLowerCase().includes(term) ||
+              (u.userId || '').toLowerCase().includes(term)
+            )
+          : recentUsers;
+        return (
       <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2.5">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2.5 flex-wrap">
           <User className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
           <h2 className="text-[15px] font-bold text-slate-800">ผู้ใช้ LINE ล่าสุด</h2>
-          <span className="ml-auto text-[12px] text-slate-400">{recentUsers.length} คน</span>
+          <span className="text-[12px] text-slate-400">
+            {term ? `${filteredUsers.length}/${recentUsers.length}` : recentUsers.length} คน
+          </span>
+          {recentUsers.length > 3 && (
+            <input
+              type="text"
+              placeholder="🔍 ค้นหาชื่อ/User ID..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              className="ml-auto w-full sm:w-64 px-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+            />
+          )}
         </div>
-        {recentUsers.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <div className="px-6 py-12 text-center text-[14px] text-slate-400">
             <RefreshCw className="h-5 w-5 mx-auto mb-2 opacity-50" strokeWidth={1.6} />
-            ยังไม่มีผู้ใช้ LINE ใดส่งข้อความเข้ามา<br />
-            <span className="text-[12.5px]">เพิ่มบอตเป็นเพื่อนและส่งข้อความ "hello" จะปรากฏที่นี่</span>
+            {term ? (
+              <>ไม่พบผู้ใช้ที่ตรงกับ "<span className="font-semibold text-slate-500">{term}</span>"</>
+            ) : (
+              <>ยังไม่มีผู้ใช้ LINE ใดส่งข้อความเข้ามา<br />
+                <span className="text-[12.5px]">เพิ่มบอตเป็นเพื่อนและส่งข้อความ "hello" จะปรากฏที่นี่</span>
+              </>
+            )}
           </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {recentUsers.map(u => (
+          <ul className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+            {filteredUsers.map(u => (
               <li key={u.id} className="px-6 py-3.5 flex items-center gap-3 hover:bg-slate-50/60 transition-colors">
                 {u.pictureUrl ? (
                   <img src={u.pictureUrl} alt={u.displayName} className="w-10 h-10 rounded-full ring-1 ring-slate-200 object-cover" />
@@ -244,288 +304,201 @@ export default function SystemSettingsPage({ isSuperAdmin = false }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setItLineUserId(u.userId)}
+                  onClick={() => {
+                    // 🆕 เพิ่มต่อลิสต์ IT (ถ้ายังไม่มี)
+                    const existing = new Set(String(itLineUserId || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean));
+                    if (existing.has(u.userId)) return;
+                    existing.add(u.userId);
+                    setItLineUserId([...existing].join('\n'));
+                  }}
                   className="px-2.5 py-1.5 text-[12px] font-medium text-[#1E487A] rounded-lg ring-1 ring-[#1E487A]/30 hover:bg-[#1E487A]/5 transition-colors"
-                  title="ตั้งเป็น IT"
+                  title="เพิ่มเข้าลิสต์ IT"
                 >
-                  → IT
+                  + IT
                 </button>
                 <button
                   type="button"
-                  onClick={() => setHrLineUserId(u.userId)}
+                  onClick={() => {
+                    // 🆕 เพิ่มต่อลิสต์ HR (ถ้ายังไม่มี)
+                    const existing = new Set(String(hrLineUserId || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean));
+                    if (existing.has(u.userId)) return;
+                    existing.add(u.userId);
+                    setHrLineUserId([...existing].join('\n'));
+                  }}
                   className="px-2.5 py-1.5 text-[12px] font-medium text-emerald-700 rounded-lg ring-1 ring-emerald-300 hover:bg-emerald-50 transition-colors"
-                  title="ตั้งเป็น HR"
+                  title="เพิ่มเข้าลิสต์ HR"
                 >
-                  → HR
+                  + HR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openDeleteModal(u)}
+                  className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors flex items-center justify-center"
+                  title="ลบรายการนี้"
+                >
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
               </li>
             ))}
           </ul>
         )}
       </div>
+        );
+      })()}
 
-      {/* ══════════════════════════════════════════════════════════════
-          📖 คู่มือสำหรับผู้ดูแลระบบ — เผื่อ IT คนใหม่มาทำต่อ
-          ══════════════════════════════════════════════════════════════ */}
-      <ManualSection />
-    </div>
-  );
-}
+      {/* ── คู่มือสั้น ๆ สำหรับพนักงานที่อยากรับแจ้งเตือนผ่าน LINE ── */}
+      <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#EFF6FF', color: BRAND.primary }}>
+            <MessageCircle className="h-3.5 w-3.5" strokeWidth={2.2} />
+          </div>
+          <p className="text-[14px] font-bold text-slate-800 tracking-tight">วิธีให้พนักงานรับแจ้งเตือนผ่าน LINE</p>
+        </div>
 
-/* ───────────────────────────────────────────────────────────────────
-   คู่มือ — เก็บไว้ใน component เดียวกัน อ่านง่าย ไม่กระจาย
-   แบ่งเป็น accordion 5 หัวข้อ — ขยายทีละหัวข้อตาม use case
-   ─────────────────────────────────────────────────────────────────── */
-function ManualSection() {
-  const [openId, setOpenId] = useState(null);
-  const toggle = (id) => setOpenId(prev => prev === id ? null : id);
-
-  const items = [
-    {
-      id: 'overview',
-      icon: Lightbulb,
-      title: 'ภาพรวมระบบแจ้งเตือน',
-      color: 'amber',
-      content: (
-        <div className="space-y-3 text-[13.5px] text-slate-700 leading-relaxed">
-          <p>ระบบส่งแจ้งเตือนผ่าน <strong>LINE Official Account</strong> (ชื่อปัจจุบัน: <code className="px-1.5 py-0.5 bg-slate-100 rounded text-[12.5px]">GB-ANEK</code>) — ไม่ใช้ email อีกต่อไป</p>
-          <div className="bg-slate-50 rounded-lg p-3.5 ring-1 ring-slate-200 space-y-2">
-            <p className="font-semibold text-slate-800">เหตุการณ์ที่ระบบส่ง LINE:</p>
-            <ul className="space-y-1.5 pl-4 list-disc text-slate-600">
-              <li><strong>แจ้งซ่อม / ปัญหา IT</strong> → ส่งหา <span className="text-[#1E487A] font-semibold">IT</span></li>
-              <li><strong>ขอเปลี่ยนเครื่อง</strong> → ส่งหา <span className="text-[#1E487A] font-semibold">IT</span></li>
-              <li><strong>License ใกล้หมดอายุ</strong> → ส่งหา <span className="text-[#1E487A] font-semibold">IT</span></li>
-              <li><strong>ขอเบิกอุปกรณ์สำนักงาน</strong> → ส่งหา <span className="text-emerald-700 font-semibold">HR</span></li>
-            </ul>
-          </div>
-          <p className="text-[12.5px] text-slate-500">
-            * Free tier ของ LINE OA = <strong>200 ข้อความ/เดือน</strong> เพียงพอสำหรับใช้ภายในบริษัท
-          </p>
-        </div>
-      ),
-    },
-    {
-      id: 'add-recipient',
-      icon: User,
-      title: 'วิธีเพิ่ม / เปลี่ยนผู้รับแจ้งเตือน (IT หรือ HR)',
-      color: 'blue',
-      content: (
-        <div className="space-y-4 text-[13.5px] text-slate-700 leading-relaxed">
-          <p>เมื่อมีพนักงานใหม่มารับหน้าที่ IT หรือ HR ทำตามนี้:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="bg-blue-50/40 ring-1 ring-blue-200 rounded-xl p-4 space-y-2">
-              <p className="font-bold text-[#1E487A] flex items-center gap-1.5"><User className="h-3.5 w-3.5" />ขั้นที่ 1: ผู้รับทำเอง</p>
-              <ol className="text-[13px] space-y-1.5 pl-5 list-decimal text-slate-600">
-                <li>เปิด LINE มือถือ</li>
-                <li>ค้นหาเพื่อน <code className="px-1 bg-white rounded">GB-ANEK</code> (หรือเพิ่มเป็นเพื่อนถ้ายังไม่มี)</li>
-                <li>พิมพ์คำว่า <code className="px-1.5 py-0.5 bg-white rounded font-semibold">userid</code> แล้วส่ง</li>
-                <li>บอตจะตอบกลับด้วย <strong>User ID</strong> ของผู้รับ</li>
-              </ol>
+        <ol className="px-5 py-5 space-y-3">
+          <li className="flex gap-3">
+            <span className="w-6 h-6 rounded-full bg-[#1E487A] text-white text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
+            <div className="flex-1">
+              <p className="text-[13.5px] text-slate-700">
+                <span className="font-semibold">เพิ่มบอท LINE</span> ของบริษัทเป็นเพื่อน
+                <span className="text-slate-500"> (LINE Official Account: <code className="px-1.5 py-0.5 bg-slate-100 rounded text-[12px] font-mono">GB-ANEK</code>)</span>
+              </p>
             </div>
-            <div className="bg-emerald-50/40 ring-1 ring-emerald-200 rounded-xl p-4 space-y-2">
-              <p className="font-bold text-emerald-700 flex items-center gap-1.5"><Settings className="h-3.5 w-3.5" />ขั้นที่ 2: Admin ตั้งใน "ตั้งค่าระบบ"</p>
-              <ol className="text-[13px] space-y-1.5 pl-5 list-decimal text-slate-600">
-                <li>เลื่อนลงไปที่ <strong>"ผู้ใช้ LINE ล่าสุด"</strong> ด้านบน</li>
-                <li>หาชื่อผู้รับใหม่ในรายการ</li>
-                <li>กดปุ่ม <span className="px-1.5 py-0.5 rounded text-[#1E487A] ring-1 ring-[#1E487A]/30 text-[11px] font-semibold">→ IT</span> หรือ <span className="px-1.5 py-0.5 rounded text-emerald-700 ring-1 ring-emerald-300 text-[11px] font-semibold">→ HR</span></li>
-                <li>กด <strong>"บันทึกการตั้งค่า"</strong></li>
-              </ol>
+          </li>
+          <li className="flex gap-3">
+            <span className="w-6 h-6 rounded-full bg-[#1E487A] text-white text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
+            <div className="flex-1">
+              <p className="text-[13.5px] text-slate-700">
+                ในแชต พิมพ์คำว่า <code className="px-1.5 py-0.5 bg-slate-100 rounded text-[12px] font-mono font-bold">userid</code> แล้วส่ง
+              </p>
             </div>
-          </div>
-          <div className="bg-amber-50/50 ring-1 ring-amber-200 rounded-lg p-3 text-[12.5px] text-amber-900">
-            💡 <strong>Tip:</strong> ผู้รับใหม่ไม่ต้องส่ง User ID ให้ admin ด้วยตัวเอง — แค่พิมพ์ <code>userid</code> หาบอต ระบบจะ capture ไว้อัตโนมัติ admin เปิดหน้านี้แล้วเห็นชื่อ + รูปเลย
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 'test',
-      icon: RefreshCw,
-      title: 'วิธีทดสอบว่าระบบส่ง LINE ได้',
-      color: 'emerald',
-      content: (
-        <div className="space-y-3 text-[13.5px] text-slate-700 leading-relaxed">
-          <ol className="space-y-2 pl-5 list-decimal">
-            <li>ตั้ง User ID ของตัวเอง (admin) เป็น IT ก่อน (ไว้รับ test message)</li>
-            <li>Logout ออกจาก admin → Login เป็น <strong>staff</strong> (ใช้รหัสพนักงาน)</li>
-            <li>กดเมนู <strong>"แจ้งซ่อม"</strong> → กรอกข้อมูลทดสอบ → กดส่ง</li>
-            <li>เปิด LINE มือถือ → ต้องมี notification เด้งภายใน 2-3 วินาที</li>
-          </ol>
-          <div className="bg-slate-50 rounded-lg p-3 ring-1 ring-slate-200 text-[12.5px] text-slate-600">
-            <strong>ถ้าไม่ได้รับ notification:</strong>
-            <ul className="space-y-1 pl-4 list-disc mt-1.5">
-              <li>เช็คว่าตั้ง User ID ถูกในช่อง IT แล้ว</li>
-              <li>เช็คว่า User ID ตรงกับของพี่แมนเอง (เปรียบเทียบกับ "ผู้ใช้ LINE ล่าสุด")</li>
-              <li>เช็คว่า LINE OA ยัง enabled อยู่ (ไม่ถูกระงับ)</li>
-              <li>เช็คว่า quota รายเดือนยังเหลือ (LINE OA Manager → Statistics)</li>
-            </ul>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 'architecture',
-      icon: Server,
-      title: 'สถาปัตยกรรมระบบ (สำหรับ IT)',
-      color: 'slate',
-      content: (
-        <div className="space-y-3 text-[13.5px] text-slate-700 leading-relaxed">
-          <p>ระบบแบ่งเป็น 3 ส่วน:</p>
-          <div className="grid grid-cols-1 gap-2.5">
-            <div className="bg-white ring-1 ring-slate-200 rounded-lg p-3">
-              <p className="font-bold text-[#1E487A] text-[13px]">1. Frontend — Firebase Hosting</p>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">URL: <code>https://it-asset-management-dc883.web.app</code></p>
-              <p className="text-[12px] text-slate-500 mt-1">เป็น React app static — deploy ด้วยคำสั่ง <code className="bg-slate-100 px-1 rounded">firebase deploy --only hosting</code></p>
+          </li>
+          <li className="flex gap-3">
+            <span className="w-6 h-6 rounded-full bg-[#1E487A] text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
+            <div className="flex-1">
+              <p className="text-[13.5px] text-slate-700">
+                บอทจะตอบกลับด้วย <span className="font-semibold">User ID</span> ของพนักงานคนนั้น
+              </p>
             </div>
-            <div className="bg-white ring-1 ring-slate-200 rounded-lg p-3">
-              <p className="font-bold text-[#1E487A] text-[13px]">2. Backend API — Vercel serverless</p>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">URL: <code>https://itassetmenagement.vercel.app/api/*</code></p>
-              <p className="text-[12px] text-slate-500 mt-1">endpoint ที่เกี่ยวกับ LINE: <code className="bg-slate-100 px-1 rounded">/api/staff-notify</code> (ส่งแจ้ง), <code className="bg-slate-100 px-1 rounded">/api/line-webhook</code> (รับ event)</p>
-              <p className="text-[12px] text-slate-500 mt-1">deploy ด้วย <code className="bg-slate-100 px-1 rounded">vercel --prod</code></p>
+          </li>
+          <li className="flex gap-3">
+            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[12px] font-bold flex items-center justify-center shrink-0">4</span>
+            <div className="flex-1">
+              <p className="text-[13.5px] text-slate-700">
+                ชื่อพนักงานคนนั้นจะปรากฏใน <span className="font-semibold">"ผู้ใช้ LINE ล่าสุด"</span> ด้านบน → กดปุ่ม <span className="text-[#1E487A] font-bold">→ IT</span> หรือ <span className="text-emerald-700 font-bold">→ HR</span> แล้วบันทึก
+              </p>
             </div>
-            <div className="bg-white ring-1 ring-slate-200 rounded-lg p-3">
-              <p className="font-bold text-[#1E487A] text-[13px]">3. LINE OA — Messaging API</p>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">Webhook URL ตั้งที่ LINE Developers Console:</p>
-              <p className="text-[12px] text-slate-500 mt-1"><code className="bg-slate-100 px-1 rounded">https://itassetmenagement.vercel.app/api/line-webhook</code></p>
-            </div>
-          </div>
-          <div className="bg-amber-50/50 ring-1 ring-amber-200 rounded-lg p-3 text-[12.5px] text-amber-900 mt-2">
-            <p className="font-semibold mb-1">⚠️ Environment Variables ที่ต้องตั้งบน Vercel:</p>
-            <ul className="space-y-0.5 pl-4 list-disc">
-              <li><code>LINE_CHANNEL_ACCESS_TOKEN</code> — token จาก LINE Developers Console</li>
-              <li><code>LINE_CHANNEL_SECRET</code> — secret จาก LINE OA Manager</li>
-              <li><code>FIREBASE_SERVICE_ACCOUNT</code> — service account JSON ของ Firebase</li>
-              <li><code>ALLOWED_ORIGINS</code> — URL ของ Frontend (Firebase Hosting)</li>
-            </ul>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 'troubleshoot',
-      icon: AlertTriangle,
-      title: 'แก้ปัญหาที่พบบ่อย',
-      color: 'rose',
-      content: (
-        <div className="space-y-3 text-[13.5px] text-slate-700 leading-relaxed">
-          <div className="space-y-2.5">
-            <div className="bg-white ring-1 ring-slate-200 rounded-lg p-3">
-              <p className="font-bold text-rose-700 text-[13px]">❌ ส่ง notification ไม่สำเร็จ — ขึ้น "บันทึกแล้ว แต่ส่ง LINE ไม่สำเร็จ"</p>
-              <p className="text-[12.5px] text-slate-600 mt-1.5">สาเหตุที่เป็นไปได้:</p>
-              <ul className="text-[12.5px] text-slate-600 mt-1 pl-4 list-disc space-y-1">
-                <li><strong>HTTP 401:</strong> Channel Access Token หมดอายุ → re-issue ที่ LINE Developers Console แล้วอัปเดต env var บน Vercel</li>
-                <li><strong>HTTP 400:</strong> User ID ผิด → ตรวจในช่อง IT/HR ว่าตรงกับใน "ผู้ใช้ LINE ล่าสุด"</li>
-                <li><strong>HTTP 429:</strong> quota หมด — upgrade plan ของ LINE OA หรือรอเดือนใหม่</li>
-              </ul>
-            </div>
-            <div className="bg-white ring-1 ring-slate-200 rounded-lg p-3">
-              <p className="font-bold text-rose-700 text-[13px]">❌ "ผู้ใช้ LINE ล่าสุด" ไม่ขึ้นชื่อ ทั้งที่ส่ง userid แล้ว</p>
-              <p className="text-[12.5px] text-slate-600 mt-1.5">สาเหตุที่เป็นไปได้:</p>
-              <ul className="text-[12.5px] text-slate-600 mt-1 pl-4 list-disc space-y-1">
-                <li>Webhook URL ที่ LINE Developers Console ตั้งผิด → ต้องเป็น <code className="bg-slate-100 px-1 rounded text-[11.5px]">https://itassetmenagement.vercel.app/api/line-webhook</code></li>
-                <li>"Use webhook" switch ที่ LINE Developers Console ไม่ ON</li>
-                <li>กด "Verify" ที่ Webhook URL → ดู error ที่ขึ้น</li>
-              </ul>
-            </div>
-            <div className="bg-white ring-1 ring-slate-200 rounded-lg p-3">
-              <p className="font-bold text-rose-700 text-[13px]">❌ บอตไม่ตอบเมื่อพิมพ์ "userid"</p>
-              <p className="text-[12.5px] text-slate-600 mt-1.5">สาเหตุที่เป็นไปได้:</p>
-              <ul className="text-[12.5px] text-slate-600 mt-1 pl-4 list-disc space-y-1">
-                <li>LINE OA Manager → Response settings → <strong>Webhooks switch</strong> ไม่ ON</li>
-                <li>Webhook URL ที่ LINE Developers Console ผิด</li>
-                <li>Vercel function down (ดู logs ที่ <code className="bg-slate-100 px-1 rounded">vercel logs</code>)</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 'keys',
-      icon: Key,
-      title: 'ขอสิทธิ์เข้าถึงระบบ (สำหรับ IT คนใหม่)',
-      color: 'violet',
-      content: (
-        <div className="space-y-3 text-[13.5px] text-slate-700 leading-relaxed">
-          <p>เมื่อ IT คนใหม่มารับช่วงต่อ — ต้องขอสิทธิ์เข้าถึง:</p>
-          <ol className="space-y-2 pl-5 list-decimal">
-            <li>
-              <strong>Firebase Project</strong>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">Project: <code>it-asset-management-dc883</code> — เพิ่ม Google account เป็น Editor ที่ Firebase Console → Settings → Users and permissions</p>
-            </li>
-            <li>
-              <strong>Vercel Project</strong>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">Project: <code>it_asset_menagement</code> — เพิ่ม member ที่ Vercel Dashboard → Team Settings → Members</p>
-            </li>
-            <li>
-              <strong>LINE Developers Console</strong>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">Provider: <code>GB-MESSENGE</code> — Channel: <code>GB-ANEK</code> → เพิ่ม email เป็น Admin role ที่ tab "Roles"</p>
-            </li>
-            <li>
-              <strong>LINE OA Manager</strong>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">เพิ่ม account ที่ Settings → Manage permissions → เพิ่ม admin/operator</p>
-            </li>
-            <li>
-              <strong>GitHub / Code Repository</strong>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">ขอสิทธิ์ที่ owner ของ repo</p>
-            </li>
-          </ol>
-          <div className="bg-amber-50/50 ring-1 ring-amber-200 rounded-lg p-3 text-[12.5px] text-amber-900">
-            🔐 <strong>เพิ่มเติม:</strong> หลังโอนสิทธิ์ — ผู้รับช่วงควร <strong>re-issue Channel Access Token</strong> และ <strong>regenerate Channel Secret</strong> ใหม่ทันที (เพื่อตัดสิทธิ์ token เก่าที่อาจรั่วไหล)
-          </div>
-        </div>
-      ),
-    },
-  ];
-
-  const colorMap = {
-    amber:   { bg: 'bg-amber-50/50',   ring: 'ring-amber-200',   text: 'text-amber-700',   iconBg: 'bg-amber-100' },
-    blue:    { bg: 'bg-blue-50/50',    ring: 'ring-blue-200',    text: 'text-blue-700',    iconBg: 'bg-blue-100' },
-    emerald: { bg: 'bg-emerald-50/50', ring: 'ring-emerald-200', text: 'text-emerald-700', iconBg: 'bg-emerald-100' },
-    slate:   { bg: 'bg-slate-50',      ring: 'ring-slate-200',   text: 'text-slate-700',   iconBg: 'bg-slate-100' },
-    rose:    { bg: 'bg-rose-50/50',    ring: 'ring-rose-200',    text: 'text-rose-700',    iconBg: 'bg-rose-100' },
-    violet:  { bg: 'bg-violet-50/50',  ring: 'ring-violet-200',  text: 'text-violet-700',  iconBg: 'bg-violet-100' },
-  };
-
-  return (
-    <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2.5 bg-gradient-to-r from-slate-50/50 to-transparent">
-        <BookOpen className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
-        <h2 className="text-[15px] font-bold text-slate-800">คู่มือสำหรับผู้ดูแลระบบ</h2>
-        <span className="ml-auto text-[11.5px] text-slate-400 italic">สำหรับ IT คนใหม่</span>
+          </li>
+        </ol>
       </div>
-      <ul className="divide-y divide-slate-100">
-        {items.map(item => {
-          const Icon = item.icon;
-          const isOpen = openId === item.id;
-          const c = colorMap[item.color];
-          return (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => toggle(item.id)}
-                className="w-full px-6 py-4 flex items-center gap-3 hover:bg-slate-50/60 transition-colors text-left"
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.iconBg}`}>
-                  <Icon className={`h-4 w-4 ${c.text}`} strokeWidth={2} />
-                </div>
-                <span className="flex-1 text-[14px] font-semibold text-slate-800">{item.title}</span>
-                <ChevronDown
-                  className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                  strokeWidth={2}
-                />
-              </button>
-              {isOpen && (
-                <div className={`px-6 pb-5 pt-1 ${c.bg} border-t ${c.ring}`}>
-                  <div className="pt-3">
-                    {item.content}
-                  </div>
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+
+      {/* 🆕 Modal ยืนยันการลบ — ดีไซน์สวย */}
+      {deleteModal.open && deleteModal.user && (
+        <DeleteUserModal
+          user={deleteModal.user}
+          deleting={deleteModal.deleting}
+          error={deleteModal.error}
+          onCancel={() => setDeleteModal({ open: false, user: null, deleting: false, error: '' })}
+          onConfirm={confirmDeleteLineUser}
+        />
+      )}
     </div>
   );
 }
+
+/* ────────────────────────────────────────────
+   Delete User Modal — สวยและให้ข้อมูลครบ
+   ──────────────────────────────────────────── */
+function DeleteUserModal({ user, deleting, error, onCancel, onConfirm }) {
+  const displayName = user.displayName || '(ไม่มีชื่อ)';
+  return (
+    <div
+      className="fixed inset-0 bg-slate-950/50 z-[95] flex items-center justify-center p-4"
+      onClick={() => !deleting && onCancel()}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-md max-w-md w-full overflow-hidden ring-1 ring-slate-200/60"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 text-center">
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-rose-50 ring-1 ring-rose-100">
+            <Trash2 className="h-6 w-6 text-rose-500" strokeWidth={2} />
+          </div>
+          <h3 className="text-[17px] font-bold text-slate-800 tracking-tight">ลบรายการออกจากระบบ?</h3>
+          <p className="text-[12.5px] text-slate-500 mt-1">การกระทำนี้ย้อนกลับไม่ได้</p>
+        </div>
+
+        {/* User card */}
+        <div className="px-6 pb-4">
+          <div className="bg-slate-50 ring-1 ring-slate-200 rounded-xl p-3 flex items-center gap-3">
+            {user.pictureUrl ? (
+              <img src={user.pictureUrl} alt={displayName} className="w-10 h-10 rounded-full ring-1 ring-slate-200 object-cover" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-white ring-1 ring-slate-200 flex items-center justify-center text-slate-400">
+                <User className="h-4.5 w-4.5" strokeWidth={1.8} />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[13.5px] font-semibold text-slate-800 truncate">{displayName}</p>
+              <p className="text-[11px] text-slate-400 font-mono truncate">{user.userId}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Impact info — กระทบอะไรบ้าง */}
+        <div className="px-6 pb-4 space-y-2">
+          <div className="bg-emerald-50/60 ring-1 ring-emerald-200 rounded-xl px-3.5 py-3">
+            <p className="text-[11.5px] font-bold text-emerald-700 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+              <CheckCircle2 className="h-3 w-3" strokeWidth={2.4} /> ปลอดภัย
+            </p>
+            <ul className="text-[12.5px] text-emerald-900/85 space-y-1 pl-4 list-disc">
+              <li>ไม่กระทบ User ID ที่ตั้งไว้เป็น IT/HR แล้ว — ยังส่งแจ้งเตือนได้ปกติ</li>
+              <li>ไม่กระทบบัญชี LINE จริง — แค่ลบออกจากรายการแสดงผล</li>
+              <li>ถ้า user คนนี้ส่งข้อความหาบอตอีก จะกลับมาอัตโนมัติ</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="px-6 pb-3">
+            <div className="bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2.5 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" strokeWidth={2} />
+              <p className="text-[12.5px] text-rose-700 font-medium">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2.5">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          >
+            {deleting ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                กำลังลบ...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={2.4} />
+                ยืนยันลบ
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+

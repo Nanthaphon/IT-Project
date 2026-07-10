@@ -3,6 +3,7 @@ import { Pencil, Image as ImageIcon, X as XIcon } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
 export default function EditLicenseModal({
   editLicenseModal,
@@ -15,12 +16,11 @@ export default function EditLicenseModal({
 
   const close = () => setEditLicenseModal({ isOpen: false, data: null });
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: reader.result } }));
-      reader.readAsDataURL(file);
+      const dataUrl = await compressImage(file, ICON_PRESET);
+      setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: dataUrl } }));
     }
   };
 
@@ -122,6 +122,21 @@ export default function EditLicenseModal({
                 </select>
               </Field>
             </div>
+          </section>
+
+          {/* 🆕 หมายเหตุ */}
+          <section className="space-y-4">
+            <SectionHeader>หมายเหตุ / รายละเอียดเพิ่มเติม</SectionHeader>
+            <Field label="หมายเหตุ">
+              <textarea
+                name="note"
+                value={editLicenseModal.data.note || ''}
+                onChange={handleEditLicenseChange}
+                rows={4}
+                placeholder="เช่น: เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ ฯลฯ"
+                className={cls.input + ' resize-none'}
+              />
+            </Field>
           </section>
         </ModalBody>
         <ModalFooter>

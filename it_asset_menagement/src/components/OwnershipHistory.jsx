@@ -10,6 +10,7 @@ import ConditionCapture, {
   CHECKLIST_FIELDS, FIELD_STATUS_LABELS, EMPTY_FIELDS, flattenFields, migrateFields,
 } from './ConditionCapture.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
+import { ASSESSMENT_SECTIONS, PHOTO_SLOTS } from '../utils/printHandoverForm.js';
 
 // helper: คืน label ของสถานะตามฟิลด์ (ถ้าไม่รู้จัก field ใช้ default)
 const labelOf = (fieldKey, value) =>
@@ -131,7 +132,7 @@ export default function OwnershipHistory({
       {viewerImage && (
         <div
           onClick={() => setViewerImage(null)}
-          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/85 z-[100] flex items-center justify-center p-4"
         >
           <button
             onClick={() => setViewerImage(null)}
@@ -228,62 +229,89 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
   const attachmentCount = attachments?.length || 0;
 
   return (
-    <div className={`rounded-xl ring-1 ring-inset overflow-hidden ${
-      isCurrent ? 'ring-[#1E487A]/30 bg-blue-50/40' : damages.length > 0 ? 'ring-rose-200 bg-rose-50/30' : 'ring-slate-200 bg-white'
+    <div className={`rounded-2xl ring-1 overflow-hidden transition-shadow ${
+      isCurrent
+        ? 'ring-[#1E487A]/25 bg-gradient-to-br from-blue-50/70 via-white to-white shadow-sm'
+        : damages.length > 0
+        ? 'ring-rose-200 bg-white'
+        : 'ring-slate-200 bg-white'
     }`}>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 px-4 py-3">
+      {/* Current indicator strip */}
+      {isCurrent && (
+        <div className="h-1 w-full bg-gradient-to-r from-[#1E487A] via-[#2A5896] to-[#1E487A]" />
+      )}
+
+      {/* Header — clickable to expand */}
+      <div
+        className={`flex items-start justify-between gap-3 px-4 py-3.5 ${!expanded ? 'cursor-pointer hover:bg-slate-50/40' : ''}`}
+        onClick={(e) => {
+          if (expanded) return;
+          if (e.target.closest('button')) return;
+          setExpanded(true);
+        }}
+      >
         {/* ── LEFT: Identity + meta ── */}
         <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-            isCurrent ? 'bg-[#1E487A] text-white' : 'bg-slate-100 text-slate-500'
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+            isCurrent
+              ? 'bg-gradient-to-br from-[#1E487A] to-[#163963] text-white'
+              : damages.length > 0
+              ? 'bg-rose-100 text-rose-600'
+              : 'bg-slate-100 text-slate-500'
           }`}>
-            <User className="h-4 w-4" strokeWidth={2} />
+            <User className="h-5 w-5" strokeWidth={2} />
           </div>
           <div className="min-w-0 flex-1">
             {/* Name + current pill */}
-            <p className="text-[14px] font-semibold text-slate-800 truncate flex items-center gap-1.5 flex-wrap">
-              {checkout.empName || '-'}
-              {isCurrent && <span className="text-[11px] font-semibold text-[#1E487A] bg-[#1E487A]/10 px-1.5 py-0.5 rounded">ปัจจุบัน</span>}
-            </p>
-            {/* Date range */}
-            <p className="text-[12px] text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
-              <Calendar className="h-3 w-3" strokeWidth={2} />
-              <span>{fmt(checkout.timestamp)}</span>
-              <ArrowRight className="h-3 w-3 text-slate-400" />
-              <span className={ret ? '' : 'text-[#1E487A] font-semibold'}>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="text-[15px] font-bold text-slate-800 truncate">{checkout.empName || '-'}</p>
+              {isCurrent && (
+                <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-white bg-gradient-to-r from-[#1E487A] to-[#2A5896] px-2 py-0.5 rounded-full shadow-sm">
+                  <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse" />
+                  ปัจจุบัน
+                </span>
+              )}
+            </div>
+
+            {/* Date range — cleaner */}
+            <div className="flex items-center gap-1.5 mt-1 text-[12px] flex-wrap">
+              <Calendar className="h-3 w-3 text-slate-400 shrink-0" strokeWidth={2} />
+              <span className="text-slate-600 font-medium">{fmt(checkout.timestamp)}</span>
+              <ArrowRight className="h-3 w-3 text-slate-300" />
+              <span className={`font-medium ${ret ? 'text-slate-600' : 'text-[#1E487A] font-bold'}`}>
                 {ret ? fmt(ret.timestamp) : 'ปัจจุบัน'}
               </span>
-            </p>
-            {/* Status badges row — Duration + Return-status + Attachment count */}
-            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            </div>
+
+            {/* Status badges row */}
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               {duration && (
-                <span className={`inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-md ring-1 ring-inset ${
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${
                   isCurrent
-                    ? 'bg-[#1E487A]/8 text-[#1E487A] ring-[#1E487A]/20'
+                    ? 'bg-white text-[#1E487A] ring-[#1E487A]/25'
                     : 'bg-slate-50 text-slate-700 ring-slate-200'
                 }`}>
-                  <Clock className="h-3 w-3" strokeWidth={2.4} />
-                  {isCurrent ? 'ครอบครองมาแล้ว' : 'ระยะเวลาใช้งาน'} {duration}
+                  <Clock className="h-2.5 w-2.5" strokeWidth={2.6} />
+                  {isCurrent ? 'ครอบครองมาแล้ว' : 'ใช้งาน'} {duration}
                 </span>
               )}
               {damages.length > 0 && (
-                <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200">
-                  <AlertTriangle className="h-3 w-3" strokeWidth={2.4} /> เสียหาย {damages.length} จุด
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200">
+                  <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} /> เสียหาย {damages.length} จุด
                 </span>
               )}
               {!damages.length && ret && (
-                <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
-                  <CheckCircle2 className="h-3 w-3" strokeWidth={2.4} /> คืนปกติ
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                  <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} /> คืนปกติ
                 </span>
               )}
               {attachmentCount > 0 && (
                 <button
-                  onClick={() => setExpanded(true)}
+                  onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
                   title="ดูเอกสารแนบ"
-                  className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 hover:text-slate-900 transition"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 hover:text-slate-900 transition"
                 >
-                  <Paperclip className="h-3 w-3" strokeWidth={2.4} />
+                  <Paperclip className="h-2.5 w-2.5" strokeWidth={2.6} />
                   {attachmentCount} ไฟล์
                 </button>
               )}
@@ -291,40 +319,38 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
           </div>
         </div>
 
-        {/* ── RIGHT: Action buttons (consolidated) ── */}
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Primary: Print return-form (only if returned) */}
+        {/* ── RIGHT: Action buttons ── */}
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           {ret && (
             <button
               onClick={onPrintReturn}
-              title="พิมพ์ใบรับคืน (IT-FORM-002)"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11.5px] font-semibold text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 bg-white hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] transition"
+              title="พิมพ์ใบรับคืน"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/25 bg-white hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] transition"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
               <span className="hidden sm:inline">ใบรับคืน</span>
             </button>
           )}
-          {/* Secondary: Edit (ghost) */}
           <button
             onClick={onEdit}
             title="แก้ไขประวัติช่วงนี้"
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:bg-amber-50 hover:text-amber-600 transition"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 transition"
           >
             <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
-          {/* Secondary: Delete (ghost) */}
           <button
             onClick={onDelete}
             title="ลบประวัติช่วงนี้"
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition"
           >
             <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
-          {/* Expand toggle (chevron) */}
           <button
             onClick={() => setExpanded(!expanded)}
             title={expanded ? 'ย่อ' : 'รายละเอียด'}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-[#1E487A] hover:bg-[#1E487A]/10 transition ml-0.5"
+            className={`w-8 h-8 flex items-center justify-center rounded-lg transition ml-0.5 ${
+              expanded ? 'bg-[#1E487A] text-white hover:bg-[#163963]' : 'text-[#1E487A] bg-[#1E487A]/8 hover:bg-[#1E487A]/15'
+            }`}
           >
             {expanded
               ? <ChevronUp   className="h-4 w-4" strokeWidth={2.4} />
@@ -346,7 +372,12 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             photos={checkout.checkoutPhotos}
             checklist={checkout.checkoutChecklist}
             notes={checkout.checkoutNotes}
+            /* 🆕 100-point assessment data */
+            assessment={checkout.checkoutAssessment}
+            slotPhotos={checkout.checkoutPhotos && !Array.isArray(checkout.checkoutPhotos) ? checkout.checkoutPhotos : null}
+            defectsNote={checkout.checkoutDefectsNote}
             onPhotoClick={onPhotoClick}
+            onAddPhotos={onEdit}
           />
 
           {/* Return snapshot (if returned) */}
@@ -359,7 +390,12 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
               photos={ret.returnPhotos}
               checklist={ret.returnChecklist}
               notes={ret.returnNotes}
+              /* 🆕 100-point assessment data */
+              assessment={ret.returnAssessment}
+              slotPhotos={ret.returnPhotos && !Array.isArray(ret.returnPhotos) ? ret.returnPhotos : null}
+              defectsNote={ret.returnDefectsNote}
               onPhotoClick={onPhotoClick}
+              onAddPhotos={onEdit}
             />
           )}
 
@@ -654,7 +690,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
               <button
                 key={dt.value}
                 onClick={() => setDocType(dt.value)}
-                className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl ring-2 transition-all text-center ${
+                className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl ring-2 transition-colors text-center ${
                   docType === dt.value
                     ? `ring-[#1E487A] bg-white shadow-sm`
                     : 'ring-transparent bg-white/60 hover:bg-white hover:ring-slate-200'
@@ -733,7 +769,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
             return (
               <div
                 key={att.id}
-                className="group flex items-center gap-3 rounded-xl bg-white ring-1 ring-slate-200 px-3 py-2.5 hover:ring-[#1E487A]/30 hover:shadow-sm transition-all"
+                className="group flex items-center gap-3 rounded-xl bg-white ring-1 ring-slate-200 px-3 py-2.5 hover:ring-[#1E487A]/30 hover:shadow-sm transition-colors"
               >
                 {/* Doc-type badge (left strip) */}
                 <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] ring-1 ring-inset ${dt.badge}`}>
@@ -808,12 +844,101 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 }
 
 /* ── Snapshot of one event (checkout or return) ── */
-function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist = {}, notes, onPhotoClick }) {
+function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist = {}, notes, onPhotoClick, onAddPhotos, assessment, slotPhotos, defectsNote }) {
   const colorCls = {
     blue:    'text-blue-700 bg-blue-50 ring-blue-200',
     emerald: 'text-emerald-700 bg-emerald-50 ring-emerald-200',
     rose:    'text-rose-700 bg-rose-50 ring-rose-200',
   }[color];
+
+  // 🆕 ถ้ามีข้อมูล 100-point assessment ให้แสดงแทนของเก่า
+  const hasNewAssessment = assessment && Object.keys(assessment).length > 0;
+  if (hasNewAssessment) {
+    const total = Object.values(assessment).reduce((s, c) => s + (c?.score || 0), 0);
+    const grade = total >= 90 ? 'A' : total >= 75 ? 'B' : total >= 60 ? 'C' : 'D';
+    const gradeColor = { A: 'text-emerald-600', B: 'text-blue-600', C: 'text-amber-600', D: 'text-rose-600' }[grade];
+    const gradeLabel = grade === 'A' ? 'ดีเยี่ยม' : grade === 'B' ? 'ผ่าน' : grade === 'C' ? 'ต้องซ่อม' : 'เสียหายหนัก';
+    const slots = slotPhotos && typeof slotPhotos === 'object' ? slotPhotos : {};
+    const photoCount = Object.keys(slots).filter(k => slots[k]).length;
+
+    return (
+      <div>
+        <p className={`inline-flex items-center gap-1.5 text-[12.5px] font-bold px-2.5 py-1 rounded-full ring-1 ring-inset mb-2 ${colorCls}`}>
+          <Icon className="h-3 w-3" strokeWidth={2.4} />
+          {label}
+        </p>
+
+        {/* Score banner (compact) */}
+        <div className="bg-gradient-to-r from-[#1E487A] to-[#163963] text-white rounded-lg p-3 flex items-center justify-between mb-3 shadow-sm">
+          <div>
+            <div className="text-[10.5px] opacity-80 font-medium">คะแนนรวม</div>
+            <div className="text-[22px] font-bold leading-none mt-0.5">{total % 1 === 0 ? total : total.toFixed(1)}<span className="text-[13px] opacity-70 font-normal">/100</span></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-[22px] font-extrabold ${gradeColor}`}>{grade}</div>
+            <div className="text-[11px] opacity-90 font-medium">{gradeLabel}</div>
+          </div>
+        </div>
+
+        {/* Assessment items grouped by section */}
+        <div className="space-y-2 mb-3">
+          {ASSESSMENT_SECTIONS.map((sec, si) => {
+            const secScore = sec.items.reduce((s, [no]) => s + (assessment[no]?.score || 0), 0);
+            return (
+              <div key={sec.title} className="ring-1 ring-slate-200 rounded-lg bg-white overflow-hidden">
+                <div className="flex items-center justify-between gap-2 bg-slate-50 px-3 py-1.5 border-b border-slate-100">
+                  <span className="text-[12px] font-semibold text-[#1E487A]">{sec.title}</span>
+                  <span className="text-[11px] font-bold text-slate-600 bg-white px-1.5 py-0.5 rounded ring-1 ring-slate-200">
+                    {secScore % 1 === 0 ? secScore : secScore.toFixed(1)}/{sec.max}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 p-2">
+                  {sec.items.map(([no, name]) => {
+                    const cell = assessment[no] || {};
+                    const st = cell.status || 'normal';
+                    const bg = st === 'normal' ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                             : st === 'scratch' ? 'bg-amber-50 text-amber-700 ring-amber-200'
+                             : 'bg-rose-50 text-rose-700 ring-rose-200';
+                    const lbl = st === 'normal' ? 'ปกติ' : st === 'scratch' ? 'ตำหนิ' : 'ชำรุด';
+                    return (
+                      <span key={no} className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${bg}`}>
+                        <span className="text-slate-600/70 font-mono mr-1">{no}</span>
+                        {name}: <span className="font-bold">{lbl}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Photos (6-slot) */}
+        {photoCount > 0 && (
+          <div className="mb-3">
+            <p className="text-[10.5px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">รูปสภาพอุปกรณ์ ({photoCount}/6)</p>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              {PHOTO_SLOTS.map(slot => slots[slot.key] ? (
+                <button key={slot.key} type="button" onClick={() => onPhotoClick?.(slots[slot.key])}
+                  className="aspect-square rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition"
+                  title={slot.label}>
+                  <img src={slots[slot.key]} alt={slot.label} className="w-full h-full object-cover" />
+                </button>
+              ) : null)}
+            </div>
+          </div>
+        )}
+
+        {/* Defects note */}
+        {defectsNote && (
+          <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-2.5 mb-2">
+            <p className="text-[10.5px] font-semibold text-amber-700/80 uppercase tracking-wide mb-1">ตำหนิที่มีอยู่แล้ว</p>
+            <p className="text-[12.5px] text-slate-700 whitespace-pre-wrap">{defectsNote}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // ── migrate ข้อมูลเก่า (key เก่า เช่น screen/body) → key ใหม่ก่อนแสดง ──
   const rawFields = fields && typeof fields === 'object' && Object.keys(fields).length > 0 ? fields : null;
@@ -826,12 +951,58 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
   const hasFlatPhotos = Array.isArray(photos) && photos.length > 0;
   const hasChecklist = checklist && Object.keys(checklist).length > 0;
 
+  // 🆕 Section bar (ตอนส่งมอบ / ตอนรับคืน) — เด่นชัดกว่า pill เดิม
+  const sectionBar = {
+    blue:    { bg: 'bg-blue-50/80',    border: 'border-l-blue-500',    text: 'text-blue-700',    iconBg: 'bg-blue-500' },
+    emerald: { bg: 'bg-emerald-50/80', border: 'border-l-emerald-500', text: 'text-emerald-700', iconBg: 'bg-emerald-500' },
+    rose:    { bg: 'bg-rose-50/80',    border: 'border-l-rose-500',    text: 'text-rose-700',    iconBg: 'bg-rose-500' },
+  }[color] || { bg: 'bg-slate-50', border: 'border-l-slate-400', text: 'text-slate-700', iconBg: 'bg-slate-400' };
+
+  // สรุปสถานะ
+  const stateCount = { normal: 0, scratch: 0, broken: 0 };
+  if (hasFields) {
+    CHECKLIST_FIELDS.forEach(f => {
+      const st = fields[f.key]?.status || 'normal';
+      stateCount[st] = (stateCount[st] || 0) + 1;
+    });
+  }
+
   return (
     <div>
-      <p className={`inline-flex items-center gap-1.5 text-[12.5px] font-bold px-2.5 py-1 rounded-full ring-1 ring-inset mb-2 ${colorCls}`}>
-        <Icon className="h-3 w-3" strokeWidth={2.4} />
-        {label}
-      </p>
+      {/* Section header bar — เด่นชัด, บอกสรุปสถานะเลย */}
+      <div className={`flex items-center gap-2.5 rounded-r-lg border-l-4 ${sectionBar.border} ${sectionBar.bg} pl-3 pr-3 py-2 mb-3 flex-wrap`}>
+        <div className={`w-6 h-6 rounded-md ${sectionBar.iconBg} text-white flex items-center justify-center shrink-0 shadow-sm`}>
+          <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
+        </div>
+        <span className={`text-[13.5px] font-bold ${sectionBar.text}`}>{label}</span>
+        {hasFields && (
+          <div className="flex items-center gap-1 ml-auto flex-wrap">
+            {stateCount.normal > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-200 px-1.5 py-0.5 rounded-full">
+                <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />
+                ปกติ {stateCount.normal}
+              </span>
+            )}
+            {stateCount.scratch > 0 && (
+              <span className="text-[10.5px] font-semibold text-amber-700 bg-amber-50 ring-1 ring-inset ring-amber-200 px-1.5 py-0.5 rounded-full">
+                ตำหนิ {stateCount.scratch}
+              </span>
+            )}
+            {stateCount.broken > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 ring-1 ring-inset ring-rose-200 px-1.5 py-0.5 rounded-full">
+                <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />
+                ชำรุด {stateCount.broken}
+              </span>
+            )}
+            {totalFieldPhotos > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 bg-white ring-1 ring-inset ring-slate-200 px-1.5 py-0.5 rounded-full">
+                <Camera className="h-2.5 w-2.5" strokeWidth={2.4} />
+                {totalFieldPhotos} รูป
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* NEW shape: photos grouped per field */}
       {hasFields ? (
@@ -842,9 +1013,20 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
           if (totalFieldPhotos === 0) {
             return (
               <div className="mb-3">
-                <p className="text-[11.5px] text-slate-400 italic mb-2 flex items-center gap-1">
-                  <Camera className="h-3 w-3" /> ไม่ได้แนบรูปใดๆ — แสดงเฉพาะสถานะ
-                </p>
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <p className="text-[11.5px] text-slate-400 italic flex items-center gap-1">
+                    <Camera className="h-3 w-3" /> ไม่ได้แนบรูปใดๆ — แสดงเฉพาะสถานะ
+                  </p>
+                  {onAddPhotos && (
+                    <button
+                      onClick={onAddPhotos}
+                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#1E487A] bg-[#1E487A]/8 hover:bg-[#1E487A]/15 px-2.5 py-1 rounded-md transition-colors"
+                    >
+                      <Upload className="h-3 w-3" strokeWidth={2.2} />
+                      เพิ่มรูปย้อนหลัง
+                    </button>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-1.5">
                   {fieldsWithoutPhotos.map(f => {
                     const v = fields[f.key]?.status || 'normal';
@@ -863,31 +1045,37 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
           return (
             <div className="space-y-3 mb-3">
               {fieldsWithPhotos.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {fieldsWithPhotos.map(f => {
                     const cell = fields[f.key];
                     const v = cell.status || 'normal';
                     return (
-                      <div key={f.key} className="flex gap-2.5 rounded-lg bg-white ring-1 ring-slate-200 p-2 hover:ring-[#1E487A]/30 hover:shadow-sm transition-all">
-                        <div className="flex gap-1 shrink-0">
-                          {cell.photos.slice(0, 2).map((src, i) => (
-                            <button key={i} type="button" onClick={() => onPhotoClick(src)}
-                              className="w-14 h-14 rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition shrink-0 bg-slate-50">
-                              <img src={src} alt={`${f.label}-${i}`} className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                          {cell.photos.length > 2 && (
-                            <button type="button" onClick={() => onPhotoClick(cell.photos[2])}
-                              className="w-14 h-14 rounded-md ring-1 ring-slate-200 bg-slate-50 text-[10.5px] font-semibold text-slate-500 hover:ring-[#1E487A] hover:text-[#1E487A] transition flex items-center justify-center shrink-0">
-                              +{cell.photos.length - 2}
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                          <p className="text-[12.5px] font-semibold text-slate-800 leading-snug line-clamp-2" title={f.label}>{f.label}</p>
-                          <span className={`self-start text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_COLOR[v]}`}>
+                      <div key={f.key} className="group rounded-xl bg-white ring-1 ring-slate-200 p-2.5 hover:ring-[#1E487A]/40 hover:shadow-md transition-all">
+                        {/* Title + status row */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <p className="text-[12.5px] font-semibold text-slate-800 leading-snug line-clamp-2 flex-1" title={f.label}>{f.label}</p>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset shrink-0 ${STATUS_COLOR[v]}`}>
+                            {v === 'normal' && <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />}
+                            {v === 'broken' && <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />}
                             {labelOf(f.key, v)}
                           </span>
+                        </div>
+                        {/* Photo thumbnails — โชว์ทุกรูป */}
+                        <div className="flex gap-1.5 flex-wrap">
+                          {cell.photos.map((src, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => onPhotoClick(src)}
+                              className="w-16 h-16 rounded-lg overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition shrink-0 bg-slate-50 relative block group/photo"
+                              title={`${f.label} - รูปที่ ${i + 1}`}
+                            >
+                              <img src={src} alt={`${f.label}-${i + 1}`} className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform" />
+                              <span className="absolute top-1 left-1 text-[9px] font-bold text-white bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded">
+                                {i + 1}
+                              </span>
+                            </button>
+                          ))}
                         </div>
                       </div>
                     );
@@ -895,11 +1083,15 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                 </div>
               )}
               {fieldsWithoutPhotos.length > 0 && (
-                <div>
-                  <p className="text-[10.5px] font-semibold text-slate-400 uppercase tracking-[0.06em] mb-1.5 flex items-center gap-1">
-                    <Camera className="h-3 w-3 opacity-60" /> จุดที่ไม่ได้แนบรูป
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
+                <details className="group rounded-lg bg-slate-50 ring-1 ring-slate-200 overflow-hidden">
+                  <summary className="cursor-pointer flex items-center gap-2 px-3 py-2 hover:bg-slate-100/60 transition-colors">
+                    <Camera className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />
+                    <span className="text-[11.5px] font-semibold text-slate-600">
+                      จุดที่ไม่ได้แนบรูป <span className="text-slate-400 font-normal">({fieldsWithoutPhotos.length})</span>
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-auto group-open:rotate-180 transition-transform" strokeWidth={2} />
+                  </summary>
+                  <div className="px-3 pb-3 pt-1 flex flex-wrap gap-1.5">
                     {fieldsWithoutPhotos.map(f => {
                       const v = fields[f.key]?.status || 'normal';
                       return (
@@ -910,7 +1102,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                       );
                     })}
                   </div>
-                </div>
+                </details>
               )}
             </div>
           );
@@ -986,10 +1178,12 @@ function EditPeriodModal({ period, onClose }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // 🆕 URL (https://) นับเป็น bytes น้อยมาก, base64 (data:) ยังนับตามจริง
+  //     เฉพาะรูปที่เป็น base64 เท่านั้นที่จะทำให้ Firestore doc ใกล้ขีดจำกัด 1MB
   const estimateBytes = (fields) =>
     Object.values(fields || {}).reduce((sum, cell) => {
       const photos = cell?.photos || [];
-      return sum + photos.reduce((s, b64) => s + (b64?.length || 0), 0);
+      return sum + photos.reduce((s, v) => s + (v?.length || 0), 0);
     }, 0);
   const SOFT_LIMIT = 900_000;
   const HARD_LIMIT = 1_048_576;
@@ -1038,8 +1232,8 @@ function EditPeriodModal({ period, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-3xl max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-slate-950/50 z-[110] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-3xl max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden flex flex-col">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -1161,7 +1355,7 @@ function EditPeriodModal({ period, onClose }) {
             ยกเลิก
           </button>
           <button onClick={handleSave} disabled={saving || overHard}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-lg shadow-sm hover:shadow-md transition disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-lg shadow-sm transition disabled:opacity-60"
             style={{ background: '#1E487A' }}>
             {saving ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
@@ -1212,8 +1406,8 @@ function DeletePeriodConfirm({ period, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-md ring-1 ring-slate-200/60 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-950/50 z-[110] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-md ring-1 ring-slate-200/60 overflow-hidden">
         <div className="px-6 py-5 text-center">
           <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="h-6 w-6" strokeWidth={2} />
@@ -1236,7 +1430,7 @@ function DeletePeriodConfirm({ period, onClose }) {
             ยกเลิก
           </button>
           <button onClick={handleDelete} disabled={deleting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm hover:shadow-md transition disabled:opacity-60">
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition disabled:opacity-60">
             {deleting ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังลบ...</>
             ) : (

@@ -31,6 +31,9 @@ export default function EmployeeDetailsModal({
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
   const [returnPickerOpen, setReturnPickerOpen] = useState(false); // เลือกเครื่องเมื่อมีหลายตัว
+
+  // 🔒 ล็อก scroll — ใช้ global observer ใน App.jsx แทนแล้ว
+
   if (!selectedEmployee) return null;
 
   /* ── Helper: open return-form pre-print modal for a given return-tx row ── */
@@ -57,11 +60,22 @@ export default function EmployeeDetailsModal({
 
   /* ── derived data ── */
   const empAssets = assets.filter(i => i.assignedTo === selectedEmployee.id);
-  // License ใช้ assignees[] array (เหมือน accessories) — ไม่ใช่ assignedTo string เดี่ยว
-  // กรองเฉพาะ seat ที่ผูกกับพนักงานโดยตรง (ไม่ใช่ device-bound ที่ผูกผ่านเครื่อง)
-  const empLicenses = licenses.filter(i =>
-    (i.assignees || []).some(a => a.empId === selectedEmployee.id && !a.isAssetBound)
-  );
+  // License ที่แสดงในครอบครองพนักงาน = เฉพาะที่ assign ให้พนักงานโดยตรงเท่านั้น
+  // License ที่ผูกกับเครื่อง (device-bound) ให้ตามเครื่องไป — ไม่แสดงในครอบครองพนักงาน
+  // (seat ที่ผูกเครื่องจะมี isAssetBound=true หรือมี assignedAssetId)
+  const empLicenses = licenses.reduce((acc, item) => {
+    const matchedSeats = (item.assignees || []).filter(a =>
+      a.empId === selectedEmployee.id && !a.isAssetBound && !a.assignedAssetId
+    );
+    matchedSeats.forEach((seat, idx) => {
+      acc.push({
+        ...item,
+        uniqueKey:  seat.checkoutId || `${item.id}_${idx}`,
+        checkoutId: seat.checkoutId,
+      });
+    });
+    return acc;
+  }, []);
   const empAccessories = accessories.reduce((acc, item) => {
     if (item.assignees) {
       item.assignees.filter(a => a.empId === selectedEmployee.id).forEach(co =>
@@ -74,6 +88,9 @@ export default function EmployeeDetailsModal({
   }, []);
   const allHeld = [...empAssets, ...empLicenses, ...empAccessories];
 
+  // 🆕 lookup ทรัพย์สินปัจจุบันด้วย assetId → ดึง SN/Tag มาแสดง
+  //    (transaction เก่าไม่ได้ store sn/assetTag — ต้อง lookup จาก assets ปัจจุบัน)
+  const assetById = new Map(assets.map(a => [a.id, a]));
   let empHistory = transactions
     .filter(t => t.empId === selectedEmployee.id)
     .filter(t => {
@@ -82,6 +99,12 @@ export default function EmployeeDetailsModal({
       if (historyFilter === 'assets') return t.category === 'assets' || t.category === 'asset';
       if (historyFilter === 'accessories') return t.category === 'accessories' || t.category === 'accessory';
       return false;
+    })
+    .map(t => {
+      const isAssetCat = t.category === 'assets' || t.category === 'asset';
+      if (!isAssetCat) return t;
+      const a = assetById.get(t.assetId);
+      return { ...t, _sn: a?.sn || '', _assetTag: a?.assetTag || '' };
     })
     .sort((a, b) => b.timestamp - a.timestamp);
 
@@ -95,7 +118,16 @@ export default function EmployeeDetailsModal({
   const initial = selectedEmployee.fullName?.charAt(0) || '?';
 
   // เปิด modal ให้ติ๊ก checklist + แนบรูปก่อนพิมพ์ (modal จะเรียก printHandoverForm เองเมื่อ submit)
-  const handlePrint = () => setAssessmentOpen(true);
+  // 🆕 นับ Notebook ที่พนักงานถือ — เฉพาะ notebook ที่ต้องประเมิน 100 คะแนน
+  const empNotebooks = empAssets.filter(a => (a.type || '').toLowerCase().includes('โน๊ตบุ๊ค') || (a.type || '').toLowerCase().includes('notebook') || (a.type || '').toLowerCase().includes('laptop'));
+  const hasNotebook  = empNotebooks.length > 0;
+  const handlePrint = () => {
+    if (!hasNotebook) {
+      alert('ใบส่งมอบพร้อมการประเมินสภาพเครื่อง ใช้เฉพาะพนักงานที่ถือครองโน๊ตบุ๊คเท่านั้น');
+      return;
+    }
+    setAssessmentOpen(true);
+  };
 
   /* ── Helper: เปิด PreReturnAssessmentModal สำหรับทรัพย์สินที่กำลังถือครอง ── */
   const openReturnFormFor = (asset) => {
@@ -133,9 +165,10 @@ export default function EmployeeDetailsModal({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+      data-modal="employee-detail"
+      className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[60]"
     >
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full max-w-4xl flex flex-col h-[88vh] max-h-[88vh] ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] ring-1 ring-slate-200/60 overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
@@ -251,6 +284,7 @@ export default function EmployeeDetailsModal({
                   {allHeld.map(item => {
                     const isAsset     = assets.some(a => a.id === item.id);
                     const isAccessory = accessories.some(a => a.id === item.id);
+                    const isLicense   = !isAsset && !isAccessory;
                     const category    = isAsset ? 'assets' : isAccessory ? 'accessories' : 'licenses';
                     const icon        = isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑';
                     const catLabel    = isAsset ? 'ทรัพย์สิน' : isAccessory ? 'อุปกรณ์เสริม' : 'License';
@@ -273,7 +307,7 @@ export default function EmployeeDetailsModal({
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAssetDetail(); } }}
-                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-slate-200 hover:border-[#1E487A]/40 hover:bg-blue-50/40 hover:shadow-sm cursor-pointer transition-all group"
+                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-slate-200 hover:border-[#1E487A]/40 hover:bg-blue-50/40 hover:shadow-sm cursor-pointer transition-colors group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {item.image
@@ -322,7 +356,7 @@ export default function EmployeeDetailsModal({
                                 handleCheckin(item.id, category, selectedEmployee.id);
                               }
                             }}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-all flex items-center gap-1.5"
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-colors flex items-center gap-1.5"
                           >
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -339,107 +373,12 @@ export default function EmployeeDetailsModal({
 
           {/* ======= TAB: ประวัติเบิก-คืน ======= */}
           {empModalTab === 'history' && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { id: 'all',         label: 'ทั้งหมด' },
-                  { id: 'assets',      label: 'ทรัพย์สิน' },
-                  { id: 'licenses',    label: 'License' },
-                  { id: 'accessories', label: 'อุปกรณ์เสริม' },
-                ].map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => setHistoryFilter(f.id)}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
-                      historyFilter === f.id
-                        ? 'bg-[#1E487A] text-white border-[#1E487A]'
-                        : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-
-              {empHistory.length === 0
-                ? <EmptyState label="ไม่พบประวัติในหมวดหมู่นี้" />
-                : (
-                  <div className="overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr className="bg-slate-50 border-b border-slate-100">
-                          <Th>วันที่</Th>
-                          <Th>รายการ</Th>
-                          <Th center>ประเภทข้อมูล</Th>
-                          <Th center>การดำเนินการ</Th>
-                          <Th center>สภาพ</Th>
-                          <Th>หมายเหตุ</Th>
-                          <Th center>พิมพ์</Th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50 bg-white">
-                        {empHistory.map(rec => {
-                          const d = new Date(rec.timestamp);
-                          const date = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-                          const isCheckout = rec.action?.includes('เบิกจ่าย');
-                          const catNorm = (rec.category === 'assets' || rec.category === 'asset') ? 'ทรัพย์สิน'
-                            : (rec.category === 'licenses' || rec.category === 'license') ? 'License'
-                            : 'อุปกรณ์';
-
-                          return (
-                            <tr key={rec.id} className="hover:bg-slate-50/60 transition-colors">
-                              <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{date}</td>
-                              <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">{rec.assetName}</td>
-                              <td className="px-4 py-3 text-center">
-                                <span className="text-[11px] font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
-                                  {catNorm}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <span className={`text-[11px] font-semibold px-2 py-1 rounded-md border ${
-                                  isCheckout
-                                    ? 'bg-blue-50 text-blue-600 border-blue-100'
-                                    : 'bg-teal-50 text-teal-600 border-teal-100'
-                                }`}>
-                                  {rec.action || '-'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <span className={`text-[11px] font-semibold px-2 py-1 rounded-md border ${
-                                  rec.condition === 'ชำรุด'  ? 'bg-red-50 text-red-500 border-red-100'
-                                  : rec.condition === 'ปกติ' ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                  : 'bg-slate-50 text-slate-400 border-slate-200'
-                                }`}>
-                                  {rec.condition || '-'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-slate-400 text-xs max-w-[160px] truncate" title={rec.remarks}>
-                                {rec.remarks || '-'}
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                {/* พิมพ์ใบรับคืน — เฉพาะแถว "รับคืน" ของทรัพย์สินหลัก (notebook) เท่านั้น */}
-                                {!isCheckout && (rec.category === 'assets' || rec.category === 'asset') ? (
-                                  <button
-                                    onClick={() => openPrintReturn(rec)}
-                                    title="พิมพ์ใบรับคืน (IT-FORM-002)"
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11.5px] font-semibold text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 bg-white hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] transition"
-                                  >
-                                    <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
-                                    ใบรับคืน
-                                  </button>
-                                ) : (
-                                  <span className="text-slate-300 text-[12px]">—</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )
-              }
-            </div>
+            <HistoryTimeline
+              empHistory={empHistory}
+              historyFilter={historyFilter}
+              setHistoryFilter={setHistoryFilter}
+              openPrintReturn={openPrintReturn}
+            />
           )}
 
           {/* ======= TAB: เอกสารที่พิมพ์ ======= */}
@@ -451,78 +390,52 @@ export default function EmployeeDetailsModal({
         {/* ── Footer ── */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white shrink-0">
 
-          {/* ปุ่มพิมพ์ใบส่งมอบ + ปุ่มพิมพ์ใบรับคืน */}
+          {/* 🆕 ปุ่ม Print — เรียบง่ายขึ้น */}
           <div className="flex items-center gap-2">
-            <div className="relative group/tooltip">
-              <button
-                onClick={handlePrint}
-                disabled={allHeld.length === 0}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition group ${
-                  allHeld.length === 0
-                    ? 'text-slate-400 border border-slate-200 bg-slate-50 cursor-not-allowed'
-                    : 'text-[#1E487A] border border-[#1E487A]/30 bg-blue-50 hover:bg-[#1E487A] hover:text-white'
-                }`}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                พิมพ์ใบส่งมอบทรัพย์สิน
-                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md transition ${
-                  allHeld.length === 0
-                    ? 'bg-slate-100 text-slate-400'
-                    : 'bg-[#1E487A]/10 group-hover:bg-white/20 text-[#1E487A] group-hover:text-white'
-                }`}>
-                  {allHeld.length} รายการ
-                </span>
-              </button>
-              {allHeld.length === 0 && (
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-10 pointer-events-none">
-                  <div className="bg-slate-800 text-white text-[11.5px] font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
-                    พนักงานไม่มีทรัพย์สินในครอบครอง
-                  </div>
-                  <div className="w-2 h-2 bg-slate-800 rotate-45 ml-4 -mt-1"></div>
-                </div>
-              )}
-            </div>
-
-            <div className="relative group/tooltip">
-              <button
-                onClick={handlePrintReturn}
-                disabled={allHeld.length === 0}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition group ${
-                  allHeld.length === 0
-                    ? 'text-slate-400 border border-slate-200 bg-slate-50 cursor-not-allowed'
-                    : 'text-teal-700 border border-teal-300/60 bg-teal-50 hover:bg-teal-600 hover:text-white'
-                }`}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                พิมพ์ใบรับคืนทรัพย์สิน
-                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md transition ${
-                  allHeld.length === 0
-                    ? 'bg-slate-100 text-slate-400'
-                    : 'bg-teal-100 group-hover:bg-white/20 text-teal-700 group-hover:text-white'
-                }`}>
-                  {allHeld.length} รายการ
-                </span>
-              </button>
-              {allHeld.length === 0 && (
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-10 pointer-events-none">
-                  <div className="bg-slate-800 text-white text-[11.5px] font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
-                    พนักงานไม่มีทรัพย์สินที่ต้องรับคืน
-                  </div>
-                  <div className="w-2 h-2 bg-slate-800 rotate-45 ml-4 -mt-1"></div>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={handlePrint}
+              disabled={!hasNotebook}
+              title={!hasNotebook ? 'พนักงานไม่มีโน๊ตบุ๊คในครอบครอง' : `${empNotebooks.length} เครื่อง`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[#1E487A] bg-blue-50 hover:bg-blue-100 ring-1 ring-blue-200"
+            >
+              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
+              ใบส่งมอบ
+              {hasNotebook && <span className="text-[10.5px] font-bold bg-white px-1.5 py-0.5 rounded">{empNotebooks.length}</span>}
+            </button>
+            <button
+              onClick={handlePrintReturn}
+              disabled={allHeld.length === 0}
+              title={allHeld.length === 0 ? 'พนักงานไม่มีทรัพย์สิน' : `${allHeld.length} รายการ`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-teal-700 bg-teal-50 hover:bg-teal-100 ring-1 ring-teal-200"
+            >
+              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
+              ใบรับคืน
+              {allHeld.length > 0 && <span className="text-[10.5px] font-bold bg-white px-1.5 py-0.5 rounded">{allHeld.length}</span>}
+            </button>
+            {/* 🆕 พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง */}
+            <button
+              onClick={async () => {
+                const { printEmployeeSummary } = await import('../utils/printEmployeeSummary.js');
+                printEmployeeSummary({
+                  employee: selectedEmployee,
+                  empAssets,
+                  empLicenses,
+                  empAccessories,
+                });
+              }}
+              title="พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors text-white bg-rose-600 hover:bg-rose-700"
+            >
+              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
+              พิมพ์ PDF
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
             {!selectedEmployee.deletedAt && (
               <button
                 onClick={() => openEditEmpModal(selectedEmployee)}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-slate-600 bg-white ring-1 ring-slate-200 rounded-lg hover:bg-slate-50 transition"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -532,7 +445,7 @@ export default function EmployeeDetailsModal({
             )}
             <button
               onClick={() => setSelectedEmployee(null)}
-              className="px-4 py-2 text-sm font-semibold text-white bg-[#1E487A] hover:bg-[#133257] rounded-lg transition"
+              className="px-4 py-2 text-[13px] font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded-lg transition"
             >
               ปิด
             </button>
@@ -552,12 +465,13 @@ export default function EmployeeDetailsModal({
         bundledItems={bundledItems}
         handleAddBundledItem={handleAddBundledItem}
         handleDeleteBundledItem={handleDeleteBundledItem}
+        transactions={transactions}
       />
 
       {/* ── Picker เลือกเครื่องที่จะพิมพ์ใบรับคืน (เมื่อพนักงานถือหลายเครื่อง) ── */}
       {returnPickerOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setReturnPickerOpen(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-md w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-semibold text-slate-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
               <button onClick={() => setReturnPickerOpen(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
@@ -600,6 +514,13 @@ export default function EmployeeDetailsModal({
           // Pre-fill 18 sub-items จาก 6 หมวด in-app
           inAppFieldsReturn={printReturnFor.period.return?.returnFields}
           inAppFieldsHandover={printReturnFor.period.checkout?.checkoutFields}
+          // 🆕 100-point assessment + photos + defects — pre-fill จาก transactions
+          checkoutAssessment={printReturnFor.period.checkout?.checkoutAssessment}
+          checkoutPhotos={printReturnFor.period.checkout?.checkoutPhotos}
+          checkoutDefectsNote={printReturnFor.period.checkout?.checkoutDefectsNote}
+          returnAssessment={printReturnFor.period.return?.returnAssessment}
+          returnPhotos={printReturnFor.period.return?.returnPhotos}
+          returnDefectsNote={printReturnFor.period.return?.returnDefectsNote}
           // ใบรับคืนรวม → ส่ง License + อุปกรณ์เสริมทั้งหมดของพนักงาน
           empLicenses={printReturnFor.includeHoldings ? empLicenses : []}
           empAccessories={printReturnFor.includeHoldings ? empAccessories : []}
@@ -613,21 +534,21 @@ export default function EmployeeDetailsModal({
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-wider mb-3">{title}</p>
-      <div className="border border-slate-200 rounded-xl overflow-hidden">{children}</div>
+      <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">{title}</p>
+      <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
 }
 
 function InfoGrid({ children }) {
-  return <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x-0">{children}</div>;
+  return <div className="grid grid-cols-1 sm:grid-cols-2">{children}</div>;
 }
 
 function InfoItem({ label, value, accent, span2, mono }) {
   return (
-    <div className={`flex flex-col px-4 py-3 border-b border-slate-100 last:border-b-0 ${span2 ? 'sm:col-span-2' : ''}`}>
-      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</span>
-      <span className={`text-sm font-medium ${accent ? 'text-[#1E487A]' : 'text-slate-800'} ${mono ? 'font-mono' : ''}`}>
+    <div className={`px-4 py-2.5 ${span2 ? 'sm:col-span-2' : ''} border-b border-slate-100 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0`}>
+      <span className="block text-[11px] text-slate-400 mb-0.5">{label}</span>
+      <span className={`block text-[13.5px] ${accent ? 'text-[#1E487A] font-semibold' : 'text-slate-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-slate-300">—</span>}
       </span>
     </div>
@@ -907,6 +828,148 @@ function EmptyState({ label }) {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       <p className="text-sm font-medium text-slate-500">{label}</p>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   🆕 HistoryTimeline — ดีไซน์ใหม่: timeline + stats + filter
+════════════════════════════════════════════════ */
+function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrintReturn }) {
+  const TH_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtDate = (ts) => {
+    const d = new Date(ts);
+    return `${d.getDate()} ${TH_MONTHS[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
+  };
+  const fmtTime = (ts) => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  const catLabel = (cat) => {
+    if (cat === 'assets' || cat === 'asset') return 'ทรัพย์สิน';
+    if (cat === 'licenses' || cat === 'license') return 'License';
+    return 'อุปกรณ์';
+  };
+
+  return (
+    <div className="space-y-3">
+
+      {/* ── Filter — เรียบง่าย ── */}
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          { id: 'all',         label: 'ทั้งหมด' },
+          { id: 'assets',      label: 'ทรัพย์สิน' },
+          { id: 'licenses',    label: 'License' },
+          { id: 'accessories', label: 'อุปกรณ์' },
+        ].map(f => (
+          <button
+            key={f.id}
+            onClick={() => setHistoryFilter(f.id)}
+            className={`text-[12.5px] font-medium px-3 py-1.5 rounded-lg transition-colors ${
+              historyFilter === f.id
+                ? 'bg-slate-900 text-white'
+                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        <span className="ml-auto text-[12px] text-slate-400 self-center">{empHistory.length} รายการ</span>
+      </div>
+
+      {/* ── List — clean & simple ── */}
+      {empHistory.length === 0 ? (
+        <EmptyState label="ไม่มีประวัติ" />
+      ) : (
+        <div className="bg-white ring-1 ring-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden">
+          {empHistory.map(rec => {
+            const isCheckout = rec.action?.includes('เบิกจ่าย');
+            const isBroken = rec.condition === 'ชำรุด';
+            const canPrint = !isCheckout && (rec.category === 'assets' || rec.category === 'asset');
+            return (
+              <div key={rec.id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50/60 transition-colors">
+
+                {/* Action dot */}
+                <div className={`w-2 h-2 rounded-full shrink-0 ${isCheckout ? 'bg-blue-500' : 'bg-teal-500'}`} />
+
+                {/* Main info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    {/* 🆕 License category — แสดงชื่อ License แทนชื่อทรัพย์สินที่ผูก */}
+                    <span className="text-[13.5px] font-semibold text-slate-800 truncate">
+                      {(rec.category === 'licenses' || rec.category === 'license')
+                        ? (rec.licenseName || rec.assetName)
+                        : rec.assetName}
+                    </span>
+                    <span className={`text-[10.5px] font-bold px-1.5 py-0.5 rounded ${
+                      isCheckout ? 'bg-blue-50 text-blue-700' : 'bg-teal-50 text-teal-700'
+                    }`}>
+                      {isCheckout ? 'เบิก' : 'คืน'}
+                    </span>
+                    <span className="text-[10.5px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                      {catLabel(rec.category)}
+                    </span>
+                    {isBroken && (
+                      <span className="text-[10.5px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">ชำรุด</span>
+                    )}
+                  </div>
+                  {/* 🆕 SN / Asset Tag — เฉพาะหมวดทรัพย์สิน */}
+                  {(rec._sn || rec._assetTag) && (
+                    <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                      {rec._assetTag && (
+                        <span className="text-[11px] font-medium text-[#1E487A] bg-blue-50 px-1.5 py-0.5 rounded font-mono">
+                          {rec._assetTag}
+                        </span>
+                      )}
+                      {rec._sn && (
+                        <span className="text-[11px] font-medium text-slate-600 bg-slate-50 ring-1 ring-slate-200 px-1.5 py-0.5 rounded font-mono">
+                          SN: {rec._sn}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-[11.5px] text-slate-400">
+                    <span>{fmtDate(rec.timestamp)} · {fmtTime(rec.timestamp)}</span>
+                    {rec.remarks && (
+                      <>
+                        <span>·</span>
+                        <span className="truncate">{rec.remarks}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Print button */}
+                {canPrint && (
+                  <button
+                    onClick={() => openPrintReturn(rec)}
+                    className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-medium text-[#1E487A] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
+                    title="พิมพ์ใบรับคืน"
+                  >
+                    <Printer className="h-3 w-3" strokeWidth={2.2} />
+                    ใบรับคืน
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   StatTile — มินิการ์ดสำหรับ summary
+════════════════════════════════════════════════ */
+function StatTile({ label, value, color, bg }) {
+  return (
+    <div
+      className="rounded-xl px-3.5 py-2.5 ring-1 transition-colors"
+      style={{ background: bg, borderColor: 'transparent', '--tw-ring-color': `${color}30` }}
+    >
+      <p className="text-[10.5px] font-bold uppercase tracking-wide" style={{ color: `${color}AA` }}>{label}</p>
+      <p className="text-[22px] font-bold tabular-nums leading-tight mt-0.5" style={{ color }}>{value}</p>
     </div>
   );
 }

@@ -71,17 +71,20 @@ export function Card({ children, className = '', hoverable = false, padding = 'm
   );
 }
 
-/* Modal shell — Overlay + box */
-export function Modal({ open, onClose, size = 'lg', children }) {
+/* Modal shell — Overlay + box (scroll lock จัดการที่ App.jsx ผ่าน global observer) */
+export function Modal({ open, onClose, size = 'lg', closeOnBackdrop = false, children }) {
   if (!open) return null;
+  // 🆕 ขยายทุก size ขึ้น 1 ขั้น เพื่อให้ Modal ใหญ่ขึ้น เห็นข้อมูลได้มากขึ้น
   const sizeCls =
-    size === 'sm' ? 'max-w-md' :
-    size === 'md' ? 'max-w-lg' :
-    size === 'xl' ? 'max-w-3xl' :
-    size === '2xl' ? 'max-w-5xl' :
-    'max-w-2xl';
+    size === 'sm' ? 'max-w-lg' :
+    size === 'md' ? 'max-w-2xl' :
+    size === 'xl' ? 'max-w-5xl' :
+    size === '2xl' ? 'max-w-6xl' :
+    'max-w-3xl';  // default 'lg'
+  // 🆕 default closeOnBackdrop = false → ไม่ปิดเมื่อคลิก background
+  // (กันการปิด modal ตอนพิมพ์แก้ข้อมูลแล้วเผลอคลิกพื้น)
   return (
-    <div className={cls.modalOverlay} onClick={onClose}>
+    <div className={cls.modalOverlay} onClick={closeOnBackdrop ? onClose : undefined}>
       <div className={`${cls.modalShell} ${sizeCls}`} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
@@ -103,7 +106,7 @@ export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
           </div>
         )}
         <div>
-          <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">{title}</h3>
+          <h3 className="text-[19px] font-bold text-slate-900 leading-tight">{title}</h3>
           {subtitle && <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
       </div>
@@ -168,7 +171,7 @@ export function PageHeader({ icon: Icon, title, subtitle, action }) {
           </div>
         )}
         <div>
-          <h1 className="text-[23px] font-semibold text-slate-900 leading-tight tracking-tight">{title}</h1>
+          <h1 className="text-[24px] font-bold text-slate-900 leading-tight tracking-tight">{title}</h1>
           {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
         </div>
       </div>

@@ -185,7 +185,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <select
               value={rangeValue}
               onChange={(e) => setRangeValue(e.target.value)}
-              className="appearance-none bg-slate-50 border border-slate-200 pl-9 pr-9 py-2.5 rounded-xl text-[14px] text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-all"
+              className="appearance-none bg-slate-50 border border-slate-200 pl-9 pr-9 py-2.5 rounded-xl text-[14px] text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors"
             >
               {RANGE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -198,7 +198,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
           <button
             onClick={handleExport}
             disabled={isExporting || k.total === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold text-white shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             style={{ background: BRAND.primary, boxShadow: `0 6px 16px ${BRAND.primary}40` }}
           >
             {isExporting ? (
@@ -356,7 +356,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                       </div>
                       <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all"
+                          className="h-full rounded-full transition-colors"
                           style={{ width: `${pct}%`, background: starColor(star) }}
                         />
                       </div>
@@ -423,7 +423,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               {k.recentComments.length === 0 ? (
                 <p className="text-[13px] text-slate-400 text-center py-6">ยังไม่มีความเห็น</p>
               ) : (
-                <div className={`space-y-2.5 overflow-hidden transition-all ${openComments ? 'max-h-[600px]' : 'max-h-[180px]'}`}>
+                <div className={`space-y-2.5 overflow-hidden transition-colors ${openComments ? 'max-h-[600px]' : 'max-h-[180px]'}`}>
                   {k.recentComments.map((r, idx) => (
                     <div key={idx} className="bg-slate-50/70 ring-1 ring-slate-100 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1.5">
@@ -456,7 +456,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
 /* ─── Sub Components ───────────────────────────────── */
 function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
   return (
-    <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-4 flex flex-col gap-2.5 hover:shadow-md transition-shadow">
+    <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-4 flex flex-col gap-2.5 transition-shadow">
       <div className="flex items-center justify-between">
         <p className="text-[12.5px] font-semibold text-slate-500 tracking-wide">{label}</p>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: tint }}>
@@ -486,7 +486,7 @@ function RatingBar({ label, value, color }) {
         </span>
       </div>
       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+        <div className="h-full rounded-full transition-colors" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
   );
@@ -505,7 +505,7 @@ function MonthlyTrend({ data }) {
             <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
               <div className="relative w-full flex-1 flex items-end">
                 <div
-                  className="w-full rounded-t-lg transition-all hover:opacity-80 relative group"
+                  className="w-full rounded-t-lg transition-colors hover:opacity-80 relative group"
                   style={{
                     height: `${Math.max(h, 4)}%`,
                     background: `linear-gradient(180deg, ${BRAND.primary} 0%, ${BRAND.primary}AA 100%)`,

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { LogOut, Search, Check, AlertCircle } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
-import ConditionCapture from './ConditionCapture.jsx';
+import AssetAssessmentSection from './AssetAssessmentSection.jsx';
 
 export default function CheckoutModal({
   checkoutModal, setCheckoutModal, handleCheckout,
@@ -13,6 +13,7 @@ export default function CheckoutModal({
   checkoutCondition, setCheckoutCondition,
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 🆕 กัน flash error ตอน Firestore sync
   const wrapperRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +23,11 @@ export default function CheckoutModal({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [wrapperRef]);
+
+  // 🆕 reset submitting state เมื่อ modal เปิดใหม่ — ⚠️ ต้องอยู่ก่อน early return!
+  useEffect(() => {
+    if (checkoutModal.isOpen) setIsSubmitting(false);
+  }, [checkoutModal.isOpen]);
 
   if (!checkoutModal.isOpen) return null;
 
@@ -36,9 +42,11 @@ export default function CheckoutModal({
     if (licItem) {
       const availCount = Math.max(0, Number(licItem.quantity || 0) - (licItem.assignees || []).length);
       for (let i = 0; i < availCount; i++) {
+        // 🆕 ใช้ชื่อ seat ที่ตั้งไว้ — fallback เป็นชื่อ license หลัก
+        const seatLabel = licItem.availableSeatLabels?.[i] || licItem.name || `สิทธิ์ #${i + 1}`;
         availableSlots.push({
           index: i,
-          label: `สิทธิ์ #${i + 1}`,
+          label: seatLabel,
           sub: licItem.availableKeys?.[i] || '',
           sub2: licItem.availableKeyCodes?.[i] ? `รหัสอ้างอิง: ${licItem.availableKeyCodes[i]}` : '',
           cost: licItem.availableSeatCosts?.[i] || '',
@@ -60,11 +68,13 @@ export default function CheckoutModal({
         }));
       })();
       items.forEach((it, i) => {
+        // 🆕 ใช้ชื่อ accessory หลักเป็นชื่อรายการย่อย (เหมือน License)
+        const pieceLabel = accItem.name || `ชิ้นที่ ${i + 1}`;
         availableSlots.push({
           index: i,
-          label: it.sn ? `SN: ${it.sn}` : `ชิ้นที่ ${i + 1}`,
-          sub: it.model || '',
-          sub2: '',
+          label: pieceLabel,
+          sub: it.sn ? `SN: ${it.sn}` : (it.model || ''),
+          sub2: it.sn && it.model ? `รุ่น: ${it.model}` : '',
           cost: it.cost || '',
           sn: it.sn || '',
           model: it.model || '',
@@ -110,6 +120,7 @@ export default function CheckoutModal({
     setCheckoutSearchTerm('');
     setCheckoutRemarks('');
     setIsDropdownOpen(false);
+    setIsSubmitting(false);
   };
 
   const canSubmit = checkoutEmpId && !(needSelector && availableSlots.length === 0);
@@ -118,12 +129,15 @@ export default function CheckoutModal({
     <Modal open={checkoutModal.isOpen} onClose={close} size="xl">
       <ModalHeader
         icon={LogOut}
-        title="ระบุพนักงานที่เบิกจ่าย"
-        subtitle={isLicense ? 'เลือกสิทธิ์ที่จะเบิก และเลือกพนักงานผู้รับ' : isAccessory ? 'เลือกชิ้นที่จะเบิก และเลือกพนักงานผู้รับ' : 'เลือกพนักงานที่จะเป็นผู้ครอบครอง'}
+        title="เบิกจ่าย"
         onClose={close}
       />
       <form
-        onSubmit={(e) => { if (!checkoutEmpId) { e.preventDefault(); return; } handleCheckout(e); }}
+        onSubmit={(e) => {
+          if (!checkoutEmpId) { e.preventDefault(); return; }
+          setIsSubmitting(true); // 🆕 กัน flash error ตอน Firestore update มาถึงก่อน modal ปิด
+          handleCheckout(e);
+        }}
         className="flex flex-col flex-1 overflow-hidden"
       >
         <ModalBody className="space-y-5">
@@ -139,7 +153,7 @@ export default function CheckoutModal({
                   return (
                     <label
                       key={slot.index}
-                      className={`flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-all ring-1 ring-inset ${
+                      className={`flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-colors ring-1 ring-inset ${
                         isSelected ? 'bg-blue-50 ring-2 ring-[#1E487A]' : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'
                       }`}
                     >
@@ -175,7 +189,8 @@ export default function CheckoutModal({
             </Field>
           )}
 
-          {needSelector && availableSlots.length === 0 && (
+          {/* 🆕 ซ่อนตอน submitting — กัน flash error เมื่อ Firestore update มาก่อน modal ปิด */}
+          {needSelector && availableSlots.length === 0 && !isSubmitting && (
             <div className="bg-rose-50 ring-1 ring-inset ring-rose-200 text-rose-700 text-[14px] font-medium px-4 py-3 rounded-xl flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={2} />
               ไม่มีรายการที่พร้อมเบิกจ่าย
@@ -192,7 +207,7 @@ export default function CheckoutModal({
                 value={checkoutSearchTerm}
                 onChange={(e) => { setCheckoutSearchTerm(e.target.value); setCheckoutEmpId(''); setIsDropdownOpen(true); }}
                 onFocus={() => setIsDropdownOpen(true)}
-                className={`w-full pl-10 pr-4 py-3 text-[15px] bg-white border rounded-lg outline-none transition-all ${
+                className={`w-full pl-10 pr-4 py-3 text-[15px] bg-white border rounded-lg outline-none transition-colors ${
                   !checkoutEmpId && checkoutSearchTerm
                     ? 'border-amber-300 focus:ring-2 focus:ring-amber-200 focus:border-amber-400'
                     : 'border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'
@@ -201,7 +216,7 @@ export default function CheckoutModal({
               />
 
               {isDropdownOpen && (
-                <div className="absolute z-10 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-xl shadow-slate-950/10 max-h-[320px] overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 max-h-[320px] overflow-y-auto">
                   {filteredEmployees.length > 0 ? (
                     filteredEmployees.map(emp => (
                       <div
@@ -244,16 +259,24 @@ export default function CheckoutModal({
             />
           </Field>
 
-          {/* Condition Capture — เฉพาะ assets หลัก (notebook/computer) เท่านั้น
-              license = ไม่ต้องมี | accessory = ไม่ต้องมี (อุปกรณ์เสริมไม่ต้องการ 100-point checklist) */}
+          {/* 🆕 100-point checklist — เก็บข้อมูลตอนเบิกจ่าย เพื่อใช้ตอนพิมพ์ใบส่งมอบ (asset หลักเท่านั้น) */}
           {!isLicense && !isAccessory && checkoutCondition && setCheckoutCondition && (
-            <ConditionCapture
-              mode="checkout"
-              fields={checkoutCondition.fields}
-              setFields={(fields) => setCheckoutCondition({ ...checkoutCondition, fields })}
-              notes={checkoutCondition.notes}
-              setNotes={(notes) => setCheckoutCondition({ ...checkoutCondition, notes })}
-            />
+            <div className="border-t border-slate-200 pt-4">
+              <AssetAssessmentSection
+                assessment={checkoutCondition.assessment || {}}
+                setAssessment={(fnOrValue) => {
+                  const next = typeof fnOrValue === 'function' ? fnOrValue(checkoutCondition.assessment || {}) : fnOrValue;
+                  setCheckoutCondition({ ...checkoutCondition, assessment: next });
+                }}
+                photos={checkoutCondition.photos || {}}
+                setPhotos={(fnOrValue) => {
+                  const next = typeof fnOrValue === 'function' ? fnOrValue(checkoutCondition.photos || {}) : fnOrValue;
+                  setCheckoutCondition({ ...checkoutCondition, photos: next });
+                }}
+                defectsNote={checkoutCondition.defectsNote || ''}
+                setDefectsNote={(val) => setCheckoutCondition({ ...checkoutCondition, defectsNote: val })}
+              />
+            </div>
           )}
         </ModalBody>
         <ModalFooter>
@@ -261,9 +284,9 @@ export default function CheckoutModal({
           <button
             type="submit"
             disabled={!canSubmit}
-            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 ${
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 ${
               canSubmit
-                ? 'bg-[#1E487A] hover:bg-[#163963] text-white shadow-sm hover:shadow-md focus:ring-[#1E487A]/30'
+                ? 'bg-[#1E487A] hover:bg-[#163963] text-white shadow-sm focus:ring-[#1E487A]/30'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >

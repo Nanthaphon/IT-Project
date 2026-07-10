@@ -25,15 +25,19 @@ const TH_MONTHS = [
   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม',
 ];
 
-// ── Fonts: 'Sarabun' is much more widely supported than 'TH Sarabun New'.
-//    The old 'TH Sarabun New' falls back inconsistently on machines without it,
-//    causing the spaced-out character bug in headers/body text.
-const F  = 'Sarabun';   // Thai font
-const FE = 'Sarabun';   // EN/number font (Sarabun has solid Latin glyphs too)
+const F  = 'Sarabun';    // Thai font
+const FE = 'Arial';      // EN/number font — universal install + tight Latin spacing
+const REPORT_VERSION = 'v2';  // bump when changing report layout — appears in footer to verify rebuild
 
-/* ─── Base sizes (per user request: non-heading body text = 16) ─── */
-const BODY_SIZE   = 14;   // table body text
-const HEADER_SIZE = 14;   // table column header (kept = body, distinct via fill + bold)
+/* ─── Language-aware font picker
+   Sarabun has Latin glyphs but PowerPoint renders them with extra kerning,
+   causing the "spread out English chars" bug. Auto-pick FE for non-Thai text. ─── */
+const isThai = (text) => /[฀-๿]/.test(String(text ?? ''));
+const fontFor = (text) => isThai(text) ? F : FE;
+
+/* ─── Base sizes ─── */
+const BODY_SIZE   = 14;
+const HEADER_SIZE = 14;
 
 /* ─── pptxgenjs border object (all 4 sides) ─── */
 const bdr = (color = C.grayBorder, pt = 1) =>
@@ -44,18 +48,17 @@ const cell = (text, opts = {}) => ({
   text: String(text ?? '–'),
   options: {
     fontSize: BODY_SIZE,
-    fontFace: F,
+    fontFace: fontFor(text),   // 🆕 auto-pick font by language
     valign: 'middle',
     border: bdr(),
-    charSpacing: 0,     // explicit 0 prevents PowerPoint from applying default kerning that
-                        // can render as spread-out characters when fonts fall back
-    autoFit: false,     // don't let PPT shrink/spread text — keep our chosen size
+    charSpacing: 0,
+    autoFit: false,
     ...opts,
   },
 });
 const cellC  = (text, opts = {}) => cell(text, { align: 'center', fontFace: FE, ...opts });
-const cellN  = (text, opts = {}) => cellC(text, { bold: true, ...opts });   // number cell
-const cellH  = (text, opts = {}) => cell(text, {                             // header cell
+const cellN  = (text, opts = {}) => cellC(text, { bold: true, ...opts });
+const cellH  = (text, opts = {}) => cell(text, {
   fill: { color: C.blue },
   color: C.white,
   bold: true,
@@ -79,6 +82,23 @@ const statusOpts = (s = '') => {
   return { color: C.grayText };
 };
 
+/* ─── Resolve short display name for an employee ─── */
+const getShortName = (empId, employees, fallbackName) => {
+  if (!empId && !fallbackName) return '';
+  const emp = employees.find(e => e.id === empId || e.empId === empId);
+  if (emp) return emp.nickname || emp.fullName?.split(' ')[0] || '';
+  if (fallbackName) return fallbackName.split(' ')[0] || '';
+  return '';
+};
+
+/* ─── Format holder list: show up to max names, then "+N" ─── */
+const formatHolders = (names, max = 6) => {
+  const unique = [...new Set(names.filter(Boolean))];
+  if (unique.length === 0) return '–';
+  if (unique.length <= max) return unique.join(', ');
+  return unique.slice(0, max).join(', ') + ` +${unique.length - max}`;
+};
+
 /* ─── Forward decl (assigned just below) ─── */
 let addHeader, addFooter;
 
@@ -88,32 +108,34 @@ addFooter = (pptx, slide, pageNum, month, year, company) => {
     x: 0, y: 7.15, w: 13.33, h: 0.06,
     fill: { color: C.blue }, line: { color: C.blue },
   });
-  const label = `${company}  |  IT Performance – ${TH_MONTHS[month]} ${year + 543}`;
+  // Split runs so English uses FE (Calibri) and Thai uses F (Sarabun) — fixes spread chars
   slide.addText(
-    [{ text: label, options: { color: 'AAAAAA' } },
-     { text: `   ${pageNum}`, options: { color: C.blue, bold: true } }],
-    { x: 0.4, y: 7.22, w: 12.53, h: 0.22, fontSize: 9, align: 'right', fontFace: F },
+    [
+      { text: `${company}  |  IT Performance – `, options: { color: 'AAAAAA', fontFace: FE } },
+      { text: `${TH_MONTHS[month]} `,              options: { color: 'AAAAAA', fontFace: F  } },
+      { text: String(year + 543),                  options: { color: 'AAAAAA', fontFace: FE } },
+      { text: `   ${pageNum}`,                     options: { color: C.blue, bold: true, fontFace: FE } },
+      { text: `   (${REPORT_VERSION})`,             options: { color: 'CCCCCC', fontFace: FE } },
+    ],
+    { x: 0.4, y: 7.22, w: 12.53, h: 0.22, fontSize: 9, align: 'right', charSpacing: 0 },
   );
 };
 
-/* ─── Pagination: max body rows per slide given row height ─── */
-//   Slide is 7.5" tall; usable area between table top (1.15") and footer (7.15") = 6.0".
-//   Subtract 1 for the header row that repeats on every slide.
+/* ─── Pagination ─── */
 const rowsPerSlide = (rowH) =>
   Math.max(1, Math.floor(6.0 / rowH) - 1);
 
 /* ─── Render a (possibly multi-slide) table with auto-pagination ─── */
-//   Returns number of slides consumed so caller can keep page counter in sync.
 function addPaginatedTableSlides(pptx, ctx, {
   titleTh, titleEn, startPageNum,
   hdr, rows, colW, rowH, tableY = 1.15,
-  emptyRow,           // optional fallback row when data is empty
+  emptyRow,
 }) {
   const all = (rows.length === 0 && emptyRow) ? [emptyRow] : rows;
   const per = rowsPerSlide(rowH);
   const chunks = [];
   for (let i = 0; i < all.length; i += per) chunks.push(all.slice(i, i + per));
-  if (chunks.length === 0) chunks.push([]); // ensure at least one slide
+  if (chunks.length === 0) chunks.push([]);
 
   chunks.forEach((chunk, p) => {
     const s = pptx.addSlide();
@@ -132,26 +154,22 @@ function addPaginatedTableSlides(pptx, ctx, {
 
 /* ─── Header bar ─── */
 addHeader = (pptx, slide, titleTh, titleEn = '') => {
-  // Background bar
   slide.addShape(pptx.ShapeType.rect, {
     x: 0, y: 0, w: 13.33, h: 1.0,
     fill: { color: C.blue }, line: { color: C.blue },
   });
-  // Accent stripe
   slide.addShape(pptx.ShapeType.rect, {
     x: 0, y: 1.0, w: 13.33, h: 0.07,
     fill: { color: C.blueLight }, line: { color: C.blueLight },
   });
-  // Title Thai
   slide.addText(titleTh, {
     x: 0.45, y: 0.05, w: 9, h: 0.58,
-    fontSize: 26, bold: true, color: C.white, fontFace: F, valign: 'middle',
+    fontSize: 26, bold: true, color: C.white, fontFace: fontFor(titleTh), valign: 'middle', charSpacing: 0,
   });
-  // Sub title English (italic, smaller)
   if (titleEn) {
     slide.addText(titleEn, {
       x: 0.45, y: 0.58, w: 9, h: 0.38,
-      fontSize: 14, italic: true, color: 'B0C8E0', fontFace: FE, valign: 'top',
+      fontSize: 14, italic: true, color: 'B0C8E0', fontFace: FE, valign: 'top', charSpacing: 0,
     });
   }
 };
@@ -162,37 +180,33 @@ addHeader = (pptx, slide, titleTh, titleEn = '') => {
 function slide1(pptx, { month, year, company, reportDate }) {
   const s = pptx.addSlide();
 
-  // Full dark BG
   s.addShape(pptx.ShapeType.rect, { x:0, y:0, w:13.33, h:7.5, fill:{ color: C.blue }, line:{ color: C.blue } });
-  // Accent band
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.6, w:13.33, h:0.12, fill:{ color: C.blueLight }, line:{ color: C.blueLight } });
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.72, w:13.33, h:1.78, fill:{ color: '163860' }, line:{ color: '163860' } });
 
-  // Company
   s.addText(company.toUpperCase(), {
     x:0.8, y:1.6, w:11.73, h:0.9,
-    fontSize: 28, bold: true, color: C.blueLight, align:'center', fontFace: FE,
+    fontSize: 28, bold: true, color: C.blueLight, align:'center', fontFace: FE, charSpacing: 0,
   });
-  // Divider
   s.addShape(pptx.ShapeType.rect, { x:3.5, y:2.65, w:6.33, h:0.05, fill:{ color: C.blueLight }, line:{ color: C.blueLight } });
-  // Main title
-  s.addText(`IT Performance`, {
+  s.addText('IT Performance', {
     x:0.8, y:2.8, w:11.73, h:0.9,
-    fontSize: 42, bold: true, color: C.white, align:'center', fontFace: FE,
+    fontSize: 42, bold: true, color: C.white, align:'center', fontFace: FE, charSpacing: 0,
   });
-  s.addText(`เดือน${TH_MONTHS[month]}  ${year + 543}`, {
-    x:0.8, y:3.72, w:11.73, h:0.75,
-    fontSize: 32, bold: true, color: C.blueLight, align:'center', fontFace: F,
-  });
-  // Date
+  s.addText(
+    [
+      { text: `เดือน${TH_MONTHS[month]}  `, options: { color: C.blueLight, fontFace: F  } },
+      { text: String(year + 543),            options: { color: C.blueLight, fontFace: FE } },
+    ],
+    { x:0.8, y:3.72, w:11.73, h:0.75, fontSize: 32, bold: true, align:'center', charSpacing: 0 },
+  );
   s.addText(reportDate, {
     x:0.8, y:4.6, w:11.73, h:0.5,
-    fontSize: 17, color: '90B4CC', align:'center', fontFace: F,
+    fontSize: 17, color: '90B4CC', align:'center', fontFace: F, charSpacing: 0,
   });
-  // Bottom label
   s.addText('Monthly IT Performance Report', {
     x:0.8, y:6.0, w:11.73, h:0.45,
-    fontSize: 14, italic: true, color: C.blueLight, align:'center', fontFace: FE,
+    fontSize: 14, italic: true, color: C.blueLight, align:'center', fontFace: FE, charSpacing: 0,
   });
 }
 
@@ -217,20 +231,19 @@ function slide2(pptx, { month, year, company, reportDate }) {
 
     s.addShape('roundRect', { x, y, w, h,
       fill:{ color: 'EEF4FB' }, line:{ color: C.blueLight, width: 2 }, rectRadius: 0.1 });
-    // Left accent bar
     s.addShape(pptx.ShapeType.rect, { x, y, w:0.15, h,
       fill:{ color: C.blue }, line:{ color: C.blue } });
 
     s.addText(it.num, { x:x+0.3, y:y+0.15, w:1.5, h:0.8,
-      fontSize: 42, bold: true, color: C.blue, fontFace: FE });
+      fontSize: 42, bold: true, color: C.blue, fontFace: FE, charSpacing: 0 });
     s.addText(it.th,  { x:x+0.3, y:y+0.9,  w:w-0.5, h:0.65,
-      fontSize: 17, bold: true, color: C.blue, fontFace: F });
+      fontSize: 17, bold: true, color: C.blue, fontFace: F, charSpacing: 0 });
     s.addText(it.en,  { x:x+0.3, y:y+1.58, w:w-0.5, h:0.45,
-      fontSize: 12, italic: true, color: C.grayText, fontFace: FE });
+      fontSize: 12, italic: true, color: C.grayText, fontFace: FE, charSpacing: 0 });
   });
 
   s.addText(`อัพเดท: ${reportDate}`, {
-    x:0.4, y:7.2, w:5, h:0.22, fontSize:9, color: C.grayText, fontFace: F });
+    x:0.4, y:7.2, w:5, h:0.22, fontSize:9, color: C.grayText, fontFace: F, charSpacing: 0 });
   addFooter(pptx, s, 2, month, year, company);
 }
 
@@ -242,7 +255,6 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
   s.background = { color: C.white };
   addHeader(pptx, s, 'สรุปผลการดำเนินงาน', 'Support');
 
-  // Calculate stats
   const monthly = repairRequests.filter(r => {
     const d = new Date(r.timestamp);
     return d.getMonth() === month && d.getFullYear() === year;
@@ -252,7 +264,6 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
   const closedWon  = monthly.filter(r => doneKw.some(k => (r.status||'').includes(k))).length;
   const closedLose = monthly.filter(r => loseKw.some(k => (r.status||'').includes(k))).length;
 
-  // Stat boxes (4 across)
   const stats = [
     { v: employees.length, label:'พนักงานทั้งหมด', sub:'Employee',   color: C.blue  },
     { v: monthly.length,   label:'เคส',             sub:'Case',       color: C.blue  },
@@ -264,20 +275,18 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
     s.addShape('roundRect', { x:bx, y:by, w:bw, h:bh,
       fill:{ color: 'EEF4FB' }, line:{ color: C.blueLight, width:2 }, rectRadius:0.1 });
     s.addText(String(st.v), { x:bx, y:by+0.05, w:bw, h:bh*0.56,
-      fontSize:48, bold:true, color:st.color, align:'center', fontFace:FE, valign:'middle' });
+      fontSize:48, bold:true, color:st.color, align:'center', fontFace:FE, valign:'middle', charSpacing:0 });
     s.addText(st.label, { x:bx, y:by+bh*0.62, w:bw, h:0.4,
-      fontSize:15, bold:true, color:C.blue, align:'center', fontFace:F });
+      fontSize:15, bold:true, color:C.blue, align:'center', fontFace:F, charSpacing:0 });
     s.addText(st.sub,   { x:bx, y:by+bh*0.82, w:bw, h:0.28,
-      fontSize:11, color:C.grayText, align:'center', fontFace:FE });
+      fontSize:11, color:C.grayText, align:'center', fontFace:FE, charSpacing:0 });
   });
 
-  // Big Issue header
   s.addShape(pptx.ShapeType.rect, { x:0.4, y:3.05, w:3.5, h:0.38,
     fill:{ color: C.red }, line:{ color: C.red } });
   s.addText('🔴  Big Issue Discussion', { x:0.4, y:3.05, w:3.5, h:0.38,
-    fontSize:12, bold:true, color:C.white, fontFace:F, valign:'middle', inset:0.1 });
+    fontSize:12, bold:true, color:C.white, fontFace:FE, valign:'middle', inset:0.1, charSpacing:0 });
 
-  // Big Issue table
   const hdr = [
     cellH('No',       { w:0.5  }),
     cellH('Issue',    { align:'left' }),
@@ -319,31 +328,46 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
    SLIDE 4 – HARDWARE
 ═══════════════════════════════════ */
 function slide4(pptx, ctx, startPageNum) {
-  const { assets, accessories } = ctx;
+  const { assets, accessories, employees } = ctx;
 
-  // Group assets by type
   const groups = {};
+  const holdersByType = {};
+
   assets.forEach(a => {
     const t = a.type || 'อื่นๆ';
-    if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0 };
+    if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0, reserve:0 };
+    if (!holdersByType[t]) holdersByType[t] = [];
     groups[t].total++;
     const st = a.status || 'พร้อมใช้งาน';
-    if (st === 'ถูกใช้งาน')       groups[t].inUse++;
-    else if (st === 'ชำรุดเสียหาย') groups[t].broken++;
-    else                           groups[t].avail++;
+    if (st === 'ถูกใช้งาน') {
+      groups[t].inUse++;
+      const name = getShortName(a.assignedTo, employees, a.assignedName);
+      if (name) holdersByType[t].push(name);
+    } else if (st === 'ชำรุดเสียหาย') {
+      groups[t].broken++;
+    } else if (st === 'สำรอง') {
+      groups[t].reserve++;
+    } else {
+      groups[t].avail++;
+    }
   });
-  // Merge accessories
+
   accessories.forEach(a => {
     const t = a.type || 'อุปกรณ์เสริม';
     const qty    = Number(a.quantity||0);
     const inUse  = (a.assignees||[]).length;
     const broken = Number(a.brokenQuantity||0);
     const avail  = Math.max(0, qty - inUse - broken);
-    if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0 };
+    if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0, reserve:0 };
+    if (!holdersByType[t]) holdersByType[t] = [];
     groups[t].total  += qty;
     groups[t].inUse  += inUse;
     groups[t].avail  += avail;
     groups[t].broken += broken;
+    (a.assignees || []).forEach(asg => {
+      const name = getShortName(asg.empId, employees, asg.empName);
+      if (name) holdersByType[t].push(name);
+    });
   });
 
   const hdr = [
@@ -353,23 +377,24 @@ function slide4(pptx, ctx, startPageNum) {
     cellH('ใช้งาน',        {}),
     cellH('พร้อมส่งมอบ',  {}),
     cellH('ชำรุด',         {}),
-    cellH('หมายเหตุ',     { align:'left' }),
+    cellH('ผู้ถือครอง',     { align:'left' }),
   ];
 
   const entries = Object.entries(groups);
   const rows = entries.map(([type, g], i) => {
     const f = rowFill(i);
+    const holderText = formatHolders(holdersByType[type] || []);
     const brokenCell = g.broken > 0
-      ? { text: String(g.broken), options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), ...f } }
-      : { text: '–',              options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), ...f } };
+      ? { text: String(g.broken), options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), charSpacing:0, ...f } }
+      : { text: '–',              options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } };
     return [
-      { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:type,            options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:String(g.total), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
-      { text:String(g.inUse), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), ...f } },
+      { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:type,            options:{ fontSize:14, fontFace:fontFor(type), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
+      { text:String(g.total), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), charSpacing:0, ...f } },
+      { text:String(g.inUse), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), charSpacing:0, ...f } },
       brokenCell,
-      { text:'',              options:{ fontSize:14, fontFace:F, align:'left', valign:'middle', color:C.grayText, border:bdr(), ...f } },
+      { text:holderText,      options:{ fontSize:11, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
   });
 
@@ -382,7 +407,7 @@ function slide4(pptx, ctx, startPageNum) {
     titleTh: 'สรุปผล Hardware', titleEn: 'Hardware Inventory',
     startPageNum,
     hdr, rows,
-    colW: [0.5, 3.0, 0.85, 0.95, 1.4, 0.85, 4.98],
+    colW: [0.5, 2.5, 0.75, 0.85, 1.2, 0.75, 5.98],
     rowH: 0.62,
     emptyRow,
   });
@@ -392,7 +417,7 @@ function slide4(pptx, ctx, startPageNum) {
    SLIDE 5 – SOFTWARE
 ═══════════════════════════════════ */
 function slide5(pptx, ctx, startPageNum) {
-  const { licenses } = ctx;
+  const { licenses, employees } = ctx;
 
   const hdr = [
     cellH('No',        {}),
@@ -400,7 +425,7 @@ function slide5(pptx, ctx, startPageNum) {
     cellH('Stock',     {}),
     cellH('Active',    { color: 'A8FFB0' }),
     cellH('Inactive',  { color: 'FFD0D0' }),
-    cellH('หมายเหตุ',  { align:'left' }),
+    cellH('ผู้ใช้งาน',  { align:'left' }),
   ];
 
   const rows = licenses.map((lic, i) => {
@@ -408,13 +433,19 @@ function slide5(pptx, ctx, startPageNum) {
     const active   = (lic.assignees||[]).length;
     const inactive = Math.max(0, stock - active);
     const f = rowFill(i);
+
+    const assigneeNames = (lic.assignees || []).map(a =>
+      getShortName(a.empId, employees, a.empName)
+    );
+    const holderText = formatHolders(assigneeNames);
+
     return [
-      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:lic.name||'–',    options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:String(stock),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), ...f } },
-      { text:String(active),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), ...f } },
-      { text:String(inactive), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), ...f } },
-      { text:lic.remarks||'',  options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:lic.name||'–',    options:{ fontSize:14, fontFace:fontFor(lic.name), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
+      { text:String(stock),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), charSpacing:0, ...f } },
+      { text:String(active),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), charSpacing:0, ...f } },
+      { text:String(inactive), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), charSpacing:0, ...f } },
+      { text:holderText,       options:{ fontSize:11, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
   });
 
@@ -428,8 +459,7 @@ function slide5(pptx, ctx, startPageNum) {
     titleTh: 'สรุปผล Software / License', titleEn: 'Software Inventory',
     startPageNum,
     hdr, rows,
-    //   No , Software, Stock, Active, Inactive,  หมายเหตุ
-    colW: [0.5, 3.0,     0.95,  1.0,    1.05,     6.03],
+    colW: [0.5, 2.5, 0.85, 0.9, 0.95, 6.83],
     rowH: 0.62,
     emptyRow,
   });
@@ -454,12 +484,12 @@ function slide6(pptx, ctx, startPageNum) {
     const f = rowFill(i);
     const so = statusOpts(p.status||'');
     return [
-      { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:p.project||'–', options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', bold:true, border:bdr(), ...f } },
-      { text:p.details||'',  options:{ fontSize:14, fontFace:F,  align:'left',   valign:'top',    border:bdr(), ...f } },
-      { text:p.status||'–',  options:{ fontSize:14, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
-      { text:p.due||'–',     options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:p.remarks||'',  options:{ fontSize:14, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:p.project||'–', options:{ fontSize:14, fontFace:fontFor(p.project), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
+      { text:p.details||'',  options:{ fontSize:14, fontFace:fontFor(p.details), align:'left', valign:'top', border:bdr(), charSpacing:0, ...f } },
+      { text:p.status||'–',  options:{ fontSize:14, fontFace:fontFor(p.status), align:'center', valign:'middle', bold:true, ...so, border:bdr(), charSpacing:0, ...f } },
+      { text:p.due||'–',     options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:p.remarks||'',  options:{ fontSize:14, fontFace:fontFor(p.remarks), align:'left', valign:'top', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
   });
 
@@ -497,11 +527,11 @@ function slide7(pptx, ctx, startPageNum) {
     const f = rowFill(i);
     const so = statusOpts(f2.status||'');
     return [
-      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:f2.details||'',   options:{ fontSize:14, fontFace:F,  align:'left',   valign:'middle', border:bdr(), ...f } },
-      { text:f2.status||'–',   options:{ fontSize:14, fontFace:F,  align:'center', valign:'middle', bold:true, ...so, border:bdr(), ...f } },
-      { text:f2.due||'–',      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), ...f } },
-      { text:f2.remarks||'',   options:{ fontSize:14, fontFace:F,  align:'left',   valign:'top',    color:C.grayText, border:bdr(), ...f } },
+      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:f2.details||'',   options:{ fontSize:14, fontFace:fontFor(f2.details), align:'left', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:f2.status||'–',   options:{ fontSize:14, fontFace:fontFor(f2.status), align:'center', valign:'middle', bold:true, ...so, border:bdr(), charSpacing:0, ...f } },
+      { text:f2.due||'–',      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:f2.remarks||'',   options:{ fontSize:14, fontFace:fontFor(f2.remarks), align:'left', valign:'top', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
   });
 
@@ -534,11 +564,17 @@ function slide8(pptx, { month, year, company }) {
     fill:{ color:'163860' }, line:{ color:'163860' } });
 
   s.addText('THANK YOU', { x:0.8, y:1.6, w:11.73, h:1.6,
-    fontSize:72, bold:true, color:C.white, align:'center', fontFace:FE });
+    fontSize:72, bold:true, color:C.white, align:'center', fontFace:FE, charSpacing:0 });
   s.addText(company.toUpperCase(), { x:0.8, y:5.7, w:11.73, h:0.65,
-    fontSize:22, bold:true, color:C.blueLight, align:'center', fontFace:FE });
-  s.addText(`IT Performance – ${TH_MONTHS[month]} ${year+543}`, { x:0.8, y:6.38, w:11.73, h:0.45,
-    fontSize:15, color:'90B4CC', align:'center', fontFace:F });
+    fontSize:22, bold:true, color:C.blueLight, align:'center', fontFace:FE, charSpacing:0 });
+  s.addText(
+    [
+      { text: 'IT Performance – ',         options: { color:'90B4CC', fontFace: FE } },
+      { text: `${TH_MONTHS[month]} `,      options: { color:'90B4CC', fontFace: F  } },
+      { text: String(year + 543),          options: { color:'90B4CC', fontFace: FE } },
+    ],
+    { x:0.8, y:6.38, w:11.73, h:0.45, fontSize:15, align:'center', charSpacing:0 },
+  );
 }
 
 /* ═══════════════════════════════════
@@ -566,16 +602,16 @@ export async function generateITReport({
     bigIssues, rdProjects, followUps,
   };
 
-  slide1(pptx, ctx);        // page 1 (cover, no footer page-num shown)
-  slide2(pptx, ctx);        // page 2 (agenda)
+  slide1(pptx, ctx);
+  slide2(pptx, ctx);
   let page = 3;
-  slide3(pptx, ctx);        // page 3 (support, fixed)
+  slide3(pptx, ctx);
   page = 4;
-  page += slide4(pptx, ctx, page); // hardware (1+ slides)
-  page += slide5(pptx, ctx, page); // software (1+ slides)
-  page += slide6(pptx, ctx, page); // R&D (1+ slides)
-  page += slide7(pptx, ctx, page); // follow-up (1+ slides)
-  slide8(pptx, ctx);        // thank you
+  page += slide4(pptx, ctx, page);
+  page += slide5(pptx, ctx, page);
+  page += slide6(pptx, ctx, page);
+  page += slide7(pptx, ctx, page);
+  slide8(pptx, ctx);
 
   const fileName = `IT_Performance_${TH_MONTHS[month]}_${year + 543}.pptx`;
   await pptx.writeFile({ fileName });

@@ -50,7 +50,6 @@ const KpiDashboard          = lazy(() => import('./components/KpiDashboard.jsx')
 const ITReportModal         = lazy(() => import('./components/ITReportModal.jsx'));
 const DropdownOptionsManager = lazy(() => import('./components/DropdownOptionsManager.jsx'));
 const UserManagementPage    = lazy(() => import('./components/UserManagementPage.jsx'));
-const SystemSettingsPage    = lazy(() => import('./components/SystemSettingsPage.jsx'));
 const SnipeITImportModal    = lazy(() => import('./components/SnipeITImportModal.jsx'));
 
 import EmployeeTable from './components/EmployeeTable.jsx';
@@ -112,15 +111,6 @@ function App() {
 
   // ── Global loading overlay (สำหรับ async operations ทั้งระบบ) ──
   const { isLoading: globalLoading, message: globalLoadingMsg, withLoading } = useGlobalLoading();
-
-  // ─── ตั้งค่า LINE recipient (แก้ได้ในเมนู "ตั้งค่าระบบ") ───
-  const [notifySettings, setNotifySettings] = useState({ itLineUserId: '', hrLineUserId: '' });
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'settings', 'notifications'), (snap) => {
-      if (snap.exists()) setNotifySettings(snap.data());
-    });
-    return unsub;
-  }, []);
 
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]); 
@@ -392,7 +382,7 @@ function App() {
   // ─── แจ้งเตือน License ใกล้หมดอายุ (ส่ง email ครั้งเดียวต่อวัน) ───
   useEffect(() => {
     if (authRole !== 'admin' || licenses.length === 0) return;
-    // 🆕 guard — เฉพาะแท็บที่ active เท่านั้น (กันส่ง LINE 2 ครั้งเมื่อเปิดหลายแท็บ)
+    // 🆕 guard — เฉพาะแท็บที่ active เท่านั้น (กันส่ง notify 2 ครั้งเมื่อเปิดหลายแท็บ)
     if (!isActiveTab) return;
     // ต้องมีสิทธิ์เข้าถึงเมนู licenses เท่านั้นจึงจะส่ง email แจ้งเตือน
     const hasLicensesAccess = isSuperAdmin || (adminPermissions?.menus || []).includes('licenses');
@@ -639,9 +629,9 @@ function App() {
 
       setStaffRepairForm({ assetName: '', issue: '' });
       if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และส่ง LINE แจ้งฝ่าย IT แล้ว', type: 'success' });
+        setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งฝ่าย IT ทาง Teams แล้ว', type: 'success' });
       } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง LINE ไม่สำเร็จ', message: `ระบบบันทึกเรื่องแจ้งซ่อมเรียบร้อย แต่ไม่สามารถส่ง LINE แจ้ง IT ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า LINE OA`, type: 'warning' });
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง Teams ไม่สำเร็จ', message: `ระบบบันทึกเรื่องแจ้งซ่อมเรียบร้อย แต่ไม่สามารถส่ง Teams แจ้ง IT ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า Teams webhook`, type: 'warning' });
       }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
@@ -681,9 +671,9 @@ function App() {
       } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); console.error('staff-notify failed:', notifyErr); }
 
       if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และส่ง LINE แจ้งฝ่าย HR เรียบร้อยแล้ว', type: 'success' });
+        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งฝ่าย HR ทาง Teams เรียบร้อยแล้ว', type: 'success' });
       } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง LINE ไม่สำเร็จ', message: `ระบบบันทึกคำขอเบิกอุปกรณ์เรียบร้อย แต่ไม่สามารถส่ง LINE แจ้ง HR ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า LINE OA`, type: 'warning' });
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง Teams ไม่สำเร็จ', message: `ระบบบันทึกคำขอเบิกอุปกรณ์เรียบร้อย แต่ไม่สามารถส่ง Teams แจ้ง HR ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า Teams webhook`, type: 'warning' });
       }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
@@ -728,7 +718,7 @@ function App() {
         }
       } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
 
-      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และส่ง LINE แจ้งฝ่าย IT เรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
+      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และแจ้งฝ่าย IT ทาง Teams เรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
@@ -817,7 +807,7 @@ function App() {
       if (notifyOk) {
         setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: `ส่งคำขอ ${requestTypeLabel}: ${payload.accessoryName} เรียบร้อย — IT จะดำเนินการให้เร็วที่สุด`, type: 'success' });
       } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง LINE ไม่สำเร็จ', message: `ระบบบันทึกคำขอเรียบร้อย แต่ส่ง LINE ไม่ได้\n\nสาเหตุ: ${notifyErrMsg}`, type: 'warning' });
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง Teams ไม่สำเร็จ', message: `ระบบบันทึกคำขอเรียบร้อย แต่ส่ง Teams ไม่ได้\n\nสาเหตุ: ${notifyErrMsg}`, type: 'warning' });
       }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
@@ -2662,8 +2652,7 @@ function App() {
                     activeMenu === 'supply_requests' ? 'คำขอเบิกอุปกรณ์' :
                     activeMenu === 'replacement_requests' ? 'คำขอเปลี่ยนเครื่อง' :
                     activeMenu === 'accessory_requests' ? 'คำขออุปกรณ์เสริม' :
-                    activeMenu === 'users' ? 'จัดการผู้ใช้' :
-                    activeMenu === 'system_settings' ? 'ตั้งค่าระบบ' : 'พนักงาน';
+                    activeMenu === 'users' ? 'จัดการผู้ใช้' : 'พนักงาน';
 
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };
@@ -2839,10 +2828,6 @@ function App() {
                 isSuperAdmin={isSuperAdmin}
                 canManagePasswords={adminPermissions?.canManagePasswords === true}
               />
-            </Suspense>
-          ) : activeMenu === 'system_settings' ? (
-            <Suspense fallback={<LazyFallback />}>
-              <SystemSettingsPage isSuperAdmin={isSuperAdmin} />
             </Suspense>
           ) : (
             <div className="h-full flex flex-col">

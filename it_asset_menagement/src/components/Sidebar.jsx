@@ -14,7 +14,6 @@ import {
   FileBarChart2,
   TrendingUp,
   ShieldCheck,
-  Settings,
   ChevronRight,
 } from 'lucide-react';
 
@@ -86,9 +85,6 @@ export default function Sidebar({
   const adminItems = [];
   if (isSuperAdmin || canManageUsers) {
     adminItems.push({ id: 'users', label: 'จัดการผู้ใช้', icon: ShieldCheck });
-  }
-  if (isSuperAdmin) {
-    adminItems.push({ id: 'system_settings', label: 'ตั้งค่าระบบ', icon: Settings });
   }
   const superAdminGroup = adminItems.length > 0 ? [{
     group: 'ผู้ดูแลระบบ',

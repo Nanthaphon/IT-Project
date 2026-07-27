@@ -2,8 +2,8 @@ import React from 'react';
 import { Pencil, Trash2, Mouse, LogIn } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
-const TD = 'px-5 py-3.5';
+const TH = 'px-5 py-3.5 font-semibold text-slate-400 text-[11.5px] uppercase tracking-[0.08em]';
+const TD = 'px-5 py-4';
 
 export default function AccessoryTable({
   currentData,
@@ -36,7 +36,7 @@ export default function AccessoryTable({
           </th>
           <th className={TH}>ชื่ออุปกรณ์</th>
           <th className={TH}>ประเภท</th>
-          <th className={`px-5 py-3 font-semibold text-slate-700 text-[12px] uppercase tracking-[0.08em] text-center bg-slate-100/60`}>
+          <th className={`px-5 py-3.5 font-semibold text-slate-600 text-[11.5px] uppercase tracking-[0.08em] text-center bg-slate-100/60`}>
             รวมทั้งหมด <span style={{ color: BRAND.primary }} className="ml-1 tabular-nums">({totalQty})</span>
           </th>
           <th className={`${TH} text-center`}>
@@ -72,10 +72,10 @@ export default function AccessoryTable({
                   className="text-left flex items-center gap-3 group/link"
                 >
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 shrink-0 shadow-sm" />
+                    <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0" />
                   ) : (
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
                       style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
                     >
                       <Mouse className="h-4 w-4" strokeWidth={1.7} />
@@ -83,18 +83,18 @@ export default function AccessoryTable({
                   )}
                   <span className="font-medium text-slate-800 group-hover/link:text-[#1E487A] transition-colors">{item.name}</span>
                   {item.requestDisabled && (
-                    <span className="ml-2 inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 ring-1 ring-rose-200 px-1.5 py-0.5 rounded" title="พนักงานไม่สามารถเบิกได้">
-                      🚫 ปิดเบิก
+                    <span className="ml-2 inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-md" title="พนักงานไม่สามารถเบิกได้">
+                      ปิดเบิก
                     </span>
                   )}
                 </button>
               </td>
               <td className={TD}>
-                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[12px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
+                <span className="inline-flex items-center bg-slate-50 text-slate-600 text-xs px-2.5 py-1 rounded-md font-semibold border border-slate-200">
                   {item.type}
                 </span>
               </td>
-              <td className="px-5 py-3.5 font-semibold text-slate-900 text-center bg-slate-50/40 tabular-nums">
+              <td className="px-5 py-4 font-semibold text-slate-900 text-center bg-slate-50/40 tabular-nums">
                 {item.quantity || 0}
               </td>
               <td className={`${TD} font-semibold text-center tabular-nums ${remain > 0 ? 'text-emerald-600' : 'text-slate-400'}`}>{remain}</td>
@@ -105,7 +105,7 @@ export default function AccessoryTable({
                   {canEdit && (
                     <button
                       onClick={() => setCheckoutModal({ isOpen: true, assetId: item.id, collectionName: 'accessories' })}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#1E487A] text-white hover:bg-[#163963] rounded-lg font-semibold transition-colors text-[12.5px]"
                       title="เบิกจ่าย"
                     >
                       <LogIn className="h-3 w-3" strokeWidth={2.2} />
@@ -134,14 +134,14 @@ export default function AccessoryTable({
 
 function IconBtn({ onClick, title, children, kind }) {
   const map = {
-    warning: 'text-amber-600 hover:bg-amber-50 hover:ring-amber-300',
-    danger:  'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
+    warning: 'text-amber-600 hover:bg-amber-50 hover:border-amber-300',
+    danger:  'text-rose-500 hover:bg-rose-50 hover:border-rose-300',
   }[kind];
   return (
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center justify-center w-7 h-7 bg-white ring-1 ring-inset ring-slate-200 rounded-lg transition-colors ${map}`}
+      className={`inline-flex items-center justify-center w-7 h-7 bg-white border border-slate-200 rounded-lg transition-colors ${map}`}
     >
       {children}
     </button>

@@ -82,10 +82,10 @@ export default function LoginView({
             <p className="text-slate-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm shadow-slate-950/5 ring-1 ring-slate-200/70 p-7">
+          <div className="bg-white rounded-xl shadow-sm shadow-slate-950/5 border border-slate-200/70 p-7">
             <form onSubmit={handleAdminLogin} className="space-y-4">
               {loginError && (
-                <div className="bg-rose-50 text-rose-700 p-3.5 rounded-xl text-sm font-medium ring-1 ring-rose-200 flex items-start gap-2.5">
+                <div className="bg-rose-50 text-rose-700 p-3.5 rounded-xl text-sm font-medium border border-rose-200 flex items-start gap-2.5">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
                   <span>{loginError}</span>
                 </div>
@@ -116,7 +116,7 @@ export default function LoginView({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3.5 bg-[#1E487A] text-white font-semibold rounded-lg hover:bg-[#163963] shadow-lg shadow-[#1E487A]/25 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
+                className="w-full py-3.5 bg-[#1E487A] text-white font-semibold rounded-lg hover:bg-[#163963] mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
               >
                 {loginLoading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -144,10 +144,10 @@ export default function LoginView({
 
           {/* alert จาก reset password */}
           {alertMsg && (
-            <div className={`mt-4 px-4 py-3 rounded-xl text-[13.5px] font-medium ring-1 flex items-start gap-2 ${
+            <div className={`mt-4 px-4 py-3 rounded-xl text-[13.5px] font-medium border flex items-start gap-2 ${
               alertMsg.type === 'success'
-                ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-                : 'bg-rose-50 text-rose-700 ring-rose-200'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-rose-50 text-rose-700 border-rose-200'
             }`}>
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
               <span>{alertMsg.text}</span>
@@ -184,7 +184,7 @@ export default function LoginView({
 function Logo() {
   return (
     <div
-      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-[#1E487A]/25 ring-1 ring-white/50"
+      className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-[#1E487A]/25 border border-white/50"
       style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
     >
       <img
@@ -201,11 +201,11 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
   return (
     <button
       onClick={onClick}
-      className={`group w-full bg-white rounded-2xl ring-1 flex items-center gap-5 px-6 py-5 text-left
+      className={`group w-full bg-white rounded-xl border flex items-center gap-5 px-6 py-5 text-left
                   transition-colors hover:shadow-sm
                   ${accent
-                    ? 'ring-[#1E487A]/15 hover:ring-[#1E487A]/40 hover:shadow-[#1E487A]/10'
-                    : 'ring-slate-200/70 hover:ring-[#1E487A]/30 hover:shadow-slate-300/30'
+                    ? 'border-[#1E487A]/15 hover:border-[#1E487A]/40 hover:shadow-[#1E487A]/10'
+                    : 'border-slate-200/70 hover:border-[#1E487A]/30 hover:shadow-slate-300/30'
                   }`}
     >
       {/* Icon */}

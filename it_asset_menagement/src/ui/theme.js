@@ -40,15 +40,16 @@ export const cls = {
     'cursor-pointer pr-9 appearance-none bg-no-repeat bg-[right_0.75rem_center] ' +
     "bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='2'><path d='M5 7l5 5 5-5'/></svg>\")]",
 
+  // label ฟอร์ม — ตรงกับ labelCls ของ StaffView
   label:
-    'block text-[14px] font-medium text-slate-600 mb-1.5',
+    'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5',
 
   // Buttons
   btnPrimary:
     'inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-lg ' +
-    'bg-[#1E487A] hover:bg-[#163963] transition-all shadow-sm hover:shadow-md ' +
+    'bg-[#1E487A] hover:bg-[#163963] transition-colors ' +
     'focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30 ' +
-    'disabled:bg-slate-300 disabled:cursor-not-allowed disabled:shadow-none',
+    'disabled:bg-slate-300 disabled:cursor-not-allowed',
 
   btnSecondary:
     'inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 rounded-lg ' +
@@ -64,19 +65,21 @@ export const cls = {
     'bg-rose-600 hover:bg-rose-700 transition-colors shadow-sm hover:shadow-md ' +
     'focus:outline-none focus:ring-2 focus:ring-rose-200',
 
-  // Cards / surfaces
+  // Cards / surfaces — ธีมฝั่งพนักงาน: ขอบบาง + เงานุ่มโทนน้ำเงิน
   card:
-    'bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm',
+    'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]',
 
   cardHover:
-    'bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm hover:shadow-md hover:ring-slate-300/70 transition-all',
+    'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] ' +
+    'hover:border-slate-300 transition-colors',
 
   // Modal pieces
   modalOverlay:
     'fixed inset-0 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85]',
 
   modalShell:
-    'bg-white rounded-2xl shadow-2xl shadow-slate-950/20 w-full overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-slate-200/60',
+    'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] ' +
+    'w-full overflow-hidden flex flex-col max-h-[92vh]',
 
   // Table
   tableHead:
@@ -85,9 +88,9 @@ export const cls = {
   tableRow:
     'border-b border-slate-100 hover:bg-slate-50/60 transition-colors',
 
-  // Badges
+  // Badges — ธีมฝั่งพนักงาน: rounded-md + border (ไม่ใช่ pill กลม + ring)
   badge:
-    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12.5px] font-medium ring-1 ring-inset',
+    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border',
 };
 
 // Helper: status badge classNames given a STATUS key

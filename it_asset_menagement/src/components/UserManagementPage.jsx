@@ -303,7 +303,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
         {canFullManage && (
           <button
             onClick={openAdd}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors"
             style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` }}
             onMouseEnter={e => (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={e => (e.currentTarget.style.background = BRAND.primary)}
@@ -315,7 +315,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       </div>
 
       {/* ── Table ── */}
-      <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
             <thead className="bg-slate-50/80 border-b border-slate-200">
@@ -344,7 +344,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       <div>
                         <p className="font-semibold text-slate-800">{user.displayName || '-'}</p>
                         {user.isSuperAdmin && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#1E487A]/10 text-[#1E487A] mt-0.5">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-[#1E487A] mt-0.5">
                             <Shield className="h-2.5 w-2.5" strokeWidth={2.2} />
                             SuperAdmin
                           </span>
@@ -359,15 +359,15 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   {/* สิทธิ์ */}
                   <td className="px-5 py-3.5 text-center">
                     {user.isSuperAdmin ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#1E487A] text-white ring-1 ring-[#1E487A]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#1E487A] text-white border border-[#1E487A]">
                         Full
                       </span>
                     ) : user.permissions?.level === 'full' ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         แก้ไขได้
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">
                         <Eye className="h-3 w-3" strokeWidth={2} />
                         ดูอย่างเดียว
                       </span>
@@ -435,7 +435,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Add/Edit Modal ── */}
       {modalOpen && (
         <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[85]">
-          <div className="bg-white rounded-2xl shadow-md w-full max-w-lg overflow-hidden ring-1 ring-slate-200/60 flex flex-col max-h-[92vh]">
+          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-lg overflow-hidden border border-slate-200/60 flex flex-col max-h-[92vh]">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
@@ -559,7 +559,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5 p-3 bg-slate-50 rounded-xl ring-1 ring-slate-200">
+                <div className="grid grid-cols-2 gap-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
                   {ALL_MENU_IDS.map(id => (
                     <label
                       key={id}
@@ -582,7 +582,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
               {/* สิทธิ์จัดการรหัสผ่าน */}
               <div>
                 <label className={cls.label}>สิทธิ์พิเศษ</label>
-                <label className="flex items-start gap-2.5 px-3.5 py-3 bg-slate-50 rounded-xl ring-1 ring-slate-200 cursor-pointer hover:bg-slate-100/70 transition-colors select-none mt-1.5">
+                <label className="flex items-start gap-2.5 px-3.5 py-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100/70 transition-colors select-none mt-1.5">
                   <input
                     type="checkbox"
                     checked={form.canManagePasswords}
@@ -600,7 +600,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
               {/* Error */}
               {error && (
-                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl ring-1 ring-rose-200">
+                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl border border-rose-200">
                   {error}
                 </div>
               )}
@@ -637,9 +637,9 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Confirm Delete ── */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-2xl shadow-md w-full max-w-sm overflow-hidden ring-1 ring-slate-200/60">
+          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-sm overflow-hidden border border-slate-200/60">
             <div className="p-6">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 ring-1 ring-rose-200 flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
               </div>
               <h3 className="text-[16px] font-bold text-slate-800 text-center mb-1">ยืนยันการลบผู้ใช้</h3>
@@ -669,7 +669,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Reset Password Modal ── */}
       {pwUser && (
         <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-2xl shadow-md w-full max-w-sm overflow-hidden ring-1 ring-slate-200/60">
+          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-sm overflow-hidden border border-slate-200/60">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -716,12 +716,12 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 />
               </div>
               {pwError && (
-                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl ring-1 ring-rose-200">
+                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl border border-rose-200">
                   {pwError}
                 </div>
               )}
               {pwSuccess && (
-                <div className="px-3.5 py-2.5 bg-emerald-50 text-emerald-700 text-[14px] font-medium rounded-xl ring-1 ring-emerald-200">
+                <div className="px-3.5 py-2.5 bg-emerald-50 text-emerald-700 text-[14px] font-medium rounded-xl border border-emerald-200">
                   {pwSuccess}
                 </div>
               )}
@@ -759,15 +759,15 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 /* ── Icon button helper ── */
 function IconBtn({ onClick, title, children, kind }) {
   const map = {
-    warning: 'text-amber-600 hover:bg-amber-50 hover:ring-amber-300',
-    danger:  'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
-    primary: 'text-[#1E487A] hover:bg-blue-50 hover:ring-blue-300',
+    warning: 'text-amber-600 hover:bg-amber-50 hover:border-amber-300',
+    danger:  'text-rose-500 hover:bg-rose-50 hover:border-rose-300',
+    primary: 'text-[#1E487A] hover:bg-blue-50 hover:border-blue-300',
   }[kind];
   return (
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center justify-center w-7 h-7 bg-white ring-1 ring-inset ring-slate-200 rounded-lg transition-colors ${map}`}
+      className={`inline-flex items-center justify-center w-7 h-7 bg-white border border-slate-200 rounded-lg transition-colors ${map}`}
     >
       {children}
     </button>

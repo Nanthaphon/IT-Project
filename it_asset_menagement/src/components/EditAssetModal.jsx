@@ -17,7 +17,7 @@ function SectionHeader({ children }) {
 function Field({ label, required, hint, children, className = '' }) {
   return (
     <div className={className}>
-      <label className="block text-[14px] font-medium text-slate-600 mb-1.5">
+      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}
@@ -72,12 +72,12 @@ export default function EditAssetModal({
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[70]">
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-slate-200/60">
+      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="px-7 py-5 flex items-start justify-between border-b border-slate-100">
           <div className="flex items-start gap-3.5">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
               style={{ background: `${BRAND}10`, color: BRAND }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -113,12 +113,12 @@ export default function EditAssetModal({
                     <img
                       src={editAssetModal.data.image}
                       alt="Preview"
-                      className="w-20 h-20 rounded-xl object-cover ring-1 ring-slate-200"
+                      className="w-20 h-20 rounded-lg object-cover border border-slate-200"
                     />
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 ring-1 ring-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none shadow-sm"
+                      className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 border border-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none"
                       title="ลบรูปภาพ"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -127,7 +127,7 @@ export default function EditAssetModal({
                     </button>
                   </div>
                 ) : (
-                  <div className="w-20 h-20 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 ring-1 ring-dashed ring-slate-300 shrink-0">
+                  <div className="w-20 h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 border border-dashed border-slate-300 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
@@ -244,18 +244,18 @@ export default function EditAssetModal({
                   {isAssets && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           (editAssetModal.data.purchaseCondition || 'new') === 'new'
-                            ? 'bg-emerald-50 ring-2 ring-emerald-500 text-emerald-700'
-                            : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
+                            ? 'bg-emerald-50 border border-emerald-500 text-emerald-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="new" checked={(editAssetModal.data.purchaseCondition || 'new') === 'new'} onChange={handleEditAssetChange} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           editAssetModal.data.purchaseCondition === 'used'
-                            ? 'bg-amber-50 ring-2 ring-amber-500 text-amber-700'
-                            : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
+                            ? 'bg-amber-50 border border-amber-500 text-amber-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="used" checked={editAssetModal.data.purchaseCondition === 'used'} onChange={handleEditAssetChange} className="sr-only" />
                           <span>♻️ เครื่องเก่า / มือสอง</span>
@@ -308,8 +308,8 @@ export default function EditAssetModal({
                       <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
                     </div>
                   </Field>
-                  {/* 🆕 ราคาขายซาก */}
-                  <Field label="ราคาขายซาก (บาท)">
+                  {/* 🆕 ราคาปัจจุบัน */}
+                  <Field label="ราคาปัจจุบัน (บาท)">
                     <div className="relative">
                       <input
                         type="number"
@@ -484,6 +484,16 @@ export default function EditAssetModal({
                     placeholder="ใส่รายละเอียดที่ต้องการบันทึก..."
                   />
                 </Field>
+                <Field label="Remark" hint="หมายเหตุเพิ่มเติม (แสดงในรายงาน PDF)">
+                  <textarea
+                    name="remark"
+                    value={editAssetModal.data.remark || ''}
+                    onChange={handleEditAssetChange}
+                    rows={3}
+                    className={inputCls + ' resize-none'}
+                    placeholder="ใส่ Remark..."
+                  />
+                </Field>
               </section>
             )}
           </div>
@@ -499,10 +509,7 @@ export default function EditAssetModal({
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
-              style={{ background: BRAND, boxShadow: `0 4px 14px ${BRAND}33` }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#163963')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = BRAND)}
+              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-[#1E487A] hover:bg-[#163963] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
             >
               บันทึกการแก้ไข
             </button>

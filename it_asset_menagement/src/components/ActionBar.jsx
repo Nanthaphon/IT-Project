@@ -70,12 +70,13 @@ export default function ActionBar({
     assetTag: 'รหัสทรัพย์สิน', sn: 'Serial Number', model: 'ยี่ห้อ/รุ่น', vendor: 'ผู้จัดจำหน่าย', company: 'บริษัท',
     purchaseDate: 'วันที่ซื้อ', warrantyDate: 'วันหมด Warranty', assignedName: 'ผู้ครอบครอง',
     note: 'หมายเหตุ',
+    remark: 'Remark',
     age: 'อายุการใช้งาน',
-    scrapValue: 'ราคาขายซาก',
+    scrapValue: 'ราคาปัจจุบัน',
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 mb-5 pb-5 border-b border-slate-200 shrink-0">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 pb-5 shrink-0">
       {/* Controls — เอา title ออก (ซ้ำกับ TopHeader) */}
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         {/* Search */}
@@ -256,7 +257,7 @@ export default function ActionBar({
             {canEdit && setIsSnipeITImportOpen && (
               <button
                 onClick={() => setIsSnipeITImportOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-white bg-gradient-to-r from-[#1E487A] to-[#7C3AED] rounded-lg transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-lg transition-colors"
                 title="Smart Import จาก Snipe-IT CSV"
               >
                 <Sparkles className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -271,14 +272,11 @@ export default function ActionBar({
           </>
         )}
 
-        {/* Add button — brand primary */}
+        {/* Add button — brand primary (v2 CTA) */}
         {canEdit && !showDeletedEmployees && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors whitespace-nowrap shadow-sm hover:shadow-md"
-            style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.primaryDark)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.primary)}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-lg transition-colors whitespace-nowrap"
           >
             <Plus className="h-4 w-4" strokeWidth={2.4} />
             เพิ่มรายการ
@@ -296,8 +294,8 @@ function Btn({ onClick, children, active, icon: Icon }) {
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium rounded-lg transition-colors whitespace-nowrap
         ${active
-          ? 'bg-[#1E487A] text-white ring-1 ring-[#1E487A]'
-          : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300 hover:text-slate-900 hover:bg-slate-50'
+          ? 'bg-[#1E487A] text-white border border-[#1E487A]'
+          : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50'
         }`}
     >
       {Icon && <Icon className="h-[14px] w-[14px]" strokeWidth={1.9} />}
@@ -310,7 +308,7 @@ function DangerBtn({ onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium rounded-lg ring-1 ring-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:ring-rose-600 transition-colors whitespace-nowrap"
+      className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-colors whitespace-nowrap"
     >
       <Trash2 className="h-[14px] w-[14px]" strokeWidth={1.9} />
       {children}
@@ -352,8 +350,8 @@ function MultiSelectFilter({ label, options, selected = [], onChange }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 pl-3 pr-2.5 py-2 text-[14px] font-medium rounded-lg transition-colors whitespace-nowrap
           ${selected.length > 0
-            ? 'bg-[#1E487A]/8 text-[#1E487A] ring-1 ring-[#1E487A]/30 hover:bg-[#1E487A]/15'
-            : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300 hover:bg-slate-50'}`}
+            ? 'bg-[#1E487A]/8 text-[#1E487A] border border-[#1E487A]/30 hover:bg-[#1E487A]/15'
+            : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
       >
         <span>{displayText}</span>
         {selected.length > 1 && (
@@ -364,7 +362,7 @@ function MultiSelectFilter({ label, options, selected = [], onChange }) {
         <ChevronDown className="h-3.5 w-3.5 opacity-70" strokeWidth={2.2} />
       </button>
       {isOpen && (
-        <div className="absolute top-full mt-1.5 left-0 bg-white rounded-xl ring-1 ring-slate-200 shadow-md shadow-slate-950/10 p-2 z-50 min-w-[240px] max-h-[320px] overflow-y-auto">
+        <div className="absolute top-full mt-1.5 left-0 bg-white rounded-xl border border-slate-200 shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] p-2 z-50 min-w-[240px] max-h-[320px] overflow-y-auto">
           <div className="flex items-center justify-between px-2 py-1 mb-1 border-b border-slate-100">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.1em]">{label}</span>
             {selected.length > 0 && (
@@ -403,7 +401,7 @@ function FilterSelect({ value, onChange, children }) {
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="appearance-none pl-3 pr-8 py-2 text-[14px] bg-white ring-1 ring-slate-200 rounded-lg text-slate-700 font-medium outline-none transition-colors cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 focus:ring-offset-0"
+        className="appearance-none pl-3 pr-8 py-2 text-[14px] bg-white border border-slate-200 rounded-lg text-slate-700 font-medium outline-none transition-colors cursor-pointer hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 focus:ring-offset-0"
       >
         {children}
       </select>
@@ -414,7 +412,7 @@ function FilterSelect({ value, onChange, children }) {
 
 function ColumnPicker({ labels, visible, onToggle, lockedKey }) {
   return (
-    <div className="absolute right-0 mt-1.5 w-56 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 z-50 p-2 space-y-0.5 max-h-72 overflow-y-auto">
+    <div className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] z-50 p-2 space-y-0.5 max-h-72 overflow-y-auto">
       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-2 py-1">แสดงคอลัมน์</p>
       {Object.keys(labels).map(col => (
         <label

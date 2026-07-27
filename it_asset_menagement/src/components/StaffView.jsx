@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X, KeyRound, PlusCircle, Repeat, RotateCcw, ImageIcon, Check, Menu, LogOut, Building2 } from 'lucide-react';
+import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X, KeyRound, PlusCircle, Repeat, RotateCcw, ImageIcon, Check, Menu, LogOut, Building2, ExternalLink } from 'lucide-react';
 import { useActiveTab } from '../hooks/useActiveTab.js';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
@@ -579,9 +579,12 @@ export default function StaffView({
 
   const tabs = [
     { id: 'profile',           label: 'ข้อมูลของฉัน',     icon: User },
+    { id: 'office_supplies',   label: 'เบิกอุปกรณ์ สนง.',   icon: Package,  color: 'emerald' },
+    // 🆕 ลิงก์ภายนอก — เปิดแท็บใหม่ (ไม่เปลี่ยน activeTab)
+    { id: 'external_form',     label: 'สร้าง Signature',   icon: ExternalLink,
+      href: 'https://script.google.com/macros/s/AKfycbzVJdZpda_jfMijMMGUlHSQshW9kjYl8OWVVCbgbK77PAoRzVM0Tf5u5LTMwRr_8IjMDg/exec' },
     { id: 'it_repair',         label: 'แจ้งปัญหา IT',     icon: Wrench,   count: myRequests.length,         color: 'rose' },
     { id: 'replacement',       label: 'ขอเปลี่ยนเครื่อง',  icon: RefreshCw, count: myReplacementReqs.length, color: 'amber' },
-    { id: 'office_supplies',   label: 'เบิกอุปกรณ์ สนง.',   icon: Package,  color: 'emerald' },
     { id: 'accessory_request', label: 'ขออุปกรณ์เสริม',    icon: Sparkles, count: myAccessoryReqs.length,    color: 'cyan' },
     { id: 'my_assets',         label: 'ทรัพย์สินของฉัน',   icon: Laptop,   color: 'blue' },
   ];
@@ -834,6 +837,25 @@ export default function StaffView({
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
+
+            // 🆕 เมนูลิงก์ภายนอก — เปิดแท็บใหม่ ไม่เปลี่ยนหน้าปัจจุบัน
+            if (tab.href) {
+              return (
+                <a
+                  key={tab.id}
+                  href={tab.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="group w-full flex items-center gap-3 px-3 py-2.5 text-[13.5px] rounded-xl transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                >
+                  <Icon className="h-[18px] w-[18px] shrink-0 text-slate-400 group-hover:text-slate-500 transition-colors" strokeWidth={1.8} />
+                  <span className="flex-1 text-left truncate">{tab.label}</span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-slate-400 -rotate-45 transition-colors" strokeWidth={2} />
+                </a>
+              );
+            }
+
             return (
               <button
                 key={tab.id}

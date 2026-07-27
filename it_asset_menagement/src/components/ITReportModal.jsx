@@ -281,7 +281,7 @@ export default function ITReportModal({
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-3 z-[80]">
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-7xl flex flex-col max-h-[96vh] ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-7xl flex flex-col max-h-[96vh] border border-slate-200/60 overflow-hidden">
 
         {/* Header */}
         <div className="px-7 py-5 flex justify-between items-start border-b border-slate-100 shrink-0">
@@ -313,7 +313,7 @@ export default function ITReportModal({
           <div className="w-[52%] border-r border-slate-100 overflow-y-auto p-6 space-y-5">
 
             {/* Basic config */}
-            <div className="bg-blue-50/40 ring-1 ring-inset ring-blue-200 rounded-xl p-4 space-y-4">
+            <div className="bg-blue-50/40 border border-blue-200 rounded-xl p-4 space-y-4">
               <h4 className="text-[14px] font-semibold text-[#1E487A] flex items-center gap-2">
                 <Settings className="h-4 w-4" strokeWidth={2} /> ตั้งค่าทั่วไป
               </h4>
@@ -437,7 +437,7 @@ export default function ITReportModal({
           <div className="flex gap-2.5">
             <button
               onClick={onClose}
-              className="px-4 py-2.5 bg-white ring-1 ring-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:ring-slate-300 font-medium text-[14.5px] transition-colors"
+              className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:border-slate-300 font-medium text-[14.5px] transition-colors"
             >
               ยกเลิก
             </button>

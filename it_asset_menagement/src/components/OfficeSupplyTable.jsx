@@ -9,7 +9,7 @@ function getStockMeta(qty) {
   if (qty <= 0)  return {
     key:'out', label:'หมดสต็อก', icon:XCircle,
     num:'text-rose-700',
-    badge:'bg-rose-50 text-rose-700 ring-rose-200',
+    badge:'bg-rose-50 text-rose-700 border-rose-200',
     bar:'bg-rose-400', barW:0,
     dot:'bg-rose-500',
     rowAccent:'border-l-rose-400',
@@ -17,7 +17,7 @@ function getStockMeta(qty) {
   if (qty <= 5)  return {
     key:'low', label:'ใกล้หมด', icon:AlertTriangle,
     num:'text-amber-700',
-    badge:'bg-amber-50 text-amber-700 ring-amber-200',
+    badge:'bg-amber-50 text-amber-700 border-amber-200',
     bar:'bg-amber-400', barW:25,
     dot:'bg-amber-500',
     rowAccent:'border-l-amber-400',
@@ -25,7 +25,7 @@ function getStockMeta(qty) {
   if (qty <= 20) return {
     key:'medium', label:'พอใช้', icon:CheckCircle,
     num:'text-slate-700',
-    badge:'bg-slate-50 text-slate-600 ring-slate-200',
+    badge:'bg-slate-50 text-slate-600 border-slate-200',
     bar:'bg-slate-400', barW:50,
     dot:'bg-slate-400',
     rowAccent:'border-l-slate-300',
@@ -33,12 +33,16 @@ function getStockMeta(qty) {
   return {
     key:'normal', label:'เพียงพอ', icon:CheckCircle,
     num:'text-[#1E487A]',
-    badge:'bg-blue-50 text-[#1E487A] ring-blue-200',
+    badge:'bg-blue-50 text-[#1E487A] border-blue-200',
     bar:'bg-[#1E487A]', barW:100,
     dot:'bg-[#1E487A]',
     rowAccent:'border-l-[#1E487A]',
   };
 }
+
+/* ─── Staff-theme tokens ─────────────────────────────────────── */
+const CARD = 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]';
+const LABEL = 'text-[11px] font-semibold text-slate-400 uppercase tracking-wide';
 
 /* ═══════════════════════════════════════════════════════════════════
    Main — Row list (แถว) + สรุปสถิติด้านบน + pagination
@@ -97,15 +101,15 @@ export default function OfficeSupplyTable({
 
       {/* ── Compact stats bar ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <StatChip label="ทั้งหมด"  value={filteredData.length}                      color="slate" icon={Package} />
-        <StatChip label="หมดสต็อก" value={stats.out    || 0}                        color="rose"  icon={XCircle} />
-        <StatChip label="ใกล้หมด"  value={stats.low    || 0}                        color="amber" icon={AlertTriangle} />
-        <StatChip label="เพียงพอ"  value={(stats.medium || 0) + (stats.normal || 0)} color="navy"  icon={CheckCircle} />
+        <StatChip label="ทั้งหมด"  value={filteredData.length}                      dot="bg-slate-400" />
+        <StatChip label="หมดสต็อก" value={stats.out    || 0}                        dot="bg-rose-400" />
+        <StatChip label="ใกล้หมด"  value={stats.low    || 0}                        dot="bg-amber-400" />
+        <StatChip label="เพียงพอ"  value={(stats.medium || 0) + (stats.normal || 0)} dot="bg-[#1E487A]" />
       </div>
 
       {/* 🆕 ── Company filter bar ── */}
       {companyOptions.length > 0 && (
-        <div className="bg-white ring-1 ring-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 flex-wrap">
+        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] px-3 py-2 flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-500 shrink-0">
             <Building2 className="h-3.5 w-3.5 text-[#1E487A]" strokeWidth={2.2} />
             บริษัท:
@@ -140,7 +144,7 @@ export default function OfficeSupplyTable({
 
       {/* ── Toolbar ── */}
       {currentData.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2 bg-white ring-1 ring-slate-200 rounded-lg">
+        <div className="flex items-center justify-between px-4 py-2 bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -162,7 +166,7 @@ export default function OfficeSupplyTable({
 
       {/* ── Empty state ── */}
       {currentData.length === 0 && (
-        <div className="py-20 text-center bg-white ring-1 ring-slate-200 rounded-xl">
+        <div className="py-20 text-center bg-white rounded-xl border border-dashed border-slate-200">
           <div
             className="w-12 h-12 mx-auto mb-2.5 rounded-xl flex items-center justify-center"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
@@ -176,7 +180,7 @@ export default function OfficeSupplyTable({
 
       {/* ── Row list ── */}
       {currentData.length > 0 && (
-        <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden divide-y divide-slate-100">
           {pagedData.map((item) => {
             const qty  = Number(item.quantity);
             const meta = getStockMeta(qty);
@@ -204,7 +208,7 @@ export default function OfficeSupplyTable({
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 text-[13px] font-medium text-slate-600 rounded-lg ring-1 ring-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 text-[13px] font-medium text-slate-600 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ← ก่อนหน้า
           </button>
@@ -214,7 +218,7 @@ export default function OfficeSupplyTable({
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1.5 text-[13px] font-medium text-slate-600 rounded-lg ring-1 ring-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 text-[13px] font-medium text-slate-600 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ถัดไป →
           </button>
@@ -230,37 +234,28 @@ function FilterPill({ active, onClick, label, count }) {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold ring-1 ring-inset transition-colors ${
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
         active
-          ? 'bg-[#1E487A] text-white ring-[#1E487A]'
-          : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:bg-slate-50'
+          ? 'bg-[#1E487A] text-white'
+          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
       }`}
     >
       {label}
-      <span className={`text-[10.5px] font-bold px-1.5 py-0.5 rounded-full ${
-        active ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+      <span className={`text-[11px] font-bold tabular-nums ${
+        active ? 'text-white/70' : 'text-slate-400'
       }`}>{count}</span>
     </button>
   );
 }
 
 /* ─── Stat Chip (บนสุด) ─────────────────────────────────────── */
-function StatChip({ label, value, color, icon: Icon }) {
-  const c = {
-    slate: { bg: 'bg-slate-100',  text: 'text-slate-700',  icon: 'text-slate-500'  },
-    rose:  { bg: 'bg-rose-100',   text: 'text-rose-700',   icon: 'text-rose-500'   },
-    amber: { bg: 'bg-amber-100',  text: 'text-amber-700',  icon: 'text-amber-500'  },
-    navy:  { bg: 'bg-blue-100',   text: 'text-[#1E487A]',  icon: 'text-[#1E487A]'  },
-  }[color];
-
+function StatChip({ label, value, dot }) {
   return (
-    <div className="bg-white ring-1 ring-slate-200 rounded-lg p-2.5 flex items-center gap-2.5">
-      <div className={`w-8 h-8 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}>
-        <Icon className={`h-4 w-4 ${c.icon}`} strokeWidth={2} />
-      </div>
+    <div className={`${CARD} px-4 py-3 flex items-center gap-2.5`}>
+      <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
-        <p className="text-[10.5px] font-semibold text-slate-500 uppercase tracking-wide leading-none">{label}</p>
-        <p className={`text-[19px] font-bold ${c.text} tabular-nums leading-none mt-1`}>{value}</p>
+        <p className={`${LABEL} truncate`}>{label}</p>
+        <p className="text-[19px] font-bold text-slate-800 tabular-nums leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -294,11 +289,11 @@ function SupplyRow({ item, qty, meta, isSelected, canEdit, onSelect, onEdit, onD
           <img
             src={item.image}
             alt={item.name}
-            className="w-11 h-11 rounded-lg object-cover ring-1 ring-slate-200 shrink-0 bg-white"
+            className="w-11 h-11 rounded-lg object-cover border border-slate-200 shrink-0 bg-white"
           />
         ) : (
           <div
-            className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ring-1 ring-inset"
+            className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
           >
             <Package className="h-5 w-5" strokeWidth={1.6} />
@@ -312,12 +307,12 @@ function SupplyRow({ item, qty, meta, isSelected, canEdit, onSelect, onEdit, onD
           </p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {item.type && (
-              <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+              <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md">
                 {item.type}
               </span>
             )}
             {item.company ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1E487A] bg-blue-50 px-1.5 py-0.5 rounded ring-1 ring-inset ring-blue-100">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1E487A] bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200">
                 <Building2 className="h-2.5 w-2.5" strokeWidth={2.4} />
                 {item.company}
               </span>
@@ -348,8 +343,8 @@ function SupplyRow({ item, qty, meta, isSelected, canEdit, onSelect, onEdit, onD
         </div>
 
         {/* Status badge */}
-        <span className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-1 rounded-full font-semibold ring-1 ring-inset ${meta.badge} shrink-0`}>
-          <StatusIcon className="h-3 w-3" strokeWidth={2.4} />
+        <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md font-semibold border ${meta.badge} shrink-0`}>
+          <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
           <span className="hidden sm:inline">{meta.label}</span>
         </span>
 
@@ -359,14 +354,14 @@ function SupplyRow({ item, qty, meta, isSelected, canEdit, onSelect, onEdit, onD
             <button
               onClick={onEdit}
               title="แก้ไข"
-              className="w-8 h-8 rounded-lg text-slate-500 hover:text-[#1E487A] hover:bg-blue-50 flex items-center justify-center transition-colors"
+              className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-amber-600 hover:bg-amber-50 hover:border-amber-300 flex items-center justify-center transition-colors"
             >
               <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
             </button>
             <button
               onClick={onDelete}
               title="ลบ"
-              className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
+              className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
             </button>

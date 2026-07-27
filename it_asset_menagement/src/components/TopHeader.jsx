@@ -51,11 +51,11 @@ export default function TopHeader({
         {/* User badge — แสดงชื่อ user ที่ login */}
         {badgeLabel && (
           <span
-            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12.5px] font-semibold ring-1 ring-inset mr-1"
+            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border mr-1"
             style={{
               backgroundColor: `${BRAND.primary}10`,
               color: BRAND.primary,
-              '--tw-ring-color': `${BRAND.primary}25`,
+              borderColor: `${BRAND.primary}25`,
             }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
@@ -84,11 +84,11 @@ export default function TopHeader({
 
           {/* Dropdown */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-md shadow-slate-950/15 ring-1 ring-slate-200/70 overflow-hidden z-50">
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden z-50">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                 <p className="text-[14px] font-semibold text-slate-800 tracking-tight">การแจ้งเตือน</p>
                 {totalPendingCount > 0 && (
-                  <span className="text-[12px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200 px-2 py-0.5 rounded-full">
+                  <span className="text-[12px] font-semibold bg-rose-50 text-rose-600 border border-rose-200 px-2 py-0.5 rounded-md">
                     {totalPendingCount} รายการ
                   </span>
                 )}
@@ -176,11 +176,11 @@ export default function TopHeader({
 
 function NotifItem({ label, count, kind, Icon, onClick }) {
   const kindCls = {
-    info:    { bg: 'bg-blue-50',    text: 'text-blue-600',    badge: 'bg-blue-50 text-blue-700 ring-blue-200' },
-    success: { bg: 'bg-emerald-50', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-    warning: { bg: 'bg-amber-50',   text: 'text-amber-600',   badge: 'bg-amber-50 text-amber-700 ring-amber-200' },
-    cyan:    { bg: 'bg-cyan-50',    text: 'text-cyan-600',    badge: 'bg-cyan-50 text-cyan-700 ring-cyan-200' },
-    violet:  { bg: 'bg-violet-50',  text: 'text-violet-600',  badge: 'bg-violet-50 text-violet-700 ring-violet-200' },
+    info:    { bg: 'bg-blue-50',    text: 'text-blue-600',    badge: 'bg-blue-50 text-blue-700 border-blue-200' },
+    success: { bg: 'bg-emerald-50', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    warning: { bg: 'bg-amber-50',   text: 'text-amber-600',   badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+    cyan:    { bg: 'bg-cyan-50',    text: 'text-cyan-600',    badge: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+    violet:  { bg: 'bg-violet-50',  text: 'text-violet-600',  badge: 'bg-violet-50 text-violet-700 border-violet-200' },
   }[kind];
 
   return (
@@ -194,7 +194,7 @@ function NotifItem({ label, count, kind, Icon, onClick }) {
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium text-slate-800 truncate">{label}</p>
       </div>
-      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${kindCls.badge} shrink-0`}>
+      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md border ${kindCls.badge} shrink-0`}>
         {count}
       </span>
       <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />

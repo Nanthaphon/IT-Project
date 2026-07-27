@@ -88,7 +88,7 @@ export default function SatisfactionSurveyModal({
   return (
     <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[95]">
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/30 max-w-lg w-full overflow-hidden ring-1 ring-slate-200/60 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-2xl shadow-md shadow-slate-950/30 max-w-lg w-full overflow-hidden border border-slate-200/60 flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header gradient ── */}
@@ -111,7 +111,7 @@ export default function SatisfactionSurveyModal({
           </button>
 
           <div className="relative flex items-start gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center shrink-0 ring-1 ring-white/20">
+            <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center shrink-0 border border-white/20">
               <Sparkles className="h-5 w-5" strokeWidth={2} />
             </div>
             <div className="min-w-0 flex-1">
@@ -172,7 +172,7 @@ export default function SatisfactionSurveyModal({
 
           {/* overall preview */}
           {allRated && (
-            <div className="bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 ring-1 ring-blue-100 rounded-2xl px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-100 rounded-2xl px-5 py-4 flex items-center justify-between">
               <div>
                 <p className="text-[12.5px] text-slate-500 font-medium">คะแนนเฉลี่ยรวม</p>
                 <p className="text-[27px] font-black text-[#1E487A] leading-none mt-1 tabular-nums">

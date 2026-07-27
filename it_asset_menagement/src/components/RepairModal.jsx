@@ -31,8 +31,8 @@ export default function RepairModal({
       <form onSubmit={handleConfirmRepair} className="flex flex-col flex-1 overflow-hidden">
         <ModalBody className="space-y-5">
           <div
-            className="rounded-xl ring-1 p-5"
-            style={{ background: `${BRAND.primary}08`, borderColor: `${BRAND.primary}25`, '--tw-ring-color': `${BRAND.primary}25` }}
+            className="rounded-xl border p-5"
+            style={{ background: `${BRAND.primary}08`, borderColor: `${BRAND.primary}25` }}
           >
             <p className="text-[12px] font-semibold uppercase tracking-wide mb-1" style={{ color: BRAND.primary }}>
               อุปกรณ์ที่ซ่อมเสร็จแล้ว

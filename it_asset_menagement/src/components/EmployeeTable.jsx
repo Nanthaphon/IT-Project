@@ -1,8 +1,8 @@
 import React from 'react';
 import { Pencil, Trash2, RotateCcw } from 'lucide-react';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
-const TD = 'px-5 py-3.5';
+const TH = 'px-5 py-3.5 font-semibold text-slate-400 text-[11.5px] uppercase tracking-[0.08em]';
+const TD = 'px-5 py-4';
 
 export default function EmployeeTable({
   currentData,
@@ -54,7 +54,7 @@ export default function EmployeeTable({
                 onClick={() => { setSelectedEmployee(item); setEmpModalTab('info'); }}
                 className="text-left flex items-center gap-3"
               >
-                <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#1E487A] flex items-center justify-center font-semibold text-[14px] ring-1 ring-blue-100">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#1E487A] flex items-center justify-center font-semibold text-[14px] border border-blue-200">
                   {item.fullName.charAt(0)}
                 </div>
                 <div>
@@ -75,14 +75,14 @@ export default function EmployeeTable({
                     <div className="flex items-center justify-center gap-1.5">
                       <button
                         onClick={() => handleRestoreEmployee(item)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] rounded-lg font-semibold transition-colors text-[12.5px]"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1E487A] text-white hover:bg-[#163963] rounded-lg font-semibold transition-colors text-[12.5px]"
                       >
                         <RotateCcw className="h-3 w-3" strokeWidth={2.2} /> กู้คืน
                       </button>
                       <button
                         onClick={() => handlePermanentDeleteEmployee?.(item)}
                         title="ลบถาวร — หายไปเลย"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-rose-600 ring-1 ring-inset ring-rose-300 hover:bg-rose-600 hover:text-white hover:ring-rose-600 rounded-lg font-semibold transition-colors text-[12.5px]"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-rose-600 border border-slate-200 hover:border-rose-300 hover:bg-rose-50 rounded-lg font-semibold transition-colors text-[12.5px]"
                       >
                         <Trash2 className="h-3 w-3" strokeWidth={2.2} /> ลบถาวร
                       </button>
@@ -113,14 +113,14 @@ export default function EmployeeTable({
 
 function IconBtn({ onClick, title, children, kind }) {
   const map = {
-    warning: 'text-amber-600 hover:bg-amber-50 hover:ring-amber-300',
-    danger:  'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
+    warning: 'text-amber-600 hover:bg-amber-50 hover:border-amber-300',
+    danger:  'text-rose-500 hover:bg-rose-50 hover:border-rose-300',
   }[kind];
   return (
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center justify-center w-7 h-7 bg-white ring-1 ring-inset ring-slate-200 rounded-lg transition-colors ${map}`}
+      className={`inline-flex items-center justify-center w-7 h-7 bg-white border border-slate-200 rounded-lg transition-colors ${map}`}
     >
       {children}
     </button>

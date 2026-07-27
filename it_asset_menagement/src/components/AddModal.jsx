@@ -13,7 +13,7 @@ export default function AddModal({
   purchaseDate, setPurchaseDate, warrantyDate, setWarrantyDate,
   quantity, setQuantity, unit, setUnit,
   assetImage, setAssetImage, assetDepartment, setAssetDepartment,
-  sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor, note, setNote,
+  sn, setSn, company, setCompany, assetTag, setAssetTag, model, setModel, vendor, setVendor, note, setNote, remark, setRemark,
   purchaseCondition = 'new', setPurchaseCondition,
   scrapValue = '', setScrapValue,  // 🆕 ราคาขายซาก
   employees = [],
@@ -135,7 +135,7 @@ export default function AddModal({
                     autoComplete="off"
                   />
                   {isManagerDropdownOpen && (
-                    <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 max-h-56 overflow-y-auto">
+                    <div className="absolute z-20 w-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] max-h-56 overflow-y-auto">
                       {employees.filter(emp =>
                         emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
                         emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())
@@ -165,7 +165,7 @@ export default function AddModal({
             </section>
 
             {/* Microsoft 365 */}
-            <section className="rounded-xl ring-1 ring-blue-100 bg-blue-50/40 p-4 space-y-3">
+            <section className="rounded-lg border border-blue-200 bg-blue-50/40 p-4 space-y-3">
               <div className="flex items-center gap-2 text-[#1E487A]">
                 <ShieldCheck className="h-4 w-4" strokeWidth={2} />
                 <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
@@ -315,18 +315,18 @@ export default function AddModal({
                   {activeMenu === 'assets' && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           purchaseCondition === 'new'
-                            ? 'bg-emerald-50 ring-2 ring-emerald-500 text-emerald-700'
-                            : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
+                            ? 'bg-emerald-50 border border-emerald-500 text-emerald-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="new" checked={purchaseCondition === 'new'} onChange={() => setPurchaseCondition?.('new')} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ring-1 ring-inset text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           purchaseCondition === 'used'
-                            ? 'bg-amber-50 ring-2 ring-amber-500 text-amber-700'
-                            : 'bg-white ring-slate-200 text-slate-600 hover:ring-slate-300 hover:bg-slate-50'
+                            ? 'bg-amber-50 border border-amber-500 text-amber-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="used" checked={purchaseCondition === 'used'} onChange={() => setPurchaseCondition?.('used')} className="sr-only" />
                           <span>♻️ เครื่องเก่า / มือสอง</span>
@@ -360,8 +360,8 @@ export default function AddModal({
                     <Field label="ราคา (บาท)">
                       <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
                     </Field>
-                    {/* 🆕 ราคาขายซาก — เฉพาะทรัพย์สินหลัก */}
-                    <Field label="ราคาขายซาก (บาท)" hint="ราคาประมาณตอนขายเป็นซาก / คืนทุน">
+                    {/* 🆕 ราคาปัจจุบัน — เฉพาะทรัพย์สินหลัก */}
+                    <Field label="ราคาปัจจุบัน (บาท)" hint="มูลค่าปัจจุบันของทรัพย์สิน">
                       <CostInput value={scrapValue} onChange={(e) => setScrapValue?.(e.target.value)} />
                     </Field>
                   </div>
@@ -425,6 +425,11 @@ export default function AddModal({
                 <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, สภาพเครื่อง, ผู้ติดต่อ ฯลฯ">
                   <textarea value={note || ''} onChange={(e) => setNote(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่รายละเอียดที่ต้องการบันทึก..." />
                 </Field>
+                {activeMenu === 'assets' && (
+                  <Field label="Remark" hint="หมายเหตุเพิ่มเติม (แสดงในรายงาน PDF)">
+                    <textarea value={remark || ''} onChange={(e) => setRemark(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่ Remark..." />
+                  </Field>
+                )}
               </section>
             )}
           </ModalBody>
@@ -444,18 +449,18 @@ function ImagePicker({ image, onRemove, onUpload }) {
     <div className="flex items-center gap-4">
       {image ? (
         <div className="relative shrink-0">
-          <img src={image} alt="Preview" className="w-20 h-20 rounded-xl object-cover ring-1 ring-slate-200" />
+          <img src={image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-slate-200" />
           <button
             type="button"
             onClick={onRemove}
-            className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 ring-1 ring-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none shadow-sm"
+            className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 border border-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none"
             title="ลบรูปภาพ"
           >
             <XIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
           </button>
         </div>
       ) : (
-        <div className="w-20 h-20 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 ring-1 ring-dashed ring-slate-300 shrink-0">
+        <div className="w-20 h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 border border-dashed border-slate-300 shrink-0">
           <ImageIcon className="h-7 w-7" strokeWidth={1.5} />
         </div>
       )}

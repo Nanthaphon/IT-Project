@@ -106,7 +106,7 @@ export default function EditEmpModal({
                   autoComplete="off"
                 />
                 {isManagerDropdownOpen && (
-                  <div className="absolute z-20 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 max-h-56 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] max-h-56 overflow-y-auto">
                     {employees.filter(emp =>
                       emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
                       emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())
@@ -135,7 +135,7 @@ export default function EditEmpModal({
             </Field>
           </section>
 
-          <section className="rounded-xl ring-1 ring-blue-100 bg-blue-50/40 p-4 space-y-3">
+          <section className="rounded-lg border border-blue-200 bg-blue-50/40 p-4 space-y-3">
             <div className="flex items-center gap-2 text-[#1E487A]">
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
               <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>

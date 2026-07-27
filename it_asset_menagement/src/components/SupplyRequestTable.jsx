@@ -1,27 +1,31 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Trash2, ClipboardList, CheckCircle2, XCircle,
-  Clock, Package, Check, X, CalendarDays, BarChart3, TrendingUp, Users, ChevronDown, ChevronUp,
-  Download, Boxes, Activity, Building2,
+  Clock, Package, Check, X, CalendarDays, BarChart3, TrendingUp, ChevronDown, ChevronUp,
+  Download, Building2,
 } from 'lucide-react';
-import { BRAND } from '../ui/theme.js';
 import { formatDateTimeShort } from '../utils/formatDate.js';
+
+/* ─── Staff-theme tokens ─────────────────────────────────── */
+const CARD = 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]';
+const LABEL = 'text-[11px] font-semibold text-slate-400 uppercase tracking-wide';
+const SELECT = 'bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
   'รอดำเนินการ': {
     bar:   'bg-amber-400',
-    badge: 'bg-amber-50 text-amber-700 ring-amber-200',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200',
     icon:  Clock,
   },
   'อนุมัติแล้ว': {
     bar:   'bg-emerald-400',
-    badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     icon:  CheckCircle2,
   },
   'ปฏิเสธคำขอ': {
     bar:   'bg-rose-400',
-    badge: 'bg-rose-50 text-rose-700 ring-rose-200',
+    badge: 'bg-rose-50 text-rose-700 border-rose-200',
     icon:  XCircle,
   },
 };
@@ -253,36 +257,31 @@ export default function SupplyRequestTable({
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm">
+    <div className={`h-full overflow-y-auto ${CARD}`}>
 
       {/* ══ Header ══════════════════════════════════════════ */}
-      <div className="px-6 pt-5 pb-0">
+      <div>
 
         {/* title + date filter */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}
-            >
-              <ClipboardList className="h-5 w-5" strokeWidth={1.8} />
+            <div className="w-9 h-9 rounded-lg bg-[#1E487A]/8 text-[#1E487A] flex items-center justify-center shrink-0">
+              <ClipboardList className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </div>
             <div>
-              <h3 className="text-[16px] font-bold text-slate-800 tracking-tight">
-                คิวขอเบิกอุปกรณ์สำนักงาน
-              </h3>
-              <p className="text-[12.5px] text-slate-400 mt-0.5">
+              <p className="text-[15px] font-bold text-slate-800 tracking-tight">คำขอเบิกอุปกรณ์</p>
+              <p className="text-[12px] text-slate-400 mt-0.5">
                 {currentSupplyRequests.length} รายการในมุมมองนี้
               </p>
             </div>
           </div>
 
           {/* date filters — ปี / เดือน / วัน */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <select
               value={supplyFilterYear}
               onChange={(e) => { setSupplyFilterYear(e.target.value); setSupplyFilterMonth('ทั้งหมด'); setSupplyFilterDay('ทั้งหมด'); }}
-              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[13.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+              className={SELECT}
             >
               <option value="ทั้งหมด">ปี: ทั้งหมด</option>
               {getUniqueYears(supplyRequests).map(y => (
@@ -292,7 +291,7 @@ export default function SupplyRequestTable({
             <select
               value={supplyFilterMonth}
               onChange={(e) => { setSupplyFilterMonth(e.target.value); setSupplyFilterDay('ทั้งหมด'); }}
-              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[13.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+              className={SELECT}
             >
               <option value="ทั้งหมด">เดือน: ทั้งหมด</option>
               {getUniqueMonthsForYear(supplyRequests, supplyFilterYear).map(m => (
@@ -302,7 +301,7 @@ export default function SupplyRequestTable({
             <select
               value={supplyFilterDay}
               onChange={(e) => setSupplyFilterDay(e.target.value)}
-              className="bg-white ring-1 ring-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[13.5px] font-medium outline-none cursor-pointer hover:ring-slate-300 focus:ring-2 focus:ring-[#1E487A]/30 transition-colors"
+              className={SELECT}
             >
               <option value="ทั้งหมด">วัน: ทั้งหมด</option>
               {getUniqueDays(supplyRequests, supplyFilterYear, supplyFilterMonth).map(d => (
@@ -312,36 +311,38 @@ export default function SupplyRequestTable({
           </div>
         </div>
 
-        {/* KPI strip */}
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <KpiCard label="รอดำเนินการ" count={counts.pending}  color="amber"   />
-          <KpiCard label="อนุมัติแล้ว"  count={counts.approved} color="emerald" />
-          <KpiCard label="ปฏิเสธคำขอ"  count={counts.rejected} color="rose"    />
+        {/* stat strip — จุดสี + ตัวเลข (ธีมพนักงาน) */}
+        <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100">
+          <StatCell label="รอดำเนินการ" count={counts.pending}  dot="bg-amber-400"   />
+          <StatCell label="อนุมัติแล้ว"  count={counts.approved} dot="bg-emerald-400" />
+          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-rose-400"    />
         </div>
+
+        <div className="px-5 pt-4">
 
         {/* 🆕 Dashboard toggle + export bar */}
         <div className="mb-4">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowDashboard(!showDashboard)}
-              className="flex-1 flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-[#1E487A]/8 to-transparent hover:from-[#1E487A]/12 ring-1 ring-slate-200 rounded-xl transition-colors group"
+              className="flex-1 flex items-center justify-between px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-lg transition-colors group"
             >
               <div className="flex items-center gap-2.5">
                 <BarChart3 className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
-                <span className="text-[13.5px] font-bold text-slate-700">Dashboard วิเคราะห์คำขอ</span>
-                <span className="text-[11.5px] text-slate-500 hidden sm:inline">
-                  (จากที่อนุมัติแล้ว {insights.approvedCount} รายการ · รวม {insights.totalApprovedQty.toLocaleString()} ชิ้น)
+                <span className="text-[13px] font-semibold text-slate-700">Dashboard วิเคราะห์คำขอ</span>
+                <span className="text-[11.5px] text-slate-400 hidden sm:inline">
+                  อนุมัติแล้ว {insights.approvedCount} รายการ · {insights.totalApprovedQty.toLocaleString()} ชิ้น
                 </span>
               </div>
               {showDashboard
-                ? <ChevronUp className="h-4 w-4 text-slate-500 group-hover:text-[#1E487A]" strokeWidth={2} />
-                : <ChevronDown className="h-4 w-4 text-slate-500 group-hover:text-[#1E487A]" strokeWidth={2} />
+                ? <ChevronUp className="h-4 w-4 text-slate-400 group-hover:text-slate-600" strokeWidth={2} />
+                : <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-slate-600" strokeWidth={2} />
               }
             </button>
             <button
               onClick={handleExportCSV}
               disabled={currentSupplyRequests.length === 0}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-[13px] font-semibold transition-colors shadow-sm shadow-emerald-600/20"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#1E487A] hover:bg-[#163963] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-lg text-[13px] font-semibold transition-colors"
               title="ส่งออกรายงาน CSV สำหรับเสนอผู้บริหาร"
             >
               <Download className="h-4 w-4" strokeWidth={2.2} />
@@ -353,7 +354,7 @@ export default function SupplyRequestTable({
             <div className="mt-3 space-y-3 animate-in fade-in duration-200">
 
               {/* ── Donut chart: สัดส่วนอุปกรณ์ที่เบิก ── */}
-              <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden p-4">
+              <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <BarChart3 className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
                   <span className="text-[13px] font-bold text-slate-700">สัดส่วนการเบิกอุปกรณ์</span>
@@ -415,7 +416,7 @@ export default function SupplyRequestTable({
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Top items */}
-                <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                   <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
                     <Package className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
                     <span className="text-[13px] font-bold text-slate-700">อุปกรณ์ที่เบิกบ่อยสุด (Top 5)</span>
@@ -436,7 +437,7 @@ export default function SupplyRequestTable({
                               'bg-slate-100 text-slate-500'
                             }`}>{i + 1}</div>
                             {item.image ? (
-                              <img src={item.image} alt={item.name} className="w-8 h-8 rounded-lg object-cover ring-1 ring-slate-200 shrink-0" />
+                              <img src={item.image} alt={item.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
                             ) : (
                               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                                 <Package className="h-3.5 w-3.5 text-slate-400" strokeWidth={1.8} />
@@ -463,7 +464,7 @@ export default function SupplyRequestTable({
                 </div>
 
                 {/* Top employees */}
-                <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                   <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
                     <span className="text-[13px] font-bold text-slate-700">พนักงานที่เบิกบ่อยสุด (Top 5)</span>
@@ -516,27 +517,26 @@ export default function SupplyRequestTable({
         </div>
 
         {/* status filter pills */}
-        <div className="flex items-center gap-2 flex-wrap pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-1.5 flex-wrap pb-4 border-b border-slate-100">
           {statusFilters.map(f => (
             <button
               key={f.value}
               onClick={() => setSupplyFilterStatus(f.value)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-semibold ring-1 ring-inset transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
                 supplyFilterStatus === f.value
-                  ? 'bg-[#1E487A] text-white ring-[#1E487A] shadow-sm shadow-[#1E487A]/20'
-                  : 'bg-white text-slate-500 ring-slate-200 hover:ring-slate-300 hover:text-slate-700'
+                  ? 'bg-[#1E487A] text-white'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
               }`}
             >
               {f.label}
-              <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
-                supplyFilterStatus === f.value
-                  ? 'bg-white/20 text-white'
-                  : 'bg-slate-100 text-slate-500'
+              <span className={`text-[11px] font-bold tabular-nums ${
+                supplyFilterStatus === f.value ? 'text-white/70' : 'text-slate-400'
               }`}>
                 {f.count}
               </span>
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -545,17 +545,15 @@ export default function SupplyRequestTable({
 
         {currentSupplyRequests.length === 0 ? (
           /* empty state */
-          <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-slate-50/60 rounded-2xl ring-1 ring-dashed ring-slate-200">
-            <div className="w-14 h-14 rounded-2xl bg-white ring-1 ring-slate-200 flex items-center justify-center mb-3 shadow-sm">
-              <CheckCircle2 className="h-7 w-7 text-emerald-400" strokeWidth={1.5} />
-            </div>
-            <p className="font-semibold text-slate-500 text-[15px]">ไม่มีคำขอในสถานะนี้</p>
-            <p className="text-[13px] text-slate-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
+          <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-xl border border-dashed border-slate-200">
+            <CheckCircle2 className="h-9 w-9 text-slate-300 mb-3" strokeWidth={1.5} />
+            <p className="font-semibold text-slate-500 text-[14px]">ไม่มีคำขอในสถานะนี้</p>
+            <p className="text-[12.5px] text-slate-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
           <>
             {/* 🆕 compact horizontal rows */}
-            <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               {pagedRequests.map((req, idx) => (
                 <SupplyRow
                   key={req.id}
@@ -655,10 +653,11 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
         </div>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-[12px] text-slate-700 truncate">{req.supplyName}</span>
-          <span className="text-[11px] font-semibold text-[#1E487A] bg-[#1E487A]/8 px-1.5 py-0.5 rounded">× {req.requestedQty}</span>
+          <span className="text-[11px] font-semibold text-[#1E487A] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md">× {req.requestedQty}</span>
           {(req.supplyCompany || supply?.company) && (
-            <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-white bg-[#1E487A] px-1.5 py-0.5 rounded">
-              🏢 {req.supplyCompany || supply?.company}
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#1E487A] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md">
+              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
+              {req.supplyCompany || supply?.company}
             </span>
           )}
           {req.note && <span className="text-[11px] text-slate-400 truncate hidden md:inline">— {req.note}</span>}
@@ -672,8 +671,8 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
       </div>
 
       {/* status */}
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold ring-1 ring-inset ${cfg.badge} shrink-0`}>
-        <StatusIcon className="h-3 w-3" strokeWidth={2.4} />
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border ${cfg.badge} shrink-0`}>
+        <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
         <span className="hidden sm:inline">{req.status}</span>
       </span>
 
@@ -683,14 +682,14 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <>
             <button
               onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] transition-colors"
             >
               <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">อนุมัติ</span>
             </button>
             <button
               onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 ring-1 ring-rose-200 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-rose-600 bg-white border border-slate-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">ปฏิเสธ</span>
@@ -700,7 +699,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <select
             value={req.status}
             onChange={(e) => onUpdateStatus(req, e.target.value)}
-            className={`px-2 py-1 rounded-md text-[11.5px] font-semibold ring-1 ring-inset outline-none cursor-pointer ${cfg.badge}`}
+            className={`px-2 py-1 rounded-md text-[11.5px] font-semibold border outline-none cursor-pointer ${cfg.badge}`}
           >
             <option value="รอดำเนินการ">รอดำเนินการ</option>
             <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
@@ -710,7 +709,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
         {canEdit && (
           <button
             onClick={() => onDelete(req.id, 'supply_requests')}
-            className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
+            className="w-7 h-7 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-lg transition-colors"
             title="ลบ"
           >
             <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
@@ -721,159 +720,14 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
   );
 }
 
-/* ─── Request Card ───────────────────────────────────────── */
-function RequestCard({ req, onUpdateStatus, onDelete, canEdit }) {
-  const cfg       = STATUS[req.status] ?? STATUS['รอดำเนินการ'];
-  const StatusIcon = cfg.icon;
-  const isPending  = req.status === 'รอดำเนินการ';
-  const initial    = req.empName?.charAt(0) ?? '?';
-  const dateStr    = new Date(req.timestamp).toLocaleString('th-TH', {
-    dateStyle: 'short', timeStyle: 'short',
-  });
-
+/* ─── Stat cell (ธีมพนักงาน — จุดสี + ตัวเลข) ────────────── */
+function StatCell({ label, count, dot }) {
   return (
-    <div className="relative bg-white rounded-2xl ring-1 ring-slate-200 hover:ring-[#1E487A]/40 shadow-sm transition-colors group flex flex-col overflow-hidden">
-
-      {/* colored top bar */}
-      <div className={`h-1 w-full shrink-0 ${cfg.bar}`} />
-
-      {/* card body */}
-      <div className="p-4 flex flex-col gap-3 flex-1">
-
-        {/* employee row */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#1E487A] text-white flex items-center justify-center text-sm font-bold shrink-0 select-none shadow-sm">
-            {initial}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-slate-800 text-[14.5px] truncate group-hover:text-[#1E487A] transition-colors">
-              {req.empName}
-            </p>
-            <p className="text-[12px] text-slate-400 truncate">
-              {req.empId}{req.department ? ` · ${req.department}` : ''}
-            </p>
-          </div>
-          {/* status badge */}
-          <span className={`flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1 rounded-full ring-1 ring-inset shrink-0 ${cfg.badge}`}>
-            <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
-            {req.status}
-          </span>
-        </div>
-
-        <div className="border-t border-slate-100" />
-
-        {/* supply info */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-            <Package className="h-4 w-4 text-slate-500" strokeWidth={1.7} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-slate-800 text-[14px] truncate">{req.supplyName}</p>
-            {req.note && (
-              <p className="text-[12.5px] text-slate-400 truncate mt-0.5">{req.note}</p>
-            )}
-          </div>
-          {/* qty badge */}
-          <div className="shrink-0 flex items-baseline gap-0.5 px-2.5 py-1 rounded-lg bg-blue-50 ring-1 ring-blue-100">
-            <span className="text-[16px] font-bold text-[#1E487A] tabular-nums leading-none">
-              {req.requestedQty}
-            </span>
-            <span className="text-[11px] text-slate-400 font-medium ml-0.5">ชิ้น</span>
-          </div>
-        </div>
-
-        {/* date */}
-        <div className="flex items-center gap-1.5 text-[12px] text-slate-400">
-          <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
-          {dateStr}
-        </div>
-      </div>
-
-      {/* ── action footer ── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-t border-slate-100">
-        <div className="flex items-center gap-1.5">
-          {canEdit && isPending ? (
-            /* quick approve / reject */
-            <>
-              <button
-                onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors shadow-sm shadow-emerald-500/30"
-              >
-                <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                อนุมัติ
-              </button>
-              <button
-                onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-500 hover:text-white hover:ring-rose-500 transition-colors"
-              >
-                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
-                ปฏิเสธ
-              </button>
-            </>
-          ) : canEdit && !isPending ? (
-            /* change status dropdown */
-            <select
-              value={req.status}
-              onChange={(e) => onUpdateStatus(req, e.target.value)}
-              className={`px-2.5 py-1 rounded-full text-[12px] font-semibold ring-1 ring-inset outline-none cursor-pointer transition-colors ${cfg.badge}`}
-            >
-              <option value="รอดำเนินการ">รอดำเนินการ</option>
-              <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
-              <option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
-            </select>
-          ) : null}
-        </div>
-
-        {/* delete */}
-        {canEdit && (
-          <button
-            onClick={() => onDelete(req.id, 'supply_requests')}
-            className="inline-flex items-center justify-center w-7 h-7 text-slate-400 hover:text-rose-500 hover:bg-rose-50 ring-1 ring-inset ring-slate-200 hover:ring-rose-200 rounded-lg transition-colors"
-            title="ลบ"
-          >
-            <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ─── KPI Card ───────────────────────────────────────────── */
-function KpiCard({ label, count, color }) {
-  const cfg = {
-    amber:   { bg: 'bg-amber-50',   ring: 'ring-amber-100',   dot: 'bg-amber-400',   text: 'text-amber-700',   num: 'text-amber-600'   },
-    emerald: { bg: 'bg-emerald-50', ring: 'ring-emerald-100', dot: 'bg-emerald-400', text: 'text-emerald-700', num: 'text-emerald-600' },
-    rose:    { bg: 'bg-rose-50',    ring: 'ring-rose-100',    dot: 'bg-rose-400',    text: 'text-rose-700',    num: 'text-rose-600'    },
-  }[color];
-
-  return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ring-1 ring-inset ${cfg.bg} ${cfg.ring}`}>
-      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${cfg.dot}`} />
-      <div className="flex-1 min-w-0">
-        <p className={`text-[12px] font-semibold truncate ${cfg.text}`}>{label}</p>
-        <p className={`text-[23px] font-bold tabular-nums leading-tight ${cfg.num}`}>{count}</p>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Dashboard Header Stat (welcome strip) ─────────────── */
-function DashHeaderStat({ label, value, unit, icon: Icon, color }) {
-  return (
-    <div className="px-5 py-4 flex items-center gap-3">
-      <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: `${color}15`, color }}
-      >
-        <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
-      </div>
+    <div className="px-5 py-3 flex items-center gap-2.5">
+      <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
-        <p className="text-[10.5px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-0.5">{label}</p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-[20px] font-bold text-slate-900 tabular-nums leading-none">{Number(value).toLocaleString()}</span>
-          <span className="text-[11px] text-slate-400 font-medium">{unit}</span>
-        </div>
+        <p className={`${LABEL} truncate`}>{label}</p>
+        <p className="text-[19px] font-bold text-slate-800 tabular-nums leading-tight">{count}</p>
       </div>
     </div>
   );

@@ -2,8 +2,8 @@ import React from 'react';
 import { Pencil, Trash2, Monitor, User as UserIcon, LogIn, RotateCcw, Copy } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
-const TH = 'px-5 py-3 font-semibold text-slate-500 text-[12px] uppercase tracking-[0.08em]';
-const TD = 'px-5 py-3.5';
+const TH = 'px-5 py-3.5 font-semibold text-slate-400 text-[11.5px] uppercase tracking-[0.08em]';
+const TD = 'px-5 py-4';
 
 /* 🆕 คำนวณอายุการใช้งานจาก purchaseDate → "X ปี Y เดือน" */
 const calcAge = (dateString) => {
@@ -51,8 +51,9 @@ export default function AssetTable({
           {visibleAssetColumns.warrantyDate && <th className={TH}>หมด Warranty</th>}
           {visibleAssetColumns.age && <th className={TH}>อายุการใช้งาน</th>}
           {visibleAssetColumns.note && <th className={TH}>หมายเหตุ</th>}
+          {visibleAssetColumns.remark && <th className={TH}>Remark</th>}
           {visibleAssetColumns.cost && <th className={`${TH} text-right`}>ราคา</th>}
-          {visibleAssetColumns.scrapValue && <th className={`${TH} text-right`}>ราคาขายซาก</th>}
+          {visibleAssetColumns.scrapValue && <th className={`${TH} text-right`}>ราคาปัจจุบัน</th>}
           {visibleAssetColumns.assignedName && <th className={`${TH} text-center`}>ผู้ครอบครอง</th>}
           {visibleAssetColumns.status && <th className={`${TH} text-center`}>สถานะ</th>}
           <th className={`${TH} text-center`}>จัดการ</th>
@@ -71,11 +72,11 @@ export default function AssetTable({
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-200 shrink-0 shadow-sm"
+                      className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
                     />
                   ) : (
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-colors"
+                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
                       style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
                     >
                       <Monitor className="h-4 w-4" strokeWidth={1.7} />
@@ -90,7 +91,7 @@ export default function AssetTable({
 
             {visibleAssetColumns.type && (
               <td className={TD}>
-                <span className="inline-flex items-center bg-slate-100 text-slate-600 text-[12px] px-2.5 py-1 rounded-full font-medium ring-1 ring-inset ring-slate-200">
+                <span className="inline-flex items-center bg-slate-50 text-slate-600 text-xs px-2.5 py-1 rounded-md font-semibold border border-slate-200">
                   {item.type}
                 </span>
               </td>
@@ -99,7 +100,7 @@ export default function AssetTable({
             {visibleAssetColumns.forDepartment && (
               <td className={`${TD} text-slate-700`}>
                 {item.forDepartment
-                  ? <span className="inline-flex items-center bg-blue-50 text-[#1E487A] text-[12px] px-2 py-0.5 rounded-full font-medium ring-1 ring-inset ring-blue-200">{item.forDepartment}</span>
+                  ? <span className="inline-flex items-center bg-blue-50 text-[#1E487A] text-xs px-2 py-0.5 rounded-md font-semibold border border-blue-200">{item.forDepartment}</span>
                   : <span className="text-slate-400">-</span>}
               </td>
             )}
@@ -120,6 +121,11 @@ export default function AssetTable({
             {visibleAssetColumns.note && (
               <td className={`${TD} text-slate-600`}>
                 <span className="block max-w-[260px] truncate" title={item.note || ''}>{item.note || '-'}</span>
+              </td>
+            )}
+            {visibleAssetColumns.remark && (
+              <td className={`${TD} text-slate-600`}>
+                <span className="block max-w-[260px] truncate" title={item.remark || ''}>{item.remark || '-'}</span>
               </td>
             )}
             {visibleAssetColumns.cost && (
@@ -197,16 +203,16 @@ function StatusBadge({ status, assignedName, showAssignee }) {
     : 'pending';
 
   const meta = {
-    ready:   { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-500 animate-pulse', label: 'พร้อมใช้งาน' },
-    inuse:   { cls: 'bg-blue-50 text-[#1E487A] ring-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
-    reserve: { cls: 'bg-violet-50 text-violet-700 ring-violet-200', dot: 'bg-violet-500', label: 'สำรอง' },
-    broken:  { cls: 'bg-rose-50 text-rose-700 ring-rose-200', dot: 'bg-rose-500', label: 'ชำรุดเสียหาย' },
-    pending: { cls: 'bg-amber-50 text-amber-700 ring-amber-200', dot: 'bg-amber-500', label: status },
+    ready:   { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'พร้อมใช้งาน' },
+    inuse:   { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
+    reserve: { cls: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500', label: 'สำรอง' },
+    broken:  { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'ชำรุดเสียหาย' },
+    pending: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', label: status },
   }[norm];
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium ring-1 ring-inset ${meta.cls}`}>
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${meta.cls}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
         {meta.label}
       </span>
@@ -220,14 +226,15 @@ function StatusBadge({ status, assignedName, showAssignee }) {
 }
 
 function ActionBtn({ onClick, kind, icon: Icon, children }) {
+  // primary = ปุ่มหลัก (สีกรมทึบ) · success = ปุ่มรอง (ขาวขอบบาง)
   const map = {
-    primary: 'text-[#1E487A] ring-[#1E487A]/30 hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A]',
-    success: 'text-emerald-600 ring-emerald-200 hover:bg-emerald-500 hover:text-white hover:ring-emerald-500',
+    primary: 'bg-[#1E487A] text-white border-[#1E487A] hover:bg-[#163963] hover:border-[#163963]',
+    success: 'bg-white text-emerald-600 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300',
   }[kind];
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1 px-2.5 py-1.5 bg-white ring-1 ring-inset rounded-lg font-semibold transition-colors text-[12.5px] ${map}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-1.5 border rounded-lg font-semibold transition-colors text-[12.5px] ${map}`}
     >
       {Icon && <Icon className="h-3 w-3" strokeWidth={2.2} />}
       {children}
@@ -237,15 +244,15 @@ function ActionBtn({ onClick, kind, icon: Icon, children }) {
 
 function IconBtn({ onClick, title, children, kind }) {
   const map = {
-    warning: 'text-amber-600 hover:bg-amber-50 hover:ring-amber-300',
-    danger:  'text-rose-500 hover:bg-rose-50 hover:ring-rose-300',
-    info:    'text-[#1E487A] hover:bg-blue-50 hover:ring-blue-300',
+    warning: 'text-amber-600 hover:bg-amber-50 hover:border-amber-300',
+    danger:  'text-rose-500 hover:bg-rose-50 hover:border-rose-300',
+    info:    'text-[#1E487A] hover:bg-blue-50 hover:border-blue-300',
   }[kind];
   return (
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center justify-center w-7 h-7 bg-white ring-1 ring-inset ring-slate-200 rounded-lg transition-colors ${map}`}
+      className={`inline-flex items-center justify-center w-7 h-7 bg-white border border-slate-200 rounded-lg transition-colors ${map}`}
     >
       {children}
     </button>

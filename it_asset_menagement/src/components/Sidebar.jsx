@@ -115,7 +115,7 @@ export default function Sidebar({
         {/* ─── Logo / Brand area ─── */}
         <div className="px-5 pt-6 pb-5 shrink-0 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-white/15 ring-1 ring-white/25">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-white/15 border border-white/25">
               <img
                 src="/gb_icon.svg"
                 alt="Logo"
@@ -145,7 +145,7 @@ export default function Sidebar({
                       onMouseLeave={() => setHoveredId(null)}
                       className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] transition-colors group
                         ${active
-                          ? 'font-semibold text-white bg-white/15 ring-1 ring-white/15'
+                          ? 'font-semibold text-white bg-white/15 border border-white/15'
                           : hovered
                             ? 'font-medium text-white bg-white/8'
                             : 'font-medium text-blue-100/85 hover:text-white'

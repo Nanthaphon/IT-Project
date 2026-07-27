@@ -39,17 +39,17 @@ export default function EditLicenseModal({
             <div className="flex items-center gap-4">
               {editLicenseModal.data.image ? (
                 <div className="relative shrink-0">
-                  <img src={editLicenseModal.data.image} alt="Preview" className="w-20 h-20 rounded-xl object-cover ring-1 ring-slate-200" />
+                  <img src={editLicenseModal.data.image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-slate-200" />
                   <button
                     type="button"
                     onClick={() => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: null } }))}
-                    className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 ring-1 ring-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none shadow-sm"
+                    className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 border border-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none"
                   >
                     <XIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
                   </button>
                 </div>
               ) : (
-                <div className="w-20 h-20 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 ring-1 ring-dashed ring-slate-300 shrink-0">
+                <div className="w-20 h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 border border-dashed border-slate-300 shrink-0">
                   <ImageIcon className="h-7 w-7" strokeWidth={1.5} />
                 </div>
               )}

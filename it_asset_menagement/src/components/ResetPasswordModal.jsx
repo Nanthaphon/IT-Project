@@ -29,12 +29,12 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
+        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-sm w-full overflow-hidden border border-slate-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5 ring-1"
-          style={{ background: `${BRAND.primary}10`, color: BRAND.primary, '--tw-ring-color': `${BRAND.primary}20` }}
+          className="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5 border"
+          style={{ background: `${BRAND.primary}10`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
         >
           <KeyRound className="h-7 w-7" strokeWidth={1.8} />
         </div>
@@ -59,7 +59,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
             >
               ยกเลิก
             </button>

@@ -9,11 +9,11 @@ import { formatDateShort } from './formatDate.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
-/* 🆕 ใช้ photoGallery (คลังรูปเฉพาะสำหรับ PDF) แทนเอกสารแนบทั่วไป */
-function getGalleryPhotos(item) {
-  const gallery = Array.isArray(item.photoGallery) ? item.photoGallery : [];
+/* ── ดึงรูปภาพประกอบ PDF (photoGallery) — เฉพาะ data:image (ไม่รวมรูปหลักของเครื่อง) ── */
+const getGalleryPhotos = (a) => {
+  const gallery = Array.isArray(a?.photoGallery) ? a.photoGallery : [];
   return gallery.filter(src => src && String(src).startsWith('data:image/'));
-}
+};
 
 /* ── คำนวณอายุการใช้งาน ── */
 const calcAge = (purchaseDate) => {
@@ -81,12 +81,16 @@ const COLUMN_META = {
                    render: (a) => a.warrantyDate ? `<span style="white-space:nowrap">${e(formatDateShort(a.warrantyDate))}</span>` : '-' },
   cost:          { label: 'ราคา', flex: 8, align: 'right',
                    render: (a) => a.cost ? `<span style="white-space:nowrap">฿${fmtTHB(a.cost)}</span>` : '-' },
-  scrapValue:    { label: 'ราคาขายซาก', flex: 9, align: 'right',
+  scrapValue:    { label: 'ราคาปัจจุบัน', flex: 9, align: 'right',
                    render: (a) => a.scrapValue ? `<span style="white-space:nowrap;color:#059669">฿${fmtTHB(a.scrapValue)}</span>` : '-' },
   assignedName:  { label: 'ผู้ครอบครอง', flex: 11, align: 'left',
                    render: (a) => e(a.assignedName) || '<span style="color:#94a3b8">-</span>' },
   note:          { label: 'หมายเหตุ', flex: 22, align: 'left',
                    render: (a) => e(a.note) || '<span style="color:#94a3b8">-</span>' },
+  remark:        { label: 'Remark', flex: 22, align: 'left',
+                   render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
+  remark:        { label: 'Remark', flex: 22, align: 'left',
+                   render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
   age:           { label: 'อายุการใช้งาน', flex: 8, align: 'center',
                    render: (a) => `<span style="white-space:nowrap">${e(calcAge(a.purchaseDate))}</span>` },
   status:        { label: 'สถานะ', flex: 9, align: 'center',
@@ -114,22 +118,21 @@ export function printAssetReport({
 
   const numCols = selectedKeys.length;
 
-  /* ── Auto-scale font + thumbnail ตามจำนวน column ── */
+  /* ── Auto-scale font ตามจำนวน column ── */
   // คอลัมน์น้อย = อ่านสบาย (font 11-12px) / คอลัมน์เยอะ = ย่อลง (font 8-9px)
-  let bodyFontSize, headerFontSize, thumbSize, padding, statusBadgeSize, rowGap;
-  if (numCols <= 4)       { bodyFontSize = 11.5; headerFontSize = 11.5; thumbSize = 100; padding = '6px 8px'; statusBadgeSize = 10; rowGap = 5; }
-  else if (numCols <= 6)  { bodyFontSize = 10.5; headerFontSize = 11;   thumbSize = 80;  padding = '5px 7px'; statusBadgeSize = 9;  rowGap = 4; }
-  else if (numCols <= 8)  { bodyFontSize = 9.5;  headerFontSize = 10;   thumbSize = 65;  padding = '4px 6px'; statusBadgeSize = 8.5; rowGap = 4; }
-  else if (numCols <= 10) { bodyFontSize = 8.5;  headerFontSize = 9.5;  thumbSize = 55;  padding = '3px 5px'; statusBadgeSize = 8;  rowGap = 3; }
-  else                    { bodyFontSize = 8;    headerFontSize = 9;    thumbSize = 45;  padding = '3px 4px'; statusBadgeSize = 7.5; rowGap = 3; }
+  let bodyFontSize, headerFontSize, padding, statusBadgeSize;
+  if (numCols <= 4)       { bodyFontSize = 11.5; headerFontSize = 11.5; padding = '6px 8px'; statusBadgeSize = 10; }
+  else if (numCols <= 6)  { bodyFontSize = 10.5; headerFontSize = 11;   padding = '5px 7px'; statusBadgeSize = 9; }
+  else if (numCols <= 8)  { bodyFontSize = 9.5;  headerFontSize = 10;   padding = '4px 6px'; statusBadgeSize = 8.5; }
+  else if (numCols <= 10) { bodyFontSize = 8.5;  headerFontSize = 9.5;  padding = '3px 5px'; statusBadgeSize = 8; }
+  else                    { bodyFontSize = 8;    headerFontSize = 9;    padding = '3px 4px'; statusBadgeSize = 7.5; }
 
   const ctx = { statusBadgeSize };
 
   /* ── คำนวณ column width (อัตราส่วน flex) ── */
-  // ทุกหน้ามีคอลัมน์ "เอกสารแนบ" + คอลัมน์ "#" คงที่
+  // มีเฉพาะคอลัมน์ "#" คงที่
   const noColWidthPct = 3.5;
-  const attachColWidthPct = numCols <= 4 ? 28 : numCols <= 6 ? 22 : numCols <= 8 ? 18 : 16;
-  const dataColTotalPct = 100 - noColWidthPct - attachColWidthPct;
+  const dataColTotalPct = 100 - noColWidthPct;
   const totalFlex = selectedKeys.reduce((sum, k) => sum + COLUMN_META[k].flex, 0);
   const colWidths = selectedKeys.map(k => (COLUMN_META[k].flex / totalFlex) * dataColTotalPct);
 
@@ -138,7 +141,6 @@ export function printAssetReport({
   const inUse       = assets.filter(a => (a.status || 'พร้อมใช้งาน') === 'ถูกใช้งาน').length;
   const available   = assets.filter(a => (a.status || 'พร้อมใช้งาน') === 'พร้อมใช้งาน').length;
   const broken      = assets.filter(a => (a.status || 'พร้อมใช้งาน') === 'ชำรุดเสียหาย').length;
-  const totalWithDocs = assets.filter(a => getGalleryPhotos(a).length > 0).length;
 
   /* ── filter chips ── */
   const filterChips = [];
@@ -155,7 +157,6 @@ export function printAssetReport({
     ${selectedKeys.map((k, i) => `
       <th style="text-align:${COLUMN_META[k].align};width:${colWidths[i].toFixed(2)}%">${e(COLUMN_META[k].label)}</th>
     `).join('')}
-    <th style="text-align:left;width:${attachColWidthPct}%">เอกสารแนบ</th>
   `;
 
   /* ── Body rows ── */
@@ -165,28 +166,51 @@ export function printAssetReport({
       return `<td style="border:1px solid #cbd5e1;padding:${padding};font-size:${bodyFontSize}px;vertical-align:top;text-align:${col.align};overflow:hidden;overflow-wrap:anywhere;word-break:break-word;line-height:1.35">${col.render(a, ctx)}</td>`;
     }).join('');
 
-    // 🆕 ดึงจาก photoGallery (คลังรูปที่กำหนดในแท็บข้อมูลทั่วไป)
-    const photos = getGalleryPhotos(a);
-
-    const imgGrid = photos.length > 0
-      ? `<div style="display:flex;flex-wrap:wrap;gap:${rowGap}px">
-          ${photos.map((src, i) => `
-            <div style="width:${thumbSize}px;height:${thumbSize}px;border:1px solid #cbd5e1;border-radius:3px;overflow:hidden;background:#fff">
-              <img src="${src}" alt="รูปที่ ${i + 1}" style="width:100%;height:100%;object-fit:cover;display:block" />
-            </div>
-          `).join('')}
-        </div>`
-      : `<div style="font-size:${(bodyFontSize - 1).toFixed(1)}px;color:#94a3b8;font-style:italic">—</div>`;
-
     return `
       <tr style="break-inside:avoid">
         <td style="border:1px solid #cbd5e1;padding:${padding};text-align:center;font-size:${bodyFontSize}px;vertical-align:top;overflow:hidden">${idx + 1}</td>
         ${cells}
-        <td style="border:1px solid #cbd5e1;padding:${padding};font-size:${bodyFontSize}px;vertical-align:top;overflow:hidden;overflow-wrap:anywhere">
-          ${imgGrid}
-        </td>
       </tr>`;
   }).join('');
+
+  /* ── ตารางรูปภาพประกอบ PDF (แยกจากตารางหลัก) ── */
+  // เฉพาะทรัพย์สินที่มีรูปในคลัง (photoGallery) — ไม่รวมรูปหลักของเครื่อง
+  const assetsWithPhotos = assets
+    .map((a, idx) => ({ a, idx, photos: getGalleryPhotos(a) }))
+    .filter(x => x.photos.length > 0);
+
+  const imageTableSection = assetsWithPhotos.length > 0 ? `
+    <div style="break-before:page;margin-top:16px">
+      <div style="font-size:14px;font-weight:700;color:#1E487A;border-bottom:2px solid #1E487A;padding-bottom:5px;margin-bottom:10px">
+        ตารางรูปภาพประกอบ (${assetsWithPhotos.length} รายการ)
+      </div>
+      <table class="report img-table">
+        <thead>
+          <tr>
+            <th style="width:4%;text-align:center">#</th>
+            <th style="width:26%;text-align:left">ทรัพย์สิน</th>
+            <th style="width:70%;text-align:left">รูปภาพประกอบ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${assetsWithPhotos.map(({ a, idx, photos }) => `
+            <tr style="break-inside:avoid">
+              <td style="border:1px solid #cbd5e1;padding:6px 7px;text-align:center;vertical-align:top;font-size:10px">${idx + 1}</td>
+              <td style="border:1px solid #cbd5e1;padding:6px 7px;vertical-align:top">
+                <div style="font-weight:700;font-size:11px">${e(a.name) || '-'}</div>
+                ${a.assetTag ? `<div style="font-family:'Courier New',monospace;font-size:9.5px;color:#64748b;margin-top:2px">${e(a.assetTag)}</div>` : ''}
+                ${a.type ? `<div style="font-size:9.5px;color:#94a3b8;margin-top:1px">${e(a.type)}</div>` : ''}
+              </td>
+              <td style="border:1px solid #cbd5e1;padding:6px 7px;vertical-align:top">
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  ${photos.map(src => `<img src="${src}" alt="" style="height:96px;width:96px;object-fit:cover;border:1px solid #cbd5e1;border-radius:4px" />`).join('')}
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>` : '';
 
   const html = `<!DOCTYPE html>
 <html lang="th">
@@ -292,7 +316,7 @@ export function printAssetReport({
     <h1>${e(companyName)}</h1>
     <div class="sub">รายงานทรัพย์สิน · พิมพ์เมื่อ ${e(thDate)}</div>
     ${filterText}
-    <div class="col-info">แสดง ${numCols} คอลัมน์ + เอกสารแนบ · ทั้งหมด ${total} รายการ</div>
+    <div class="col-info">แสดง ${numCols} คอลัมน์ · ทั้งหมด ${total} รายการ</div>
   </div>
 
   <div class="stats">
@@ -300,13 +324,14 @@ export function printAssetReport({
     <div class="box"><div class="num">${available}</div><div class="lbl">พร้อมใช้งาน</div></div>
     <div class="box"><div class="num">${inUse}</div><div class="lbl">ถูกใช้งาน</div></div>
     <div class="box"><div class="num">${broken}</div><div class="lbl">ชำรุด</div></div>
-    <div class="box"><div class="num">${totalWithDocs}</div><div class="lbl">มีเอกสารแนบ</div></div>
   </div>
 
   <table class="report">
     <thead><tr>${headerCells}</tr></thead>
-    <tbody>${rows || `<tr><td colspan="${numCols + 2}" style="border:1px solid #cbd5e1;padding:20px;text-align:center;color:#94a3b8">ไม่มีข้อมูลทรัพย์สินตรงกับการกรอง</td></tr>`}</tbody>
+    <tbody>${rows || `<tr><td colspan="${numCols + 1}" style="border:1px solid #cbd5e1;padding:20px;text-align:center;color:#94a3b8">ไม่มีข้อมูลทรัพย์สินตรงกับการกรอง</td></tr>`}</tbody>
   </table>
+
+  ${imageTableSection}
 
   <div class="footer-note">
     เอกสารนี้สร้างโดยระบบ IT Asset Management — ${e(thDate)}

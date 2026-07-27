@@ -73,7 +73,7 @@ export default function ImportModal({
       />
       <ModalBody className="space-y-4">
         {/* ── Field preview — ให้ผู้ใช้รู้ว่าจะ import field อะไรบ้าง ── */}
-        <div className="bg-blue-50/60 ring-1 ring-blue-200 p-4 rounded-xl">
+        <div className="bg-blue-50/60 border border-blue-200 p-4 rounded-xl">
           <div className="flex items-start gap-2.5">
             <Info className="h-4 w-4 text-[#1E487A] mt-0.5 shrink-0" strokeWidth={2.2} />
             <div className="flex-1 min-w-0">
@@ -84,10 +84,10 @@ export default function ImportModal({
                 {meta.fields.map((f, i) => (
                   <span
                     key={i}
-                    className={`inline-flex items-center text-[11.5px] font-medium px-2 py-0.5 rounded-md ring-1 ring-inset ${
+                    className={`inline-flex items-center text-[11.5px] font-medium px-2 py-0.5 rounded-md border ${
                       f.includes('จำเป็น')
-                        ? 'bg-rose-50 text-rose-700 ring-rose-200'
-                        : 'bg-white text-slate-700 ring-slate-200'
+                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                        : 'bg-white text-slate-700 border-slate-200'
                     }`}
                   >
                     {f}
@@ -102,9 +102,9 @@ export default function ImportModal({
         </div>
 
         {/* Step 1 */}
-        <div className="bg-slate-50/70 ring-1 ring-slate-200 p-5 rounded-xl">
+        <div className="bg-slate-50/70 border border-slate-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-blue-100 text-[#1E487A] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] ring-1 ring-blue-200/60">
+            <span className="bg-blue-100 text-[#1E487A] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-blue-200/60">
               1
             </span>
             <h4 className="font-semibold text-slate-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
@@ -115,7 +115,7 @@ export default function ImportModal({
           <div className="pl-10">
             <button
               onClick={handleDownloadTemplate}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white ring-1 ring-inset ring-[#1E487A]/30 text-[#1E487A] rounded-lg font-semibold text-[14.5px] hover:bg-blue-50/60 hover:ring-[#1E487A]/50 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-[#1E487A]/30 text-[#1E487A] rounded-lg font-semibold text-[14.5px] hover:bg-blue-50/60 hover:border-[#1E487A]/50 transition-colors"
             >
               <Download className="h-4 w-4" strokeWidth={2} />
               โหลด Template.csv
@@ -124,9 +124,9 @@ export default function ImportModal({
         </div>
 
         {/* Step 2 */}
-        <div className="bg-slate-50/70 ring-1 ring-slate-200 p-5 rounded-xl">
+        <div className="bg-slate-50/70 border border-slate-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-blue-100 text-[#1E487A] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] ring-1 ring-blue-200/60">
+            <span className="bg-blue-100 text-[#1E487A] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-blue-200/60">
               2
             </span>
             <h4 className="font-semibold text-slate-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>

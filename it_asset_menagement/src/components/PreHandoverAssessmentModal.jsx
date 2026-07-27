@@ -17,9 +17,9 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_COLOR_CLS = {
-  emerald: 'bg-emerald-50 ring-emerald-400 text-emerald-700',
-  amber:   'bg-amber-50 ring-amber-400 text-amber-700',
-  rose:    'bg-rose-50 ring-rose-400 text-rose-700',
+  emerald: 'bg-emerald-50 border-emerald-400 text-emerald-700',
+  amber:   'bg-amber-50 border-amber-400 text-amber-700',
+  rose:    'bg-rose-50 border-rose-400 text-rose-700',
 };
 
 export default function PreHandoverAssessmentModal({
@@ -151,7 +151,7 @@ export default function PreHandoverAssessmentModal({
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-5xl max-h-[92vh] flex flex-col ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-slate-200/60 overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100 shrink-0">
@@ -176,7 +176,7 @@ export default function PreHandoverAssessmentModal({
 
           {/* 🆕 Asset picker — เมื่อพนักงานถือหลาย notebook ต้องเลือกก่อน */}
           {notebooks.length > 1 && (
-            <div className="bg-amber-50/70 ring-1 ring-amber-200 rounded-xl p-4">
+            <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4">
               <div className="flex items-start gap-2 mb-3">
                 <ClipboardCheck className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" strokeWidth={2} />
                 <div>
@@ -192,14 +192,14 @@ export default function PreHandoverAssessmentModal({
                       key={a.id}
                       type="button"
                       onClick={() => setSelectedAssetId(a.id)}
-                      className={`text-left p-3 rounded-lg ring-1 ring-inset transition-colors ${
+                      className={`text-left p-3 rounded-lg border transition-colors ${
                         isSelected
-                          ? 'bg-white ring-2 ring-[#1E487A] shadow-sm'
-                          : 'bg-white/60 ring-slate-200 hover:ring-slate-300 hover:bg-white'
+                          ? 'bg-white border border-[#1E487A] shadow-sm'
+                          : 'bg-white/60 border-slate-200 hover:border-slate-300 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full ring-2 ring-inset ${isSelected ? 'ring-[#1E487A] bg-[#1E487A]' : 'ring-slate-300 bg-white'} shrink-0`}>
+                        <div className={`w-4 h-4 rounded-full border ${isSelected ? 'border-[#1E487A] bg-[#1E487A]' : 'border-slate-300 bg-white'} shrink-0`}>
                           {isSelected && (
                             <svg viewBox="0 0 20 20" className="w-full h-full text-white p-0.5" fill="currentColor">
                               <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clipRule="evenodd" />
@@ -221,7 +221,7 @@ export default function PreHandoverAssessmentModal({
           )}
 
           {/* Top: handover date */}
-          <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4">
             <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
               วันที่รับมอบ
             </label>
@@ -244,14 +244,14 @@ export default function PreHandoverAssessmentModal({
           </div>
 
           {/* Score banner */}
-          <div className="bg-gradient-to-r from-[#1E487A] to-[#163963] text-white rounded-xl p-4 flex items-center justify-between shadow-md">
+          <div className="bg-[#1E487A] text-white rounded-lg p-4 flex items-center justify-between">
             <div>
               <div className="text-[12px] opacity-80 font-medium">คะแนนรวม (100)</div>
               <div className="text-[34px] font-bold leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
             </div>
             <div className="flex flex-col items-center gap-1.5 shrink-0">
               <div className="text-[10.5px] opacity-80 font-semibold tracking-[0.14em] uppercase">เกรด</div>
-              <div className={`w-14 h-14 rounded-xl bg-white shadow-sm ring-1 ring-white/40 flex items-center justify-center text-[30px] font-extrabold leading-none ${gradeColor}`}>
+              <div className={`w-14 h-14 rounded-xl bg-white shadow-sm border border-white/40 flex items-center justify-center text-[30px] font-extrabold leading-none ${gradeColor}`}>
                 {grade}
               </div>
               <div className="text-[11px] opacity-90 font-medium leading-tight text-center max-w-[140px]">
@@ -267,11 +267,11 @@ export default function PreHandoverAssessmentModal({
                 const itemMax = itemMaxScore(si);
                 const sectionScore = sec.items.reduce((s, [no]) => s + (assessment[no]?.score || 0), 0);
                 return (
-                  <div key={sec.title} className="ring-1 ring-slate-200 rounded-xl overflow-hidden bg-white">
+                  <div key={sec.title} className="border border-slate-200 rounded-xl overflow-hidden bg-white">
                     <div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-2.5 border-b border-slate-200">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-[14px] font-semibold text-[#1E487A] truncate">{sec.title}</span>
-                        <span className="text-[12px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md ring-1 ring-slate-200 shrink-0">
+                        <span className="text-[12px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
                           {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                         </span>
                       </div>
@@ -299,10 +299,10 @@ export default function PreHandoverAssessmentModal({
                                     key={opt.value}
                                     type="button"
                                     onClick={() => setItemStatus(no, opt.value, si)}
-                                    className={`text-[12px] font-semibold px-2.5 py-1 rounded-full ring-1 ring-inset transition whitespace-nowrap ${
+                                    className={`text-[12px] font-semibold px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap ${
                                       selected
-                                        ? STATUS_COLOR_CLS[opt.color] + ' ring-2'
-                                        : 'bg-white ring-slate-200 text-slate-500 hover:ring-slate-300'
+                                        ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
+                                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
                                     }`}
                                   >
                                     {opt.label}
@@ -350,7 +350,7 @@ export default function PreHandoverAssessmentModal({
                 />
               ))}
             </div>
-            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-blue-50/60 ring-1 ring-inset ring-blue-200 rounded-lg">
+            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-blue-50/60 border border-blue-200 rounded-lg">
               <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" strokeWidth={2} />
               <p className="text-[12.5px] text-blue-700 leading-relaxed">
                 แนะนำให้แนบครบทั้ง 6 มุม รูปจะถูกฝังลงในเอกสาร PDF ที่พิมพ์ออก
@@ -372,10 +372,10 @@ export default function PreHandoverAssessmentModal({
                     return (
                       <label
                         key={item.id}
-                        className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors ring-1 ring-inset ${
+                        className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors border ${
                           checked
-                            ? 'bg-blue-50 ring-2 ring-[#1E487A]'
-                            : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'
+                            ? 'bg-blue-50 border border-[#1E487A]'
+                            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                         }`}
                       >
                         <input
@@ -419,7 +419,7 @@ export default function PreHandoverAssessmentModal({
 
               {/* Add new bundle item form */}
               {showAddBundleForm ? (
-                <div className="bg-blue-50/40 ring-1 ring-inset ring-blue-200 rounded-xl p-3 space-y-2 animate-in fade-in">
+                <div className="bg-blue-50/40 border border-blue-200 rounded-xl p-3 space-y-2 animate-in fade-in">
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="text"
@@ -484,7 +484,7 @@ export default function PreHandoverAssessmentModal({
               )}
 
               {selectedBundles.length > 0 && (
-                <div className="text-[12.5px] text-slate-600 bg-emerald-50/60 ring-1 ring-inset ring-emerald-200 rounded-lg px-3 py-2">
+                <div className="text-[12.5px] text-slate-600 bg-emerald-50/60 border border-emerald-200 rounded-lg px-3 py-2">
                   <span className="font-semibold text-emerald-700">เลือกแล้ว {selectedBundles.length} รายการ</span> — จะแสดงในส่วนที่ 4.1 ของใบส่งมอบ
                 </div>
               )}
@@ -554,15 +554,15 @@ function Section({ title, children }) {
 
 function QuickFillBtn({ onClick, color, children }) {
   const cls = {
-    emerald: 'text-emerald-700 ring-emerald-200 hover:bg-emerald-50',
-    amber:   'text-amber-700 ring-amber-200 hover:bg-amber-50',
-    rose:    'text-rose-700 ring-rose-200 hover:bg-rose-50',
+    emerald: 'text-emerald-700 border-emerald-200 hover:bg-emerald-50',
+    amber:   'text-amber-700 border-amber-200 hover:bg-amber-50',
+    rose:    'text-rose-700 border-rose-200 hover:bg-rose-50',
   }[color];
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-[11px] font-semibold px-2 py-1 rounded-md ring-1 ring-inset bg-white transition whitespace-nowrap ${cls}`}
+      className={`text-[11px] font-semibold px-2 py-1 rounded-md border bg-white transition whitespace-nowrap ${cls}`}
     >
       {children}
     </button>
@@ -590,7 +590,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
   };
 
   return (
-    <div className="rounded-xl ring-1 ring-slate-200 bg-white overflow-hidden">
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
       <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
         <span className="text-[12.5px] font-semibold text-slate-700 truncate">{label}</span>
         {src && (
@@ -606,7 +606,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
       </div>
       <div className="p-2">
         {src ? (
-          <div className="relative h-32 rounded-lg overflow-hidden bg-slate-50 ring-1 ring-slate-200">
+          <div className="relative h-32 rounded-lg overflow-hidden bg-slate-50 border border-slate-200">
             <img src={src} alt={label} className="w-full h-full object-cover" />
           </div>
         ) : (
@@ -614,7 +614,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
             type="button"
             onClick={() => ref.current?.click()}
             disabled={uploading}
-            className="w-full h-32 rounded-lg ring-1 ring-dashed ring-slate-300 hover:ring-[#1E487A] hover:bg-blue-50/60 transition flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-[#1E487A]"
+            className="w-full h-32 rounded-lg border border-dashed border-slate-300 hover:border-[#1E487A] hover:bg-blue-50/60 transition flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-[#1E487A]"
           >
             {uploading ? (
               <div className="w-5 h-5 border-2 border-[#1E487A] border-t-transparent rounded-full animate-spin" />

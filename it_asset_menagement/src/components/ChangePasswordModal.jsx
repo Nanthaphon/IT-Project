@@ -74,14 +74,14 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={handleClose}>
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-md w-full overflow-hidden ring-1 ring-slate-200/60"
+        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-md w-full overflow-hidden border border-slate-200/60"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── header ── */}
         <div className="px-6 pt-6 pb-5 text-center border-b border-slate-100">
           <div
-            className="mx-auto flex items-center justify-center h-14 w-14 rounded-2xl mb-4 ring-1"
-            style={{ background: `${BRAND.primary}10`, color: BRAND.primary, '--tw-ring-color': `${BRAND.primary}20` }}
+            className="mx-auto flex items-center justify-center h-14 w-14 rounded-xl mb-4 border"
+            style={{ background: `${BRAND.primary}10`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
           >
             <KeyRound className="h-6 w-6" strokeWidth={1.8} />
           </div>
@@ -98,7 +98,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 
           {/* error banner */}
           {fieldError && (
-            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13.5px] font-medium ring-1 ring-rose-200 flex items-start gap-2.5">
+            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13.5px] font-medium border border-rose-200 flex items-start gap-2.5">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
               <span>{fieldError}</span>
             </div>
@@ -129,7 +129,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 
           {/* requirements */}
           {newPassword.length > 0 && (
-            <div className="bg-slate-50 ring-1 ring-slate-100 rounded-xl px-3.5 py-2.5 space-y-1">
+            <div className="bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 space-y-1">
               {rules.map((r, i) => (
                 <div key={i} className="flex items-center gap-2 text-[12.5px]">
                   <CheckCircle2
@@ -167,7 +167,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
             >
               ยกเลิก
             </button>

@@ -17,9 +17,9 @@ const labelOf = (fieldKey, value) =>
   (FIELD_STATUS_LABELS[fieldKey] || FIELD_STATUS_LABELS.body)[value] || value;
 
 const STATUS_COLOR = {
-  normal:  'text-emerald-700 bg-emerald-50 ring-emerald-200',
-  scratch: 'text-amber-700 bg-amber-50 ring-amber-200',
-  broken:  'text-rose-700 bg-rose-50 ring-rose-200',
+  normal:  'text-emerald-700 bg-emerald-50 border-emerald-200',
+  scratch: 'text-amber-700 bg-amber-50 border-amber-200',
+  broken:  'text-rose-700 bg-rose-50 border-rose-200',
 };
 
 /* ── format duration as "X ปี Y เดือน Z วัน" (Thai friendly) ── */
@@ -229,16 +229,16 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
   const attachmentCount = attachments?.length || 0;
 
   return (
-    <div className={`rounded-2xl ring-1 overflow-hidden transition-shadow ${
+    <div className={`rounded-xl border overflow-hidden transition-colors ${
       isCurrent
-        ? 'ring-[#1E487A]/25 bg-gradient-to-br from-blue-50/70 via-white to-white shadow-sm'
+        ? 'border-[#1E487A]/40 bg-white'
         : damages.length > 0
-        ? 'ring-rose-200 bg-white'
-        : 'ring-slate-200 bg-white'
+        ? 'border-rose-200 bg-white'
+        : 'border-slate-200 bg-white'
     }`}>
       {/* Current indicator strip */}
       {isCurrent && (
-        <div className="h-1 w-full bg-gradient-to-r from-[#1E487A] via-[#2A5896] to-[#1E487A]" />
+        <div className="h-1 w-full bg-[#1E487A]" />
       )}
 
       {/* Header — clickable to expand */}
@@ -254,7 +254,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
             isCurrent
-              ? 'bg-gradient-to-br from-[#1E487A] to-[#163963] text-white'
+              ? 'bg-[#1E487A] text-white'
               : damages.length > 0
               ? 'bg-rose-100 text-rose-600'
               : 'bg-slate-100 text-slate-500'
@@ -266,8 +266,8 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="text-[15px] font-bold text-slate-800 truncate">{checkout.empName || '-'}</p>
               {isCurrent && (
-                <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-white bg-gradient-to-r from-[#1E487A] to-[#2A5896] px-2 py-0.5 rounded-full shadow-sm">
-                  <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse" />
+                <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-white bg-[#1E487A] px-2 py-0.5 rounded-md">
+                  <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full" />
                   ปัจจุบัน
                 </span>
               )}
@@ -286,22 +286,22 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             {/* Status badges row */}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               {duration && (
-                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset ${
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border ${
                   isCurrent
-                    ? 'bg-white text-[#1E487A] ring-[#1E487A]/25'
-                    : 'bg-slate-50 text-slate-700 ring-slate-200'
+                    ? 'bg-white text-[#1E487A] border-[#1E487A]/25'
+                    : 'bg-slate-50 text-slate-700 border-slate-200'
                 }`}>
                   <Clock className="h-2.5 w-2.5" strokeWidth={2.6} />
                   {isCurrent ? 'ครอบครองมาแล้ว' : 'ใช้งาน'} {duration}
                 </span>
               )}
               {damages.length > 0 && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
                   <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} /> เสียหาย {damages.length} จุด
                 </span>
               )}
               {!damages.length && ret && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} /> คืนปกติ
                 </span>
               )}
@@ -309,7 +309,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
                 <button
                   onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
                   title="ดูเอกสารแนบ"
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 hover:text-slate-900 transition"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition"
                 >
                   <Paperclip className="h-2.5 w-2.5" strokeWidth={2.6} />
                   {attachmentCount} ไฟล์
@@ -325,7 +325,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <button
               onClick={onPrintReturn}
               title="พิมพ์ใบรับคืน"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-[#1E487A] ring-1 ring-inset ring-[#1E487A]/25 bg-white hover:bg-[#1E487A] hover:text-white hover:ring-[#1E487A] transition"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-[#1E487A] border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 transition"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
               <span className="hidden sm:inline">ใบรับคืน</span>
@@ -401,7 +401,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
 
           {/* Damage summary */}
           {damages.length > 0 && (
-            <div className="rounded-lg bg-rose-50 ring-1 ring-rose-200 p-3">
+            <div className="rounded-lg bg-rose-50 border border-rose-200 p-3">
               <p className="text-[13px] font-bold text-rose-800 mb-1.5 flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2} />
                 ความเสียหายที่พบเทียบกับตอนส่งมอบ
@@ -472,7 +472,7 @@ const DOC_TYPES = [
     value:   'handover',
     label:   'ใบส่งมอบ',
     formNo:  'IT-FORM-001',
-    badge:   'bg-blue-50 text-blue-700 ring-blue-200',
+    badge:   'bg-blue-50 text-blue-700 border-blue-200',
     dot:     'bg-blue-500',
     iconBg:  'bg-blue-50',
     iconCol: 'text-blue-600',
@@ -481,7 +481,7 @@ const DOC_TYPES = [
     value:   'return',
     label:   'ใบรับคืน',
     formNo:  'IT-FORM-002',
-    badge:   'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    badge:   'bg-emerald-50 text-emerald-700 border-emerald-200',
     dot:     'bg-emerald-500',
     iconBg:  'bg-emerald-50',
     iconCol: 'text-emerald-600',
@@ -490,7 +490,7 @@ const DOC_TYPES = [
     value:   'other',
     label:   'อื่นๆ',
     formNo:  '',
-    badge:   'bg-slate-100 text-slate-600 ring-slate-200',
+    badge:   'bg-slate-50 text-slate-600 border-slate-200',
     dot:     'bg-slate-400',
     iconBg:  'bg-slate-50',
     iconCol: 'text-slate-500',
@@ -636,7 +636,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
           <Paperclip className="h-3.5 w-3.5 text-slate-500" strokeWidth={2.2} />
           เอกสารแนบ (ฉบับลงนามแล้ว)
           {attachments?.length > 0 && (
-            <span className="text-[11px] font-semibold bg-[#1E487A]/10 text-[#1E487A] px-1.5 py-0.5 rounded-full ml-0.5">
+            <span className="text-[11px] font-semibold bg-blue-50 border border-blue-200 text-[#1E487A] px-1.5 py-0.5 rounded-md ml-0.5">
               {attachments.length}
             </span>
           )}
@@ -644,7 +644,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
         {!pendingFile && !saving && (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#1E487A] hover:bg-[#1E487A]/8 px-2.5 py-1 rounded-lg ring-1 ring-inset ring-[#1E487A]/20 transition"
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#1E487A] hover:bg-[#1E487A]/8 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-blue-200 transition-colors"
           >
             <Upload className="h-3.5 w-3.5" strokeWidth={2.2} />
             แนบไฟล์
@@ -661,10 +661,10 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 
       {/* ── Pending file: pick document type ── */}
       {pendingFile && !saving && (
-        <div className="mb-4 rounded-xl ring-2 ring-[#1E487A]/20 bg-[#1E487A]/4 p-4">
+        <div className="mb-4 rounded-xl border border-[#1E487A]/20 bg-[#1E487A]/4 p-4">
           {/* File info row */}
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-white ring-1 ring-slate-200 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
               {fileIcon(pendingFile.file.type)}
             </div>
             <div className="flex-1 min-w-0">
@@ -690,10 +690,10 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
               <button
                 key={dt.value}
                 onClick={() => setDocType(dt.value)}
-                className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl ring-2 transition-colors text-center ${
+                className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl border transition-colors text-center ${
                   docType === dt.value
-                    ? `ring-[#1E487A] bg-white shadow-sm`
-                    : 'ring-transparent bg-white/60 hover:bg-white hover:ring-slate-200'
+                    ? `border-[#1E487A] bg-white shadow-sm`
+                    : 'border-transparent bg-white/60 hover:bg-white hover:border-slate-200'
                 }`}
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dt.iconBg} ${dt.iconCol}`}>
@@ -745,7 +745,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 
       {/* ── Saving indicator ── */}
       {saving && (
-        <div className="mb-4 rounded-xl bg-[#1E487A]/4 ring-1 ring-[#1E487A]/15 p-3 flex items-center gap-2.5">
+        <div className="mb-4 rounded-lg bg-blue-50/50 border border-blue-200 p-3 flex items-center gap-2.5">
           <div className="w-4 h-4 border-2 border-[#1E487A] border-t-transparent rounded-full animate-spin shrink-0" />
           <span className="text-[12.5px] font-medium text-slate-700">กำลังบันทึกเอกสาร...</span>
         </div>
@@ -755,7 +755,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
       {attachments === null ? (
         <p className="text-[12px] text-slate-400 italic py-1">กำลังโหลดเอกสาร...</p>
       ) : attachments.length === 0 && !pendingFile && !saving ? (
-        <div className="flex flex-col items-center justify-center py-5 rounded-xl bg-slate-50/60 ring-1 ring-dashed ring-slate-200">
+        <div className="flex flex-col items-center justify-center py-5 rounded-lg bg-white border border-dashed border-slate-200">
           <Paperclip className="h-6 w-6 mb-1.5 text-slate-300" strokeWidth={1.5} />
           <p className="text-[12px] font-medium text-slate-400">ยังไม่มีเอกสารแนบ</p>
           <p className="text-[11px] text-slate-300 mt-0.5">
@@ -769,10 +769,10 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
             return (
               <div
                 key={att.id}
-                className="group flex items-center gap-3 rounded-xl bg-white ring-1 ring-slate-200 px-3 py-2.5 hover:ring-[#1E487A]/30 hover:shadow-sm transition-colors"
+                className="group flex items-center gap-3 rounded-lg bg-white border border-slate-200 px-3 py-2.5 hover:border-[#1E487A]/40 transition-colors"
               >
                 {/* Doc-type badge (left strip) */}
-                <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] ring-1 ring-inset ${dt.badge}`}>
+                <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] border ${dt.badge}`}>
                   <FileText className="h-4 w-4 mb-0.5" strokeWidth={1.8} />
                   <span className="text-[10.5px] font-bold leading-tight text-center">{dt.label}</span>
                   {dt.formNo && (
@@ -789,7 +789,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                         : att.fileName}
                     </p>
                     {/* "signed" chip */}
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-md shrink-0">
                       <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.5} />
                       ลงนามแล้ว
                     </span>
@@ -834,7 +834,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 
       {/* Error */}
       {error && (
-        <div className="text-[12px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2 mt-2 flex items-start gap-1.5">
+        <div className="text-[12px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mt-2 flex items-start gap-1.5">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" strokeWidth={2} />
           <span>{error}</span>
         </div>
@@ -846,9 +846,9 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 /* ── Snapshot of one event (checkout or return) ── */
 function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist = {}, notes, onPhotoClick, onAddPhotos, assessment, slotPhotos, defectsNote }) {
   const colorCls = {
-    blue:    'text-blue-700 bg-blue-50 ring-blue-200',
-    emerald: 'text-emerald-700 bg-emerald-50 ring-emerald-200',
-    rose:    'text-rose-700 bg-rose-50 ring-rose-200',
+    blue:    'text-blue-700 bg-blue-50 border-blue-200',
+    emerald: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    rose:    'text-rose-700 bg-rose-50 border-rose-200',
   }[color];
 
   // 🆕 ถ้ามีข้อมูล 100-point assessment ให้แสดงแทนของเก่า
@@ -863,13 +863,13 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
 
     return (
       <div>
-        <p className={`inline-flex items-center gap-1.5 text-[12.5px] font-bold px-2.5 py-1 rounded-full ring-1 ring-inset mb-2 ${colorCls}`}>
+        <p className={`inline-flex items-center gap-1.5 text-[12.5px] font-bold px-2.5 py-1 rounded-md border mb-2 ${colorCls}`}>
           <Icon className="h-3 w-3" strokeWidth={2.4} />
           {label}
         </p>
 
         {/* Score banner (compact) */}
-        <div className="bg-gradient-to-r from-[#1E487A] to-[#163963] text-white rounded-lg p-3 flex items-center justify-between mb-3 shadow-sm">
+        <div className="bg-[#1E487A] text-white rounded-lg p-3 flex items-center justify-between mb-3">
           <div>
             <div className="text-[10.5px] opacity-80 font-medium">คะแนนรวม</div>
             <div className="text-[22px] font-bold leading-none mt-0.5">{total % 1 === 0 ? total : total.toFixed(1)}<span className="text-[13px] opacity-70 font-normal">/100</span></div>
@@ -885,10 +885,10 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
           {ASSESSMENT_SECTIONS.map((sec, si) => {
             const secScore = sec.items.reduce((s, [no]) => s + (assessment[no]?.score || 0), 0);
             return (
-              <div key={sec.title} className="ring-1 ring-slate-200 rounded-lg bg-white overflow-hidden">
+              <div key={sec.title} className="border border-slate-200 rounded-lg bg-white overflow-hidden">
                 <div className="flex items-center justify-between gap-2 bg-slate-50 px-3 py-1.5 border-b border-slate-100">
                   <span className="text-[12px] font-semibold text-[#1E487A]">{sec.title}</span>
-                  <span className="text-[11px] font-bold text-slate-600 bg-white px-1.5 py-0.5 rounded ring-1 ring-slate-200">
+                  <span className="text-[11px] font-bold text-slate-600 bg-white px-1.5 py-0.5 rounded-md border border-slate-200">
                     {secScore % 1 === 0 ? secScore : secScore.toFixed(1)}/{sec.max}
                   </span>
                 </div>
@@ -896,12 +896,12 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                   {sec.items.map(([no, name]) => {
                     const cell = assessment[no] || {};
                     const st = cell.status || 'normal';
-                    const bg = st === 'normal' ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-                             : st === 'scratch' ? 'bg-amber-50 text-amber-700 ring-amber-200'
-                             : 'bg-rose-50 text-rose-700 ring-rose-200';
+                    const bg = st === 'normal' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                             : st === 'scratch' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                             : 'bg-rose-50 text-rose-700 border-rose-200';
                     const lbl = st === 'normal' ? 'ปกติ' : st === 'scratch' ? 'ตำหนิ' : 'ชำรุด';
                     return (
-                      <span key={no} className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${bg}`}>
+                      <span key={no} className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded-md border ${bg}`}>
                         <span className="text-slate-600/70 font-mono mr-1">{no}</span>
                         {name}: <span className="font-bold">{lbl}</span>
                       </span>
@@ -920,7 +920,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
               {PHOTO_SLOTS.map(slot => slots[slot.key] ? (
                 <button key={slot.key} type="button" onClick={() => onPhotoClick?.(slots[slot.key])}
-                  className="aspect-square rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition"
+                  className="aspect-square rounded-md overflow-hidden border border-slate-200 hover:border-[#1E487A] transition-colors"
                   title={slot.label}>
                   <img src={slots[slot.key]} alt={slot.label} className="w-full h-full object-cover" />
                 </button>
@@ -978,24 +978,24 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
         {hasFields && (
           <div className="flex items-center gap-1 ml-auto flex-wrap">
             {stateCount.normal > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-200 px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
                 <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />
                 ปกติ {stateCount.normal}
               </span>
             )}
             {stateCount.scratch > 0 && (
-              <span className="text-[10.5px] font-semibold text-amber-700 bg-amber-50 ring-1 ring-inset ring-amber-200 px-1.5 py-0.5 rounded-full">
+              <span className="text-[10.5px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
                 ตำหนิ {stateCount.scratch}
               </span>
             )}
             {stateCount.broken > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 ring-1 ring-inset ring-rose-200 px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-md">
                 <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />
                 ชำรุด {stateCount.broken}
               </span>
             )}
             {totalFieldPhotos > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 bg-white ring-1 ring-inset ring-slate-200 px-1.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md">
                 <Camera className="h-2.5 w-2.5" strokeWidth={2.4} />
                 {totalFieldPhotos} รูป
               </span>
@@ -1031,7 +1031,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                   {fieldsWithoutPhotos.map(f => {
                     const v = fields[f.key]?.status || 'normal';
                     return (
-                      <span key={f.key} className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_COLOR[v]}`}>
+                      <span key={f.key} className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${STATUS_COLOR[v]}`}>
                         <span className="text-slate-700/70 mr-1">{f.label}:</span>
                         <span className="font-semibold">{labelOf(f.key, v)}</span>
                       </span>
@@ -1050,11 +1050,11 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                     const cell = fields[f.key];
                     const v = cell.status || 'normal';
                     return (
-                      <div key={f.key} className="group rounded-xl bg-white ring-1 ring-slate-200 p-2.5 hover:ring-[#1E487A]/40 hover:shadow-md transition-all">
+                      <div key={f.key} className="group rounded-lg bg-white border border-slate-200 p-2.5 hover:border-[#1E487A]/40 transition-colors">
                         {/* Title + status row */}
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <p className="text-[12.5px] font-semibold text-slate-800 leading-snug line-clamp-2 flex-1" title={f.label}>{f.label}</p>
-                          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset shrink-0 ${STATUS_COLOR[v]}`}>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${STATUS_COLOR[v]}`}>
                             {v === 'normal' && <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />}
                             {v === 'broken' && <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />}
                             {labelOf(f.key, v)}
@@ -1067,7 +1067,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                               key={i}
                               type="button"
                               onClick={() => onPhotoClick(src)}
-                              className="w-16 h-16 rounded-lg overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition shrink-0 bg-slate-50 relative block group/photo"
+                              className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 hover:border-[#1E487A] transition-colors shrink-0 bg-slate-50 relative block group/photo"
                               title={`${f.label} - รูปที่ ${i + 1}`}
                             >
                               <img src={src} alt={`${f.label}-${i + 1}`} className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform" />
@@ -1083,7 +1083,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                 </div>
               )}
               {fieldsWithoutPhotos.length > 0 && (
-                <details className="group rounded-lg bg-slate-50 ring-1 ring-slate-200 overflow-hidden">
+                <details className="group rounded-lg bg-slate-50 border border-slate-200 overflow-hidden">
                   <summary className="cursor-pointer flex items-center gap-2 px-3 py-2 hover:bg-slate-100/60 transition-colors">
                     <Camera className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />
                     <span className="text-[11.5px] font-semibold text-slate-600">
@@ -1095,7 +1095,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                     {fieldsWithoutPhotos.map(f => {
                       const v = fields[f.key]?.status || 'normal';
                       return (
-                        <span key={f.key} className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_COLOR[v]}`}>
+                        <span key={f.key} className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${STATUS_COLOR[v]}`}>
                           <span className="text-slate-600 mr-1">{f.label}:</span>
                           <span className="font-semibold">{labelOf(f.key, v)}</span>
                         </span>
@@ -1113,7 +1113,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-3">
               {photos.map((src, i) => (
                 <button key={i} type="button" onClick={() => onPhotoClick(src)}
-                  className="aspect-square rounded-md overflow-hidden ring-1 ring-slate-200 hover:ring-[#1E487A] transition">
+                  className="aspect-square rounded-md overflow-hidden border border-slate-200 hover:border-[#1E487A] transition-colors">
                   <img src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -1128,7 +1128,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
               {CHECKLIST_FIELDS.map(f => {
                 const v = checklist[f.key] || 'normal';
                 return (
-                  <span key={f.key} className={`text-[11px] font-medium px-1.5 py-0.5 rounded ring-1 ring-inset ${STATUS_COLOR[v]}`}>
+                  <span key={f.key} className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md border ${STATUS_COLOR[v]}`}>
                     {f.label}: {labelOf(f.key, v)}
                   </span>
                 );
@@ -1139,7 +1139,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
       )}
 
       {notes && (
-        <p className="text-[12.5px] text-slate-600 bg-slate-50 ring-1 ring-slate-200 rounded px-2 py-1.5 mt-1">
+        <p className="text-[12.5px] text-slate-600 bg-slate-50 border border-slate-200 rounded-md px-2 py-1.5 mt-1">
           💬 {notes}
         </p>
       )}
@@ -1233,7 +1233,7 @@ function EditPeriodModal({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-3xl max-h-[92vh] ring-1 ring-slate-200/60 overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -1265,7 +1265,7 @@ function EditPeriodModal({ period, onClose }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 bg-slate-50/40">
-          <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-slate-200 rounded-lg p-4">
             <label className="block text-[12.5px] font-medium text-slate-600 mb-1">ชื่อพนักงาน</label>
             <input
               type="text"
@@ -1279,7 +1279,7 @@ function EditPeriodModal({ period, onClose }) {
 
           {activeTab === 'checkout' && (
             <>
-              <div className="bg-white ring-1 ring-blue-200 rounded-xl p-4 space-y-3">
+              <div className="bg-white border border-blue-200 rounded-lg p-4 space-y-3">
                 <p className="text-[12px] font-bold text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
                   <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการส่งมอบ
                 </p>
@@ -1305,7 +1305,7 @@ function EditPeriodModal({ period, onClose }) {
 
           {activeTab === 'return' && ret && (
             <>
-              <div className="bg-white ring-1 ring-emerald-200 rounded-xl p-4 space-y-3">
+              <div className="bg-white border border-emerald-200 rounded-lg p-4 space-y-3">
                 <p className="text-[12px] font-bold text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
                   <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการรับคืน
                 </p>
@@ -1330,7 +1330,7 @@ function EditPeriodModal({ period, onClose }) {
           )}
 
           {(overSoftCO || overSoftR) && (
-            <div className={`text-[12.5px] rounded-lg px-3 py-2 ring-1 ring-inset ${overHard ? 'text-rose-700 bg-rose-50 ring-rose-200' : 'text-amber-700 bg-amber-50 ring-amber-200'}`}>
+            <div className={`text-[12.5px] rounded-lg px-3 py-2 border ${overHard ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-amber-700 bg-amber-50 border-amber-200'}`}>
               <div className="font-semibold mb-0.5">
                 {overHard ? '⛔ ขนาดข้อมูลเกิน 1 MB — บันทึกไม่ได้' : '⚠️ ข้อมูลรูปภาพใกล้เต็มขีดจำกัด'}
               </div>
@@ -1343,7 +1343,7 @@ function EditPeriodModal({ period, onClose }) {
           )}
 
           {error && (
-            <div className="text-[12.5px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2">
+            <div className="text-[12.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
               {error}
             </div>
           )}
@@ -1407,7 +1407,7 @@ function DeletePeriodConfirm({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-md ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-md overflow-hidden">
         <div className="px-6 py-5 text-center">
           <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="h-6 w-6" strokeWidth={2} />
@@ -1419,7 +1419,7 @@ function DeletePeriodConfirm({ period, onClose }) {
           </p>
           <p className="text-[12px] text-rose-600 mt-2 font-medium">การลบไม่สามารถย้อนกลับได้</p>
           {error && (
-            <div className="text-[12.5px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 rounded-lg px-3 py-2 mt-3 text-left">
+            <div className="text-[12.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mt-3 text-left">
               {error}
             </div>
           )}

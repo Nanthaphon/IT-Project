@@ -134,6 +134,7 @@ function App() {
   const [model, setModel] = useState('');
   const [vendor, setVendor] = useState('');
   const [note, setNote] = useState('');
+  const [remark, setRemark] = useState('');
   const [assetDocument, setAssetDocument] = useState(null);
   const [purchaseCondition, setPurchaseCondition] = useState('new'); // 'new' | 'used'
 
@@ -198,7 +199,7 @@ function App() {
     name: true, type: true, forDepartment: false, cost: true, status: true,
     assetTag: false, sn: false, model: false, vendor: false, company: false,
     purchaseDate: false, warrantyDate: false, assignedName: false,
-    note: false, age: false, scrapValue: false,  // 🆕
+    note: false, age: false, scrapValue: false, remark: false,  // 🆕
   }));
   const [visibleLicenseColumns, setVisibleLicenseColumns] = useState(() => loadLS('cols:license', {
     image: true, name: true, productKey: true, supplier: true,
@@ -529,7 +530,7 @@ function App() {
   useEffect(() => {
     // Reset form state (สำหรับ AddModal) เมื่อเปลี่ยนเมนู
     setName(''); setCost(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment('');
-    setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null);
+    setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setRemark(''); setAssetDocument(null);
     setSearchTerm('');
     // Reset single-select filters เก่า (ที่ยังเป็น string)
     setRepairFilterStatus('ทั้งหมด'); setSupplyFilterStatus('ทั้งหมด');
@@ -1095,13 +1096,14 @@ function App() {
           await addDoc(collection(db, collectionName), {
             name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
             assignees: activeMenu === 'accessories' ? [] : null,
-            forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: (activeMenu === 'assets' || activeMenu === 'accessories') ? note : null, document: activeMenu === 'assets' ? assetDocument : null,
+            forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: (activeMenu === 'assets' || activeMenu === 'accessories') ? note : null, remark: activeMenu === 'assets' ? remark : null, document: activeMenu === 'assets' ? assetDocument : null,
             purchaseCondition: activeMenu === 'assets' ? purchaseCondition : null,
             scrapValue: activeMenu === 'assets' ? scrapValue : null,  // 🆕 ราคาขายซาก (เฉพาะ asset)
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            createdTs: Date.now()  // client time — ใช้จัดเรียงทันทีก่อน serverTimestamp จะกลับมา
           });
         }
-        setName(''); setCost(''); setScrapValue(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment(''); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setAssetDocument(null); setPurchaseCondition('new');
+        setName(''); setCost(''); setScrapValue(''); setPurchaseDate(''); setWarrantyDate(''); setQuantity(1); setUnit('ชิ้น'); setAssetImage(null); setAssetDepartment(''); setSn(''); setCompany(''); setAssetTag(''); setModel(''); setVendor(''); setNote(''); setRemark(''); setAssetDocument(null); setPurchaseCondition('new');
         setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มรายการใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
       } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังบันทึก...');
@@ -1745,9 +1747,10 @@ function App() {
       purchaseDate:  { label: 'วันที่ซื้อ',    get: a => a.purchaseDate },
       warrantyDate:  { label: 'วันหมด Warranty', get: a => a.warrantyDate },
       cost:          { label: 'ราคา',          get: a => a.cost },
-      scrapValue:    { label: 'ราคาขายซาก',    get: a => a.scrapValue },
+      scrapValue:    { label: 'ราคาปัจจุบัน',    get: a => a.scrapValue },
       assignedName:  { label: 'ผู้ครอบครอง',  get: a => a.assignedName },
       note:          { label: 'หมายเหตุ',      get: a => a.note },
+      remark:        { label: 'Remark',        get: a => a.remark },
       age:           { label: 'อายุการใช้งาน', get: a => {
         if (!a.purchaseDate) return '';
         const d = new Date(a.purchaseDate); if (isNaN(d)) return '';
@@ -1814,6 +1817,7 @@ function App() {
             clone.sn        = '';
             clone.status    = 'พร้อมใช้งาน';
             clone.createdAt = serverTimestamp();
+            clone.createdTs = Date.now();
 
             const ref = await addDoc(collection(db, 'assets'), clone);
             setCustomAlert({
@@ -2567,25 +2571,25 @@ function App() {
         }
         return matchAny(
           item.name, item.type, item.sn, item.assetTag, item.model,
-          item.vendor, item.company, item.assignedName,
+          item.vendor, item.company, item.assignedName, item.note, item.remark,
         );
       });
     }
 
-    // ── จัดเรียงทรัพย์สินตามสถานะ ──
+    // ── จัดเรียงทรัพย์สิน: สร้างใหม่สุดอยู่บนสุด ──
     if (activeMenu === 'assets') {
-      const STATUS_RANK = {
-        'ถูกใช้งาน': 1,
-        'พร้อมใช้งาน': 2,
-        'ชำรุดเสียหาย': 3,
-        'ไม่สามารถใช้งานได้': 4,
+      const millisOf = (item) => {
+        const t = item.createdAt;
+        const server = t?.toMillis?.() ?? (t?.seconds ? t.seconds * 1000 : 0);
+        // serverTimestamp ยังไม่กลับมา (pending write) → ใช้เวลาฝั่ง client แทน
+        return server || item.createdTs || 0;
       };
-      const rankOf = (s) => STATUS_RANK[s || 'พร้อมใช้งาน'] ?? 99;
       result = [...result].sort((a, b) => {
-        const ra = rankOf(a.status);
-        const rb = rankOf(b.status);
-        if (ra !== rb) return ra - rb;
-        return (a.assetTag || a.name || '').localeCompare(b.assetTag || b.name || '', 'th');
+        const ta = millisOf(a);
+        const tb = millisOf(b);
+        if (ta !== tb) return tb - ta;
+        // ยังไม่มี createdAt (ข้อมูลเก่า) — เรียงตาม doc id ใหม่→เก่า
+        return (b.id || '').localeCompare(a.id || '');
       });
     }
 
@@ -2664,9 +2668,9 @@ function App() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const expDate = new Date(expirationDate);
     const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0)   return { isExpiring: true, statusText: 'หมดอายุแล้ว',              colorClass: 'text-red-600 bg-red-50 ring-red-200' };
-    if (diffDays <= 30) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-red-600 bg-red-50 ring-red-200' };
-    if (diffDays <= 90) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-amber-600 bg-amber-50 ring-amber-200' };
+    if (diffDays < 0)   return { isExpiring: true, statusText: 'หมดอายุแล้ว',              colorClass: 'text-rose-700 bg-rose-50 border-rose-200' };
+    if (diffDays <= 30) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-rose-700 bg-rose-50 border-rose-200' };
+    if (diffDays <= 90) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-amber-700 bg-amber-50 border-amber-200' };
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
@@ -2767,7 +2771,7 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className="flex-1 overflow-auto p-3 sm:p-4 md:p-8">
+        <div id="main-scroll-container" className="flex-1 overflow-auto p-3 sm:p-4 md:p-5">
           {activeMenu === 'field_options' ? (
             <Suspense fallback={<LazyFallback />}>
               <DropdownOptionsManager
@@ -2835,8 +2839,17 @@ function App() {
               />
             </Suspense>
           ) : (
-            <div className="h-full flex flex-col">
-              <div className="bg-white p-6 md:p-7 rounded-2xl shadow-sm ring-1 ring-slate-200/70 flex flex-col flex-1">
+            <div className="h-full flex flex-col max-w-[1400px] w-full mx-auto">
+              {/* 🆕 v2 page header */}
+              <div className="mb-3.5 shrink-0">
+                <h1 className="text-[20px] font-bold text-slate-800 tracking-tight">{menuTitle}</h1>
+                <p className="text-[13px] text-slate-400 mt-0.5">
+                  {currentData.length.toLocaleString()} รายการในระบบ
+                  {showDeletedEmployees ? ' · กำลังดูถังขยะ' : ''}
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)] flex flex-col flex-1 overflow-hidden">
+                <div className="px-5 md:px-6 pt-5">
                 <ActionBar
                   menuTitle={menuTitle} activeMenu={activeMenu} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showDeletedEmployees={showDeletedEmployees} setShowDeletedEmployees={setShowDeletedEmployees} setIsImportModalOpen={setIsImportModalOpen} handleExportEmployees={handleExportEmployees}
                   selectedEmployeeIds={selectedEmployeeIds} setConfirmDeleteModal={setConfirmDeleteModal} assetFilterDepartment={assetFilterDepartment} setAssetFilterDepartment={setAssetFilterDepartment} assetFilterType={assetFilterType} setAssetFilterType={setAssetFilterType} assetFilterStatus={assetFilterStatus} setAssetFilterStatus={setAssetFilterStatus} accFilterType={accFilterType} setAccFilterType={setAccFilterType}
@@ -2848,10 +2861,11 @@ function App() {
                   canEdit={canEdit}
                   fieldOptions={fieldOptions}
                 />
-                
+                </div>
+
                 {currentData.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
-                    <div className="w-16 h-16 rounded-full bg-slate-50 ring-1 ring-slate-200 flex items-center justify-center mb-3">
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
                       <svg className="h-7 w-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                       </svg>
@@ -2860,7 +2874,7 @@ function App() {
                     <p className="text-[13px] text-slate-400 mt-1">ลองเปลี่ยนคำค้นหาหรือปรับตัวกรอง</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto flex-1 rounded-xl ring-1 ring-slate-200 bg-white">
+                  <div className="overflow-x-auto flex-1 border-t border-slate-100 bg-white">
                     {activeMenu === 'employees' ? (
                       <EmployeeTable currentData={paginatedTableData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} handlePermanentDeleteEmployee={handlePermanentDeleteEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'licenses' ? (
@@ -2891,13 +2905,15 @@ function App() {
 
                 {/* ── Pagination footer (โชว์เมื่อ ≥ 2 หน้า) ── */}
                 {currentData.length > 0 && tableTotalPages > 1 && (
-                  <TablePagination
-                    currentPage={tablePage}
-                    totalPages={tableTotalPages}
-                    totalItems={currentData.length}
-                    itemsPerPage={TABLE_ITEMS_PER_PAGE}
-                    onPageChange={setTablePage}
-                  />
+                  <div className="px-5 md:px-6 pb-4 pt-1">
+                    <TablePagination
+                      currentPage={tablePage}
+                      totalPages={tableTotalPages}
+                      totalItems={currentData.length}
+                      itemsPerPage={TABLE_ITEMS_PER_PAGE}
+                      onPageChange={setTablePage}
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -2906,7 +2922,7 @@ function App() {
       </main>
       
       <ModalsContainer 
-        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} assetDocument={assetDocument} setAssetDocument={setAssetDocument} purchaseCondition={purchaseCondition} setPurchaseCondition={setPurchaseCondition} scrapValue={scrapValue} setScrapValue={setScrapValue} fieldOptions={fieldOptions}
+        isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} remark={remark} setRemark={setRemark} assetDocument={assetDocument} setAssetDocument={setAssetDocument} purchaseCondition={purchaseCondition} setPurchaseCondition={setPurchaseCondition} scrapValue={scrapValue} setScrapValue={setScrapValue} fieldOptions={fieldOptions}
         checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} checkoutCondition={checkoutCondition} setCheckoutCondition={setCheckoutCondition}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}
         selectedAssetDetail={selectedAssetDetail} setSelectedAssetDetail={setSelectedAssetDetail} selectedAssetCategory={selectedAssetCategory} setSelectedAssetCategory={setSelectedAssetCategory} openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal} showConfirm={showConfirm} setCustomAlert={setCustomAlert}

@@ -7,10 +7,10 @@ import { BRAND } from '../ui/theme.js';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
-  'รอดำเนินการ': { bar: 'bg-amber-400',   badge: 'bg-amber-50 text-amber-700 ring-amber-200',     icon: Clock },
-  'อนุมัติแล้ว':  { bar: 'bg-emerald-400', badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
-  'ปฏิเสธคำขอ':  { bar: 'bg-rose-400',    badge: 'bg-rose-50 text-rose-700 ring-rose-200',         icon: XCircle },
-  'คืนแล้ว':     { bar: 'bg-slate-400',   badge: 'bg-slate-50 text-slate-700 ring-slate-200',      icon: RotateCcw },
+  'รอดำเนินการ': { bar: 'bg-amber-400',   badge: 'bg-amber-50 text-amber-700 border-amber-200',     icon: Clock },
+  'อนุมัติแล้ว':  { bar: 'bg-emerald-400', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
+  'ปฏิเสธคำขอ':  { bar: 'bg-rose-400',    badge: 'bg-rose-50 text-rose-700 border-rose-200',         icon: XCircle },
+  'คืนแล้ว':     { bar: 'bg-slate-400',   badge: 'bg-slate-50 text-slate-700 border-slate-200',      icon: RotateCcw },
 };
 
 /* ─── Request type config ─── */
@@ -112,13 +112,13 @@ export default function AccessoryRequestTable({
 
       {/* ── List — Compact row layout ── */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 p-12 text-center">
+        <div className="bg-white rounded-xl border border-slate-200/70 p-12 text-center">
           <ClipboardList className="h-10 w-10 text-slate-300 mx-auto mb-3" strokeWidth={1.5} />
           <p className="text-[14.5px] font-semibold text-slate-500">ไม่มีคำขอ</p>
           <p className="text-[12.5px] text-slate-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
           {pagedRequests.map((req, idx) => {
             const status = STATUS[req.status] || STATUS['รอดำเนินการ'];
             const reqType = REQUEST_TYPE[req.requestType] || REQUEST_TYPE.new;
@@ -143,9 +143,9 @@ export default function AccessoryRequestTable({
 
                   {/* Item image */}
                   {acc?.image ? (
-                    <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain ring-1 ring-slate-200 shrink-0 bg-slate-50 p-1" />
+                    <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-slate-200 shrink-0 bg-slate-50 p-1" />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 ring-1 ring-slate-200">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
                       <Package className="h-4 w-4 text-slate-400" strokeWidth={2} />
                     </div>
                   )}
@@ -181,7 +181,7 @@ export default function AccessoryRequestTable({
                   </span>
 
                   {/* Status badge */}
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold ring-1 ring-inset ${status.badge} shrink-0`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border ${status.badge} shrink-0`}>
                     <StatusIcon className="h-3 w-3" strokeWidth={2.4} />
                     <span className="hidden sm:inline">{req.status}</span>
                   </span>
@@ -210,7 +210,7 @@ export default function AccessoryRequestTable({
                         </button>
                         <button
                           onClick={() => openRejectModal(req)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 ring-1 ring-rose-200 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
                         >
                           <X className="h-3.5 w-3.5" strokeWidth={2.4} />
                           <span className="hidden sm:inline">ปฏิเสธ</span>
@@ -232,7 +232,7 @@ export default function AccessoryRequestTable({
                 {isExpanded && hasDetails && (
                   <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100 bg-slate-50/40">
                     {req.requestType === 'replace' && req.oldAccessoryName && (
-                      <div className="p-2.5 rounded-lg bg-white ring-1 ring-slate-200">
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200">
                         <p className="text-[11px] font-semibold text-slate-500 mb-0.5">ของเดิมที่ต้องการเปลี่ยน</p>
                         <p className="text-[12.5px] font-semibold text-slate-800">
                           {req.oldAccessoryName}
@@ -251,7 +251,7 @@ export default function AccessoryRequestTable({
                       </p>
                     )}
                     {req.requestType === 'borrow' && req.returnDate && (
-                      <div className="inline-flex items-center gap-1.5 text-[12px] text-slate-700 bg-white px-2 py-1 rounded-md ring-1 ring-slate-200">
+                      <div className="inline-flex items-center gap-1.5 text-[12px] text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200">
                         <CalendarDays className="h-3 w-3" strokeWidth={2.2} />
                         กำหนดคืน: <span className="font-semibold">{req.returnDate}</span>
                       </div>
@@ -259,14 +259,14 @@ export default function AccessoryRequestTable({
                     {req.damagePhoto && (
                       <button
                         onClick={() => setPreviewPhoto(req.damagePhoto)}
-                        className="inline-flex items-center gap-1.5 text-[12px] text-slate-700 hover:text-[#1E487A] bg-white hover:bg-slate-50 px-2 py-1 rounded-md ring-1 ring-slate-200 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-[12px] text-slate-700 hover:text-[#1E487A] bg-white hover:bg-slate-50 px-2 py-1 rounded-md border border-slate-200 transition-colors"
                       >
                         <ImageIcon className="h-3 w-3" strokeWidth={2.2} />
                         ดูรูปอุปกรณ์ที่ชำรุด
                       </button>
                     )}
                     {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
-                      <p className="text-[12px] text-rose-700 bg-rose-50 ring-1 ring-rose-200 px-3 py-2 rounded-lg">
+                      <p className="text-[12px] text-rose-700 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
                         <span className="font-semibold">เหตุผลปฏิเสธ:</span> {req.rejectReason}
                       </p>
                     )}
@@ -328,7 +328,7 @@ export default function AccessoryRequestTable({
           className="fixed inset-0 bg-slate-950/80 z-[95] flex items-center justify-center p-6"
           onClick={() => setPreviewPhoto(null)}
         >
-          <img src={previewPhoto} alt="damage" className="max-w-full max-h-full rounded-xl shadow-md" />
+          <img src={previewPhoto} alt="damage" className="max-w-full max-h-full rounded-xl" />
           <button
             onClick={() => setPreviewPhoto(null)}
             className="fixed top-6 right-6 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"
@@ -342,7 +342,7 @@ export default function AccessoryRequestTable({
       {/* ── Reject reason modal ── */}
       {rejectModal.open && (
         <div className="fixed inset-0 bg-slate-950/50 z-[90] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-md max-w-md w-full overflow-hidden">
+          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-md w-full overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100">
               <h3 className="text-[16px] font-bold text-slate-800">เหตุผลในการปฏิเสธคำขอ</h3>
               <p className="text-[12.5px] text-slate-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
@@ -360,7 +360,7 @@ export default function AccessoryRequestTable({
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2.5">
               <button
                 onClick={() => setRejectModal({ open: false, req: null, reason: '' })}
-                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50"
+                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50"
               >
                 ยกเลิก
               </button>
@@ -385,7 +385,7 @@ function SummaryChip({ label, value, color, active, onClick }) {
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
         active
           ? 'bg-[#1E487A] text-white shadow-sm'
-          : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
+          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
       }`}
     >
       <span>{label}</span>

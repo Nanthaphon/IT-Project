@@ -110,7 +110,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
 
       {/* ── Assign panel (inline) ── */}
       {isAdding && (
-        <div className="bg-white ring-2 ring-[#1E487A]/20 rounded-2xl p-5 space-y-4 shadow-sm">
+        <div className="bg-white border border-[#1E487A]/30 rounded-xl p-5 space-y-4">
           {/* Panel header */}
           <div className="flex items-center justify-between">
             <p className="text-[14px] font-semibold text-slate-800 flex items-center gap-2">
@@ -157,14 +157,14 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     onClick={() => { setSelectedLicId(lic.id); setSelectedSeatIdx(0); }}
                     className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
                       isSel
-                        ? 'bg-[#1E487A]/8 ring-2 ring-[#1E487A]/25'
-                        : 'bg-slate-50 hover:bg-slate-100 ring-1 ring-slate-200'
+                        ? 'bg-[#1E487A]/8 border border-[#1E487A]/25'
+                        : 'bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     {lic.image ? (
-                      <img src={lic.image} alt={lic.name} className="w-9 h-9 object-contain rounded-lg shrink-0 bg-white p-1 ring-1 ring-slate-200" />
+                      <img src={lic.image} alt={lic.name} className="w-9 h-9 object-contain rounded-lg shrink-0 bg-white p-1 border border-slate-200" />
                     ) : (
-                      <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 ring-1 ring-purple-200">
+                      <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 border border-purple-200">
                         <Package className="h-4 w-4 text-purple-500" strokeWidth={1.8} />
                       </div>
                     )}
@@ -253,7 +253,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
 
       {/* ── Bound seats list ── */}
       {boundSeats.length === 0 && !isAdding ? (
-        <div className="py-14 text-center bg-white rounded-2xl ring-1 ring-slate-200/60">
+        <div className="py-14 text-center bg-white rounded-xl border border-dashed border-slate-200">
           <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
             <Package className="h-6 w-6" strokeWidth={1.5} />
           </div>
@@ -267,10 +267,10 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
           {boundSeats.map(seat => {
             const isExp = expanded === seat.checkoutId;
             return (
-              <div key={seat.checkoutId} className="bg-white rounded-xl ring-1 ring-slate-200 overflow-hidden">
+              <div key={seat.checkoutId} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
                 {/* Row header */}
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 ring-1 ring-purple-200">
+                  <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 border border-purple-200">
                     {seat.licenseImage
                       ? <img src={seat.licenseImage} alt="" className="w-7 h-7 object-contain" />
                       : <Package className="h-4 w-4 text-purple-500" strokeWidth={1.8} />
@@ -279,7 +279,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                   <div className="flex-1 min-w-0">
                     <p className="text-[13.5px] font-semibold text-slate-800 truncate">{seat.licenseName}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full ring-1 ring-inset ring-purple-200">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-md border border-purple-200">
                         <Monitor className="h-2.5 w-2.5" strokeWidth={2.5} />
                         ติดตั้งบนเครื่องนี้
                       </span>
@@ -307,7 +307,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     <button
                       onClick={() => handleRevoke(seat.licenseId, seat.checkoutId)}
                       disabled={revoking === seat.checkoutId}
-                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-rose-600 bg-rose-50 ring-1 ring-inset ring-rose-200 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition disabled:opacity-60"
+                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-rose-600 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-60"
                       title="ยกเลิกการผูก License"
                     >
                       {revoking === seat.checkoutId
@@ -326,7 +326,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                       {seat.productKey && (
                         <div className="col-span-2 md:col-span-3">
                           <p className="text-[11px] text-slate-400 mb-0.5">Product Key</p>
-                          <p className="font-mono font-semibold text-slate-800 bg-white px-2.5 py-1.5 rounded ring-1 ring-slate-200 inline-block break-all">
+                          <p className="font-mono font-semibold text-slate-800 bg-white px-2.5 py-1.5 rounded-md border border-slate-200 inline-block break-all">
                             {seat.productKey}
                           </p>
                         </div>

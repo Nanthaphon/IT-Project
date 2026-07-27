@@ -167,7 +167,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
   return (
     <div className="space-y-5">
       {/* ── Toolbar ── */}
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/70 p-4 md:p-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-4 md:p-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15` }}>
             <BarChart3 className="h-5 w-5" style={{ color: BRAND.primary }} strokeWidth={2.2} />
@@ -198,7 +198,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
           <button
             onClick={handleExport}
             disabled={isExporting || k.total === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold text-white shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[14px] font-semibold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             style={{ background: BRAND.primary, boxShadow: `0 6px 16px ${BRAND.primary}40` }}
           >
             {isExporting ? (
@@ -218,8 +218,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
       {/* ── Empty state ── */}
       {k.total === 0 && (
-        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/70 p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-50 ring-1 ring-slate-200 flex items-center justify-center mx-auto mb-3">
+        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3">
             <BarChart3 className="h-7 w-7 text-slate-300" strokeWidth={1.5} />
           </div>
           <p className="font-medium text-[15px] text-slate-500">ไม่มีข้อมูลในช่วงเวลาที่เลือก</p>
@@ -277,7 +277,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3 px-1">⭐ ความพึงพอใจ</h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* คะแนนรวม (ขนาดใหญ่) */}
-              <div className="lg:col-span-1 bg-gradient-to-br from-amber-50 via-orange-50/40 to-amber-50 ring-1 ring-amber-200/60 rounded-2xl p-5 flex flex-col justify-between">
+              <div className="lg:col-span-1 bg-amber-50/60 border border-amber-200 rounded-xl p-5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
                   <p className="text-[13px] font-semibold text-amber-700/80 tracking-wide">คะแนนเฉลี่ยรวม</p>
                   <div className="w-9 h-9 rounded-lg bg-white/70 flex items-center justify-center">
@@ -305,7 +305,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               </div>
 
               {/* คะแนนแยกหมวด */}
-              <div className="lg:col-span-2 bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
+              <div className="lg:col-span-2 bg-white border border-slate-200/70 rounded-xl p-5">
                 <p className="text-[13px] font-semibold text-slate-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
                 <div className="space-y-3">
                   <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#3B82F6" />
@@ -329,7 +329,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
           {/* ── Row 3: แนวโน้มรายเดือน + Distribution ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Monthly trend */}
-            <div className="lg:col-span-2 bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
+            <div className="lg:col-span-2 bg-white border border-slate-200/70 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[14.5px] font-bold text-slate-800">แนวโน้มรายเดือน</p>
@@ -341,7 +341,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             </div>
 
             {/* Rating distribution */}
-            <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
+            <div className="bg-white border border-slate-200/70 rounded-xl p-5">
               <p className="text-[14.5px] font-bold text-slate-800 mb-1">การกระจายคะแนน</p>
               <p className="text-[12.5px] text-slate-400 mb-4">Rating Distribution</p>
               <div className="space-y-2">
@@ -373,7 +373,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
           {/* ── Row 4: Top Departments + Recent Comments ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top depts */}
-            <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
+            <div className="bg-white border border-slate-200/70 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-[14.5px] font-bold text-slate-800">แผนกที่แจ้งซ่อมมากที่สุด</p>
                 <span className="text-[12px] text-slate-400 font-medium">Top 5</span>
@@ -405,7 +405,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             </div>
 
             {/* Recent comments */}
-            <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-5">
+            <div className="bg-white border border-slate-200/70 rounded-xl p-5">
               <button
                 onClick={() => setOpenComments(o => !o)}
                 className="w-full flex items-center justify-between mb-3"
@@ -425,7 +425,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               ) : (
                 <div className={`space-y-2.5 overflow-hidden transition-colors ${openComments ? 'max-h-[600px]' : 'max-h-[180px]'}`}>
                   {k.recentComments.map((r, idx) => (
-                    <div key={idx} className="bg-slate-50/70 ring-1 ring-slate-100 rounded-xl p-3">
+                    <div key={idx} className="bg-slate-50/70 border border-slate-100 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[12.5px] font-semibold text-slate-600 truncate">
                           {r.evaluation.evaluatedByName || r.empName || 'ไม่ระบุ'}
@@ -456,7 +456,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
 /* ─── Sub Components ───────────────────────────────── */
 function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
   return (
-    <div className="bg-white ring-1 ring-slate-200/70 rounded-2xl p-4 flex flex-col gap-2.5 transition-shadow">
+    <div className="bg-white border border-slate-200/70 rounded-xl p-4 flex flex-col gap-2.5 transition-colors">
       <div className="flex items-center justify-between">
         <p className="text-[12.5px] font-semibold text-slate-500 tracking-wide">{label}</p>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: tint }}>

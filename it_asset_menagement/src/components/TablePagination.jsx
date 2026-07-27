@@ -45,10 +45,10 @@ export default function TablePagination({ currentPage, totalPages, totalItems, i
 
   const pageNumbers = getPageNumbers();
 
-  const btn = 'inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg text-[13px] font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
+  const btn = 'inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg border border-transparent text-[13px] font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 mt-3 bg-slate-50/60 rounded-xl ring-1 ring-slate-200">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 mt-3 bg-slate-50/60 rounded-xl border border-slate-200">
 
       {/* Label ซ้าย */}
       <div className="text-[13px] text-slate-500">
@@ -65,7 +65,7 @@ export default function TablePagination({ currentPage, totalPages, totalItems, i
           type="button"
           onClick={() => goTo(1)}
           disabled={currentPage === 1}
-          className={`${btn} text-slate-600 hover:bg-white hover:ring-1 hover:ring-slate-200`}
+          className={`${btn} text-slate-600 hover:bg-white hover:border-slate-200`}
           title="หน้าแรก"
         >
           <ChevronsLeft className="h-4 w-4" strokeWidth={2} />
@@ -74,7 +74,7 @@ export default function TablePagination({ currentPage, totalPages, totalItems, i
           type="button"
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`${btn} text-slate-600 hover:bg-white hover:ring-1 hover:ring-slate-200`}
+          className={`${btn} text-slate-600 hover:bg-white hover:border-slate-200`}
           title="ก่อนหน้า"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={2} />
@@ -91,7 +91,7 @@ export default function TablePagination({ currentPage, totalPages, totalItems, i
               className={
                 p === currentPage
                   ? `${btn} bg-[#1E487A] text-white shadow-sm`
-                  : `${btn} text-slate-600 hover:bg-white hover:ring-1 hover:ring-slate-200`
+                  : `${btn} text-slate-600 hover:bg-white hover:border-slate-200`
               }
             >
               {p}
@@ -103,7 +103,7 @@ export default function TablePagination({ currentPage, totalPages, totalItems, i
           type="button"
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`${btn} text-slate-600 hover:bg-white hover:ring-1 hover:ring-slate-200`}
+          className={`${btn} text-slate-600 hover:bg-white hover:border-slate-200`}
           title="ถัดไป"
         >
           <ChevronRight className="h-4 w-4" strokeWidth={2} />
@@ -112,7 +112,7 @@ export default function TablePagination({ currentPage, totalPages, totalItems, i
           type="button"
           onClick={() => goTo(totalPages)}
           disabled={currentPage === totalPages}
-          className={`${btn} text-slate-600 hover:bg-white hover:ring-1 hover:ring-slate-200`}
+          className={`${btn} text-slate-600 hover:bg-white hover:border-slate-200`}
           title="หน้าสุดท้าย"
         >
           <ChevronsRight className="h-4 w-4" strokeWidth={2} />

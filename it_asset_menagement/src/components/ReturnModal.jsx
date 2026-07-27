@@ -33,7 +33,7 @@ export default function ReturnModal({
       <form onSubmit={handleConfirmReturn} className="flex flex-col flex-1 overflow-hidden">
         <ModalBody className="space-y-5">
           {/* Asset card */}
-          <div className="bg-slate-50/70 ring-1 ring-slate-200 p-5 rounded-xl">
+          <div className="bg-slate-50/70 border border-slate-200 p-5 rounded-xl">
             <p className="text-[12px] text-slate-500 font-semibold uppercase tracking-wide mb-1">อุปกรณ์ที่รับคืน</p>
             <p className="text-[16px] font-semibold text-slate-900">{returnModal.assetName}</p>
 
@@ -134,12 +134,12 @@ export default function ReturnModal({
 function ConditionOption({ selected, onClick, Icon, color, title, description }) {
   const colorMap = {
     emerald: {
-      selectedBg: 'bg-emerald-50 ring-emerald-400',
+      selectedBg: 'bg-emerald-50 border-emerald-400',
       iconBg: 'bg-emerald-100 text-emerald-600',
       dot: 'bg-emerald-500',
     },
     rose: {
-      selectedBg: 'bg-rose-50 ring-rose-400',
+      selectedBg: 'bg-rose-50 border-rose-400',
       iconBg: 'bg-rose-100 text-rose-600',
       dot: 'bg-rose-500',
     },
@@ -149,8 +149,8 @@ function ConditionOption({ selected, onClick, Icon, color, title, description })
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-start gap-3 p-4 rounded-xl ring-1 ring-inset transition-colors text-left
-        ${selected ? colorMap.selectedBg + ' ring-2' : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'}`}
+      className={`w-full flex items-start gap-3 p-4 rounded-xl border transition-colors text-left
+        ${selected ? colorMap.selectedBg : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'}`}
     >
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${selected ? colorMap.iconBg : 'bg-slate-100 text-slate-400'}`}>
         <Icon className="h-4 w-4" strokeWidth={2} />

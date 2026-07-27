@@ -89,7 +89,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-md w-full overflow-hidden ring-1 ring-slate-200/60 max-h-[92vh] flex flex-col"
+        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-md w-full overflow-hidden border border-slate-200/60 max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -104,8 +104,8 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           </button>
           <div className="flex items-center gap-3">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ring-1"
-              style={{ background: `${BRAND.primary}15`, color: BRAND.primary, '--tw-ring-color': `${BRAND.primary}20` }}
+              className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 border"
+              style={{ background: `${BRAND.primary}15`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
             >
               <KeyRound className="h-5 w-5" strokeWidth={1.8} />
             </div>
@@ -126,7 +126,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
             className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 ${
               mode === 'set'
                 ? 'bg-[#1E487A] text-white shadow-sm'
-                : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+                : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
             }`}
           >
             <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
@@ -138,7 +138,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
             className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 ${
               mode === 'reset'
                 ? 'bg-amber-500 text-white shadow-sm'
-                : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+                : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
             }`}
           >
             <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
@@ -151,7 +151,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
 
           {/* Info banner for current mode */}
           {mode === 'reset' ? (
-            <div className="bg-amber-50/60 ring-1 ring-amber-200 rounded-xl p-3.5 space-y-1.5">
+            <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-1.5">
               <p className="text-[13px] font-semibold text-amber-900">รีเซ็ตเป็นค่าเริ่มต้น</p>
               <p className="text-[12.5px] text-amber-800/90 leading-relaxed">
                 รหัสผ่านจะถูกตั้งกลับเป็นรหัสพนักงาน: <code className="px-1.5 py-0.5 bg-white/80 rounded font-mono font-semibold">{empId}</code>
@@ -159,7 +159,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               <p className="text-[12px] text-amber-700/80">หลังรีเซ็ตแล้ว Login ครั้งถัดไป — ใช้รหัสพนักงานเป็นทั้ง username และ password</p>
             </div>
           ) : (
-            <div className="bg-blue-50/40 ring-1 ring-blue-200 rounded-xl p-3.5">
+            <div className="bg-blue-50/40 border border-blue-200 rounded-xl p-3.5">
               <p className="text-[12.5px] text-blue-900/85 leading-relaxed">
                 💡 ตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัยเพิ่มเติม — ระบบจะใช้รหัสที่ตั้งนี้แทนรหัสพนักงานในการ login
               </p>
@@ -168,7 +168,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
 
           {/* error banner */}
           {error && (
-            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13px] font-medium ring-1 ring-rose-200 flex items-start gap-2.5">
+            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13px] font-medium border border-rose-200 flex items-start gap-2.5">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
               <span>{error}</span>
             </div>
@@ -200,7 +200,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               </Field>
 
               {newPassword.length > 0 && (
-                <div className="bg-slate-50 ring-1 ring-slate-100 rounded-xl px-3.5 py-2.5 space-y-1">
+                <div className="bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 space-y-1">
                   {rules.map((r, i) => (
                     <div key={i} className="flex items-center gap-2 text-[12.5px]">
                       <CheckCircle2
@@ -240,7 +240,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           <button
             type="button"
             onClick={handleClose}
-            className="flex-1 py-2.5 rounded-lg text-[14px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
+            className="flex-1 py-2.5 rounded-lg text-[14px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
           >
             ยกเลิก
           </button>

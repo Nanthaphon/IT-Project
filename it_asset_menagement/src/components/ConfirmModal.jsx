@@ -8,10 +8,10 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, canc
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={onCancel}>
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/20 max-w-sm w-full overflow-hidden ring-1 ring-slate-200/60 text-center p-7"
+        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-sm w-full overflow-hidden border border-slate-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-50 text-amber-500 mb-5 ring-1 ring-amber-100">
+        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-50 text-amber-500 mb-5 border border-amber-100">
           <AlertTriangle className="h-7 w-7" strokeWidth={1.8} />
         </div>
         <h3 className="text-[20px] font-semibold mb-2 tracking-tight" style={{ color: BRAND.primary }}>{title}</h3>
@@ -19,13 +19,13 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, canc
         <div className="flex gap-2.5">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 transition-colors"
+            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
           >
             {cancelText || 'ยกเลิก'}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm hover:shadow-md"
+            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors"
             style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
             onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.primary)}

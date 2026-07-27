@@ -99,7 +99,7 @@ export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
       <div className="flex items-start gap-3.5">
         {Icon && (
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
           >
             <Icon className="h-5 w-5" strokeWidth={1.8} />
@@ -141,12 +141,12 @@ export function ModalFooter({ children, className = '' }) {
 
 /* Badge — colored pill (kind: success/warning/danger/info/neutral) */
 const BADGE_CLS = {
-  success: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  warning: 'bg-amber-50 text-amber-700 ring-amber-200',
-  danger:  'bg-rose-50 text-rose-700 ring-rose-200',
-  info:    'bg-blue-50 text-blue-700 ring-blue-200',
-  neutral: 'bg-slate-100 text-slate-600 ring-slate-200',
-  brand:   'bg-[#E8EFF8] text-[#1E487A] ring-[#1E487A]/20',
+  success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  warning: 'bg-amber-50 text-amber-700 border-amber-200',
+  danger:  'bg-rose-50 text-rose-700 border-rose-200',
+  info:    'bg-blue-50 text-blue-700 border-blue-200',
+  neutral: 'bg-slate-50 text-slate-600 border-slate-200',
+  brand:   'bg-[#E8EFF8] text-[#1E487A] border-[#1E487A]/20',
 };
 export function Badge({ kind = 'neutral', dot = false, children, className = '' }) {
   return (

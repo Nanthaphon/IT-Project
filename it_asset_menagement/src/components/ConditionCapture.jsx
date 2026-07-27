@@ -91,9 +91,9 @@ const STATUS_COLOR_BY_VALUE = {
 };
 
 const STATUS_COLOR_CLS = {
-  emerald: 'bg-emerald-50 ring-emerald-400 text-emerald-700',
-  amber:   'bg-amber-50 ring-amber-400 text-amber-700',
-  rose:    'bg-rose-50 ring-rose-400 text-rose-700',
+  emerald: 'bg-emerald-50 border-emerald-400 text-emerald-700',
+  amber:   'bg-amber-50 border-amber-400 text-amber-700',
+  rose:    'bg-rose-50 border-rose-400 text-rose-700',
 };
 
 const ROW_TINT_BY_STATUS = {
@@ -172,11 +172,11 @@ export default function ConditionCapture({
       </div>
 
       {/* Hint — compact */}
-      <div className="flex items-start gap-2 px-3 py-1.5 bg-blue-50/60 ring-1 ring-inset ring-blue-200 rounded-lg">
+      <div className="flex items-start gap-2 px-3 py-1.5 bg-blue-50/60 border border-blue-200 rounded-lg">
         <AlertCircle className="h-3.5 w-3.5 text-blue-600 mt-0.5 shrink-0" strokeWidth={2} />
         <p className="text-[12px] text-blue-700 leading-snug">
           เลือกสถานะแต่ละจุด แล้วกดปุ่ม
-          <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-md bg-white ring-1 ring-blue-300 text-blue-600">
+          <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-md bg-white border border-blue-300 text-blue-600">
             <ImagePlus className="h-3 w-3" strokeWidth={2.2} />
           </span>
           ที่ท้ายแถวเพื่อแนบรูป <span className="font-semibold">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
@@ -316,16 +316,16 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative rounded-lg ring-1 px-3 py-2 transition-colors ${
+      className={`relative rounded-lg border px-3 py-2 transition-colors ${
         isDragging
-          ? 'ring-2 ring-[#1E487A] bg-blue-50/70 shadow-inner'
-          : `ring-slate-200 ${tint}`
+          ? 'border border-[#1E487A] bg-blue-50/70 shadow-inner'
+          : `border-slate-200 ${tint}`
       }`}
     >
       {/* Drop overlay hint */}
       {isDragging && (
         <div className="absolute inset-0 rounded-lg bg-[#1E487A]/5 border-2 border-dashed border-[#1E487A] pointer-events-none flex items-center justify-center z-10">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-md ring-1 ring-[#1E487A]/20">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-[#1E487A]/20">
             <ImagePlus className="h-4 w-4 text-[#1E487A]" strokeWidth={2.4} />
             <span className="text-[12px] font-bold text-[#1E487A]">
               วางรูปเพื่อแนบใน "{field.label}"
@@ -349,10 +349,10 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                 key={value}
                 type="button"
                 onClick={() => onStatusChange(value)}
-                className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset transition whitespace-nowrap ${
+                className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-md border transition-colors whitespace-nowrap ${
                   selected
-                    ? STATUS_COLOR_CLS[color] + ' ring-2 shadow-sm'
-                    : 'bg-white ring-slate-200 text-slate-500 hover:ring-slate-300'
+                    ? STATUS_COLOR_CLS[color] + ' border shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
                 }`}
               >
                 {fieldLabels[value]}
@@ -368,8 +368,8 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
               disabled={uploading}
               className={`ml-1 w-7 h-7 rounded-md transition flex items-center justify-center shrink-0 ${
                 hasPhotos
-                  ? 'ring-1 ring-inset ring-slate-200 text-slate-500 hover:ring-[#1E487A] hover:text-[#1E487A] bg-white'
-                  : 'ring-1 ring-dashed ring-slate-300 text-slate-400 hover:ring-[#1E487A] hover:text-[#1E487A] hover:bg-blue-50/60 bg-white/50'
+                  ? 'border border-slate-200 text-slate-500 hover:border-[#1E487A] hover:text-[#1E487A] bg-white'
+                  : 'border border-dashed border-slate-300 text-slate-400 hover:border-[#1E487A] hover:text-[#1E487A] hover:bg-blue-50/60 bg-white/50'
               }`}
               title={hasPhotos ? `เพิ่มรูป (เหลือ ${slotsLeft} รูป) · ลากไฟล์มาวางได้` : `แนบรูปของ "${field.label}" · คลิกเลือกไฟล์ หรือลากรูปมาวางในแถวนี้`}
             >
@@ -383,7 +383,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
 
           {/* Photo count badge — only when has photos */}
           {hasPhotos && (
-            <span className="text-[10.5px] font-bold text-[#1E487A] bg-[#1E487A]/10 px-1.5 py-0.5 rounded-full shrink-0 ml-0.5">
+            <span className="text-[10.5px] font-bold text-[#1E487A] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md shrink-0 ml-0.5">
               {photos.length}/{MAX_PHOTOS_PER_FIELD}
             </span>
           )}
@@ -396,7 +396,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
           {photos.map((src, i) => (
             <div
               key={i}
-              className="relative w-14 h-14 rounded-md overflow-hidden ring-1 ring-slate-200 bg-white shrink-0 group"
+              className="relative w-14 h-14 rounded-md overflow-hidden border border-slate-200 bg-white shrink-0 group"
             >
               <button
                 type="button"
@@ -408,7 +408,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
               <button
                 type="button"
                 onClick={() => removePhoto(i)}
-                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition"
+                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                 title="ลบรูป"
               >
                 <X className="h-2.5 w-2.5" strokeWidth={2.5} />

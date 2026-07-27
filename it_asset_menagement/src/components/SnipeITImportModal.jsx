@@ -305,7 +305,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/60 z-[90] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden ring-1 ring-slate-200/60">
+      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-200/60">
 
         {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
@@ -333,7 +333,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
           {csvText && parsed && !importResult && (
             <>
               {parsed.error ? (
-                <div className="bg-rose-50 ring-1 ring-rose-200 rounded-xl p-4 flex items-start gap-3">
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" strokeWidth={2} />
                   <div>
                     <p className="font-bold text-rose-700">{parsed.error}</p>
@@ -359,7 +359,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
               ← เลือกไฟล์ใหม่
             </button>
             <div className="flex gap-2.5">
-              <button onClick={close} className="px-4 py-2 text-[13px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 rounded-lg hover:bg-slate-50">
+              <button onClick={close} className="px-4 py-2 text-[13px] font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
                 ยกเลิก
               </button>
               <button
@@ -398,7 +398,7 @@ function UploadArea({ onFile }) {
           const f = e.dataTransfer.files?.[0];
           if (f) onFile(f);
         }}
-        className={`block cursor-pointer rounded-2xl border-2 border-dashed transition-colors p-12 text-center ${
+        className={`block cursor-pointer rounded-xl border-2 border-dashed transition-colors p-12 text-center ${
           drag
             ? 'border-[#1E487A] bg-[#1E487A]/5'
             : 'border-slate-300 hover:border-[#1E487A]/50 bg-white hover:bg-slate-50'
@@ -410,7 +410,7 @@ function UploadArea({ onFile }) {
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
           className="hidden"
         />
-        <div className="w-14 h-14 rounded-2xl bg-[#1E487A]/10 flex items-center justify-center mx-auto mb-4">
+        <div className="w-14 h-14 rounded-xl bg-[#1E487A]/10 flex items-center justify-center mx-auto mb-4">
           <Upload className="h-7 w-7 text-[#1E487A]" strokeWidth={2} />
         </div>
         <p className="text-[15px] font-bold text-slate-800 mb-1">ลาก CSV จาก Snipe-IT มาวาง</p>
@@ -419,7 +419,7 @@ function UploadArea({ onFile }) {
       </label>
 
       {/* Info */}
-      <div className="bg-blue-50/50 ring-1 ring-blue-200 rounded-xl p-4 space-y-2">
+      <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-4 space-y-2">
         <p className="text-[12.5px] font-bold text-blue-900 flex items-center gap-1.5">
           <Layers className="h-3.5 w-3.5" strokeWidth={2.2} />
           ระบบจะทำอะไรให้:
@@ -455,14 +455,14 @@ function PreviewSection({ parsed }) {
       </div>
 
       {/* Column mapping info */}
-      <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+      <div className="bg-white border border-slate-200 rounded-xl p-4">
         <p className="text-[12.5px] font-bold text-slate-700 mb-2 flex items-center gap-1.5">
           <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
           จับคู่ Columns สำเร็จ ({mapped.length} ฟิลด์)
         </p>
         <div className="flex flex-wrap gap-1.5">
           {mapped.map(m => (
-            <span key={m.field} className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+            <span key={m.field} className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
               <CheckCircle2 className="h-3 w-3" strokeWidth={2.4} />
               {m.csv} → <span className="font-bold">{m.field}</span>
             </span>
@@ -476,7 +476,7 @@ function PreviewSection({ parsed }) {
       </div>
 
       {/* Grouped licenses list */}
-      <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
           <p className="text-[13px] font-bold text-slate-700">Preview: {grouped.length} licenses ที่จะนำเข้า</p>
         </div>
@@ -505,7 +505,7 @@ function LicenseRow({ lic }) {
             <span className="text-[10.5px] font-bold text-[#1E487A] bg-blue-50 px-2 py-0.5 rounded">{lic.quantity} seats</span>
             {lic._meta?.extrasCount > 0 && (
               <span
-                className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded ring-1 ring-amber-200"
+                className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
                 title={Object.keys(lic._meta.extras).join(', ')}
               >
                 +{lic._meta.extrasCount} ใน Notes
@@ -571,7 +571,7 @@ function ResultSection({ result, onClose, onAnother }) {
         {result.failed > 0 && <> · ล้มเหลว <span className="font-bold text-rose-600">{result.failed}</span></>}
       </p>
       <div className="flex justify-center gap-2.5">
-        <button onClick={onAnother} className="px-5 py-2 text-[13px] font-medium text-slate-700 bg-white ring-1 ring-slate-200 rounded-lg hover:bg-slate-50">
+        <button onClick={onAnother} className="px-5 py-2 text-[13px] font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
           Import อีก
         </button>
         <button onClick={onClose} className="px-5 py-2 text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-lg shadow-sm">

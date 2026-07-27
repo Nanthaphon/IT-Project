@@ -136,7 +136,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
 
   if (docs.length === 0) {
     return (
-      <div className="py-14 text-center bg-white rounded-2xl ring-1 ring-slate-200/60">
+      <div className="py-14 text-center bg-white rounded-xl border border-dashed border-slate-200">
         <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
           <FileText className="h-6 w-6" strokeWidth={1.5} />
         </div>
@@ -163,33 +163,33 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
         </button>
       </div>
 
-      <div className="ring-1 ring-slate-200/60 rounded-xl overflow-hidden divide-y divide-slate-100 bg-white">
+      <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 bg-white">
         {docs.map((d) => {
           const isHandover = d.formType === 'handover';
           const typeLabel = isHandover ? 'ใบส่งมอบ' : 'ใบรับคืน';
           const typeCls = isHandover
-            ? 'bg-blue-50 text-[#1E487A] ring-blue-200'
-            : 'bg-teal-50 text-teal-700 ring-teal-200';
+            ? 'bg-blue-50 text-[#1E487A] border-blue-200'
+            : 'bg-emerald-50 text-emerald-700 border-emerald-200';
           const Icon = isHandover ? FileText : ArrowLeftRight;
 
           const hasSigned = !!d.signedFile?.chunks;
           return (
             <div key={d.id} className="p-3.5 hover:bg-slate-50/60 transition-colors">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl ${typeCls} ring-1 ring-inset flex items-center justify-center shrink-0`}>
+                <div className={`w-10 h-10 rounded-lg ${typeCls} border flex items-center justify-center shrink-0`}>
                   <Icon className="h-4 w-4" strokeWidth={1.8} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span className={`text-[11px] font-bold ${typeCls} px-1.5 py-0.5 rounded ring-1 ring-inset`}>
+                    <span className={`text-[11px] font-bold ${typeCls} px-1.5 py-0.5 rounded-md border`}>
                       {typeLabel}
                     </span>
                     <span className="text-[13.5px] font-semibold text-slate-800 font-mono truncate">
                       {d.docNumber || d.id}
                     </span>
                     {hasSigned && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 px-1.5 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-md">
                         <FileCheck2 className="h-3 w-3" strokeWidth={2.4} />
                         เซ็นแล้ว
                       </span>
@@ -236,7 +236,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
               {/* ── Signed file section ── */}
               <div className="mt-2.5 ml-13 pl-13" style={{ paddingLeft: '52px' }}>
                 {hasSigned ? (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50/60 ring-1 ring-inset ring-emerald-200 rounded-lg">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200 rounded-lg">
                     <FileCheck2 className="h-4 w-4 text-emerald-600 shrink-0" strokeWidth={2} />
                     <span className="text-[12.5px] font-medium text-emerald-800 flex-1 truncate">
                       {d.signedFile.fileName}

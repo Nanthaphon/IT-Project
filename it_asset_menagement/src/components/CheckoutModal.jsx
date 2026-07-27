@@ -153,8 +153,8 @@ export default function CheckoutModal({
                   return (
                     <label
                       key={slot.index}
-                      className={`flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-colors ring-1 ring-inset ${
-                        isSelected ? 'bg-blue-50 ring-2 ring-[#1E487A]' : 'bg-white ring-slate-200 hover:ring-slate-300 hover:bg-slate-50/60'
+                      className={`flex items-start gap-3 p-3.5 rounded-lg cursor-pointer transition-colors border ${
+                        isSelected ? 'bg-blue-50 border-[#1E487A]' : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                       }`}
                     >
                       <input
@@ -169,13 +169,13 @@ export default function CheckoutModal({
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-[13.5px] font-semibold text-slate-700">{slot.label}</span>
                           {slot.cost && (
-                            <span className="text-[12px] font-semibold text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-200 px-2 py-0.5 rounded-full tabular-nums">
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md tabular-nums">
                               ฿{Number(slot.cost).toLocaleString()}
                             </span>
                           )}
                         </div>
                         {slot.sub && (
-                          <div className={`mt-1.5 text-[13px] truncate ${isLicense ? 'font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded-lg ring-1 ring-inset ring-slate-200' : 'text-slate-500'}`}>
+                          <div className={`mt-1.5 text-[13px] truncate ${isLicense ? 'font-mono text-slate-800 bg-slate-50 px-2 py-1 rounded-md border border-slate-200' : 'text-slate-500'}`}>
                             {slot.sub}
                           </div>
                         )}
@@ -191,7 +191,7 @@ export default function CheckoutModal({
 
           {/* 🆕 ซ่อนตอน submitting — กัน flash error เมื่อ Firestore update มาก่อน modal ปิด */}
           {needSelector && availableSlots.length === 0 && !isSubmitting && (
-            <div className="bg-rose-50 ring-1 ring-inset ring-rose-200 text-rose-700 text-[14px] font-medium px-4 py-3 rounded-xl flex items-start gap-2">
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[14px] font-medium px-4 py-3 rounded-lg flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={2} />
               ไม่มีรายการที่พร้อมเบิกจ่าย
             </div>
@@ -216,7 +216,7 @@ export default function CheckoutModal({
               />
 
               {isDropdownOpen && (
-                <div className="absolute z-10 w-full mt-1.5 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm shadow-slate-950/10 max-h-[320px] overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] max-h-[320px] overflow-y-auto">
                   {filteredEmployees.length > 0 ? (
                     filteredEmployees.map(emp => (
                       <div

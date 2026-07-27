@@ -141,7 +141,7 @@ export default function FieldOptionSelect({
           transition-colors flex items-center gap-2
           ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' :
             open
-              ? 'border-[#1E487A] ring-2 ring-[#1E487A]/15 shadow-sm'
+              ? 'border-[#1E487A] border border-[#1E487A]/15 shadow-sm'
               : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/40'
           }
         `}
@@ -191,7 +191,7 @@ export default function FieldOptionSelect({
       {/* ── Dropdown Panel ── */}
       {open && (
         <div
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-sm shadow-slate-950/10 ring-1 ring-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-sm shadow-slate-950/10 border border-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
         >
           {/* Search input */}
           <div className="relative border-b border-slate-100">

@@ -168,7 +168,7 @@ export default function EmployeeDetailsModal({
       data-modal="employee-detail"
       className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[60]"
     >
-      <div className="bg-white rounded-2xl shadow-md shadow-slate-950/20 w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] ring-1 ring-slate-200/60 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
@@ -396,21 +396,21 @@ export default function EmployeeDetailsModal({
               onClick={handlePrint}
               disabled={!hasNotebook}
               title={!hasNotebook ? 'พนักงานไม่มีโน๊ตบุ๊คในครอบครอง' : `${empNotebooks.length} เครื่อง`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-[#1E487A] bg-blue-50 hover:bg-blue-100 ring-1 ring-blue-200"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบส่งมอบ
-              {hasNotebook && <span className="text-[10.5px] font-bold bg-white px-1.5 py-0.5 rounded">{empNotebooks.length}</span>}
+              {hasNotebook && <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">{empNotebooks.length}</span>}
             </button>
             <button
               onClick={handlePrintReturn}
               disabled={allHeld.length === 0}
               title={allHeld.length === 0 ? 'พนักงานไม่มีทรัพย์สิน' : `${allHeld.length} รายการ`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-teal-700 bg-teal-50 hover:bg-teal-100 ring-1 ring-teal-200"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบรับคืน
-              {allHeld.length > 0 && <span className="text-[10.5px] font-bold bg-white px-1.5 py-0.5 rounded">{allHeld.length}</span>}
+              {allHeld.length > 0 && <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">{allHeld.length}</span>}
             </button>
             {/* 🆕 พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง */}
             <button
@@ -424,7 +424,7 @@ export default function EmployeeDetailsModal({
                 });
               }}
               title="พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors text-white bg-rose-600 hover:bg-rose-700"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors text-white bg-[#1E487A] hover:bg-[#163963]"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               พิมพ์ PDF
@@ -435,7 +435,7 @@ export default function EmployeeDetailsModal({
             {!selectedEmployee.deletedAt && (
               <button
                 onClick={() => openEditEmpModal(selectedEmployee)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-slate-600 bg-white ring-1 ring-slate-200 rounded-lg hover:bg-slate-50 transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -471,7 +471,7 @@ export default function EmployeeDetailsModal({
       {/* ── Picker เลือกเครื่องที่จะพิมพ์ใบรับคืน (เมื่อพนักงานถือหลายเครื่อง) ── */}
       {returnPickerOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setReturnPickerOpen(false)}>
-          <div className="bg-white rounded-2xl shadow-md w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-semibold text-slate-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
               <button onClick={() => setReturnPickerOpen(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
@@ -535,7 +535,7 @@ function Section({ title, children }) {
   return (
     <div>
       <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">{title}</p>
-      <div className="bg-white ring-1 ring-slate-200 rounded-xl overflow-hidden">{children}</div>
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
 }
@@ -653,7 +653,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
     <div className="px-4 py-3 space-y-3">
 
       {/* Info banner */}
-      <div className="bg-blue-50/40 ring-1 ring-blue-200 rounded-lg px-3 py-2 flex items-start gap-2">
+      <div className="bg-blue-50/40 border border-blue-200 rounded-lg px-3 py-2 flex items-start gap-2">
         <Shield className="h-3.5 w-3.5 text-[#1E487A] shrink-0 mt-0.5" strokeWidth={2.2} />
         <p className="text-[11.5px] text-blue-900/85 leading-relaxed">
           ระบบเก็บทั้ง <strong>hash + salt</strong> (สำหรับ login) และ <strong>plaintext</strong> (visibility สำหรับ admin) —
@@ -668,11 +668,11 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
             ยังไม่เคยตั้งรหัสผ่าน
           </span>
         ) : isDefault ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 text-amber-700 ring-1 ring-amber-200 text-[11.5px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[11.5px] font-semibold">
             🔓 ใช้รหัสพนักงานเป็นรหัสผ่าน
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 text-[11.5px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11.5px] font-semibold">
             🔐 ตั้งรหัสผ่านส่วนตัว
           </span>
         )}
@@ -731,7 +731,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleResetToEmpId}
           disabled={resetting || saving || !empId || (isDefault && !isDirty)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 ring-1 ring-amber-300 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-amber-700 bg-white border border-slate-200 hover:bg-amber-50 hover:border-amber-300 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
         >
           <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -752,8 +752,8 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
       {msg && (
         <div className={`text-[12.5px] font-medium px-2.5 py-1.5 rounded-md ${
           msg.type === 'error'
-            ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'
-            : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
         }`}>{msg.text}</div>
       )}
     </div>
@@ -868,7 +868,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
             className={`text-[12.5px] font-medium px-3 py-1.5 rounded-lg transition-colors ${
               historyFilter === f.id
                 ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
             }`}
           >
             {f.label}
@@ -881,7 +881,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
       {empHistory.length === 0 ? (
         <EmptyState label="ไม่มีประวัติ" />
       ) : (
-        <div className="bg-white ring-1 ring-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden">
           {empHistory.map(rec => {
             const isCheckout = rec.action?.includes('เบิกจ่าย');
             const isBroken = rec.condition === 'ชำรุด';
@@ -922,7 +922,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                         </span>
                       )}
                       {rec._sn && (
-                        <span className="text-[11px] font-medium text-slate-600 bg-slate-50 ring-1 ring-slate-200 px-1.5 py-0.5 rounded font-mono">
+                        <span className="text-[11px] font-medium text-slate-600 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md font-mono">
                           SN: {rec._sn}
                         </span>
                       )}
@@ -965,8 +965,8 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
 function StatTile({ label, value, color, bg }) {
   return (
     <div
-      className="rounded-xl px-3.5 py-2.5 ring-1 transition-colors"
-      style={{ background: bg, borderColor: 'transparent', '--tw-ring-color': `${color}30` }}
+      className="rounded-lg px-3.5 py-2.5 border transition-colors"
+      style={{ background: bg, borderColor: 'transparent' }}
     >
       <p className="text-[10.5px] font-bold uppercase tracking-wide" style={{ color: `${color}AA` }}>{label}</p>
       <p className="text-[22px] font-bold tabular-nums leading-tight mt-0.5" style={{ color }}>{value}</p>

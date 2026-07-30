@@ -229,18 +229,13 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
   const attachmentCount = attachments?.length || 0;
 
   return (
-    <div className={`rounded-xl border overflow-hidden transition-colors ${
+    <div className={`rounded-xl border overflow-hidden transition-colors bg-white ${
       isCurrent
-        ? 'border-[#1E487A]/40 bg-white'
+        ? 'border-slate-300'
         : damages.length > 0
-        ? 'border-rose-200 bg-white'
-        : 'border-slate-200 bg-white'
+        ? 'border-rose-200'
+        : 'border-slate-200'
     }`}>
-      {/* Current indicator strip */}
-      {isCurrent && (
-        <div className="h-1 w-full bg-[#1E487A]" />
-      )}
-
       {/* Header — clickable to expand */}
       <div
         className={`flex items-start justify-between gap-3 px-4 py-3.5 ${!expanded ? 'cursor-pointer hover:bg-slate-50/40' : ''}`}
@@ -252,12 +247,12 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
       >
         {/* ── LEFT: Identity + meta ── */}
         <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
             isCurrent
-              ? 'bg-[#1E487A] text-white'
+              ? 'bg-blue-50 text-[#1E487A]'
               : damages.length > 0
-              ? 'bg-rose-100 text-rose-600'
-              : 'bg-slate-100 text-slate-500'
+              ? 'bg-rose-50 text-rose-500'
+              : 'bg-slate-100 text-slate-400'
           }`}>
             <User className="h-5 w-5" strokeWidth={2} />
           </div>
@@ -266,8 +261,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="text-[15px] font-bold text-slate-800 truncate">{checkout.empName || '-'}</p>
               {isCurrent && (
-                <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-white bg-[#1E487A] px-2 py-0.5 rounded-md">
-                  <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full" />
+                <span className="inline-flex items-center text-[10.5px] font-semibold text-[#1E487A] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
                   ปัจจุบัน
                 </span>
               )}
@@ -278,7 +272,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
               <Calendar className="h-3 w-3 text-slate-400 shrink-0" strokeWidth={2} />
               <span className="text-slate-600 font-medium">{fmt(checkout.timestamp)}</span>
               <ArrowRight className="h-3 w-3 text-slate-300" />
-              <span className={`font-medium ${ret ? 'text-slate-600' : 'text-[#1E487A] font-bold'}`}>
+              <span className="font-semibold text-slate-600">
                 {ret ? fmt(ret.timestamp) : 'ปัจจุบัน'}
               </span>
             </div>
@@ -286,11 +280,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             {/* Status badges row */}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               {duration && (
-                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border ${
-                  isCurrent
-                    ? 'bg-white text-[#1E487A] border-[#1E487A]/25'
-                    : 'bg-slate-50 text-slate-700 border-slate-200'
-                }`}>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border bg-slate-50 text-slate-600 border-slate-200">
                   <Clock className="h-2.5 w-2.5" strokeWidth={2.6} />
                   {isCurrent ? 'ครอบครองมาแล้ว' : 'ใช้งาน'} {duration}
                 </span>
@@ -349,7 +339,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             onClick={() => setExpanded(!expanded)}
             title={expanded ? 'ย่อ' : 'รายละเอียด'}
             className={`w-8 h-8 flex items-center justify-center rounded-lg transition ml-0.5 ${
-              expanded ? 'bg-[#1E487A] text-white hover:bg-[#163963]' : 'text-[#1E487A] bg-[#1E487A]/8 hover:bg-[#1E487A]/15'
+              expanded ? 'bg-slate-700 text-white hover:bg-slate-800' : 'text-slate-500 bg-slate-100 hover:bg-slate-200'
             }`}
           >
             {expanded

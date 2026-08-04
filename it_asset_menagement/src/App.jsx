@@ -41,6 +41,7 @@ import TopHeader from './components/TopHeader.jsx';
 import DashboardStats from './components/DashboardStats.jsx';
 import ActionBar from './components/ActionBar.jsx';
 import CustomAlert from './components/CustomAlert.jsx';
+import ConfirmModal from './components/ConfirmModal.jsx';
 import LoginView from './components/LoginView.jsx';
 import ModalsContainer from './components/ModalsContainer.jsx';
 
@@ -2758,6 +2759,16 @@ function App() {
       />
       </Suspense>
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
+      <ConfirmModal
+        isOpen={confirmModal?.isOpen}
+        title={confirmModal?.title}
+        message={confirmModal?.message}
+        confirmText={confirmModal?.confirmText}
+        cancelText={confirmModal?.cancelText}
+        icon={confirmModal?.icon}
+        onConfirm={handleConfirmModalOk}
+        onCancel={closeConfirmModal}
+      />
     </React.Fragment>
   );
 

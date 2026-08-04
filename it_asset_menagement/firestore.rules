@@ -96,7 +96,13 @@ service cloud.firestore {
     match /supply_requests/{id} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin();
+      // 🆕 Staff ยกเลิก (ลบ) คำขอของตัวเองได้ เฉพาะที่ยัง "รอดำเนินการ"
+      //    (ยังไม่อนุมัติ = สต็อกยังไม่ถูกตัด จึงลบได้ปลอดภัย)
+      allow delete: if isAdmin()
+        || (isSignedIn()
+            && resource.data.empId == request.auth.token.empId
+            && resource.data.status == 'รอดำเนินการ');
     }
     match /replacement_requests/{id} {
       allow read: if isSignedIn();

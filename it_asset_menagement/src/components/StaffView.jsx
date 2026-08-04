@@ -267,7 +267,7 @@ export default function StaffView({
   handleLogout,
   staffMustChangePassword, setStaffMustChangePassword,
   staffRepairForm, setStaffRepairForm, handleSubmitRepairRequest, repairRequests, editStaffRepairModal, setEditStaffRepairModal, handleStaffUpdateRepair, handleStaffDeleteRepair,
-  officeSupplies = [], supplyRequests = [], handleStaffSubmitSupplyRequest,
+  officeSupplies = [], supplyRequests = [], handleStaffSubmitSupplyRequest, handleStaffCancelSupplyRequest,
   assets = [], accessories = [], licenses = [],
   replacementRequests = [], handleStaffSubmitReplacement,
   accessoryRequests = [], handleStaffSubmitAccessoryRequest,
@@ -1435,6 +1435,16 @@ export default function StaffView({
                           </div>
                           <span className="text-[13px] font-semibold text-[#1E487A] tabular-nums">× {req.requestedQty}</span>
                           <span className={statusBadge(req.status)}>{req.status}</span>
+                          {/* 🆕 ยกเลิกได้เฉพาะที่ยังรอดำเนินการ (เบิกผิด) */}
+                          {req.status === 'รอดำเนินการ' && handleStaffCancelSupplyRequest && (
+                            <button
+                              onClick={() => handleStaffCancelSupplyRequest(req)}
+                              title="ยกเลิกคำขอ"
+                              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" strokeWidth={2.2} />
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>

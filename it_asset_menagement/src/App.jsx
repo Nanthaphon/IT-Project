@@ -1019,6 +1019,22 @@ function App() {
 
   const handleStaffDeleteRepair = (id) => { showConfirm('ยืนยันการยกเลิก', 'คุณต้องการยกเลิกและลบรายการแจ้งปัญหานี้ใช่หรือไม่?', async () => { try { await deleteDoc(doc(db, 'repair_requests', id)); setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบรายการแจ้งปัญหาของคุณเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } }, { confirmText: 'ยืนยันลบ', icon: 'trash' }); };
   const handleStaffUpdateRepair = async (e) => { e.preventDefault(); try { await updateDoc(doc(db, 'repair_requests', editStaffRepairModal.data.id), { assetName: editStaffRepairModal.data.assetName, issue: editStaffRepairModal.data.issue }); setEditStaffRepairModal({ isOpen: false, data: null }); setCustomAlert({ isOpen: true, title: 'แก้ไขสำเร็จ!', message: 'อัปเดตข้อมูลแจ้งปัญหาเรียบร้อยแล้ว', type: 'success' }); } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); } };
+
+  // 🆕 Staff ยกเลิกคำขอเบิกอุปกรณ์ของตัวเอง (เฉพาะที่ยัง "รอดำเนินการ" — เบิกผิด)
+  const handleStaffCancelSupplyRequest = (req) => {
+    if (req.status !== 'รอดำเนินการ') {
+      setCustomAlert({ isOpen: true, title: 'ยกเลิกไม่ได้', message: 'ยกเลิกได้เฉพาะคำขอที่ยังรอดำเนินการเท่านั้น หากอนุมัติแล้วโปรดติดต่อฝ่ายที่เกี่ยวข้อง', type: 'error' });
+      return;
+    }
+    showConfirm('ยืนยันยกเลิกคำขอ', `ต้องการยกเลิกคำขอเบิก "${req.supplyName}" × ${req.requestedQty} ใช่หรือไม่?`, async () => {
+      try {
+        await deleteDoc(doc(db, 'supply_requests', req.id));
+        setCustomAlert({ isOpen: true, title: 'ยกเลิกสำเร็จ!', message: 'ลบคำขอเบิกอุปกรณ์เรียบร้อยแล้ว', type: 'success' });
+      } catch (error) {
+        setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
+      }
+    }, { confirmText: 'ยืนยันยกเลิก', icon: 'trash' });
+  };
   const handleUpdateRepairRequestStatus = async (id, newStatus) => {
     try {
       const payload = { status: newStatus };
@@ -2731,7 +2747,7 @@ function App() {
         staffRepairForm={staffRepairForm} setStaffRepairForm={setStaffRepairForm} handleSubmitRepairRequest={handleSubmitRepairRequest} 
         repairRequests={repairRequests} editStaffRepairModal={editStaffRepairModal} setEditStaffRepairModal={setEditStaffRepairModal} 
         handleStaffUpdateRepair={handleStaffUpdateRepair} handleStaffDeleteRepair={handleStaffDeleteRepair} 
-        officeSupplies={officeSupplies} supplyRequests={supplyRequests} handleStaffSubmitSupplyRequest={handleStaffSubmitSupplyRequest} 
+        officeSupplies={officeSupplies} supplyRequests={supplyRequests} handleStaffSubmitSupplyRequest={handleStaffSubmitSupplyRequest} handleStaffCancelSupplyRequest={handleStaffCancelSupplyRequest}
         assets={assets} accessories={accessories} licenses={licenses} 
         replacementRequests={replacementRequests}
         handleStaffSubmitReplacement={handleStaffSubmitReplacement}

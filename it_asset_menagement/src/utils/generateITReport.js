@@ -99,6 +99,16 @@ const formatHolders = (names, max = 6) => {
   return unique.slice(0, max).join(', ') + ` +${unique.length - max}`;
 };
 
+/* ─── ประเมินความสูงแถวจากข้อความยาว (สำหรับคอลัมน์ผู้ถือครองที่โชว์ครบทุกชื่อ) ─── */
+const estimateRowH = (text, colWin, fontSize = 9, minH = 0.62) => {
+  if (!text || text === '–') return minH;
+  const avgCharW = fontSize * 0.0085;                        // นิ้ว/ตัวอักษร (เผื่อกว้าง)
+  const charsPerLine = Math.max(8, Math.floor((colWin - 0.15) / avgCharW));
+  const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+  const lineH = (fontSize / 72) * 1.55;                      // line-spacing ~1.55x
+  return Math.max(minH, lines * lineH + 0.18);               // + padding บน-ล่าง
+};
+
 /* ─── Forward decl (assigned just below) ─── */
 let addHeader, addFooter;
 
@@ -129,21 +139,42 @@ const rowsPerSlide = (rowH) =>
 function addPaginatedTableSlides(pptx, ctx, {
   titleTh, titleEn, startPageNum,
   hdr, rows, colW, rowH, tableY = 1.15,
-  emptyRow,
+  emptyRow, rowHeights,   // 🆕 rowHeights: array ความสูงต่อแถว (ถ้ามี = แบ่งหน้าตามความสูง)
 }) {
+  const useVariable = Array.isArray(rowHeights) && rowHeights.length === rows.length && rows.length > 0;
   const all = (rows.length === 0 && emptyRow) ? [emptyRow] : rows;
-  const per = rowsPerSlide(rowH);
+
+  const headerH = typeof rowH === 'number' ? rowH : 0.5;
+  const AVAIL = 6.0 - headerH;   // ความสูงที่ใช้ได้สำหรับแถวข้อมูลต่อสไลด์
+
   const chunks = [];
-  for (let i = 0; i < all.length; i += per) chunks.push(all.slice(i, i + per));
-  if (chunks.length === 0) chunks.push([]);
+  const chunkHeights = [];   // parallel กับ chunks (เฉพาะ variable mode)
+
+  if (useVariable) {
+    let cur = [], curH = [], acc = 0;
+    for (let i = 0; i < all.length; i++) {
+      const h = Math.min(rowHeights[i], AVAIL);   // กันแถวเดียวสูงเกินสไลด์
+      if (cur.length > 0 && acc + h > AVAIL) {
+        chunks.push(cur); chunkHeights.push(curH);
+        cur = []; curH = []; acc = 0;
+      }
+      cur.push(all[i]); curH.push(h); acc += h;
+    }
+    if (cur.length) { chunks.push(cur); chunkHeights.push(curH); }
+  } else {
+    const per = rowsPerSlide(rowH);
+    for (let i = 0; i < all.length; i += per) chunks.push(all.slice(i, i + per));
+  }
+  if (chunks.length === 0) { chunks.push([]); chunkHeights.push([]); }
 
   chunks.forEach((chunk, p) => {
     const s = pptx.addSlide();
     s.background = { color: C.white };
     const suffix = chunks.length > 1 ? `  (${p + 1}/${chunks.length})` : '';
     addHeader(pptx, s, titleTh + suffix, titleEn);
+    const rowHOpt = useVariable ? [headerH, ...chunkHeights[p]] : rowH;
     s.addTable([hdr, ...chunk], {
-      x: 0.4, y: tableY, w: 12.53, colW, rowH,
+      x: 0.4, y: tableY, w: 12.53, colW, rowH: rowHOpt,
       border: bdr(C.grayBorder, 1),
     });
     addFooter(pptx, s, startPageNum + p, ctx.month, ctx.year, ctx.company);
@@ -383,7 +414,7 @@ function slide4(pptx, ctx, startPageNum) {
   const entries = Object.entries(groups);
   const rows = entries.map(([type, g], i) => {
     const f = rowFill(i);
-    const holderText = formatHolders(holdersByType[type] || []);
+    const holderText = formatHolders(holdersByType[type] || [], Infinity);   // 🆕 โชว์ครบ
     const brokenCell = g.broken > 0
       ? { text: String(g.broken), options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), charSpacing:0, ...f } }
       : { text: '–',              options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } };
@@ -394,8 +425,14 @@ function slide4(pptx, ctx, startPageNum) {
       { text:String(g.inUse), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
       { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), charSpacing:0, ...f } },
       brokenCell,
-      { text:holderText,      options:{ fontSize:11, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
+      { text:holderText,      options:{ fontSize:9, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
+  });
+
+  // 🆕 ความสูงแต่ละแถวตามจำนวนผู้ถือครอง (คอลัมน์กว้าง 5.98")
+  const rowHeights = entries.map(([type]) => {
+    const names = [...new Set((holdersByType[type] || []).filter(Boolean))];
+    return estimateRowH(names.join(', '), 5.98, 9);
   });
 
   const emptyRow = [
@@ -409,6 +446,7 @@ function slide4(pptx, ctx, startPageNum) {
     hdr, rows,
     colW: [0.5, 2.5, 0.75, 0.85, 1.2, 0.75, 5.98],
     rowH: 0.62,
+    rowHeights,   // 🆕 แถวสูงตามจำนวนชื่อ
     emptyRow,
   });
 }
@@ -437,7 +475,7 @@ function slide5(pptx, ctx, startPageNum) {
     const assigneeNames = (lic.assignees || []).map(a =>
       getShortName(a.empId, employees, a.empName)
     );
-    const holderText = formatHolders(assigneeNames);
+    const holderText = formatHolders(assigneeNames, Infinity);   // 🆕 โชว์ครบทุกชื่อ
 
     return [
       { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
@@ -445,8 +483,14 @@ function slide5(pptx, ctx, startPageNum) {
       { text:String(stock),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), charSpacing:0, ...f } },
       { text:String(active),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), charSpacing:0, ...f } },
       { text:String(inactive), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), charSpacing:0, ...f } },
-      { text:holderText,       options:{ fontSize:11, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
+      { text:holderText,       options:{ fontSize:9, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
+  });
+
+  // 🆕 ความสูงแต่ละแถวตามจำนวนชื่อในคอลัมน์ผู้ใช้งาน (กว้าง 6.83")
+  const rowHeights = licenses.map((lic) => {
+    const names = [...new Set((lic.assignees || []).map(a => getShortName(a.empId, employees, a.empName)).filter(Boolean))];
+    return estimateRowH(names.join(', '), 6.83, 9);
   });
 
   const emptyRow = [
@@ -461,6 +505,7 @@ function slide5(pptx, ctx, startPageNum) {
     hdr, rows,
     colW: [0.5, 2.5, 0.85, 0.9, 0.95, 6.83],
     rowH: 0.62,
+    rowHeights,   // 🆕 แถวสูงตามจำนวนชื่อ
     emptyRow,
   });
 }

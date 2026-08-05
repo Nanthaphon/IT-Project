@@ -216,14 +216,30 @@ export default function ITReportModal({
   employees = [], repairRequests = [], assets = [], accessories = [], licenses = [],
 }) {
   const now = new Date();
-  const [month, setMonth]         = useState(now.getMonth());
-  const [year, setYear]           = useState(now.getFullYear());
-  const [companyName, setCompanyName] = useState('Globe Syndicate (Thailand) Company Limited');
-  const [bigIssues, setBigIssues]   = useState([]);
-  const [rdProjects, setRdProjects] = useState([]);
-  const [followUps, setFollowUps]   = useState([]);
+
+  // 🆕 จำข้อมูลที่กรอกไว้ (localStorage) — ไม่หายเมื่อปิด modal หรือรีเฟรชหน้า
+  const DRAFT_KEY = 'it_report_draft';
+  const loadDraft = () => {
+    try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {}; }
+    catch { return {}; }
+  };
+  const draft = loadDraft();
+
+  const [month, setMonth]         = useState(draft.month ?? now.getMonth());
+  const [year, setYear]           = useState(draft.year ?? now.getFullYear());
+  const [companyName, setCompanyName] = useState(draft.companyName ?? 'Globe Syndicate (Thailand) Company Limited');
+  const [bigIssues, setBigIssues]   = useState(draft.bigIssues ?? []);
+  const [rdProjects, setRdProjects] = useState(draft.rdProjects ?? []);
+  const [followUps, setFollowUps]   = useState(draft.followUps ?? []);
   const [activeSection, setActiveSection] = useState('support'); // 'support' | 'rd' | 'followup'
   const [generating, setGenerating] = useState(false);
+
+  // 🆕 บันทึก draft ทุกครั้งที่ข้อมูลเปลี่ยน
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ month, year, companyName, bigIssues, rdProjects, followUps }));
+    } catch { /* localStorage เต็ม/ปิด — ข้ามไป */ }
+  }, [month, year, companyName, bigIssues, rdProjects, followUps]);
 
   // Derived stats
   const monthly = repairRequests.filter(r => {
@@ -431,15 +447,27 @@ export default function ITReportModal({
 
         {/* Footer */}
         <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
-          <p className="text-[13px] text-slate-500">
-            รายงานจะสร้างเป็นไฟล์ <strong className="text-slate-700">.pptx</strong> — สามารถแก้ไขใน PowerPoint ได้ต่อ
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-[13px] text-slate-500 hidden sm:block">
+              ระบบจำข้อมูลที่กรอกไว้ให้อัตโนมัติ · ไฟล์ที่ได้เป็น <strong className="text-slate-700">.pptx</strong>
+            </p>
+            <button
+              onClick={() => {
+                if (!window.confirm('ล้างข้อมูลที่กรอกไว้ทั้งหมด (Issue / Project / Follow-up) ใช่หรือไม่?')) return;
+                setBigIssues([]); setRdProjects([]); setFollowUps([]);
+                try { localStorage.removeItem(DRAFT_KEY); } catch {}
+              }}
+              className="text-[12.5px] font-semibold text-slate-500 hover:text-rose-600 transition-colors underline decoration-slate-300 hover:decoration-rose-400 underline-offset-2"
+            >
+              ล้างข้อมูล
+            </button>
+          </div>
           <div className="flex gap-2.5">
             <button
               onClick={onClose}
               className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:border-slate-300 font-medium text-[14.5px] transition-colors"
             >
-              ยกเลิก
+              ปิด
             </button>
             <button
               onClick={handleGenerate}

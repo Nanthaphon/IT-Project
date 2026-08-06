@@ -9,6 +9,12 @@ import { formatDateShort } from './formatDate.js';
 
 const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : '-';
 
+/* ── ดึงรูปภาพประกอบ PDF (photoGallery) — เฉพาะ data:image ── */
+const getGalleryPhotos = (a) => {
+  const gallery = Array.isArray(a?.photoGallery) ? a.photoGallery : [];
+  return gallery.filter(src => src && String(src).startsWith('data:image/'));
+};
+
 /* ── คำนวณอายุการใช้งาน ── */
 const calcAge = (purchaseDate) => {
   if (!purchaseDate) return '-';
@@ -124,11 +130,14 @@ export function printAssetReport({
   const ctx = { statusBadgeSize };
 
   /* ── คำนวณ column width (อัตราส่วน flex) ── */
-  // มีเฉพาะคอลัมน์ "#" คงที่
-  const noColWidthPct = 3.5;
-  const dataColTotalPct = 100 - noColWidthPct;
+  // มีคอลัมน์ "#" คงที่ + คอลัมน์ "รูปภาพประกอบ" (เฉพาะเมื่อมีรูปอย่างน้อย 1 รายการ)
+  const hasAnyPhoto = assets.some(a => getGalleryPhotos(a).length > 0);
+  const noColWidthPct  = 3.5;
+  const imgColWidthPct = hasAnyPhoto ? 20 : 0;
+  const dataColTotalPct = 100 - noColWidthPct - imgColWidthPct;
   const totalFlex = selectedKeys.reduce((sum, k) => sum + COLUMN_META[k].flex, 0);
   const colWidths = selectedKeys.map(k => (COLUMN_META[k].flex / totalFlex) * dataColTotalPct);
+  const thumbSize = numCols <= 6 ? 60 : numCols <= 8 ? 48 : 40;
 
   /* ── สรุปสถิติด้านบน ── */
   const total       = assets.length;
@@ -151,6 +160,7 @@ export function printAssetReport({
     ${selectedKeys.map((k, i) => `
       <th style="text-align:${COLUMN_META[k].align};width:${colWidths[i].toFixed(2)}%">${e(COLUMN_META[k].label)}</th>
     `).join('')}
+    ${hasAnyPhoto ? `<th style="text-align:center;width:${imgColWidthPct}%">รูปภาพประกอบ</th>` : ''}
   `;
 
   /* ── Body rows ── */
@@ -160,10 +170,23 @@ export function printAssetReport({
       return `<td style="border:1px solid #cbd5e1;padding:${padding};font-size:${bodyFontSize}px;vertical-align:top;text-align:${col.align};overflow:hidden;overflow-wrap:anywhere;word-break:break-word;line-height:1.35">${col.render(a, ctx)}</td>`;
     }).join('');
 
+    // คอลัมน์รูปภาพประกอบ — thumbnail เรียงในเซลล์เดียวกับข้อมูล
+    let imgCell = '';
+    if (hasAnyPhoto) {
+      const photos = getGalleryPhotos(a);
+      const thumbs = photos.length > 0
+        ? `<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center">
+             ${photos.map(src => `<img src="${src}" alt="" style="height:${thumbSize}px;width:${thumbSize}px;object-fit:cover;border:1px solid #cbd5e1;border-radius:3px" />`).join('')}
+           </div>`
+        : `<span style="color:#cbd5e1;font-size:${bodyFontSize}px">–</span>`;
+      imgCell = `<td style="border:1px solid #cbd5e1;padding:${padding};text-align:center;vertical-align:middle">${thumbs}</td>`;
+    }
+
     return `
       <tr style="break-inside:avoid">
         <td style="border:1px solid #cbd5e1;padding:${padding};text-align:center;font-size:${bodyFontSize}px;vertical-align:top;overflow:hidden">${idx + 1}</td>
         ${cells}
+        ${imgCell}
       </tr>`;
   }).join('');
 
@@ -283,7 +306,7 @@ export function printAssetReport({
 
   <table class="report">
     <thead><tr>${headerCells}</tr></thead>
-    <tbody>${rows || `<tr><td colspan="${numCols + 1}" style="border:1px solid #cbd5e1;padding:20px;text-align:center;color:#94a3b8">ไม่มีข้อมูลทรัพย์สินตรงกับการกรอง</td></tr>`}</tbody>
+    <tbody>${rows || `<tr><td colspan="${numCols + 1 + (hasAnyPhoto ? 1 : 0)}" style="border:1px solid #cbd5e1;padding:20px;text-align:center;color:#94a3b8">ไม่มีข้อมูลทรัพย์สินตรงกับการกรอง</td></tr>`}</tbody>
   </table>
 
   <div class="footer-note">

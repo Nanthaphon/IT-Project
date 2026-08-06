@@ -34,11 +34,29 @@ export default function AssetTable({
   handleCloneAsset,
   visibleAssetColumns,
   canEdit,
+  selectedAssetIds = [],
+  handleSelectAsset,
+  handleSelectAllAssets,
 }) {
+  // ติ๊ก "ทั้งหมด" = ทุกแถวในผลค้นหาปัจจุบันถูกเลือก
+  const allInViewSelected = currentData.length > 0 && currentData.every(item => selectedAssetIds.includes(item.id));
+  const hasSelect = !!handleSelectAsset;
+
   return (
     <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
       <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10">
         <tr>
+          {hasSelect && (
+            <th className="px-4 py-3.5 text-center w-10">
+              <input
+                type="checkbox"
+                className="w-4 h-4 cursor-pointer rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]"
+                checked={allInViewSelected}
+                onChange={handleSelectAllAssets}
+                title="เลือกทั้งหมดในหน้านี้"
+              />
+            </th>
+          )}
           {visibleAssetColumns.name && <th className={TH}>ชื่ออุปกรณ์</th>}
           {visibleAssetColumns.type && <th className={TH}>ประเภท</th>}
           {visibleAssetColumns.forDepartment && <th className={TH}>สำหรับแผนก</th>}
@@ -60,8 +78,20 @@ export default function AssetTable({
         </tr>
       </thead>
       <tbody className="divide-y divide-slate-100 text-[14.5px] bg-white">
-        {currentData.map((item) => (
-          <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
+        {currentData.map((item) => {
+          const isSelected = selectedAssetIds.includes(item.id);
+          return (
+          <tr key={item.id} className={`transition-colors group ${isSelected ? 'bg-blue-50/40' : 'hover:bg-slate-50/60'}`}>
+            {hasSelect && (
+              <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 cursor-pointer rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]"
+                  checked={isSelected}
+                  onChange={(e) => handleSelectAsset(e, item.id)}
+                />
+              </td>
+            )}
             {visibleAssetColumns.name && (
               <td className={TD}>
                 <button
@@ -188,7 +218,8 @@ export default function AssetTable({
               </div>
             </td>
           </tr>
-        ))}
+          );
+        })}
       </tbody>
     </table>
   );

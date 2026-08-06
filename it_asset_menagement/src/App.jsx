@@ -114,9 +114,10 @@ function App() {
   const { isLoading: globalLoading, message: globalLoadingMsg, withLoading } = useGlobalLoading();
 
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
-  const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]); 
+  const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]);
   const [selectedOfficeSupplyIds, setSelectedOfficeSupplyIds] = useState([]);
   const [selectedLicenseIds, setSelectedLicenseIds] = useState([]);
+  const [selectedAssetIds, setSelectedAssetIds] = useState([]); // 🆕 เลือกทรัพย์สินรายตัวเพื่อพิมพ์ PDF (คงอยู่ข้ามการค้นหา)
 
   const [name, setName] = useState('');
   const [type, setType] = useState('คอมพิวเตอร์');
@@ -1744,6 +1745,22 @@ function App() {
     });
   };
 
+  // 🆕 พิมพ์ PDF เฉพาะทรัพย์สินที่ติ๊กเลือก (ตามลำดับที่แสดงในตาราง)
+  const handleExportSelectedAssetsPDF = async () => {
+    if (selectedAssetIds.length === 0) {
+      setCustomAlert({ isOpen: true, title: 'ยังไม่ได้เลือก', message: 'กรุณาติ๊กเลือกทรัพย์สินที่ต้องการพิมพ์อย่างน้อย 1 รายการ', type: 'error' });
+      return;
+    }
+    const idSet = new Set(selectedAssetIds);
+    const picked = assets.filter(a => idSet.has(a.id));
+    const { printAssetReport } = await import('./utils/printAssetReport.js');
+    printAssetReport({
+      assets: picked,
+      visibleColumns: visibleAssetColumns,
+      filters: { type: `เลือกเฉพาะ ${picked.length} รายการ` },
+    });
+  };
+
   const handleExportAssets = () => {
     const filtered = assets.filter(item =>
       _inArr(assetFilterType, item.type) &&
@@ -2667,6 +2684,15 @@ function App() {
   const handleSelectAllOfficeSupplies = (e) => e.target.checked ? setSelectedOfficeSupplyIds(currentData.map(item => item.id)) : setSelectedOfficeSupplyIds([]);
   const handleSelectLicense = (e, id) => e.target.checked ? setSelectedLicenseIds(prev => [...prev, id]) : setSelectedLicenseIds(prev => prev.filter(itemId => itemId !== id));
   const handleSelectAllLicenses = (e) => e.target.checked ? setSelectedLicenseIds(currentData.map(item => item.id)) : setSelectedLicenseIds([]);
+  // 🆕 เลือกทรัพย์สินรายตัว — เก็บเป็น id จึงคงอยู่แม้ค้นหา/กรองเปลี่ยน
+  const handleSelectAsset = (e, id) => e.target.checked ? setSelectedAssetIds(prev => prev.includes(id) ? prev : [...prev, id]) : setSelectedAssetIds(prev => prev.filter(itemId => itemId !== id));
+  // เลือก/ยกเลิก "ทั้งหมดในผลค้นหาปัจจุบัน" โดยไม่แตะรายการที่เลือกไว้นอกผลค้นหา
+  const handleSelectAllAssets = (e) => {
+    const idsInView = currentData.map(item => item.id);
+    if (e.target.checked) setSelectedAssetIds(prev => [...new Set([...prev, ...idsInView])]);
+    else setSelectedAssetIds(prev => prev.filter(id => !idsInView.includes(id)));
+  };
+  const clearSelectedAssets = () => setSelectedAssetIds([]);
 
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวม' :
                     activeMenu === 'kpi_dashboard' ? 'รายงาน KPI' :
@@ -2887,6 +2913,9 @@ function App() {
                   setIsSnipeITImportOpen={setIsSnipeITImportOpen}
                   canEdit={canEdit}
                   fieldOptions={fieldOptions}
+                  selectedAssetIds={selectedAssetIds}
+                  handleExportSelectedAssetsPDF={handleExportSelectedAssetsPDF}
+                  clearSelectedAssets={clearSelectedAssets}
                 />
                 </div>
 
@@ -2925,7 +2954,7 @@ function App() {
                     ) : activeMenu === 'accessories' ? (
                       <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} />
+                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets} />
                     ) : null}
                   </div>
                 )}

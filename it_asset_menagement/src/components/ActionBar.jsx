@@ -41,6 +41,9 @@ export default function ActionBar({
   setIsSnipeITImportOpen,
   canEdit,
   fieldOptions = {},
+  selectedAssetIds = [],
+  handleExportSelectedAssetsPDF,
+  clearSelectedAssets,
 }) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = React.useState(false);
   const columnDropdownRef = React.useRef(null);
@@ -169,14 +172,29 @@ export default function ActionBar({
 
             {canEdit && <Btn icon={Download} onClick={handleExportAssets}>CSV</Btn>}
             {canEdit && handleExportAssetsPDF && (
-              <button
-                onClick={handleExportAssetsPDF}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors whitespace-nowrap"
-                title="ส่งออก PDF พร้อมรูปเอกสารแนบ"
-              >
-                <FileText className="h-[14px] w-[14px]" strokeWidth={1.9} />
-                PDF
-              </button>
+              <Btn icon={FileText} onClick={handleExportAssetsPDF}>PDF ทั้งหมด</Btn>
+            )}
+            {/* 🆕 พิมพ์ PDF เฉพาะที่ติ๊กเลือก (ขึ้นเมื่อเลือก ≥ 1) */}
+            {canEdit && selectedAssetIds.length > 0 && handleExportSelectedAssetsPDF && (
+              <>
+                <button
+                  onClick={handleExportSelectedAssetsPDF}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-lg transition-colors whitespace-nowrap"
+                  title="พิมพ์ PDF เฉพาะทรัพย์สินที่เลือก"
+                >
+                  <FileText className="h-[14px] w-[14px]" strokeWidth={2} />
+                  พิมพ์ที่เลือก ({selectedAssetIds.length})
+                </button>
+                {clearSelectedAssets && (
+                  <button
+                    onClick={clearSelectedAssets}
+                    className="text-[12.5px] font-semibold text-slate-400 hover:text-rose-600 transition-colors underline decoration-slate-300 hover:decoration-rose-400 underline-offset-2 whitespace-nowrap"
+                    title="ล้างรายการที่เลือก"
+                  >
+                    ล้าง
+                  </button>
+                )}
+              </>
             )}
             {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>}
           </>

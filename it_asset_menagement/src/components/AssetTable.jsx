@@ -231,12 +231,14 @@ function StatusBadge({ status, assignedName, showAssignee }) {
     : status === 'ถูกใช้งาน' ? 'inuse'
     : status === 'สำรอง' ? 'reserve'
     : status === 'ชำรุดเสียหาย' ? 'broken'
+    : status === 'ตัดจำหน่าย' ? 'disposed'
     : 'pending';
 
   const meta = {
-    ready:   { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'พร้อมใช้งาน' },
-    inuse:   { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
-    reserve: { cls: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500', label: 'สำรอง' },
+    ready:    { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'พร้อมใช้งาน' },
+    inuse:    { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-[#1E487A]', label: 'ถูกใช้งาน' },
+    reserve:  { cls: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500', label: 'สำรอง' },
+    disposed: { cls: 'bg-slate-100 text-slate-500 border-slate-300', dot: 'bg-slate-400', label: 'ตัดจำหน่าย' },
     broken:  { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'ชำรุดเสียหาย' },
     pending: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', label: status },
   }[norm];

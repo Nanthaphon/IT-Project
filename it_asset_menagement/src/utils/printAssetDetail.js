@@ -36,6 +36,7 @@ const statusBadge = (status) => {
     'ชำรุดเสียหาย':      { bg: '#fee2e2', fg: '#991b1b', border: '#fca5a5' },
     'ไม่สามารถใช้งานได้':  { bg: '#fee2e2', fg: '#991b1b', border: '#fca5a5' },
     'สำรอง':             { bg: '#ede9fe', fg: '#5b21b6', border: '#c4b5fd' },
+    'ตัดจำหน่าย':        { bg: '#f1f5f9', fg: '#475569', border: '#cbd5e1' },
   };
   const c = colorMap[s] || { bg: '#f1f5f9', fg: '#475569', border: '#cbd5e1' };
   return `<span style="display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:4px;background:${c.bg};color:${c.fg};border:1px solid ${c.border}">${e(s)}</span>`;

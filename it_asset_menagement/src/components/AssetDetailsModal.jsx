@@ -1290,8 +1290,8 @@ export default function AssetDetailsModal({
                 </span>
               )}
               {selectedAssetCategory === 'assets' && (
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                  <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-blue-700 border-blue-200' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-slate-100 text-slate-500 border-slate-300' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                  <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-slate-400' : 'bg-amber-500'}`} />
                   {currentAssetDetail.status || 'พร้อมใช้งาน'}
                 </span>
               )}
@@ -1388,7 +1388,7 @@ export default function AssetDetailsModal({
               {selectedAssetCategory === 'assets' && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-600' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A]' : 'bg-amber-50 text-amber-600'}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-600' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A]' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-600'}`}>
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">สถานะ</p>

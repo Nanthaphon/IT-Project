@@ -366,10 +366,11 @@ function slide4(pptx, ctx, startPageNum) {
 
   assets.forEach(a => {
     const t = a.type || 'อื่นๆ';
+    const st = a.status || 'พร้อมใช้งาน';
+    if (st === 'ตัดจำหน่าย') return;   // 🆕 ไม่นับทรัพย์สินที่ตัดจำหน่ายในรายงานคลัง
     if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0, reserve:0 };
     if (!holdersByType[t]) holdersByType[t] = [];
     groups[t].total++;
-    const st = a.status || 'พร้อมใช้งาน';
     if (st === 'ถูกใช้งาน') {
       groups[t].inUse++;
       const name = getShortName(a.assignedTo, employees, a.assignedName);

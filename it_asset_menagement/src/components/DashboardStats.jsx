@@ -20,6 +20,7 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
     const assetReserve      = assets.filter(a => a.status === 'สำรอง').length;
     const assetBroken       = assets.filter(a => a.status === 'ชำรุดเสียหาย' || a.status === 'ไม่สามารถใช้งานได้').length;
     const assetMaintenance  = assets.filter(a => a.status === 'รอดำเนินการ').length;
+    const assetDisposed     = assets.filter(a => a.status === 'ตัดจำหน่าย').length;
 
     const accTotal  = accessories.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
     const accUsed   = accessories.reduce((s, i) => s + (i.assignees?.length || 0), 0);
@@ -58,7 +59,7 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
       .slice(0, 6);
 
     return {
-      totalAssets, assetAvailable, assetInUse, assetReserve, assetBroken, assetMaintenance,
+      totalAssets, assetAvailable, assetInUse, assetReserve, assetBroken, assetMaintenance, assetDisposed,
       accTotal, accUsed, accBroken, accRemain,
       totalLicenses, licAvailable, licInUse,
       assetValue, licValue, accValue, totalValue,
@@ -227,6 +228,7 @@ export default function DashboardStats({ assets = [], licenses = [], accessories
             { label: 'สำรอง',     value: stats.assetReserve,       color: '#8b5cf6' },
             { label: 'รอจัดการ',  value: stats.assetMaintenance,  color: '#f59e0b' },
             { label: 'ชำรุด',     value: stats.assetBroken,        color: '#f43f5e' },
+            { label: 'ตัดจำหน่าย', value: stats.assetDisposed,      color: '#94a3b8' },
           ]}
         />
         <StatusCard

@@ -253,6 +253,7 @@ export default function ITReportModal({
   const hwGroups = {};
   assets.forEach(a => {
     const t = a.type || 'อื่นๆ';
+    if (a.status === 'ตัดจำหน่าย') return;   // 🆕 ไม่นับทรัพย์สินที่ตัดจำหน่าย
     if (!hwGroups[t]) hwGroups[t] = { total: 0, inUse: 0, avail: 0, broken: 0 };
     hwGroups[t].total++;
     if (a.status === 'ถูกใช้งาน') hwGroups[t].inUse++;

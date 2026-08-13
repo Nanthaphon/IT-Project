@@ -339,6 +339,7 @@ export default function EditAssetModal({
                       <option value="ชำรุดเสียหาย">ชำรุดเสียหาย</option>
                       <option value="ไม่สามารถใช้งานได้">ไม่สามารถใช้งานได้</option>
                       <option value="รอดำเนินการ">รอดำเนินการ</option>
+                      <option value="ตัดจำหน่าย">ตัดจำหน่าย</option>
                     </select>
                   </Field>
                 </div>

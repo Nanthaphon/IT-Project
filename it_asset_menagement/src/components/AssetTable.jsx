@@ -38,6 +38,7 @@ export default function AssetTable({
   handleSelectAsset,
   handleSelectAllAssets,
   onOpenAsset,   // 🆕 ถ้ามี = เปิดเป็นหน้าเต็ม (URL /assets/:id) แทน modal
+  onEditAsset,   // 🆕 ถ้ามี = เปิดหน้าแก้ไขเต็มจอ (URL /assets/:id/edit) แทน modal
 }) {
   const openAsset = (item) => onOpenAsset
     ? onOpenAsset(item)
@@ -205,7 +206,7 @@ export default function AssetTable({
                   </ActionBtn>
                 ) : null}
                 {canEdit && (
-                  <IconBtn onClick={() => openEditAssetModal(item, 'assets')} title="แก้ไข" kind="warning">
+                  <IconBtn onClick={() => onEditAsset ? onEditAsset(item) : openEditAssetModal(item, 'assets')} title="แก้ไข" kind="warning">
                     <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
                   </IconBtn>
                 )}

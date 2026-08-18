@@ -40,6 +40,8 @@ export default function AssetDetailsModal({
   employees = [],
   handleAssignLicenseToAsset,
   handleRevokeLicenseFromAsset,
+  asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม (ไม่ใช่ modal ป๊อปอัพ)
+  onClosePage,           // 🆕 callback ตอนปิดในโหมดหน้าเต็ม (navigate กลับ)
 }) {
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
@@ -1154,6 +1156,7 @@ export default function AssetDetailsModal({
   };
 
   const closeAll = () => {
+    if (asPage) { onClosePage?.(); return; }   // 🆕 โหมดหน้าเต็ม → navigate กลับ
     setSelectedAssetDetail(null);
     setSelectedAssetCategory('');
     setExpandedItem(null);
@@ -1246,8 +1249,12 @@ export default function AssetDetailsModal({
   );
 
   return (
-    <div data-modal="asset-detail" className="fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_20px_50px_-24px_rgba(16,47,87,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden">
+    <div data-modal="asset-detail" className={asPage
+      ? 'h-full'
+      : 'fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[80]'}>
+      <div className={asPage
+        ? 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)] w-full h-full flex flex-col overflow-hidden'
+        : 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_20px_50px_-24px_rgba(16,47,87,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
 
         {/* Header */}
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">

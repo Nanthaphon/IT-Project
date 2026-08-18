@@ -37,7 +37,11 @@ export default function AssetTable({
   selectedAssetIds = [],
   handleSelectAsset,
   handleSelectAllAssets,
+  onOpenAsset,   // 🆕 ถ้ามี = เปิดเป็นหน้าเต็ม (URL /assets/:id) แทน modal
 }) {
+  const openAsset = (item) => onOpenAsset
+    ? onOpenAsset(item)
+    : (setSelectedAssetDetail(item), setSelectedAssetCategory('assets'));
   // ติ๊ก "ทั้งหมด" = ทุกแถวในผลค้นหาปัจจุบันถูกเลือก
   const allInViewSelected = currentData.length > 0 && currentData.every(item => selectedAssetIds.includes(item.id));
   const hasSelect = !!handleSelectAsset;
@@ -95,7 +99,7 @@ export default function AssetTable({
             {visibleAssetColumns.name && (
               <td className={TD}>
                 <button
-                  onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory('assets'); }}
+                  onClick={() => openAsset(item)}
                   className="text-left flex items-center gap-3 group/link"
                 >
                   {item.image ? (

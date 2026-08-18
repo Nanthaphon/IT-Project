@@ -1,5 +1,25 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { db, auth, VERCEL_API_BASE } from './firebase.js';
+
+/* ── URL routing: เมนู ↔ path (ให้แถบ URL บอกว่าอยู่หน้าไหน) ── */
+const MENU_PATH = {
+  dashboard: '/', assets: '/assets', licenses: '/licenses', accessories: '/accessories',
+  office_supplies: '/office-supplies', supply_requests: '/supply-requests',
+  accessory_requests: '/accessory-requests', employees: '/employees', repairs: '/repairs',
+  replacement_requests: '/replacements', kpi_dashboard: '/kpi', field_options: '/field-options',
+  it_report: '/it-report', users: '/users',
+};
+const PATH_MENU = Object.fromEntries(
+  Object.entries(MENU_PATH).map(([menu, path]) => [path.replace(/^\//, ''), menu])
+);
+function parseRoute(pathname) {
+  const seg = pathname.replace(/^\/+|\/+$/g, '').split('/');
+  const first = seg[0] || '';
+  const menu = PATH_MENU[first] || 'dashboard';
+  const assetId = (first === 'assets' && seg[1]) ? decodeURIComponent(seg[1]) : null;
+  return { menu, assetId };
+}
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 
@@ -42,6 +62,7 @@ import DashboardStats from './components/DashboardStats.jsx';
 import ActionBar from './components/ActionBar.jsx';
 import CustomAlert from './components/CustomAlert.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
+import AssetDetailsModal from './components/AssetDetailsModal.jsx';
 import LoginView from './components/LoginView.jsx';
 import ModalsContainer from './components/ModalsContainer.jsx';
 
@@ -86,7 +107,12 @@ function App() {
   const [staffRepairForm, setStaffRepairForm] = useState({ assetName: '', issue: '' });
   const [editStaffRepairModal, setEditStaffRepairModal] = useState({ isOpen: false, data: null });
 
-  const [activeMenu, setActiveMenu] = useState('dashboard');
+  // 🆕 activeMenu มาจาก URL (แทน useState) — แถบ URL บอกว่าอยู่หน้าไหน
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { menu: activeMenu, assetId: routeAssetId } = parseRoute(location.pathname);
+  const setActiveMenu = useCallback((id) => navigate(MENU_PATH[id] || '/'), [navigate]);
+  const openAssetPage = useCallback((asset) => navigate(`/assets/${encodeURIComponent(asset.id)}`), [navigate]);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar drawer
   const [pendingAssetId, setPendingAssetId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2829,7 +2855,41 @@ function App() {
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
         <div id="main-scroll-container" className="flex-1 overflow-auto p-3 sm:p-4 md:p-5">
-          {activeMenu === 'field_options' ? (
+          {routeAssetId ? (
+            /* 🆕 หน้าเต็มรายละเอียดทรัพย์สิน (URL /assets/:id) */
+            (() => {
+              const routeAsset = assets.find(a => a.id === routeAssetId);
+              if (!routeAsset) {
+                return (
+                  <div className="max-w-[1400px] mx-auto">
+                    <button onClick={() => navigate('/assets')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบทรัพย์สินนี้ (อาจถูกลบไปแล้ว)</div>
+                  </div>
+                );
+              }
+              return (
+                <div className="max-w-[1400px] mx-auto h-full">
+                  <AssetDetailsModal
+                    asPage
+                    onClosePage={() => navigate('/assets')}
+                    selectedAssetDetail={routeAsset}
+                    setSelectedAssetDetail={setSelectedAssetDetail}
+                    selectedAssetCategory="assets"
+                    setSelectedAssetCategory={setSelectedAssetCategory}
+                    assets={assets} accessories={accessories} licenses={licenses}
+                    transactions={transactions} employees={employees}
+                    setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
+                    handleCheckin={handleCheckin}
+                    openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
+                    setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks}
+                    showConfirm={showConfirm} setCustomAlert={setCustomAlert}
+                    handleAssignLicenseToAsset={handleAssignLicenseToAsset}
+                    handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
+                  />
+                </div>
+              );
+            })()
+          ) : activeMenu === 'field_options' ? (
             <Suspense fallback={<LazyFallback />}>
               <DropdownOptionsManager
                 fieldOptions={fieldOptions}
@@ -2958,7 +3018,7 @@ function App() {
                     ) : activeMenu === 'accessories' ? (
                       <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
                     ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets} />
+                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets} onOpenAsset={openAssetPage} />
                     ) : null}
                   </div>
                 )}

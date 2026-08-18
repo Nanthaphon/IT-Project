@@ -42,6 +42,8 @@ export default function EditAssetModal({
   handleUpdateAsset,
   handleEditAssetChange,
   fieldOptions = {},
+  asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม
+  onClosePage,           // 🆕 callback ปิด/ยกเลิกในโหมดหน้าเต็ม
 }) {
   if (!editAssetModal.isOpen || !editAssetModal.data) return null;
 
@@ -68,11 +70,16 @@ export default function EditAssetModal({
     setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, image: null } }));
   };
 
-  const close = () => setEditAssetModal({ isOpen: false, data: null, collectionName: '' });
+  const close = () => {
+    setEditAssetModal({ isOpen: false, data: null, collectionName: '' });
+    if (asPage) onClosePage?.();
+  };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[70]">
-      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className={asPage ? 'h-full' : 'fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[70]'}>
+      <div className={asPage
+        ? 'bg-white w-full h-full overflow-hidden flex flex-col'
+        : 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
         <div className="px-7 py-5 flex items-start justify-between border-b border-slate-100">
           <div className="flex items-start gap-3.5">
@@ -102,7 +109,7 @@ export default function EditAssetModal({
 
         {/* Body */}
         <form onSubmit={handleUpdateAsset} className="overflow-y-auto flex-1">
-          <div className="px-7 py-6 space-y-7">
+          <div className={`px-7 py-6 space-y-7 ${asPage ? 'max-w-3xl mx-auto w-full' : ''}`}>
 
             {/* รูปภาพ */}
             <section className="space-y-3">

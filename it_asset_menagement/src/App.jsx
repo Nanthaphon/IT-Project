@@ -18,7 +18,8 @@ function parseRoute(pathname) {
   const first = seg[0] || '';
   const menu = PATH_MENU[first] || 'dashboard';
   const assetId = (first === 'assets' && seg[1]) ? decodeURIComponent(seg[1]) : null;
-  return { menu, assetId };
+  const assetEdit = !!(assetId && seg[2] === 'edit');   // /assets/:id/edit
+  return { menu, assetId, assetEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -63,6 +64,7 @@ import ActionBar from './components/ActionBar.jsx';
 import CustomAlert from './components/CustomAlert.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import AssetDetailsModal from './components/AssetDetailsModal.jsx';
+import EditAssetModal from './components/EditAssetModal.jsx';
 import LoginView from './components/LoginView.jsx';
 import ModalsContainer from './components/ModalsContainer.jsx';
 
@@ -110,7 +112,7 @@ function App() {
   // 🆕 activeMenu มาจาก URL (แทน useState) — แถบ URL บอกว่าอยู่หน้าไหน
   const location = useLocation();
   const navigate = useNavigate();
-  const { menu: activeMenu, assetId: routeAssetId } = parseRoute(location.pathname);
+  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit } = parseRoute(location.pathname);
   const setActiveMenu = useCallback((id) => navigate(MENU_PATH[id] || '/'), [navigate]);
   const openAssetPage = useCallback((asset) => navigate(`/assets/${encodeURIComponent(asset.id)}`), [navigate]);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar drawer
@@ -186,6 +188,19 @@ function App() {
   const [editEmpModal, setEditEmpModal] = useState({ isOpen: false, data: null });
   const [editAssetModal, setEditAssetModal] = useState({ isOpen: false, data: null, collectionName: '' });
   const [editLicenseModal, setEditLicenseModal] = useState({ isOpen: false, data: null });
+
+  // 🆕 เมื่อเข้า route แก้ไข (/assets/:id/edit) → เติมข้อมูลลงฟอร์มครั้งเดียว
+  const editPopulatedRef = useRef(null);
+  useEffect(() => {
+    if (routeAssetEdit && routeAssetId) {
+      if (editPopulatedRef.current !== routeAssetId) {
+        const a = assets.find(x => x.id === routeAssetId);
+        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'assets' }); editPopulatedRef.current = routeAssetId; }
+      }
+    } else {
+      editPopulatedRef.current = null;
+    }
+  }, [routeAssetEdit, routeAssetId, assets]);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
@@ -1854,6 +1869,12 @@ function App() {
   };
 
   const openEditAssetModal = (asset, collectionName) => setEditAssetModal({ isOpen: true, data: { ...asset }, collectionName });
+  // 🆕 บันทึกจากหน้าแก้ไขเต็มหน้า → เสร็จแล้วกลับไปหน้ารายละเอียด
+  const handleUpdateAssetPage = async (e) => {
+    const id = editAssetModal.data?.id;
+    await handleUpdateAsset(e);
+    if (id) navigate(`/assets/${encodeURIComponent(id)}`);
+  };
   const handleEditAssetChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: val } }));
@@ -2854,24 +2875,38 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className="flex-1 overflow-auto p-3 sm:p-4 md:p-5">
-          {routeAssetId ? (
-            /* 🆕 หน้าเต็มรายละเอียดทรัพย์สิน (URL /assets/:id) */
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${routeAssetId ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+          {routeAssetEdit ? (
+            /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
+            <div className="h-full">
+              <EditAssetModal
+                asPage
+                onClosePage={() => navigate(`/assets/${encodeURIComponent(routeAssetId)}`)}
+                editAssetModal={editAssetModal}
+                setEditAssetModal={setEditAssetModal}
+                handleUpdateAsset={handleUpdateAssetPage}
+                handleEditAssetChange={handleEditAssetChange}
+                fieldOptions={fieldOptions}
+              />
+            </div>
+          ) : routeAssetId ? (
+            /* 🆕 หน้าเต็มรายละเอียดทรัพย์สิน (URL /assets/:id) — เต็มขอบ ไม่มี padding */
             (() => {
               const routeAsset = assets.find(a => a.id === routeAssetId);
               if (!routeAsset) {
                 return (
-                  <div className="max-w-[1400px] mx-auto">
+                  <div className="p-5">
                     <button onClick={() => navigate('/assets')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
                     <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบทรัพย์สินนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
               }
               return (
-                <div className="max-w-[1400px] mx-auto h-full">
+                <div className="h-full">
                   <AssetDetailsModal
                     asPage
                     onClosePage={() => navigate('/assets')}
+                    onEditPage={() => navigate(`/assets/${encodeURIComponent(routeAsset.id)}/edit`)}
                     selectedAssetDetail={routeAsset}
                     setSelectedAssetDetail={setSelectedAssetDetail}
                     selectedAssetCategory="assets"
@@ -3059,6 +3094,7 @@ function App() {
         handleAssignLicenseToAsset={handleAssignLicenseToAsset}
         handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
         bundledItems={bundledItems} handleAddBundledItem={handleAddBundledItem} handleDeleteBundledItem={handleDeleteBundledItem}
+        suppressEditAssetModal={routeAssetEdit}
       />
       {/* 🆕 โหลด modal เฉพาะตอนเปิด — ลด initial bundle */}
       {isITReportOpen && (

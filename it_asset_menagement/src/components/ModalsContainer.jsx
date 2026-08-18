@@ -24,7 +24,7 @@ export default function ModalsContainer(props) {
       <EmployeeDetailsModal {...props} />
       <AssetDetailsModal {...props} />
       <EditEmpModal {...props} />
-      <EditAssetModal {...props} />
+      {!props.suppressEditAssetModal && <EditAssetModal {...props} />}
       <EditLicenseModal {...props} />
       <ImportModal {...props} />
       <ReturnModal {...props} />

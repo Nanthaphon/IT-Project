@@ -42,6 +42,7 @@ export default function AssetDetailsModal({
   handleRevokeLicenseFromAsset,
   asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม (ไม่ใช่ modal ป๊อปอัพ)
   onClosePage,           // 🆕 callback ตอนปิดในโหมดหน้าเต็ม (navigate กลับ)
+  onEditPage,            // 🆕 callback ตอนกด "แก้ไขข้อมูล" ในโหมดหน้าเต็ม (navigate ไปหน้าแก้ไข)
 }) {
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null); 
@@ -1253,7 +1254,7 @@ export default function AssetDetailsModal({
       ? 'h-full'
       : 'fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[80]'}>
       <div className={asPage
-        ? 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)] w-full h-full flex flex-col overflow-hidden'
+        ? 'bg-white w-full h-full flex flex-col overflow-hidden'
         : 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_20px_50px_-24px_rgba(16,47,87,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
 
         {/* Header */}
@@ -2380,7 +2381,7 @@ export default function AssetDetailsModal({
             </button>
           )}
 
-          <button onClick={() => { if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 text-[14px] font-semibold transition-colors">แก้ไขข้อมูล</button>
+          <button onClick={() => { if (asPage && onEditPage) { onEditPage(); return; } if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 text-[14px] font-semibold transition-colors">แก้ไขข้อมูล</button>
           <button onClick={closeAll} className="w-full sm:w-auto px-6 py-2.5 bg-[#1E487A] text-white rounded-lg hover:bg-[#163963] text-[14px] font-semibold transition-colors">ปิด</button>
         </div>
       </div>

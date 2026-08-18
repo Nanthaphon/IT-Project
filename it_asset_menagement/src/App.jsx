@@ -2875,7 +2875,7 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className={`flex-1 overflow-auto ${routeAssetId ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || activeMenu === 'assets') ? '' : 'p-3 sm:p-4 md:p-5'}`}>
           {routeAssetEdit ? (
             /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
             <div className="h-full">
@@ -2991,16 +2991,18 @@ function App() {
               />
             </Suspense>
           ) : (
-            <div className="h-full flex flex-col max-w-[1400px] w-full mx-auto">
+            <div className={activeMenu === 'assets' ? 'h-full flex flex-col w-full' : 'h-full flex flex-col max-w-[1400px] w-full mx-auto'}>
               {/* 🆕 v2 page header */}
-              <div className="mb-3.5 shrink-0">
+              <div className={`shrink-0 ${activeMenu === 'assets' ? 'px-5 md:px-6 pt-5 pb-3.5' : 'mb-3.5'}`}>
                 <h1 className="text-[20px] font-bold text-slate-800 tracking-tight">{menuTitle}</h1>
                 <p className="text-[13px] text-slate-400 mt-0.5">
                   {currentData.length.toLocaleString()} รายการในระบบ
                   {showDeletedEmployees ? ' · กำลังดูถังขยะ' : ''}
                 </p>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)] flex flex-col flex-1 overflow-hidden">
+              <div className={activeMenu === 'assets'
+                ? 'bg-white border-t border-slate-200 flex flex-col flex-1 overflow-hidden'
+                : 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)] flex flex-col flex-1 overflow-hidden'}>
                 <div className="px-5 md:px-6 pt-5">
                 <ActionBar
                   menuTitle={menuTitle} activeMenu={activeMenu} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showDeletedEmployees={showDeletedEmployees} setShowDeletedEmployees={setShowDeletedEmployees} setIsImportModalOpen={setIsImportModalOpen} handleExportEmployees={handleExportEmployees}

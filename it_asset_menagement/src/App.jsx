@@ -1328,91 +1328,95 @@ function App() {
     const a = document.createElement('a'); a.href = url; a.download = 'office_supplies.csv'; a.click(); URL.revokeObjectURL(url);
   };
   const handleExportLicenses = () => {
-    // Export แบบ 1 บรรทัด = 1 สิทธิ์ (seat) — ข้อมูล license ใช้ซ้ำทุกบรรทัด
-    // เพื่อให้ข้อมูล nested (assignees, per-seat keys, costs) ครบในไฟล์เดียว
-    // 🆕 ถ้าผู้ใช้ติ๊กเลือก row บางรายการ → export เฉพาะที่เลือก
-    //    ถ้าไม่ติ๊กเลย → export ทั้งหมดที่ตรงกับ filter ปัจจุบัน
+    // Export แบบ 1 บรรทัด = 1 สิทธิ์ (seat) — เน้น "ไส้ใน" ของแต่ละสิทธิ์อย่างละเอียด
+    // ตัดคอลัมน์สรุประดับ License ออก เหลือแค่ "ชื่อโปรแกรม" ไว้อ้างอิงว่าอยู่ License ไหน
+    // 🆕 ถ้าผู้ใช้ติ๊กเลือก row บางรายการ → export เฉพาะที่เลือก · ไม่ติ๊ก → ทั้งหมดตาม filter
     const sourceList = (selectedLicenseIds?.length > 0)
       ? licenses.filter(l => selectedLicenseIds.includes(l.id))
-      : currentData;  // currentData = ผ่าน filter ใกล้หมดอายุ + search แล้ว
+      : currentData;
+
     const rows = [[
-      // ─── ข้อมูล License (ซ้ำทุกบรรทัด) ───
-      'ชื่อโปรแกรม', 'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ',
-      'จำนวนสิทธิ์ทั้งหมด', 'ราคารวม (License)', 'สถานะ License',
-      // ─── ข้อมูลสิทธิ์ (แต่ละบรรทัด) ───
-      'ลำดับสิทธิ์', 'สถานะสิทธิ์', 'ผู้ใช้งาน', 'รหัสพนักงาน',
-      'วันที่เบิก', 'Product Key (สิทธิ์)', 'รหัส Key (สิทธิ์)',
+      'ชื่อโปรแกรม',           // อ้างอิงว่าอยู่ License ไหน
+      'ลำดับสิทธิ์',
+      'ชื่อรายการย่อย',
+      'สถานะสิทธิ์',
+      'ผู้ใช้งาน', 'รหัสพนักงาน',
+      'ผูกกับทรัพย์สิน',        // seat ที่ผูกกับเครื่อง (device-bound)
+      'วันที่เบิก',
+      'Product Key', 'รหัส Key',
+      'Supplier', 'วันที่ซื้อ', 'วันหมดอายุ',
       'ราคา/สิทธิ์', 'หมายเหตุ',
+      'จำนวนไฟล์แนบ',
     ]];
 
     sourceList.forEach(l => {
       const totalSeats = Number(l.quantity || 0) || 1;
       const assignees = l.assignees || [];
-      const availKeys = l.availableKeys || [];
-      const availKeyCodes = l.availableKeyCodes || [];
-      const availSeatCosts = l.availableSeatCosts || [];
-
-      // ข้อมูล license ที่ใช้ซ้ำในทุกบรรทัด
-      const licCommon = [
-        l.name || '',
-        l.supplier || '',
-        l.purchaseDate || '',
-        l.expirationDate || '',
-        totalSeats,
-        l.cost || '',
-        l.status || '',
-      ];
+      const availKeys        = l.availableKeys || [];
+      const availKeyCodes    = l.availableKeyCodes || [];
+      const availSeatCosts   = l.availableSeatCosts || [];
+      const availSeatLabels  = l.availableSeatLabels || [];
+      const availSeatSupp    = l.availableSeatSuppliers || [];
+      const availSeatPDates  = l.availableSeatPurchaseDates || [];
+      const availSeatEDates  = l.availableSeatExpirationDates || [];
+      const availSeatNotes   = l.availableSeatNotes || [];
+      const availSeatDocs    = l.availableSeatDocs || {};
 
       let seatIdx = 0;
 
-      // 1) บรรทัดสำหรับสิทธิ์ที่ "ใช้งานอยู่" (assigned)
+      // 1) สิทธิ์ที่ "ใช้งานอยู่" (assigned) — รวม seat ที่ผูกกับเครื่อง
       assignees.forEach(a => {
         seatIdx++;
+        const bound = a.isAssetBound || a.assignedAssetId;
         rows.push([
-          ...licCommon,
+          l.name || '',
           seatIdx,
-          'ใช้งาน',
+          a.seatLabel || '',
+          bound ? (a.empId ? 'ใช้งาน (ผูกเครื่อง)' : 'ติดตั้งบนเครื่อง') : 'ใช้งาน',
           a.empName || '',
           a.empId || '',
+          a.assignedAssetName || '',
           a.checkoutDate || '',
           a.productKey || l.productKey || '',
           a.keyCode || l.keyCode || '',
+          a.seatSupplier || l.supplier || '',
+          a.seatPurchaseDate || l.purchaseDate || '',
+          a.seatExpirationDate || l.expirationDate || '',
           a.seatCost || '',
-          a.remarks || '',
+          a.seatNote || a.remarks || '',
+          (a.seatDocuments || []).length,
         ]);
       });
 
-      // 2) บรรทัดสำหรับสิทธิ์ที่ "ว่าง" (available)
+      // 2) สิทธิ์ที่ "ว่าง" (available)
       const availCount = Math.max(0, totalSeats - assignees.length);
       for (let i = 0; i < availCount; i++) {
         seatIdx++;
         rows.push([
-          ...licCommon,
+          l.name || '',
           seatIdx,
+          availSeatLabels[i] || l.name || '',
           'ว่าง',
-          '',
-          '',
-          '',
+          '', '', '', '',
           availKeys[i] || l.productKey || '',
           availKeyCodes[i] || l.keyCode || '',
+          availSeatSupp[i] || l.supplier || '',
+          availSeatPDates[i] || l.purchaseDate || '',
+          availSeatEDates[i] || l.expirationDate || '',
           availSeatCosts[i] || '',
-          '',
+          availSeatNotes[i] || '',
+          (availSeatDocs[String(i)] || []).length,
         ]);
       }
 
-      // 3) ถ้า license นี้ไม่มี seat เลย — ใส่ 1 บรรทัดเป็นข้อมูล license พื้นฐาน
+      // 3) License ที่ไม่มี seat เลย — 1 บรรทัดข้อมูลพื้นฐาน
       if (assignees.length === 0 && availCount === 0) {
         rows.push([
-          ...licCommon,
-          '',
-          '',
-          '',
-          '',
-          '',
-          l.productKey || '',
-          l.keyCode || '',
-          l.cost || '',
-          '',
+          l.name || '', '', l.name || '', '(ไม่มีสิทธิ์)',
+          '', '', '', '',
+          l.productKey || '', l.keyCode || '',
+          l.supplier || '', l.purchaseDate || '', l.expirationDate || '',
+          l.cost || '', l.note || '', 0,
         ]);
       }
     });
@@ -1420,7 +1424,7 @@ function App() {
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'licenses.csv'; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = url; a.download = 'licenses-detail.csv'; a.click(); URL.revokeObjectURL(url);
   };
   const handleDownloadTemplate = () => {
     /* ── Template definition per entity ──

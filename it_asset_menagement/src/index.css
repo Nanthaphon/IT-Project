@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 *, *::before, *::after {
-  font-family: 'Prompt', sans-serif;
+  font-family: 'Bai Jamjuree', sans-serif;
 }
 
 /* ยกเว้นฟอร์ม — ใช้ฟ้อนระบบเดิม */

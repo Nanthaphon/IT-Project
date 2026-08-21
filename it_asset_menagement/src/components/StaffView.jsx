@@ -391,6 +391,9 @@ export default function StaffView({
       phone:        currentStaff.phone        || '',
       m365Email:    currentStaff.m365Email    || '',
       m365Password: currentStaff.m365Password || '',
+      links:        Array.isArray(currentStaff.links)
+        ? currentStaff.links.map(l => ({ label: l?.label || '', url: l?.url || '' }))
+        : [],
     });
     setIsEditingProfile(true);
   };
@@ -404,7 +407,10 @@ export default function StaffView({
     if (!handleStaffUpdateProfile) return;
     setIsSavingProfile(true);
     try {
-      await handleStaffUpdateProfile(profileForm);
+      const cleanedLinks = (Array.isArray(profileForm.links) ? profileForm.links : [])
+        .map(l => ({ label: (l?.label || '').trim(), url: (l?.url || '').trim() }))
+        .filter(l => l.url);
+      await handleStaffUpdateProfile({ ...profileForm, links: cleanedLinks });
       setIsEditingProfile(false);
     } catch (e) {
       // alert already shown by handler
@@ -1019,6 +1025,12 @@ export default function StaffView({
                 <EditableItem label="อีเมล Microsoft 365" name="m365Email"   editing form={profileForm} setForm={setProfileForm} value={currentStaff.m365Email} accent />
                 <EditableItem label="รหัสผ่าน Microsoft 365" name="m365Password" editing form={profileForm} setForm={setProfileForm} value={currentStaff.m365Password} mono />
               </div>
+              <div className="border-t border-slate-100 px-5 py-4">
+                <LinksEditor
+                  links={profileForm.links}
+                  setLinks={(next) => setProfileForm(prev => ({ ...prev, links: next }))}
+                />
+              </div>
             </div>
           ) : (
             /* ── VIEW MODE — ไม่ซ้ำกับ Hero card; แสดงเฉพาะข้อมูลที่ยังไม่มีบน hero ── */
@@ -1038,6 +1050,9 @@ export default function StaffView({
               )}
             </div>
           )}
+
+          {/* ── ลิงก์ / เว็บไซต์ (โหมดดู) ── */}
+          {!isEditingProfile && <LinkCards links={currentStaff.links} />}
 
           </>
         )}
@@ -1844,6 +1859,89 @@ function EditableItem({ label, name, value, accent, mono, editing, form, setForm
                     ${accent ? 'text-[#1E487A] font-medium' : 'text-slate-800'}
                     ${mono ? 'font-mono' : ''}`}
       />
+    </div>
+  );
+}
+
+/* ─────── ลิงก์เว็บไซต์: normalize + host ─────── */
+function normalizeLinkUrl(url) {
+  const raw = (url ?? '').toString().trim();
+  if (!raw) return '';
+  const lower = raw.toLowerCase();
+  // กัน scheme อันตราย
+  if (lower.startsWith('javascript:') || lower.startsWith('vbscript:') || lower.startsWith('file:') || lower.startsWith('data:')) return '';
+  if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return raw;   // มี scheme อยู่แล้ว (https:, mailto:, tel:)
+  if (raw.startsWith('/')) return raw;                 // relative
+  return 'https://' + raw;                             // โดเมนเปล่า ๆ → เติม https://
+}
+function linkHost(url) {
+  const safe = normalizeLinkUrl(url);
+  if (!safe) return '';
+  try { return new URL(safe).hostname.replace(/^www\./, ''); }
+  catch { return ''; }
+}
+
+/* ─────── LinkCards — แสดงลิงก์เว็บไซต์แบบการ์ดคลิกได้ (โหมดดู) ─────── */
+function LinkCards({ links }) {
+  const items = (Array.isArray(links) ? links : []).filter(l => l && normalizeLinkUrl(l.url));
+  if (!items.length) return null;
+  return (
+    <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] p-5">
+      <p className="text-[11.5px] font-semibold text-slate-500 uppercase tracking-wide mb-3">ลิงก์ / เว็บไซต์</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {items.map((l, i) => {
+          const href = normalizeLinkUrl(l.url);
+          const host = linkHost(l.url);
+          const label = (l.label || '').trim() || host || href;
+          return (
+            <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+               className="group flex items-center gap-3 rounded-lg border border-slate-200 hover:border-[#1E487A]/40 hover:bg-[#1E487A]/[0.03] px-3.5 py-3 transition-colors">
+              <span className="w-9 h-9 rounded-lg bg-[#1E487A]/[0.08] text-[#1E487A] flex items-center justify-center shrink-0">
+                <ExternalLink className="h-4 w-4" strokeWidth={2} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14px] font-medium text-slate-800 truncate group-hover:text-[#1E487A]">{label}</span>
+                {host && <span className="block text-[12px] text-slate-400 truncate">{host}</span>}
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─────── LinksEditor — เพิ่ม/ลบลิงก์ (โหมดแก้ไข) ─────── */
+function LinksEditor({ links, setLinks }) {
+  const rows = Array.isArray(links) ? links : [];
+  const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
+  const add = () => setLinks([...rows, { label: '', url: '' }]);
+  const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
+  const inCls = 'bg-white border border-slate-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition';
+  return (
+    <div>
+      <label className="block text-[11.5px] text-slate-500 font-semibold uppercase tracking-wide mb-2">ลิงก์ / เว็บไซต์</label>
+      {rows.length === 0 && (
+        <p className="text-[12.5px] text-slate-400 mb-1">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์” เพื่อแปะเว็บไซต์ที่ต้องการ</p>
+      )}
+      <div className="space-y-2">
+        {rows.map((r, i) => (
+          <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <input value={r.label ?? ''} onChange={e => update(i, 'label', e.target.value)}
+              placeholder="ชื่อลิงก์ (เช่น Microsoft 365)" className={`${inCls} sm:w-1/3 text-slate-800`} />
+            <input value={r.url ?? ''} onChange={e => update(i, 'url', e.target.value)}
+              placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-slate-700`} />
+            <button type="button" onClick={() => remove(i)} title="ลบลิงก์"
+              className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+              <X className="h-4 w-4" strokeWidth={2.2} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={add}
+        className="mt-2.5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1E487A] hover:text-[#153a63] transition-colors">
+        <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
+      </button>
     </div>
   );
 }

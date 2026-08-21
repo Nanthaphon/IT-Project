@@ -1037,7 +1037,7 @@ function App() {
     try {
       // ✅ Whitelist เฉพาะ field ที่ staff อนุญาตให้แก้ (ตรงกับ Firestore rules)
       // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
-      const ALLOWED = ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password'];
+      const ALLOWED = ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password','links'];
       const safe = {};
       for (const k of ALLOWED) {
         if (k in updates) safe[k] = updates[k];
@@ -1860,6 +1860,11 @@ function App() {
     await withLoading(async () => {
       try {
         const updatedData = { ...editEmpModal.data }; delete updatedData.id;
+        if (Array.isArray(updatedData.links)) {
+          updatedData.links = updatedData.links
+            .map(l => ({ label: (l?.label || '').trim(), url: (l?.url || '').trim() }))
+            .filter(l => l.url);
+        }
         await updateDoc(doc(db, 'employees', editEmpModal.data.id), updatedData);
         if (selectedEmployee && selectedEmployee.id === editEmpModal.data.id) setSelectedEmployee({ ...selectedEmployee, ...updatedData, id: editEmpModal.data.id });
         setEditEmpModal({ isOpen: false, data: null });

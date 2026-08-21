@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Pencil, ShieldCheck } from 'lucide-react';
+import { Pencil, ShieldCheck, Link2, PlusCircle, X } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
@@ -149,6 +149,18 @@ export default function EditEmpModal({
               </Field>
             </div>
           </section>
+
+          <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-slate-700">
+              <Link2 className="h-4 w-4" strokeWidth={2} />
+              <p className="text-[13px] font-semibold tracking-wide">ลิงก์ / เว็บไซต์</p>
+            </div>
+            <p className="text-[12px] text-slate-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
+            <EmpLinksEditor
+              links={data.links}
+              setLinks={(next) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, links: next } }))}
+            />
+          </section>
         </ModalBody>
         <ModalFooter>
           <Button variant="secondary" onClick={close}>ยกเลิก</Button>
@@ -156,5 +168,37 @@ export default function EditEmpModal({
         </ModalFooter>
       </form>
     </Modal>
+  );
+}
+
+/* ─────── EmpLinksEditor — เพิ่ม/ลบลิงก์เว็บไซต์ของพนักงาน (ฝั่ง admin) ─────── */
+function EmpLinksEditor({ links, setLinks }) {
+  const rows = Array.isArray(links) ? links : [];
+  const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
+  const add = () => setLinks([...rows, { label: '', url: '' }]);
+  const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
+  const inCls = 'w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition';
+  return (
+    <div className="space-y-2">
+      {rows.length === 0 && (
+        <p className="text-[12.5px] text-slate-400">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์”</p>
+      )}
+      {rows.map((r, i) => (
+        <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <input value={r.label ?? ''} onChange={e => update(i, 'label', e.target.value)}
+            placeholder="ชื่อลิงก์ (เช่น Microsoft 365)" className={`${inCls} sm:w-1/3 text-slate-800`} />
+          <input value={r.url ?? ''} onChange={e => update(i, 'url', e.target.value)}
+            placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-slate-700`} />
+          <button type="button" onClick={() => remove(i)} title="ลบลิงก์"
+            className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+            <X className="h-4 w-4" strokeWidth={2.2} />
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={add}
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1E487A] hover:text-[#153a63] transition-colors">
+        <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
+      </button>
+    </div>
   );
 }

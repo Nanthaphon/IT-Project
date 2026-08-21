@@ -24,7 +24,7 @@ service cloud.firestore {
     // ฟิลด์ที่ staff อนุญาตให้แก้ profile ตัวเองได้เท่านั้น
     // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
     function staffEditableFields() {
-      return ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password','updatedAt'];
+      return ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password','links','updatedAt'];
     }
 
     /* ══════════════════════════════════════════════════════════

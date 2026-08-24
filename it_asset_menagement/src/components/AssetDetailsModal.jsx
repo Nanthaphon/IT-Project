@@ -2622,7 +2622,6 @@ function SeatDetailModal({
                           || (seat.assignee.isAssetBound ? (seat.assignee.assignedAssetName || 'ผูกกับทรัพย์สิน') : '-')}
                       </p>
                       <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1.5">
-                        {seat.assignee.empId && <KV icon={Hash} label="รหัสพนักงาน" value={seat.assignee.empId} />}
                         {seat.assignee.department && <KV icon={Building2} label="แผนก" value={seat.assignee.department} />}
                         {seat.assignee.isAssetBound && seat.assignee.assignedAssetName && (
                           <KV icon={Laptop} label="ผูกกับเครื่อง" value={seat.assignee.assignedAssetName} />

@@ -11,10 +11,15 @@ export default function EditLicenseModal({
   handleUpdateLicense,
   handleEditLicenseChange,
   fieldOptions = {},
+  asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม
+  onClosePage,           // 🆕 callback ปิด/ยกเลิกในโหมดหน้าเต็ม
 }) {
   if (!editLicenseModal.isOpen || !editLicenseModal.data) return null;
 
-  const close = () => setEditLicenseModal({ isOpen: false, data: null });
+  const close = () => {
+    setEditLicenseModal({ isOpen: false, data: null });
+    if (asPage) onClosePage?.();
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -24,8 +29,8 @@ export default function EditLicenseModal({
     }
   };
 
-  return (
-    <Modal open={editLicenseModal.isOpen} onClose={close}>
+  const shellInner = (
+    <>
       <ModalHeader
         icon={Pencil}
         title="แก้ไขข้อมูลโปรแกรม / License"
@@ -33,7 +38,7 @@ export default function EditLicenseModal({
         onClose={close}
       />
       <form onSubmit={handleUpdateLicense} className="flex flex-col flex-1 overflow-hidden">
-        <ModalBody className="space-y-7">
+        <ModalBody className={`space-y-7 ${asPage ? 'max-w-3xl mx-auto w-full' : ''}`}>
           <section className="space-y-3">
             <SectionHeader>รูปภาพ</SectionHeader>
             <div className="flex items-center gap-4">
@@ -144,6 +149,21 @@ export default function EditLicenseModal({
           <Button type="submit">บันทึกการแก้ไข</Button>
         </ModalFooter>
       </form>
+    </>
+  );
+
+  if (asPage) {
+    return (
+      <div className="h-full">
+        <div className="bg-white w-full h-full overflow-hidden flex flex-col">
+          {shellInner}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <Modal open={editLicenseModal.isOpen} onClose={close}>
+      {shellInner}
     </Modal>
   );
 }

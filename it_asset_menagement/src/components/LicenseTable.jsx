@@ -19,8 +19,13 @@ export default function LicenseTable({
   setConfirmDeleteModal,
   visibleLicenseColumns,
   canEdit,
+  onOpenLicense,   // 🆕 ถ้ามี = เปิดหน้าเต็ม (URL /licenses/:id) แทน modal
+  onEditLicense,   // 🆕 ถ้ามี = เปิดหน้าแก้ไขเต็มจอ (URL /licenses/:id/edit) แทน modal
 }) {
   const col = visibleLicenseColumns || {};
+  const openLicense = (item) => onOpenLicense
+    ? onOpenLicense(item)
+    : (setSelectedAssetDetail(item), setSelectedAssetCategory('licenses'));
   const allSelected = currentData.length > 0 && currentData.every(item => selectedLicenseIds.includes(item.id));
 
   return (
@@ -84,7 +89,7 @@ export default function LicenseTable({
               {col.name && (
                 <td className={`${TD} max-w-[280px]`}>
                   <button
-                    onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory('licenses'); }}
+                    onClick={() => openLicense(item)}
                     className="text-left font-medium text-slate-800 group-hover:text-[#1E487A] transition-colors whitespace-normal leading-snug break-words"
                   >
                     {item.name}
@@ -208,7 +213,7 @@ export default function LicenseTable({
                     </button>
                   ) : null}
                   {canEdit && (
-                    <IconBtn onClick={() => openEditLicenseModal(item)} title="แก้ไข" kind="warning">
+                    <IconBtn onClick={() => onEditLicense ? onEditLicense(item) : openEditLicenseModal(item)} title="แก้ไข" kind="warning">
                       <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
                     </IconBtn>
                   )}

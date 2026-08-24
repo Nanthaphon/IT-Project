@@ -19,7 +19,9 @@ function parseRoute(pathname) {
   const menu = PATH_MENU[first] || 'dashboard';
   const assetId = (first === 'assets' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const assetEdit = !!(assetId && seg[2] === 'edit');   // /assets/:id/edit
-  return { menu, assetId, assetEdit };
+  const licenseId = (first === 'licenses' && seg[1]) ? decodeURIComponent(seg[1]) : null;
+  const licenseEdit = !!(licenseId && seg[2] === 'edit'); // /licenses/:id/edit
+  return { menu, assetId, assetEdit, licenseId, licenseEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -65,6 +67,7 @@ import CustomAlert from './components/CustomAlert.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import AssetDetailsModal from './components/AssetDetailsModal.jsx';
 import EditAssetModal from './components/EditAssetModal.jsx';
+import EditLicenseModal from './components/EditLicenseModal.jsx';
 import LoginView from './components/LoginView.jsx';
 import ModalsContainer from './components/ModalsContainer.jsx';
 
@@ -112,9 +115,10 @@ function App() {
   // 🆕 activeMenu มาจาก URL (แทน useState) — แถบ URL บอกว่าอยู่หน้าไหน
   const location = useLocation();
   const navigate = useNavigate();
-  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit } = parseRoute(location.pathname);
+  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit } = parseRoute(location.pathname);
   const setActiveMenu = useCallback((id) => navigate(MENU_PATH[id] || '/'), [navigate]);
   const openAssetPage = useCallback((asset) => navigate(`/assets/${encodeURIComponent(asset.id)}`), [navigate]);
+  const openLicensePage = useCallback((lic) => navigate(`/licenses/${encodeURIComponent(lic.id)}`), [navigate]);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar drawer
   const [pendingAssetId, setPendingAssetId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -201,6 +205,19 @@ function App() {
       editPopulatedRef.current = null;
     }
   }, [routeAssetEdit, routeAssetId, assets]);
+
+  // 🆕 เมื่อเข้า route แก้ไข (/licenses/:id/edit) → เติมข้อมูลลงฟอร์มครั้งเดียว
+  const editLicensePopulatedRef = useRef(null);
+  useEffect(() => {
+    if (routeLicenseEdit && routeLicenseId) {
+      if (editLicensePopulatedRef.current !== routeLicenseId) {
+        const l = licenses.find(x => x.id === routeLicenseId);
+        if (l) { setEditLicenseModal({ isOpen: true, data: { ...l } }); editLicensePopulatedRef.current = routeLicenseId; }
+      }
+    } else {
+      editLicensePopulatedRef.current = null;
+    }
+  }, [routeLicenseEdit, routeLicenseId, licenses]);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
@@ -1959,6 +1976,12 @@ function App() {
       } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
     }, 'กำลังบันทึก...');
   };
+  // 🆕 บันทึกจากหน้าแก้ไขเต็มหน้า → เสร็จแล้วกลับไปหน้ารายละเอียด License
+  const handleUpdateLicensePage = async (e) => {
+    const id = editLicenseModal.data?.id;
+    await handleUpdateLicense(e);
+    if (id) navigate(`/licenses/${encodeURIComponent(id)}`);
+  };
 
   const [isITReportOpen, setIsITReportOpen] = useState(false);
   const [savingFieldOptions, setSavingFieldOptions] = useState(false);
@@ -2880,7 +2903,7 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || activeMenu === 'assets') ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || activeMenu === 'assets' || activeMenu === 'licenses') ? '' : 'p-3 sm:p-4 md:p-5'}`}>
           {routeAssetEdit ? (
             /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
             <div className="h-full">
@@ -2915,6 +2938,54 @@ function App() {
                     selectedAssetDetail={routeAsset}
                     setSelectedAssetDetail={setSelectedAssetDetail}
                     selectedAssetCategory="assets"
+                    setSelectedAssetCategory={setSelectedAssetCategory}
+                    assets={assets} accessories={accessories} licenses={licenses}
+                    transactions={transactions} employees={employees}
+                    setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
+                    handleCheckin={handleCheckin}
+                    openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
+                    setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks}
+                    showConfirm={showConfirm} setCustomAlert={setCustomAlert}
+                    handleAssignLicenseToAsset={handleAssignLicenseToAsset}
+                    handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
+                  />
+                </div>
+              );
+            })()
+          ) : routeLicenseEdit ? (
+            /* 🆕 หน้าเต็มแก้ไขโปรแกรม / License (URL /licenses/:id/edit) */
+            <div className="h-full">
+              <EditLicenseModal
+                asPage
+                onClosePage={() => navigate(`/licenses/${encodeURIComponent(routeLicenseId)}`)}
+                editLicenseModal={editLicenseModal}
+                setEditLicenseModal={setEditLicenseModal}
+                handleUpdateLicense={handleUpdateLicensePage}
+                handleEditLicenseChange={handleEditLicenseChange}
+                fieldOptions={fieldOptions}
+              />
+            </div>
+          ) : routeLicenseId ? (
+            /* 🆕 หน้าเต็มรายละเอียดโปรแกรม / License (URL /licenses/:id) — เต็มขอบ */
+            (() => {
+              const routeLicense = licenses.find(l => l.id === routeLicenseId);
+              if (!routeLicense) {
+                return (
+                  <div className="p-5">
+                    <button onClick={() => navigate('/licenses')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบโปรแกรมนี้ (อาจถูกลบไปแล้ว)</div>
+                  </div>
+                );
+              }
+              return (
+                <div className="h-full">
+                  <AssetDetailsModal
+                    asPage
+                    onClosePage={() => navigate('/licenses')}
+                    onEditPage={() => navigate(`/licenses/${encodeURIComponent(routeLicense.id)}/edit`)}
+                    selectedAssetDetail={routeLicense}
+                    setSelectedAssetDetail={setSelectedAssetDetail}
+                    selectedAssetCategory="licenses"
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
@@ -2996,16 +3067,16 @@ function App() {
               />
             </Suspense>
           ) : (
-            <div className={activeMenu === 'assets' ? 'h-full flex flex-col w-full' : 'h-full flex flex-col max-w-[1400px] w-full mx-auto'}>
+            <div className={(activeMenu === 'assets' || activeMenu === 'licenses') ? 'h-full flex flex-col w-full' : 'h-full flex flex-col max-w-[1400px] w-full mx-auto'}>
               {/* 🆕 v2 page header */}
-              <div className={`shrink-0 ${activeMenu === 'assets' ? 'px-5 md:px-6 pt-5 pb-3.5' : 'mb-3.5'}`}>
+              <div className={`shrink-0 ${(activeMenu === 'assets' || activeMenu === 'licenses') ? 'px-5 md:px-6 pt-5 pb-3.5' : 'mb-3.5'}`}>
                 <h1 className="text-[20px] font-bold text-slate-800 tracking-tight">{menuTitle}</h1>
                 <p className="text-[13px] text-slate-400 mt-0.5">
                   {currentData.length.toLocaleString()} รายการในระบบ
                   {showDeletedEmployees ? ' · กำลังดูถังขยะ' : ''}
                 </p>
               </div>
-              <div className={activeMenu === 'assets'
+              <div className={(activeMenu === 'assets' || activeMenu === 'licenses')
                 ? 'bg-white border-t border-slate-200 flex flex-col flex-1 overflow-hidden'
                 : 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)] flex flex-col flex-1 overflow-hidden'}>
                 <div className="px-5 md:px-6 pt-5">
@@ -3054,6 +3125,8 @@ function App() {
                         setConfirmDeleteModal={setConfirmDeleteModal}
                         visibleLicenseColumns={visibleLicenseColumns}
                         canEdit={canEdit}
+                        onOpenLicense={openLicensePage}
+                        onEditLicense={(l)=>navigate(`/licenses/${encodeURIComponent(l.id)}/edit`)}
                       />
                     ) : activeMenu === 'office_supplies' ? (
                       <OfficeSupplyTable currentData={paginatedTableData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
@@ -3102,6 +3175,7 @@ function App() {
         handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
         bundledItems={bundledItems} handleAddBundledItem={handleAddBundledItem} handleDeleteBundledItem={handleDeleteBundledItem}
         suppressEditAssetModal={routeAssetEdit}
+        suppressEditLicenseModal={routeLicenseEdit}
       />
       {/* 🆕 โหลด modal เฉพาะตอนเปิด — ลด initial bundle */}
       {isITReportOpen && (

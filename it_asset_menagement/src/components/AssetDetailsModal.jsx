@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
-import { LogIn, Calendar, DollarSign, Tag, FileText, Pencil, Sparkles, Paperclip, Loader2 } from 'lucide-react';
+import { LogIn, Calendar, DollarSign, Tag, FileText, Pencil, Sparkles, Paperclip, Loader2, KeyRound, ShieldCheck, User, Laptop, Building2, Copy, Check, Hash } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
@@ -2476,17 +2476,40 @@ function SeatDetailModal({
 
   return (
     <div className="fixed inset-0 bg-slate-950/60 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_24px_60px_-24px_rgba(16,47,87,0.28)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header — ขาวสะอาด ธีมเดียวกับฝั่ง user */}
-        <div className="px-6 py-4 border-b border-slate-100">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">รายการย่อย</p>
-              <h3 className="text-[16.5px] font-bold text-slate-800 truncate">
-                {seat.seatLabel || license.name || 'รายการย่อย'}
-              </h3>
-              <p className="text-[12px] text-slate-400 mt-0.5 truncate">{license.name}</p>
+        <div className="px-6 py-5 border-b border-slate-100">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3.5 min-w-0">
+              <div className="w-11 h-11 rounded-xl bg-[#1E487A]/[0.08] text-[#1E487A] flex items-center justify-center shrink-0">
+                <KeyRound className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
+                  รายการย่อย · {license.name}
+                </p>
+                <h3 className="text-[20px] font-bold text-slate-900 leading-tight break-words">
+                  {seat.seatLabel || license.name || 'รายการย่อย'}
+                </h3>
+                {/* Status row */}
+                <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadge.cls}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
+                    {statusBadge.label}
+                  </span>
+                  {seat.type === 'assigned' && seat.assignee?.empName && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 text-xs font-semibold border border-slate-200">
+                      <User className="h-3 w-3" strokeWidth={2.2} /> {seat.assignee.empName}
+                    </span>
+                  )}
+                  {expCheck?.isExpiring && (
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${expCheck.colorClass}`}>
+                      ⚠ {expCheck.statusText}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
             <button
               onClick={onClose}
@@ -2496,24 +2519,6 @@ function SeatDetailModal({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          </div>
-
-          {/* Status row */}
-          <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadge.cls}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
-              {statusBadge.label}
-            </span>
-            {seat.type === 'assigned' && seat.assignee?.empName && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 text-xs font-semibold border border-slate-200">
-                {seat.assignee.empName}
-              </span>
-            )}
-            {expCheck?.isExpiring && (
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${expCheck.colorClass}`}>
-                ⚠ {expCheck.statusText}
-              </span>
-            )}
           </div>
         </div>
 
@@ -2600,33 +2605,69 @@ function SeatDetailModal({
             </>
           ) : (
             <>
-              {/* VIEW MODE */}
-              {seat.productKey && (
-                <div className="bg-white border border-slate-200 rounded-lg p-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Product Key</p>
-                  <p className="font-mono text-[13px] font-semibold text-slate-800 break-all">{seat.productKey}</p>
-                  {seat.keyCode && (
-                    <p className="text-[11px] text-slate-500 mt-1 font-mono">รหัส Key: {seat.keyCode}</p>
-                  )}
-                </div>
+              {/* VIEW MODE — แสดงรายละเอียดครบทุกส่วน */}
+
+              {/* ── ผู้ถือครอง / การใช้งาน (เฉพาะสิทธิ์ที่ถูกใช้งาน) ── */}
+              {seat.type === 'assigned' && seat.assignee && (
+                <SeatSection icon={seat.assignee.isAssetBound ? Laptop : User} title="ผู้ถือครอง / การใช้งาน">
+                  <div className="flex items-start gap-3.5">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-[16px] shrink-0 border ${seat.assignee.isAssetBound ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-[#1E487A] border-blue-100'}`}>
+                      {seat.assignee.isAssetBound
+                        ? <Laptop className="h-5 w-5" strokeWidth={2} />
+                        : (seat.assignee.empName?.charAt(0) || '?')}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] font-bold text-slate-800 break-words">
+                        {seat.assignee.empName
+                          || (seat.assignee.isAssetBound ? (seat.assignee.assignedAssetName || 'ผูกกับทรัพย์สิน') : '-')}
+                      </p>
+                      <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1.5">
+                        {seat.assignee.empId && <KV icon={Hash} label="รหัสพนักงาน" value={seat.assignee.empId} />}
+                        {seat.assignee.department && <KV icon={Building2} label="แผนก" value={seat.assignee.department} />}
+                        {seat.assignee.isAssetBound && seat.assignee.assignedAssetName && (
+                          <KV icon={Laptop} label="ผูกกับเครื่อง" value={seat.assignee.assignedAssetName} />
+                        )}
+                        {seat.assignee.checkoutDate && <KV icon={Calendar} label="เบิกเมื่อ" value={seat.assignee.checkoutDate} />}
+                      </div>
+                      {seat.assignee.remarks && (
+                        <p className="mt-3 pt-3 border-t border-slate-100 text-[13px] text-slate-600 leading-relaxed">
+                          <span className="text-slate-400 font-medium">หมายเหตุการมอบ: </span>{seat.assignee.remarks}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </SeatSection>
               )}
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                <InfoTile icon={Tag} label="Supplier" value={seatSupplier} />
-                <InfoTile icon={DollarSign} label="ราคา" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
-                <InfoTile icon={Calendar} label="วันที่ซื้อ" value={seatPDate} />
-                <InfoTile icon={Sparkles} label="อายุการใช้งาน" value={age} />
-                <InfoTile
-                  icon={Calendar}
-                  label="วันหมดอายุ"
-                  value={seatEDate}
-                  badge={expCheck?.isExpiring ? { text: expCheck.statusText, cls: expCheck.colorClass } : null}
-                  colspan={2}
-                />
-              </div>
+              {/* ── Product Key / รหัสอ้างอิง (แสดงเสมอ) ── */}
+              <SeatSection icon={KeyRound} title="Product Key / รหัสอ้างอิง">
+                <div className="space-y-2.5">
+                  <KeyRow label="Product Key" value={seat.productKey} />
+                  <KeyRow label="รหัสอ้างอิง Key" value={seat.keyCode} />
+                </div>
+              </SeatSection>
 
+              {/* ── ข้อมูลจัดซื้อ / อายุสิทธิ์ ── */}
+              <SeatSection icon={FileText} title="ข้อมูลสิทธิ์">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                  <InfoTile icon={Tag} label="Supplier" value={seatSupplier} colspan={2} />
+                  <InfoTile icon={ShieldCheck} label="สถานะ" value={statusBadge.label} />
+                  <InfoTile icon={DollarSign} label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
+                  <InfoTile icon={Calendar} label="วันที่ซื้อ" value={seatPDate} />
+                  <InfoTile icon={Sparkles} label="อายุการใช้งาน" value={age} />
+                  <InfoTile
+                    icon={Calendar}
+                    label="วันหมดอายุ"
+                    value={seatEDate}
+                    badge={expCheck?.isExpiring ? { text: expCheck.statusText, cls: expCheck.colorClass } : null}
+                    colspan={3}
+                  />
+                </div>
+              </SeatSection>
+
+              {/* ── หมายเหตุ ── */}
               {seat.seatNote && (
-                <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-4">
+                <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-4">
                   <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <FileText className="h-3.5 w-3.5" strokeWidth={2.4} /> หมายเหตุ
                   </p>
@@ -2634,25 +2675,21 @@ function SeatDetailModal({
                 </div>
               )}
 
-              {seat.type === 'assigned' && seat.assignee?.remarks && (
-                <div className="bg-blue-50/40 border border-blue-200 rounded-lg p-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700/80 mb-1">หมายเหตุการมอบ</p>
-                  <p className="text-[13px] text-slate-700">{seat.assignee.remarks}</p>
-                </div>
-              )}
-
-              {seat.documents?.length > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">ไฟล์แนบ ({seat.documents.length})</p>
-                  <div className="flex flex-wrap gap-1.5">
+              {/* ── ไฟล์แนบ ── */}
+              <SeatSection icon={Paperclip} title={`ไฟล์แนบ${seat.documents?.length ? ` (${seat.documents.length})` : ''}`}>
+                {seat.documents?.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
                     {seat.documents.map((d, i) => (
-                      <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-md text-[12px] text-[#1E487A] hover:bg-blue-50 transition-colors">
-                        <span className="truncate max-w-[140px]">{d.name}</span>
+                      <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-[12.5px] font-medium text-[#1E487A] hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                        <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                        <span className="truncate max-w-[180px]">{d.name}</span>
                       </a>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="text-[13px] text-slate-400">ไม่มีไฟล์แนบ</p>
+                )}
+              </SeatSection>
             </>
           )}
         </div>
@@ -2700,19 +2737,68 @@ function SeatDetailModal({
 }
 
 /* ════════════════════════════════════════════════
+   SeatSection — การ์ดหัวข้อ (ไอคอน + title) สำหรับ seat detail
+════════════════════════════════════════════════ */
+function SeatSection({ icon: Icon, title, children }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2.2} />}
+        <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* KV — key/value inline row (สำหรับข้อมูลผู้ถือครอง) */
+function KV({ icon: Icon, label, value }) {
+  return (
+    <div className="flex items-center gap-1.5 min-w-0">
+      {Icon && <Icon className="h-3.5 w-3.5 text-slate-300 shrink-0" strokeWidth={2} />}
+      <span className="text-[12px] text-slate-400 shrink-0">{label}:</span>
+      <span className="text-[13px] font-semibold text-slate-700 truncate">{value}</span>
+    </div>
+  );
+}
+
+/* KeyRow — แสดง Product Key/รหัส (mono) + ปุ่มคัดลอก, โชว์ "-" ถ้าว่าง */
+function KeyRow({ label, value }) {
+  const [copied, setCopied] = useState(false);
+  const has = value && String(value).trim();
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(String(value)); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* ignore */ }
+  };
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[11.5px] text-slate-400 w-28 sm:w-32 shrink-0">{label}</span>
+      {has ? (
+        <>
+          <span className="flex-1 font-mono text-[13px] font-semibold text-slate-800 break-all select-all">{value}</span>
+          <button type="button" onClick={copy} title="คัดลอก" className="shrink-0 text-slate-400 hover:text-[#1E487A] transition-colors">
+            {copied ? <Check className="h-4 w-4 text-emerald-500" strokeWidth={2.4} /> : <Copy className="h-4 w-4" strokeWidth={2} />}
+          </button>
+        </>
+      ) : (
+        <span className="flex-1 text-[13px] text-slate-300">-</span>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
    InfoTile — กล่อง info สำหรับรายละเอียด seat
 ════════════════════════════════════════════════ */
 function InfoTile({ icon: Icon, label, value, badge, colspan }) {
+  const span = colspan === 3 ? 'col-span-2 md:col-span-3' : colspan === 2 ? 'col-span-2' : '';
   return (
-    <div
-      className={`bg-white border border-slate-200 rounded-lg p-2.5 ${colspan === 2 ? 'col-span-2' : ''}`}
-    >
-      <div className="flex items-center gap-1.5 mb-1">
-        {Icon && <Icon className="h-3 w-3 text-slate-400" strokeWidth={2} />}
+    <div className={`bg-white border border-slate-200 rounded-xl p-3.5 ${span}`}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />}
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
       </div>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <p className="text-[13px] font-semibold text-slate-800 truncate">{value}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-[14px] font-semibold text-slate-800 break-words">{value}</p>
         {badge && (
           <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${badge.cls}`}>
             ⚠ {badge.text}

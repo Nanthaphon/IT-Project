@@ -5,6 +5,7 @@ import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
 import { formatDateShort } from '../utils/formatDate.js';
+import DateField from './DateField.jsx';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
 
 /* ── Purchase-history document storage helpers ── */
@@ -1708,11 +1709,11 @@ export default function AssetDetailsModal({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันที่ซื้อ</label>
-                          <input type="date" value={newSeatPurchaseDate} onChange={e => setNewSeatPurchaseDate(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                          <DateField value={newSeatPurchaseDate} onChange={v => setNewSeatPurchaseDate(v)} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันหมดอายุ</label>
-                          <input type="date" value={newSeatExpirationDate} onChange={e => setNewSeatExpirationDate(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                          <DateField value={newSeatExpirationDate} onChange={v => setNewSeatExpirationDate(v)} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
                         </div>
                       </div>
                       <div>
@@ -1961,11 +1962,11 @@ export default function AssetDetailsModal({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันที่ซื้อ</label>
-                          <input type="date" value={newItemData.purchaseDate} onChange={e=>setNewItemData({...newItemData, purchaseDate: e.target.value})} className="border border-slate-200 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                          <DateField value={newItemData.purchaseDate} onChange={v=>setNewItemData({...newItemData, purchaseDate: v})} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันหมดประกัน</label>
-                          <input type="date" value={newItemData.warrantyDate} onChange={e=>setNewItemData({...newItemData, warrantyDate: e.target.value})} className="border border-slate-200 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
+                          <DateField value={newItemData.warrantyDate} onChange={v=>setNewItemData({...newItemData, warrantyDate: v})} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
                         </div>
                       </div>
                       <div className="pt-3 border-t border-slate-200">
@@ -2230,7 +2231,7 @@ export default function AssetDetailsModal({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">วันที่จัดซื้อ</label>
-                        <input type="date" value={historyForm.purchaseDate} onChange={(e) => setHistoryForm({...historyForm, purchaseDate: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" />
+                        <DateField value={historyForm.purchaseDate} onChange={(v) => setHistoryForm({...historyForm, purchaseDate: v})} inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ราคา (บาท)</label>
@@ -2636,11 +2637,11 @@ function SeatDetailModal({
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">วันที่ซื้อ</label>
-                  <input type="date" value={tempLicensePurchaseDate} onChange={(e) => setTempLicensePurchaseDate(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                  <DateField value={tempLicensePurchaseDate} onChange={(v) => setTempLicensePurchaseDate(v)} inputClassName="w-full border border-slate-200 p-2 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">วันหมดอายุ</label>
-                  <input type="date" value={tempLicenseExpirationDate} onChange={(e) => setTempLicenseExpirationDate(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
+                  <DateField value={tempLicenseExpirationDate} onChange={(v) => setTempLicenseExpirationDate(v)} inputClassName="w-full border border-slate-200 p-2 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
                 </div>
               </div>
 

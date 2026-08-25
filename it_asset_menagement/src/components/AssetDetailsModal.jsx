@@ -2614,9 +2614,9 @@ function SeatDetailModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/40 space-y-4">
+        <div className="flex-1 overflow-y-auto bg-white">
           {isEditing ? (
-            <>
+            <div className="p-6 sm:p-7 space-y-4">
               {/* EDIT MODE */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ชื่อรายการย่อย</label>
@@ -2693,16 +2693,16 @@ function SeatDetailModal({
                   </div>
                 )}
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              {/* VIEW MODE — แสดงรายละเอียดครบทุกส่วน */}
+            <div className="px-6 sm:px-7 divide-y divide-slate-100">
+              {/* VIEW MODE — clean */}
 
               {/* ── ผู้ถือครอง / การใช้งาน (เฉพาะสิทธิ์ที่ถูกใช้งาน) ── */}
               {seat.type === 'assigned' && seat.assignee && (
-                <SeatSection icon={seat.assignee.isAssetBound ? Laptop : User} title="ผู้ถือครอง / การใช้งาน">
-                  <div className="flex items-start gap-3.5">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-[16px] shrink-0 border ${seat.assignee.isAssetBound ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-[#1E487A] border-blue-100'}`}>
+                <Section icon={seat.assignee.isAssetBound ? Laptop : User} title="ผู้ถือครอง / การใช้งาน">
+                  <div className="flex items-start gap-3.5 rounded-xl bg-slate-50 border border-slate-100 p-4">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-[15px] shrink-0 ${seat.assignee.isAssetBound ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-[#1E487A]'}`}>
                       {seat.assignee.isAssetBound
                         ? <Laptop className="h-5 w-5" strokeWidth={2} />
                         : (seat.assignee.empName?.charAt(0) || '?')}
@@ -2712,7 +2712,7 @@ function SeatDetailModal({
                         {seat.assignee.empName
                           || (seat.assignee.isAssetBound ? (seat.assignee.assignedAssetName || 'ผูกกับทรัพย์สิน') : '-')}
                       </p>
-                      <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1.5">
+                      <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1">
                         {seat.assignee.department && <KV icon={Building2} label="แผนก" value={seat.assignee.department} />}
                         {seat.assignee.isAssetBound && seat.assignee.assignedAssetName && (
                           <KV icon={Laptop} label="ผูกกับเครื่อง" value={seat.assignee.assignedAssetName} />
@@ -2720,53 +2720,49 @@ function SeatDetailModal({
                         {seat.assignee.checkoutDate && <KV icon={Calendar} label="เบิกเมื่อ" value={seat.assignee.checkoutDate} />}
                       </div>
                       {seat.assignee.remarks && (
-                        <p className="mt-3 pt-3 border-t border-slate-100 text-[13px] text-slate-600 leading-relaxed">
-                          <span className="text-slate-400 font-medium">หมายเหตุการมอบ: </span>{seat.assignee.remarks}
+                        <p className="mt-3 pt-3 border-t border-slate-200/70 text-[13px] text-slate-600 leading-relaxed">
+                          <span className="text-slate-400">หมายเหตุการมอบ: </span>{seat.assignee.remarks}
                         </p>
                       )}
                     </div>
                   </div>
-                </SeatSection>
+                </Section>
               )}
 
               {/* ── Product Key / รหัสอ้างอิง (แสดงเสมอ) ── */}
-              <SeatSection icon={KeyRound} title="Product Key / รหัสอ้างอิง">
-                <div className="space-y-2.5">
+              <Section icon={KeyRound} title="Product Key / รหัสอ้างอิง">
+                <div className="space-y-1">
                   <KeyRow label="Product Key" value={seat.productKey} />
                   <KeyRow label="รหัสอ้างอิง Key" value={seat.keyCode} />
                 </div>
-              </SeatSection>
+              </Section>
 
-              {/* ── ข้อมูลจัดซื้อ / อายุสิทธิ์ ── */}
-              <SeatSection icon={FileText} title="ข้อมูลสิทธิ์">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                  <InfoTile icon={Tag} label="Supplier" value={seatSupplier} colspan={2} />
-                  <InfoTile icon={ShieldCheck} label="สถานะ" value={statusBadge.label} />
-                  <InfoTile icon={DollarSign} label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
-                  <InfoTile icon={Calendar} label="วันที่ซื้อ" value={seatPDate} />
-                  <InfoTile icon={Sparkles} label="อายุการใช้งาน" value={age} />
-                  <InfoTile
-                    icon={Calendar}
+              {/* ── ข้อมูลสิทธิ์ ── */}
+              <Section icon={FileText} title="ข้อมูลสิทธิ์">
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
+                  <DItem label="Supplier" value={seatSupplier} span={2} />
+                  <DItem label="สถานะ" value={statusBadge.label} />
+                  <DItem label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
+                  <DItem label="วันที่ซื้อ" value={seatPDate} />
+                  <DItem label="อายุการใช้งาน" value={age} />
+                  <DItem
                     label="วันหมดอายุ"
                     value={seatEDate}
                     badge={expCheck?.isExpiring ? { text: expCheck.statusText, cls: expCheck.colorClass } : null}
-                    colspan={3}
+                    span={3}
                   />
-                </div>
-              </SeatSection>
+                </dl>
+              </Section>
 
               {/* ── หมายเหตุ ── */}
               {seat.seatNote && (
-                <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-4">
-                  <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5" strokeWidth={2.4} /> หมายเหตุ
-                  </p>
+                <Section icon={FileText} title="หมายเหตุ">
                   <p className="text-[13.5px] text-slate-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
-                </div>
+                </Section>
               )}
 
               {/* ── ไฟล์แนบ ── */}
-              <SeatSection icon={Paperclip} title={`ไฟล์แนบ${seat.documents?.length ? ` (${seat.documents.length})` : ''}`}>
+              <Section icon={Paperclip} title={`ไฟล์แนบ${seat.documents?.length ? ` (${seat.documents.length})` : ''}`}>
                 {seat.documents?.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {seat.documents.map((d, i) => (
@@ -2777,10 +2773,10 @@ function SeatDetailModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[13px] text-slate-400">ไม่มีไฟล์แนบ</p>
+                  <p className="text-[13px] text-slate-300">— ไม่มีไฟล์แนบ</p>
                 )}
-              </SeatSection>
-            </>
+              </Section>
+            </div>
           )}
         </div>
 
@@ -2827,17 +2823,17 @@ function SeatDetailModal({
 }
 
 /* ════════════════════════════════════════════════
-   SeatSection — การ์ดหัวข้อ (ไอคอน + title) สำหรับ seat detail
+   Section — หัวข้อ (ไอคอน + title) คั่นด้วยเส้นบาง — สไตล์คลีน
 ════════════════════════════════════════════════ */
-function SeatSection({ icon: Icon, title, children }) {
+function Section({ icon: Icon, title, children }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4">
+    <section className="py-5 first:pt-1 last:pb-2">
       <div className="flex items-center gap-2 mb-3">
-        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2.2} />}
-        <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
+        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />}
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-400">{title}</h4>
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
@@ -2877,24 +2873,21 @@ function KeyRow({ label, value }) {
 }
 
 /* ════════════════════════════════════════════════
-   InfoTile — กล่อง info สำหรับรายละเอียด seat
+   DItem — รายการ definition (label เล็ก + value) แบบไม่มีกล่อง
 ════════════════════════════════════════════════ */
-function InfoTile({ icon: Icon, label, value, badge, colspan }) {
-  const span = colspan === 3 ? 'col-span-2 md:col-span-3' : colspan === 2 ? 'col-span-2' : '';
+function DItem({ label, value, badge, span }) {
+  const spanCls = span === 3 ? 'col-span-2 sm:col-span-3' : span === 2 ? 'col-span-2' : '';
   return (
-    <div className={`bg-white border border-slate-200 rounded-xl p-3.5 ${span}`}>
-      <div className="flex items-center gap-1.5 mb-1.5">
-        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />}
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-      </div>
-      <div className="flex items-center gap-2 flex-wrap">
-        <p className="text-[14px] font-semibold text-slate-800 break-words">{value}</p>
+    <div className={`min-w-0 ${spanCls}`}>
+      <dt className="text-[11px] text-slate-400 mb-0.5">{label}</dt>
+      <dd className="flex items-center gap-2 flex-wrap">
+        <span className="text-[14px] font-semibold text-slate-800 break-words">{value}</span>
         {badge && (
           <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${badge.cls}`}>
             ⚠ {badge.text}
           </span>
         )}
-      </div>
+      </dd>
     </div>
   );
 }

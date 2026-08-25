@@ -85,6 +85,8 @@ export default function AssetDetailsModal({
   const [tempLicenseLabel, setTempLicenseLabel] = useState('');
   // 🆕 modal สำหรับดูรายละเอียด seat (แทน inline expand)
   const [seatDetailModal, setSeatDetailModal] = useState(null);
+  // 🆕 ค้นหาในรายการย่อย (seats) ของ License
+  const [seatSearch, setSeatSearch] = useState('');
   const [tempLicensePurchaseDate, setTempLicensePurchaseDate] = useState('');
   const [tempLicenseExpirationDate, setTempLicenseExpirationDate] = useState('');
   const [tempLicenseProductKey, setTempLicenseProductKey] = useState('');
@@ -758,6 +760,21 @@ export default function AssetDetailsModal({
   }
 
   const totalLicenseCost = licenseSeats.reduce((sum, s) => sum + (Number(s.seatCost) || 0), 0);
+
+  // 🆕 กรองรายการย่อยตามคำค้นหา (ชื่อ, ผู้ถือ, key, supplier, สถานะ, หมายเหตุ)
+  const seatSearchQ = seatSearch.trim().toLowerCase();
+  const visibleLicenseSeats = seatSearchQ
+    ? licenseSeats.filter(s => {
+        const statusText = s.type === 'available'
+          ? 'พร้อมใช้งาน ว่าง available'
+          : s.assignee?.isAssetBound ? 'ติดตั้งบนเครื่อง ผูกกับทรัพย์สิน' : 'ถูกใช้งาน';
+        return [
+          s.seatLabel, s.productKey, s.keyCode, s.seatSupplier, s.seatNote,
+          s.assignee?.empName, s.assignee?.department, s.assignee?.assignedAssetName,
+          statusText,
+        ].filter(Boolean).join(' ').toLowerCase().includes(seatSearchQ);
+      })
+    : licenseSeats;
 
   const handleSelectItem = (itemId) => {
     setSelectedItemsForDelete(prev => 
@@ -1583,7 +1600,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการผู้ถือสิทธิ์ ({licenseSeats.length})</h4>
+                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {licenseSeats.length > 0 && (
@@ -1605,6 +1622,36 @@ export default function AssetDetailsModal({
                       </button>
                     </div>
                   </div>
+
+                  {/* 🆕 ช่องค้นหาในรายการย่อย */}
+                  {licenseSeats.length > 0 && (
+                    <div className="px-5 py-2.5 border-b border-slate-100">
+                      <div className="relative">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                        </svg>
+                        <input
+                          type="text"
+                          value={seatSearch}
+                          onChange={(e) => setSeatSearch(e.target.value)}
+                          placeholder="ค้นหารายการย่อย (ชื่อ, ผู้ถือ, Product Key, Supplier, สถานะ...)"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2 text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] focus:bg-white transition"
+                        />
+                        {seatSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setSeatSearch('')}
+                            title="ล้างคำค้นหา"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 w-5 h-5 flex items-center justify-center rounded transition-colors"
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="p-4">
                   {isImportingLicenseCSV && (
@@ -1704,7 +1751,13 @@ export default function AssetDetailsModal({
                   </Modal>
 
                   <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
-                    {licenseSeats.map((seat, index) => (
+                    {visibleLicenseSeats.length === 0 && seatSearchQ && (
+                      <div className="py-10 text-center text-slate-400">
+                        <p className="text-[13.5px] font-medium">ไม่พบรายการย่อยที่ตรงกับ “{seatSearch}”</p>
+                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-[12.5px] font-semibold text-[#1E487A] hover:underline">ล้างคำค้นหา</button>
+                      </div>
+                    )}
+                    {visibleLicenseSeats.map((seat, index) => (
                       <div key={seat.id} className="bg-white transition-colors hover:bg-slate-50">
                         <div onClick={() => setSeatDetailModal(seat)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
                           <div className="flex items-center gap-3 overflow-hidden">

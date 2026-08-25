@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Star, MessageSquare, Wrench, CalendarDays, Sparkles, CheckCircle2, X } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 /* ── Rating labels ─────────────────────────────────── */
 const RATING_LABELS = {
@@ -81,9 +82,7 @@ export default function SatisfactionSurveyModal({
 
   if (!isOpen || !repair) return null;
 
-  const dateStr = repair.timestamp
-    ? new Date(repair.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
-    : '-';
+  const dateStr = repair.timestamp ? formatDateShort(repair.timestamp) : '-';
 
   return (
     <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[95]">

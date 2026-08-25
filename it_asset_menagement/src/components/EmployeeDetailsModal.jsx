@@ -3,6 +3,7 @@ import { Printer, Key, Eye, EyeOff, Copy, CheckCircle2, RotateCcw, Shield } from
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
+import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
@@ -248,7 +249,7 @@ export default function EmployeeDetailsModal({
                   <InfoItem label="เบอร์โทรศัพท์" value={selectedEmployee.phone} />
                   <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} />
                   <InfoItem label="วันที่เริ่มงาน" value={selectedEmployee.startDate
-                    ? new Date(selectedEmployee.startDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+                    ? formatDateShort(selectedEmployee.startDate)
                     : ''} />
                 </InfoGrid>
               </Section>
@@ -647,7 +648,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
     } catch {}
   };
 
-  const fmtTime = (d) => d ? d.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+  const fmtTime = (d) => d ? formatDateTimeShort(d) : '-';
 
   return (
     <div className="px-4 py-3 space-y-3">
@@ -837,10 +838,7 @@ function EmptyState({ label }) {
 ════════════════════════════════════════════════ */
 function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrintReturn }) {
   const TH_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const fmtDate = (ts) => {
-    const d = new Date(ts);
-    return `${d.getDate()} ${TH_MONTHS[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
-  };
+  const fmtDate = (ts) => formatDateShort(ts);
   const fmtTime = (ts) => {
     const d = new Date(ts);
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;

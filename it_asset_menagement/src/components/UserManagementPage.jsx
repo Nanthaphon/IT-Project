@@ -7,6 +7,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Plus, Pencil, Trash2, Users, Shield, Eye, CheckSquare, Square, X, KeyRound } from 'lucide-react';
 import { cls, BRAND } from '../ui/theme.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 /* ── Firebase secondary app (to create users without logging out) ── */
 const firebaseConfig = {
@@ -270,8 +271,8 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
   /* ── Date formatter ── */
   function fmtDate(ts) {
     if (!ts) return '-';
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
-    return d.toLocaleDateString('th-TH', { dateStyle: 'medium' });
+    const d = ts.toDate ? ts.toDate() : ts;
+    return formatDateShort(d);
   }
 
   if (loading) {

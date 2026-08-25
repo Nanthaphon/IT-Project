@@ -3,6 +3,7 @@ import {
   Monitor, Key, Plus, X, Search, Package, Trash2,
   ChevronDown, ChevronUp, CheckCircle2,
 } from 'lucide-react';
+import { formatDateShort } from '../utils/formatDate.js';
 
 /**
  * AssetLicenseTab — แสดงและจัดการ License ที่ผูกกับ asset นี้โดยตรง
@@ -172,7 +173,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                       <p className="text-[13px] font-semibold text-slate-800 truncate">{lic.name}</p>
                       <p className="text-[11px] text-slate-400">
                         ว่าง {avail}/{total} สิทธิ์
-                        {lic.expirationDate && ` · หมดอายุ ${lic.expirationDate}`}
+                        {lic.expirationDate && ` · หมดอายุ ${formatDateShort(lic.expirationDate)}`}
                       </p>
                     </div>
                     {isSel && <CheckCircle2 className="h-4 w-4 text-[#1E487A] shrink-0" strokeWidth={2} />}

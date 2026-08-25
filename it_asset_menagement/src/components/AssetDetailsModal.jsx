@@ -4,6 +4,7 @@ import { LogIn, Calendar, DollarSign, Tag, FileText, Pencil, Sparkles, Paperclip
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
+import { formatDateShort } from '../utils/formatDate.js';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
 
 /* ── Purchase-history document storage helpers ── */
@@ -1457,8 +1458,8 @@ export default function AssetDetailsModal({
                       <DetailItem label="กำลังใช้งาน" value={`${currentAssetDetail.assignees?.length || 0} สิทธิ์`} />
                       <DetailItem label="คงเหลือ" value={`${Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0))} สิทธิ์`} />
                       <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
-                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
-                      <DetailItem label="วันที่หมดอายุ" value={currentAssetDetail.expirationDate} />
+                      <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
+                      <DetailItem label="วันที่หมดอายุ" value={formatDateShort(currentAssetDetail.expirationDate)} />
                       <DetailItem label="ราคา (บาท)" value={currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'} />
                       {/* 🆕 หมายเหตุ — ใช้บันทึกข้อมูลเพิ่มเติม */}
                       {currentAssetDetail.note && (
@@ -1477,9 +1478,9 @@ export default function AssetDetailsModal({
                       <DetailItem label="ยี่ห้อ/รุ่น (Model)" value={currentAssetDetail.model} />
                       <DetailItem label="ผู้จัดจำหน่าย" value={currentAssetDetail.vendor} />
                       <DetailItem label="บริษัท" value={currentAssetDetail.company} />
-                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                      <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       <DetailItem label="อายุการใช้งาน" value={calculateAge(currentAssetDetail.purchaseDate)} />
-                      <DetailItem label="วันที่หมด Warranty" value={currentAssetDetail.warrantyDate} />
+                      <DetailItem label="วันที่หมด Warranty" value={formatDateShort(currentAssetDetail.warrantyDate)} />
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
@@ -1502,7 +1503,7 @@ export default function AssetDetailsModal({
                       <DetailItem label="จำนวนทั้งหมด" value={`${currentAssetDetail.quantity || 0} ชิ้น`} />
                       <DetailItem label="คงเหลือ (เบิกได้)" value={`${currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : 0} ชิ้น`} />
                       <DetailItem label="ผู้จัดจำหน่าย (Vendor)" value={currentAssetDetail.vendor} />
-                      <DetailItem label="วันที่ซื้อ" value={currentAssetDetail.purchaseDate} />
+                      <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
@@ -1785,7 +1786,7 @@ export default function AssetDetailsModal({
                                   return ex.isExpiring ? (
                                     <span
                                       className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${seat.seatExpirationDate || currentAssetDetail.expirationDate}`}
+                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
                                     </span>
@@ -1821,7 +1822,7 @@ export default function AssetDetailsModal({
                                   return ex.isExpiring ? (
                                     <span
                                       className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${seat.seatExpirationDate || currentAssetDetail.expirationDate}`}
+                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
                                     </span>
@@ -1854,7 +1855,7 @@ export default function AssetDetailsModal({
                                   return ex.isExpiring ? (
                                     <span
                                       className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${seat.seatExpirationDate || currentAssetDetail.expirationDate}`}
+                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
                                     </span>
@@ -2065,8 +2066,8 @@ export default function AssetDetailsModal({
                                   <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2 text-xs">
                                     <div><span className="text-slate-400 block text-[11px]">รุ่น/โมเดล</span><span className="font-medium text-slate-800">{item.model || '-'}</span></div>
                                     <div><span className="text-slate-400 block text-[11px]">ราคา/ชิ้น</span><span className="font-medium text-slate-800">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{item.purchaseDate || '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{item.warrantyDate || '-'}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{formatDateShort(item.purchaseDate)}</span></div>
+                                    <div><span className="text-slate-400 block text-[11px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{formatDateShort(item.warrantyDate)}</span></div>
                                     {(() => {
                                       const age = calcAccessoryAge(item.purchaseDate);
                                       if (!age) return null;
@@ -2172,7 +2173,7 @@ export default function AssetDetailsModal({
                                 <span className="bg-blue-50 text-[#1E487A] px-2 py-0.5 rounded-md text-[10.5px] font-semibold border border-blue-200 shrink-0">ล่าสุด</span>
                               )}
                               <span className="text-[13px] text-slate-500 font-medium shrink-0">
-                                {hist.purchaseDate ? new Date(hist.purchaseDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : 'ไม่ระบุวันที่'}
+                                {hist.purchaseDate ? formatDateShort(hist.purchaseDate) : 'ไม่ระบุวันที่'}
                               </span>
                             </div>
                             <div className="text-[16px] font-bold text-[#1E487A] shrink-0">
@@ -2531,8 +2532,8 @@ function SeatDetailModal({
   // 🔒 lock background scroll — ใช้ global observer แทนแล้ว
 
   const seatSupplier = seat.seatSupplier || license.supplier || '-';
-  const seatPDate = seat.seatPurchaseDate || license.purchaseDate || '-';
-  const seatEDate = seat.seatExpirationDate || license.expirationDate || '-';
+  const seatPDate = (seat.seatPurchaseDate || license.purchaseDate) ? formatDateShort(seat.seatPurchaseDate || license.purchaseDate) : '-';
+  const seatEDate = (seat.seatExpirationDate || license.expirationDate) ? formatDateShort(seat.seatExpirationDate || license.expirationDate) : '-';
   const expCheck = (seat.seatExpirationDate || license.expirationDate)
     ? checkLicenseExpiration(seat.seatExpirationDate || license.expirationDate)
     : null;

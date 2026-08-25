@@ -4,6 +4,7 @@ import { useActiveTab } from '../hooks/useActiveTab.js';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
 import { e, safeUrl } from '../utils/htmlEscape.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -1124,7 +1125,7 @@ export default function StaffView({
                     <tbody className="divide-y divide-slate-50">
                       {currentRepairRequests.map(req => (
                         <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
-                          <Td>{new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</Td>
+                          <Td>{formatDateShort(req.timestamp)}</Td>
                           <Td bold>{req.assetName}</Td>
                           <Td muted truncate>{req.issue}</Td>
                           <td className="px-4 py-3 text-center"><span className={statusBadge(req.status)}>{req.status}</span></td>
@@ -1291,7 +1292,7 @@ export default function StaffView({
                     <tbody className="divide-y divide-slate-50">
                       {myReplacementReqs.map(req => (
                         <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
-                          <Td>{new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</Td>
+                          <Td>{formatDateShort(req.timestamp)}</Td>
                           <Td bold>{req.currentStatus}</Td>
                           <Td muted truncate>{req.reason}</Td>
                           <td className="px-4 py-3 text-center"><span className={statusBadge(req.status)}>{req.status}</span></td>
@@ -1445,7 +1446,7 @@ export default function StaffView({
                           <div className="flex-1 min-w-0">
                             <p className="text-[13.5px] font-semibold text-slate-800 truncate">{req.supplyName}</p>
                             <p className="text-[11.5px] text-slate-400 mt-0.5">
-                              {new Date(req.timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              {formatDateShort(req.timestamp)}
                             </p>
                           </div>
                           <span className="text-[13px] font-semibold text-[#1E487A] tabular-nums">× {req.requestedQty}</span>
@@ -2178,7 +2179,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                       <p className="text-[11.5px] text-rose-600 mt-1">ปฏิเสธ: {req.rejectReason}</p>
                     )}
                     <p className="text-[10.5px] text-slate-400 mt-1">
-                      {req.timestamp ? new Date(req.timestamp).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                      {req.timestamp ? formatDateShort(req.timestamp) : ''}
                     </p>
                   </div>
                   <span className={`text-[10.5px] font-semibold px-2 py-1 rounded ring-1 ring-inset shrink-0 ${STATUS_BADGE[req.status] || ''}`}>

@@ -4,7 +4,7 @@ import {
   Clock, Package, Check, X, CalendarDays, BarChart3, TrendingUp, ChevronDown, ChevronUp,
   Download, Building2,
 } from 'lucide-react';
-import { formatDateTimeShort } from '../utils/formatDate.js';
+import { formatDateTimeShort, formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]';
@@ -233,7 +233,7 @@ export default function SupplyRequestTable({
       .forEach(r => {
         const supply = officeSupplies.find(s => s.id === r.supplyId);
         lines.push([
-          esc(r.timestamp ? new Date(r.timestamp).toLocaleDateString('th-TH') : '-'),
+          esc(r.timestamp ? formatDateShort(r.timestamp) : '-'),
           esc(r.empName || '-'),
           esc(r.department || '-'),
           esc(r.supplyName || '-'),

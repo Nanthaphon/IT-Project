@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pencil, Trash2, FileText, AlertTriangle, LogIn, RotateCcw } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 const TH = 'px-5 py-3.5 font-semibold text-slate-400 text-[11.5px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-4';
@@ -107,12 +108,12 @@ export default function LicenseTable({
               )}
 
               {col.supplier && <td className={`${TD} text-slate-600`}>{item.supplier || '-'}</td>}
-              {col.purchaseDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.purchaseDate || '-'}</td>}
+              {col.purchaseDate && <td className={`${TD} text-slate-500 tabular-nums`}>{formatDateShort(item.purchaseDate)}</td>}
 
               {col.expirationDate && (
                 <td className={`${TD} text-slate-600`}>
                   <div className="flex flex-col gap-1 items-start">
-                    <span className="text-slate-700 tabular-nums">{item.expirationDate || '-'}</span>
+                    <span className="text-slate-700 tabular-nums">{formatDateShort(item.expirationDate)}</span>
                     {(() => {
                       // 🆕 เช็ค parent + รวบ per-seat ที่กำลังจะหมดอายุ
                       const parentExp = checkLicenseExpiration(item.expirationDate);

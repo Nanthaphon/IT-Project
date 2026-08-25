@@ -4,6 +4,7 @@ import {
   Package, Check, X, CalendarDays, RotateCcw, PlusCircle, Repeat, ImageIcon,
 } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
@@ -26,11 +27,7 @@ const REQUEST_TYPE = {
 
 /* ─── Date helpers ───────────────────────────────────────── */
 const TH_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const formatDate = (ts) => {
-  if (!ts) return '-';
-  const d = new Date(ts);
-  return `${d.getDate()} ${TH_MONTHS[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
-};
+const formatDate = (ts) => formatDateShort(ts);
 const formatTime = (ts) => {
   if (!ts) return '';
   const d = new Date(ts);

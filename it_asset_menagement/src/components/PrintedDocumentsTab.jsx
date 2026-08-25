@@ -9,6 +9,7 @@ import {
   deleteSignedFile,
 } from '../utils/printedDocumentStore.js';
 import { printViaIframe } from '../utils/printViaIframe.js';
+import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /**
  * PrintedDocumentsTab
@@ -111,11 +112,8 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
 
   const fmtDate = (ts) => {
     if (!ts) return '-';
-    const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
-    return d.toLocaleString('th-TH', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
+    const d = ts.seconds ? new Date(ts.seconds * 1000) : ts;
+    return formatDateTimeShort(d);
   };
 
   const fmtSize = (bytes) => {

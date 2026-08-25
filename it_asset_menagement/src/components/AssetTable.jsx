@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pencil, Trash2, Monitor, User as UserIcon, LogIn, RotateCcw, Copy } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 const TH = 'px-5 py-3.5 font-semibold text-slate-400 text-[11.5px] uppercase tracking-[0.08em]';
 const TD = 'px-5 py-4';
@@ -148,8 +149,8 @@ export default function AssetTable({
             {visibleAssetColumns.model && <td className={`${TD} text-slate-700`}>{item.model || '-'}</td>}
             {visibleAssetColumns.vendor && <td className={`${TD} text-slate-700`}>{item.vendor || '-'}</td>}
             {visibleAssetColumns.company && <td className={`${TD} text-slate-700`}>{item.company || '-'}</td>}
-            {visibleAssetColumns.purchaseDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.purchaseDate || '-'}</td>}
-            {visibleAssetColumns.warrantyDate && <td className={`${TD} text-slate-500 tabular-nums`}>{item.warrantyDate || '-'}</td>}
+            {visibleAssetColumns.purchaseDate && <td className={`${TD} text-slate-500 tabular-nums`}>{formatDateShort(item.purchaseDate)}</td>}
+            {visibleAssetColumns.warrantyDate && <td className={`${TD} text-slate-500 tabular-nums`}>{formatDateShort(item.warrantyDate)}</td>}
             {visibleAssetColumns.age && (
               <td className={`${TD} text-slate-700 tabular-nums whitespace-nowrap`}>{calcAge(item.purchaseDate)}</td>
             )}

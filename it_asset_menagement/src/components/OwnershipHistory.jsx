@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { doc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase.js';
+import { formatDateShort } from '../utils/formatDate.js';
 import ConditionCapture, {
   CHECKLIST_FIELDS, FIELD_STATUS_LABELS, EMPTY_FIELDS, flattenFields, migrateFields,
 } from './ConditionCapture.jsx';
@@ -193,7 +194,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
   const [attachments, setAttachments] = useState(null); // ดึงครั้งเดียวต่อ card เพื่อแสดง count badge
   const { checkout, return: ret } = period;
 
-  const fmt = (ts) => ts ? new Date(ts).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+  const fmt = (ts) => ts ? formatDateShort(ts) : '-';
 
   const duration = formatDuration(checkout.timestamp, ret?.timestamp);
 
@@ -789,7 +790,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                     {att.docType === 'other' && att.fileName ? ' · ' : ''}
                     {formatBytes(att.fileSize)}
                     {att.uploadedAt
-                      ? ` · แนบเมื่อ ${new Date(att.uploadedAt).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                      ? ` · แนบเมื่อ ${formatDateShort(att.uploadedAt)}`
                       : ''}
                   </p>
                 </div>

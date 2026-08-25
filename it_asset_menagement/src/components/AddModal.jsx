@@ -3,6 +3,7 @@ import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import DateField from './DateField.jsx';
 import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
 export default function AddModal({
@@ -85,7 +86,7 @@ export default function AddModal({
                   <input type="tel" name="phone" value={empForm.phone || ''} onChange={handleEmpChange} className={cls.input} placeholder="เบอร์โทรศัพท์" />
                 </Field>
                 <Field label="วันที่เริ่มงาน">
-                  <input type="date" name="startDate" value={empForm.startDate || ''} onChange={handleEmpChange} className={cls.input} />
+                  <DateField value={empForm.startDate || ''} onChange={(v) => handleEmpChange({ target: { name: 'startDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
                 </Field>
               </div>
             </section>
@@ -218,10 +219,10 @@ export default function AddModal({
               <SectionHeader>การจัดซื้อ</SectionHeader>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="วันที่ซื้อ">
-                  <input type="date" name="purchaseDate" value={licenseForm.purchaseDate || ''} onChange={handleLicenseChange} className={cls.input} />
+                  <DateField value={licenseForm.purchaseDate || ''} onChange={(v) => handleLicenseChange({ target: { name: 'purchaseDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
                 </Field>
                 <Field label="วันที่หมดอายุ">
-                  <input type="date" name="expirationDate" value={licenseForm.expirationDate || ''} onChange={handleLicenseChange} className={cls.input} />
+                  <DateField value={licenseForm.expirationDate || ''} onChange={(v) => handleLicenseChange({ target: { name: 'expirationDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
                 </Field>
               </div>
               <Field label="ราคา (บาท)">
@@ -343,10 +344,10 @@ export default function AddModal({
                 <SectionHeader>การจัดซื้อ</SectionHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="วันที่ซื้อ">
-                    <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} className={cls.input} />
+                    <DateField value={purchaseDate} onChange={(v) => setPurchaseDate(v)} inputClassName={cls.input + ' pr-9'} />
                   </Field>
                   <Field label="วันที่หมด Warranty">
-                    <input type="date" value={warrantyDate} onChange={(e) => setWarrantyDate(e.target.value)} className={cls.input} />
+                    <DateField value={warrantyDate} onChange={(v) => setWarrantyDate(v)} inputClassName={cls.input + ' pr-9'} />
                   </Field>
                 </div>
               </section>
@@ -405,7 +406,7 @@ export default function AddModal({
                     <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={cls.input} placeholder="ระบุจำนวน..." required />
                   </Field>
                   <Field label="วันที่ซื้อ">
-                    <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} className={cls.input + ' text-slate-700'} />
+                    <DateField value={purchaseDate} onChange={(v) => setPurchaseDate(v)} inputClassName={cls.input + ' text-slate-700 pr-9'} />
                   </Field>
                 </div>
                 <Field label="ผู้จัดจำหน่าย (Vendor)" hint="ชื่อร้าน/บริษัทที่ซื้อมา">

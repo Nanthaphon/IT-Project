@@ -3,6 +3,7 @@ import { Pencil, ShieldCheck, Link2, PlusCircle, X } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import DateField from './DateField.jsx';
 
 export default function EditEmpModal({
   editEmpModal,
@@ -56,7 +57,7 @@ export default function EditEmpModal({
                 <input type="tel" name="phone" value={data.phone || ''} onChange={handleEditEmpChange} className={cls.input} />
               </Field>
               <Field label="วันที่เริ่มงาน">
-                <input type="date" name="startDate" value={data.startDate || ''} onChange={handleEditEmpChange} className={cls.input} />
+                <DateField value={data.startDate || ''} onChange={(v) => handleEditEmpChange({ target: { name: 'startDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
               </Field>
             </div>
           </section>

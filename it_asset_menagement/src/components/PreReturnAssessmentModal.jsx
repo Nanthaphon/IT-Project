@@ -6,6 +6,7 @@ import {
   ASSESSMENT_SECTIONS, itemMaxScore, scoreFromStatus, buildEmptyAssessment,
 } from '../utils/printHandoverForm.js';
 import { DAMAGE_FEE_TABLE } from '../utils/printHandoverForm.js';
+import DateField from './DateField.jsx';
 import { RETURN_PHOTO_SLOTS, DAMAGE_PHOTO_SLOTS, printReturnForm } from '../utils/printReturnForm.js';
 import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
 import { migrateFields } from './ConditionCapture.jsx';
@@ -185,15 +186,15 @@ export default function PreReturnAssessmentModal({
           <div className="bg-white border border-slate-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-[13px] font-medium text-slate-600 mb-1.5">วันที่รับมอบ (ขา 1)</label>
-              <input type="date" value={editableHandoverDate}
-                onChange={(e) => setEditableHandoverDate(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"/>
+              <DateField value={editableHandoverDate}
+                onChange={(v) => setEditableHandoverDate(v)}
+                inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"/>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-slate-600 mb-1.5">วันที่คืน (ขา 2)</label>
-              <input type="date" value={editableReturnDate}
-                onChange={(e) => setEditableReturnDate(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"/>
+              <DateField value={editableReturnDate}
+                onChange={(v) => setEditableReturnDate(v)}
+                inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"/>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-slate-600 mb-1.5">Tier (อัตราค่าปรับ)</label>

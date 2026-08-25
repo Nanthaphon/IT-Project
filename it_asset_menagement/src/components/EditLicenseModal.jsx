@@ -3,6 +3,7 @@ import { Pencil, Image as ImageIcon, X as XIcon } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import DateField from './DateField.jsx';
 import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
 export default function EditLicenseModal({
@@ -94,10 +95,10 @@ export default function EditLicenseModal({
             <SectionHeader>การจัดซื้อและสถานะ</SectionHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="วันที่ซื้อ">
-                <input type="date" name="purchaseDate" value={editLicenseModal.data.purchaseDate || ''} onChange={handleEditLicenseChange} className={cls.input} />
+                <DateField value={editLicenseModal.data.purchaseDate || ''} onChange={(v) => handleEditLicenseChange({ target: { name: 'purchaseDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
               </Field>
               <Field label="วันที่หมดอายุ">
-                <input type="date" name="expirationDate" value={editLicenseModal.data.expirationDate || ''} onChange={handleEditLicenseChange} className={cls.input} />
+                <DateField value={editLicenseModal.data.expirationDate || ''} onChange={(v) => handleEditLicenseChange({ target: { name: 'expirationDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
               </Field>
               <Field label="ราคา (บาท)">
                 <div className="relative">

@@ -9,6 +9,7 @@ import {
   printHandoverForm,
 } from '../utils/printHandoverForm.js';
 import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
+import DateField from './DateField.jsx';
 
 const STATUS_OPTIONS = [
   { value: 'normal',  label: 'ปกติ',  color: 'emerald' },
@@ -225,11 +226,11 @@ export default function PreHandoverAssessmentModal({
             <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
               วันที่รับมอบ
             </label>
-            <input
-              type="date"
+            <DateField
               value={handoverDate}
-              onChange={(e) => setHandoverDate(e.target.value)}
-              className="w-full sm:w-72 bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+              onChange={(v) => setHandoverDate(v)}
+              className="w-full sm:w-72"
+              inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
             />
             {selectedAsset && (
               <p className="mt-2 text-[12px] text-slate-500">

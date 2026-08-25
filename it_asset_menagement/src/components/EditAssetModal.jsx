@@ -1,5 +1,6 @@
 import React from 'react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import DateField from './DateField.jsx';
 import { COMPANIES } from '../ui/theme.js';
 import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
@@ -281,21 +282,17 @@ export default function EditAssetModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="วันที่ซื้อ">
-                    <input
-                      type="date"
-                      name="purchaseDate"
+                    <DateField
                       value={editAssetModal.data.purchaseDate || ''}
-                      onChange={handleEditAssetChange}
-                      className={inputCls + ' text-slate-700'}
+                      onChange={(v) => handleEditAssetChange({ target: { name: 'purchaseDate', value: v } })}
+                      inputClassName={inputCls + ' text-slate-700 pr-9'}
                     />
                   </Field>
                   <Field label="วันที่หมด Warranty">
-                    <input
-                      type="date"
-                      name="warrantyDate"
+                    <DateField
                       value={editAssetModal.data.warrantyDate || ''}
-                      onChange={handleEditAssetChange}
-                      className={inputCls + ' text-slate-700'}
+                      onChange={(v) => handleEditAssetChange({ target: { name: 'warrantyDate', value: v } })}
+                      inputClassName={inputCls + ' text-slate-700 pr-9'}
                     />
                   </Field>
                   <Field label="ราคา (บาท)">
@@ -438,12 +435,10 @@ export default function EditAssetModal({
                     />
                   </Field>
                   <Field label="วันที่ซื้อ">
-                    <input
-                      type="date"
-                      name="purchaseDate"
+                    <DateField
                       value={editAssetModal.data.purchaseDate || ''}
-                      onChange={handleEditAssetChange}
-                      className={inputCls + ' text-slate-700'}
+                      onChange={(v) => handleEditAssetChange({ target: { name: 'purchaseDate', value: v } })}
+                      inputClassName={inputCls + ' text-slate-700 pr-9'}
                     />
                   </Field>
                 </div>

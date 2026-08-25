@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { generateITReport } from '../utils/generateITReport.js';
 import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import DateField from './DateField.jsx';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -63,7 +64,7 @@ function BigIssuesEditor({ value, onChange }) {
             </div>
             <div>
               <label className={labelCls}>Due</label>
-              <input type="date" value={row.due} onChange={e => update(i, 'due', e.target.value)} className={inputCls} />
+              <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9'} />
             </div>
           </div>
         </div>
@@ -110,7 +111,7 @@ function RDEditor({ value, onChange }) {
               </div>
               <div>
                 <label className={labelCls}>Due</label>
-                <input type="date" value={row.due} onChange={e => update(i, 'due', e.target.value)} className={inputCls} />
+                <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9'} />
               </div>
             </div>
           </div>
@@ -165,7 +166,7 @@ function FollowupEditor({ value, onChange }) {
             </div>
             <div>
               <label className={labelCls}>Due</label>
-              <input type="date" value={row.due} onChange={e => update(i, 'due', e.target.value)} className={inputCls} />
+              <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9'} />
             </div>
             <div>
               <label className={labelCls}>หมายเหตุ</label>

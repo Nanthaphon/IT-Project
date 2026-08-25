@@ -1771,6 +1771,12 @@ export default function AssetDetailsModal({
                                     {seat.seatLabel || currentAssetDetail.name || 'รายการย่อย'}
                                   </p>
                                   <p className="text-[11px] text-slate-400 truncate">สิทธิ์ว่าง</p>
+                                  {seat.productKey && (
+                                    <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
+                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
+                                      {seat.productKey}
+                                    </p>
+                                  )}
                                 </div>
                                 <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold shrink-0">พร้อมใช้งาน</span>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}
@@ -1802,6 +1808,12 @@ export default function AssetDetailsModal({
                                   ) : (
                                     <p className="text-[11px] text-purple-500 font-medium">ผูกกับทรัพย์สิน</p>
                                   )}
+                                  {seat.productKey && (
+                                    <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
+                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
+                                      {seat.productKey}
+                                    </p>
+                                  )}
                                 </div>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}
                                 {(() => {
@@ -1828,6 +1840,12 @@ export default function AssetDetailsModal({
                                     <p className="text-[11px] text-slate-500 truncate font-medium">{seat.seatLabel}</p>
                                   ) : seat.assignee.checkoutDate && (
                                     <p className="text-[11px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>
+                                  )}
+                                  {seat.productKey && (
+                                    <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
+                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
+                                      {seat.productKey}
+                                    </p>
                                   )}
                                 </div>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}

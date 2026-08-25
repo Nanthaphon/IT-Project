@@ -1779,6 +1779,12 @@ export default function AssetDetailsModal({
                                       {seat.productKey}
                                     </p>
                                   )}
+                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                    <p className="text-[10.5px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
+                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
+                                    </p>
+                                  )}
                                 </div>
                                 <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold shrink-0">พร้อมใช้งาน</span>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}
@@ -1816,6 +1822,12 @@ export default function AssetDetailsModal({
                                       {seat.productKey}
                                     </p>
                                   )}
+                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                    <p className="text-[10.5px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
+                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
+                                    </p>
+                                  )}
                                 </div>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}
                                 {(() => {
@@ -1847,6 +1859,12 @@ export default function AssetDetailsModal({
                                     <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
                                       <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
                                       {seat.productKey}
+                                    </p>
+                                  )}
+                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                    <p className="text-[10.5px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
+                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
                                     </p>
                                   )}
                                 </div>

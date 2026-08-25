@@ -120,14 +120,17 @@ export default function LicenseTable({
 
                       // เก็บ seat ที่ใกล้หมดอายุ (excluding ที่ใช้ date เดียวกับ parent)
                       const expiringSeats = [];
-                      (item.availableSeatExpirationDates || []).forEach((d, i) => {
-                        if (!d || d === item.expirationDate) return;
+                      // available seats — เฉพาะ slot ที่ยังว่างจริง (กันนับค่าค้างของ seat ที่ถูกมอบไปแล้ว)
+                      const availCount = Math.max(0, (Number(item.quantity) || 0) - (item.assignees?.length || 0));
+                      for (let i = 0; i < availCount; i++) {
+                        const d = item.availableSeatExpirationDates?.[i];
+                        if (!d || d === item.expirationDate) continue;
                         const ex = checkLicenseExpiration(d);
                         if (ex.isExpiring) {
                           const label = item.availableSeatLabels?.[i] || `สิทธิ์ #${i + 1}`;
                           expiringSeats.push({ label, date: d, status: ex });
                         }
-                      });
+                      }
                       (item.assignees || []).forEach((a, i) => {
                         if (!a.seatExpirationDate || a.seatExpirationDate === item.expirationDate) return;
                         const ex = checkLicenseExpiration(a.seatExpirationDate);
@@ -150,7 +153,7 @@ export default function LicenseTable({
                           {expiringSeats.length > 0 && (
                             <span
                               className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-700 border-amber-200 cursor-help"
-                              title={expiringSeats.map(s => `• ${s.label}: ${s.date} (${s.status.statusText})`).join('\n')}
+                              title={expiringSeats.map(s => `• ${s.label}: ${formatDateShort(s.date)} (${s.status.statusText})`).join('\n')}
                             >
                               ⚠ มี {expiringSeats.length} รายการย่อยใกล้หมด
                             </span>

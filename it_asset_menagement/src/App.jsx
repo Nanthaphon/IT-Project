@@ -2812,10 +2812,12 @@ function App() {
         let count = 0;
         // เช็ค parent
         if (checkLicenseExpiration(lic.expirationDate).isExpiring) count += 1;
-        // เช็ค per-seat — available seats
-        (lic.availableSeatExpirationDates || []).forEach(d => {
+        // เช็ค per-seat — available seats (เฉพาะ slot ที่ยังว่างจริง ไม่รวมค่าค้างของ seat ที่ถูกมอบไปแล้ว)
+        const availCount = Math.max(0, (Number(lic.quantity) || 0) - (lic.assignees?.length || 0));
+        for (let i = 0; i < availCount; i++) {
+          const d = lic.availableSeatExpirationDates?.[i];
           if (d && d !== lic.expirationDate && checkLicenseExpiration(d).isExpiring) count += 1;
-        });
+        }
         // เช็ค per-seat — assigned seats
         (lic.assignees || []).forEach(a => {
           if (a.seatExpirationDate && a.seatExpirationDate !== lic.expirationDate && checkLicenseExpiration(a.seatExpirationDate).isExpiring) count += 1;

@@ -91,7 +91,11 @@ service cloud.firestore {
         || (isSignedIn()
             && resource.data.empId == request.auth.token.empId
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['evaluation']));
-      allow delete: if isAdmin();
+      // 🆕 Staff ยกเลิก (ลบ) เคสของตัวเองได้ เฉพาะที่ยัง "รอดำเนินการ" (IT ยังไม่รับเรื่อง)
+      allow delete: if isAdmin()
+        || (isSignedIn()
+            && resource.data.empId == request.auth.token.empId
+            && resource.data.status == 'รอดำเนินการ');
     }
     match /supply_requests/{id} {
       allow read: if isSignedIn();

@@ -6,7 +6,8 @@ import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
 import { formatDateShort } from '../utils/formatDate.js';
 import DateField from './DateField.jsx';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeader } from '../ui/primitives.jsx';
+import { cls } from '../ui/theme.js';
 
 /* ── Purchase-history document storage helpers ── */
 const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
@@ -1672,83 +1673,83 @@ export default function AssetDetailsModal({
                     </div>
                   )}
 
-                  {/* 🆕 Modal popup สำหรับเพิ่มสิทธิ์ใหม่ */}
-                  <Modal open={isAddingNewLicenseSeat} onClose={() => setIsAddingNewLicenseSeat(false)} size="xl">
-                    <ModalHeader title="เพิ่มสิทธิ์ผู้ถือครอง" subtitle="กรอกรายละเอียดของสิทธิ์ใหม่" onClose={() => setIsAddingNewLicenseSeat(false)} />
-                    <ModalBody className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">ชื่อรายการย่อย</label>
-                        <input
-                          type="text"
-                          value={newSeatLabel}
-                          onChange={e => setNewSeatLabel(e.target.value)}
-                          className="border border-slate-200 p-2.5 rounded-lg text-[14px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full"
-                          placeholder="เช่น Sale Team, IT Lead, เครื่องของพีช"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="md:col-span-2">
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Product Key</label>
-                          <input type="text" value={newSeatProductKey} onChange={e => setNewSeatProductKey(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] font-mono focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="Product Key" />
+                  {/* 🆕 Modal เพิ่มสิทธิ์ใหม่ — ธีมเดียวกับฟอร์มอื่นในระบบ */}
+                  <Modal open={isAddingNewLicenseSeat} onClose={() => setIsAddingNewLicenseSeat(false)} size="lg">
+                    <ModalHeader
+                      icon={KeyRound}
+                      title="เพิ่มสิทธิ์ผู้ถือครอง"
+                      subtitle="กรอกรายละเอียดของสิทธิ์ใหม่ที่ต้องการเพิ่ม"
+                      onClose={() => setIsAddingNewLicenseSeat(false)}
+                    />
+                    <ModalBody className="space-y-7">
+                      <section className="space-y-4">
+                        <SectionHeader>ข้อมูลสิทธิ์</SectionHeader>
+                        <Field label="ชื่อรายการย่อย">
+                          <input type="text" value={newSeatLabel} onChange={e => setNewSeatLabel(e.target.value)} className={cls.input} placeholder="เช่น Sale Team, IT Lead, เครื่องของพีช" />
+                        </Field>
+                        <Field label="Product Key">
+                          <input type="text" value={newSeatProductKey} onChange={e => setNewSeatProductKey(e.target.value)} className={cls.inputMono} placeholder="Product Key" />
+                        </Field>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <Field label="รหัสอ้างอิง Key">
+                            <input type="text" value={newSeatKeyCode} onChange={e => setNewSeatKeyCode(e.target.value)} className={cls.input} placeholder="รหัสอ้างอิง" />
+                          </Field>
+                          <Field label="ผู้จัดจำหน่าย (Supplier)">
+                            <input type="text" value={newSeatSupplier} onChange={e => setNewSeatSupplier(e.target.value)} className={cls.input} placeholder="ที่ซื้อ" />
+                          </Field>
                         </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <SectionHeader>การจัดซื้อและอายุสิทธิ์</SectionHeader>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <Field label="ราคา / สิทธิ์ (บาท)">
+                            <input type="number" value={newSeatCost} onChange={e => setNewSeatCost(e.target.value)} className={cls.input} placeholder="0" />
+                          </Field>
+                          <Field label="จำนวนสิทธิ์ที่เพิ่ม">
+                            <input type="number" min="1" value={newSeatCount} onChange={e => setNewSeatCount(e.target.value)} className={cls.input} />
+                          </Field>
+                          <Field label="วันที่ซื้อ">
+                            <DateField value={newSeatPurchaseDate} onChange={v => setNewSeatPurchaseDate(v)} inputClassName={cls.input + ' pr-9'} />
+                          </Field>
+                          <Field label="วันหมดอายุ">
+                            <DateField value={newSeatExpirationDate} onChange={v => setNewSeatExpirationDate(v)} inputClassName={cls.input + ' pr-9'} />
+                          </Field>
+                        </div>
+                      </section>
+
+                      <section className="space-y-4">
+                        <SectionHeader>หมายเหตุ / ไฟล์แนบ</SectionHeader>
+                        <Field label="หมายเหตุ">
+                          <textarea value={newSeatNote} onChange={e => setNewSeatNote(e.target.value)} rows={4} placeholder="เช่น เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ" className={cls.input + ' resize-y leading-relaxed'} />
+                        </Field>
                         <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">รหัสอ้างอิง Key</label>
-                          <input type="text" value={newSeatKeyCode} onChange={e => setNewSeatKeyCode(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="รหัสอ้างอิง" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Supplier</label>
-                          <input type="text" value={newSeatSupplier} onChange={e => setNewSeatSupplier(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="ที่ซื้อ" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">ราคา (บาท)</label>
-                          <input type="number" value={newSeatCost} onChange={e => setNewSeatCost(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="0" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">จำนวนสิทธิ์</label>
-                          <input type="number" min="1" value={newSeatCount} onChange={e => setNewSeatCount(e.target.value)} className="border border-slate-200 p-2.5 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันที่ซื้อ</label>
-                          <DateField value={newSeatPurchaseDate} onChange={v => setNewSeatPurchaseDate(v)} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันหมดอายุ</label>
-                          <DateField value={newSeatExpirationDate} onChange={v => setNewSeatExpirationDate(v)} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">หมายเหตุ</label>
-                        <textarea
-                          value={newSeatNote}
-                          onChange={e => setNewSeatNote(e.target.value)}
-                          rows={4}
-                          placeholder="เช่น เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ"
-                          className="border border-slate-200 p-3 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full resize-y leading-relaxed"
-                        />
-                      </div>
-                      <div className="pt-3 border-t border-slate-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ</span>
-                          <label className={`cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
-                            + แนบไฟล์
-                            <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
-                          </label>
-                        </div>
-                        {newSeatDocs.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {newSeatDocs.map((d, i) => (
-                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-md text-[12px]">
-                                <span className="text-slate-600 truncate max-w-[160px]">{d.name}</span>
-                                <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
-                              </div>
-                            ))}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ไฟล์แนบ</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                              <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
+                              <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
+                            </label>
                           </div>
-                        )}
-                      </div>
+                          {newSeatDocs.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {newSeatDocs.map((d, i) => (
+                                <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
+                                  <Paperclip className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2} />
+                                  <span className="text-slate-600 truncate max-w-[160px]">{d.name}</span>
+                                  <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                          )}
+                        </div>
+                      </section>
                     </ModalBody>
                     <ModalFooter>
                       <Button variant="secondary" onClick={() => { setIsAddingNewLicenseSeat(false); setNewSeatProductKey(''); setNewSeatKeyCode(''); setNewSeatSupplier(''); setNewSeatCost(''); setNewSeatPurchaseDate(''); setNewSeatExpirationDate(''); setNewSeatDocs([]); }}>ยกเลิก</Button>
-                      <Button onClick={handleAddLicenseSeats} disabled={isSavingItem}>{isSavingItem ? 'กำลังบันทึก...' : 'บันทึก'}</Button>
+                      <Button onClick={handleAddLicenseSeats} disabled={isSavingItem}>{isSavingItem ? 'กำลังบันทึก...' : 'บันทึกสิทธิ์'}</Button>
                     </ModalFooter>
                   </Modal>
 

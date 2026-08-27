@@ -1,12 +1,50 @@
 // src/utils/exportKpiReport.js
 // สร้างไฟล์ Excel หลายชีต สำหรับรายงาน KPI งานแจ้งซ่อม + ความพึงพอใจ
 // แต่ละชีตจะถูกออกแบบให้หัวหน้าเปิดดูได้ทันที (Summary / Repair Detail / Evaluation Detail)
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import { formatDateShort, formatDateTimeShort, formatDateMedium } from './formatDate.js';
 
 /* ── helpers ───────────────────────────────────────── */
 const formatDateTime = formatDateTimeShort;
 const formatDate = formatDateMedium;
+
+/* ── สไตล์ Excel (xlsx-js-style) — โทนเดียวกับระบบ (navy #1E487A) ── */
+const FONT = 'Tahoma';
+const NAVY = '1E487A', NAVY2 = '3A5A85', TINT = 'E8EFF8', GREY = '6B7280', LINE = 'E2E8F0', ZEBRA = 'F7F9FC';
+const thin = { style: 'thin', color: { rgb: LINE } };
+const BORDER = { top: thin, bottom: thin, left: thin, right: thin };
+const ST = {
+  title:     { font: { name: FONT, sz: 15, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: NAVY } }, alignment: { horizontal: 'left', vertical: 'center' } },
+  sub:       { font: { name: FONT, sz: 10, color: { rgb: 'DCE6F5' } }, fill: { fgColor: { rgb: NAVY } }, alignment: { horizontal: 'left', vertical: 'center' } },
+  section:   { font: { name: FONT, sz: 12, bold: true, color: { rgb: NAVY } }, fill: { fgColor: { rgb: TINT } }, alignment: { horizontal: 'left', vertical: 'center' } },
+  thead:     { font: { name: FONT, sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: NAVY2 } }, alignment: { horizontal: 'left', vertical: 'center', wrapText: true }, border: BORDER },
+  theadR:    { font: { name: FONT, sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: NAVY2 } }, alignment: { horizontal: 'right', vertical: 'center', wrapText: true }, border: BORDER },
+  label:     { font: { name: FONT, sz: 10.5 }, alignment: { horizontal: 'left', vertical: 'center' }, border: BORDER },
+  value:     { font: { name: FONT, sz: 10.5, bold: true, color: { rgb: NAVY } }, alignment: { horizontal: 'right', vertical: 'center' }, border: BORDER },
+  unit:      { font: { name: FONT, sz: 9.5, color: { rgb: GREY } }, alignment: { horizontal: 'left', vertical: 'center' }, border: BORDER },
+  cell:      { font: { name: FONT, sz: 10 }, alignment: { horizontal: 'left', vertical: 'center', wrapText: true }, border: BORDER },
+  cellR:     { font: { name: FONT, sz: 10 }, alignment: { horizontal: 'right', vertical: 'center' }, border: BORDER },
+};
+// สไตล์หัวตาราง + zebra ให้ทุกชีตข้อมูล (row 0 = header)
+function styleDataSheet(sheet, alignRightCols = []) {
+  if (!sheet['!ref']) return;
+  const range = XLSX.utils.decode_range(sheet['!ref']);
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      const cell = sheet[addr] || (sheet[addr] = { t: 's', v: '' });
+      if (R === 0) {
+        cell.s = alignRightCols.includes(C) ? ST.theadR : ST.thead;
+      } else {
+        const base = alignRightCols.includes(C) ? ST.cellR : ST.cell;
+        cell.s = (R % 2 === 0)
+          ? { ...base, fill: { fgColor: { rgb: ZEBRA } } }
+          : base;
+      }
+    }
+  }
+  sheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+}
 
 const hours = (ms) => {
   if (!ms || ms < 0) return null;
@@ -111,16 +149,32 @@ export function exportKpiReport({ repairRequests = [], periodLabel = 'ทั้�
   ];
 
   const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
-  summarySheet['!cols'] = [{ wch: 38 }, { wch: 14 }, { wch: 14 }];
-  // merge title row
-  summarySheet['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 2 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 2 } },
-    { s: { r: 4, c: 0 }, e: { r: 4, c: 2 } },
-    { s: { r: 15, c: 0 }, e: { r: 15, c: 2 } },
-    { s: { r: 25, c: 0 }, e: { r: 25, c: 2 } },
-  ];
+  summarySheet['!cols'] = [{ wch: 40 }, { wch: 16 }, { wch: 14 }];
+  // merge แถวที่กินเต็มความกว้าง (title / sub / section)
+  const mergeFullRows = [0, 1, 2, 4, 15, 25];
+  summarySheet['!merges'] = mergeFullRows.map(r => ({ s: { r, c: 0 }, e: { r, c: 2 } }));
+  // ความสูงแถว title
+  summarySheet['!rows'] = [{ hpt: 26 }, { hpt: 16 }, { hpt: 16 }];
+
+  // ── ทาสไตล์ตาม role ของแต่ละแถว ──
+  const isTHead = (row) => row && (row[0] === 'รายการ' || row[0] === 'ระดับดาว');
+  const isSection = (row) => row && row.length === 1 && typeof row[0] === 'string';
+  const sumRange = XLSX.utils.decode_range(summarySheet['!ref']);
+  for (let R = sumRange.s.r; R <= sumRange.e.r; R++) {
+    const row = summaryRows[R] || [];
+    if (row.length === 0) continue; // แถวว่าง
+    for (let C = 0; C <= 2; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!summarySheet[addr]) continue;
+      let st;
+      if (R === 0) st = ST.title;
+      else if (R === 1 || R === 2) st = ST.sub;
+      else if (isSection(row)) st = ST.section;
+      else if (isTHead(row)) st = C === 0 ? ST.thead : ST.theadR;
+      else st = C === 0 ? ST.label : C === 1 ? ST.value : ST.unit;
+      summarySheet[addr].s = st;
+    }
+  }
 
   /* ── 2) ข้อมูลเคสทั้งหมด (ตารางมาตรฐาน — 1 แถว/เคส ครบทุกฟิลด์) ── */
   //  ออกแบบให้เป็น "ข้อมูลดิบ" ที่นำไปทำ Pivot / วิเคราะห์ต่อได้ทันที
@@ -262,6 +316,12 @@ export function exportKpiReport({ repairRequests = [], periodLabel = 'ทั้�
     ]);
   const reporterSheet = XLSX.utils.aoa_to_sheet([reporterHeader, ...reporterRows]);
   reporterSheet['!cols'] = [{ wch: 24 }, { wch: 14 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+
+  // ── ทาสไตล์หัวตาราง + zebra ให้ทุกชีตข้อมูล ──
+  styleDataSheet(repairSheet,   [0, 11, 12, 13, 15, 16, 17, 18]);
+  styleDataSheet(evalSheet,     [0, 5, 6, 7, 8]);
+  styleDataSheet(reporterSheet, [3, 4, 5, 6]);
+  styleDataSheet(deptSheet,     [1, 2, 3, 4]);
 
   /* ── Assemble Workbook ────────────────────────────── */
   const wb = XLSX.utils.book_new();

@@ -28,35 +28,137 @@ const VALID_KINDS = new Set(['repair', 'supply', 'replacement', 'license', 'acce
 // ─────────────────────────────────────────────────────────────
 // Adaptive Card สำหรับ Teams — ส่งผ่าน Power Automate webhook
 // ─────────────────────────────────────────────────────────────
-function buildTeamsAdaptiveCard({ title, emoji, facts, timestamp }) {
-  const factRows = facts.map(f => ({
-    type: 'ColumnSet',
-    spacing: 'Small',
-    columns: [
-      {
-        type: 'Column',
-        width: '35',
-        items: [{
+// ── ป้ายจำนวนวัน + สีตามความเร่งด่วน ──
+function daysLabel(days) {
+  const n = Number(days);
+  if (!Number.isFinite(n)) return '';
+  if (n < 0)  return `หมดอายุแล้ว ${Math.abs(n)} วัน`;
+  if (n === 0) return 'หมดอายุวันนี้';
+  return `อีก ${n} วัน`;
+}
+function daysColor(days) {
+  const n = Number(days);
+  if (!Number.isFinite(n)) return 'Default';
+  if (n <= 0)  return 'Attention';   // แดง — หมดแล้ว/วันนี้
+  if (n <= 30) return 'Warning';     // ส้ม — ใกล้มาก
+  return 'Accent';                   // ฟ้า — ยังมีเวลา
+}
+
+// ── สร้าง body สำหรับการ์ดแบบจัดกลุ่มต่อโปรแกรม (License) ──
+function buildGroupItems(groups, summary) {
+  const items = [];
+  if (summary) {
+    items.push({
+      type: 'TextBlock',
+      text: `รวม ${summary.programs || groups.length} โปรแกรม · ${summary.seats || 0} สิทธิ์ใกล้หมดอายุ`,
+      size: 'Small',
+      weight: 'Bolder',
+      isSubtle: true,
+      wrap: true,
+      spacing: 'Small',
+    });
+  }
+
+  const MAX_ITEMS = 60; // กัน payload ใหญ่เกินไป
+  let rendered = 0;
+  let truncated = 0;
+
+  groups.forEach(g => {
+    const seatItems = [];
+    (g.items || []).forEach(it => {
+      if (rendered >= MAX_ITEMS) { truncated++; return; }
+      rendered++;
+      const sub = [
+        {
           type: 'TextBlock',
-          text: String(f.label || ''),
-          wrap: true,
-          size: 'Small',
-          isSubtle: true,
-        }],
-      },
-      {
-        type: 'Column',
-        width: '65',
-        items: [{
-          type: 'TextBlock',
-          text: String(f.value || '-'),
-          wrap: true,
+          text: `🗓 ${String(it.dateText || '-')} · ${daysLabel(it.days)}`,
           size: 'Small',
           weight: 'Bolder',
-        }],
-      },
-    ],
-  }));
+          color: daysColor(it.days),
+          wrap: true,
+        },
+        {
+          type: 'TextBlock',
+          text: `🔑 ${it.productKey ? String(it.productKey) : '— ไม่มี Product Key'}`,
+          size: 'Small',
+          isSubtle: true,
+          wrap: true,
+          spacing: 'None',
+        },
+      ];
+      if (it.holder) {
+        sub.push({
+          type: 'TextBlock',
+          text: `👤 ${String(it.holder)}`,
+          size: 'Small',
+          isSubtle: true,
+          wrap: true,
+          spacing: 'None',
+        });
+      }
+      if (it.label) {
+        sub.push({
+          type: 'TextBlock',
+          text: `🏷 ${String(it.label)}`,
+          size: 'Small',
+          isSubtle: true,
+          wrap: true,
+          spacing: 'None',
+        });
+      }
+      seatItems.push({ type: 'Container', spacing: 'Small', items: sub });
+    });
+
+    items.push({
+      type: 'Container',
+      spacing: 'Medium',
+      separator: true,
+      items: [
+        { type: 'TextBlock', text: `📄 ${String(g.name || 'License')}`, weight: 'Bolder', size: 'Medium', wrap: true },
+        { type: 'TextBlock', text: `${g.count || (g.items || []).length} สิทธิ์ใกล้หมดอายุ`, size: 'Small', isSubtle: true, spacing: 'None' },
+        ...seatItems,
+      ],
+    });
+  });
+
+  if (truncated > 0) {
+    items.push({
+      type: 'TextBlock',
+      text: `… และอีก ${truncated} สิทธิ์`,
+      size: 'Small',
+      isSubtle: true,
+      horizontalAlignment: 'Center',
+      spacing: 'Small',
+    });
+  }
+  return items;
+}
+
+function buildTeamsAdaptiveCard({ title, emoji, facts, groups, summary, timestamp }) {
+  const hasGroups = Array.isArray(groups) && groups.length > 0;
+
+  const detailItems = hasGroups
+    ? buildGroupItems(groups, summary)
+    : [{
+        type: 'Container',
+        spacing: 'Medium',
+        items: (facts || []).map(f => ({
+          type: 'ColumnSet',
+          spacing: 'Small',
+          columns: [
+            {
+              type: 'Column',
+              width: '35',
+              items: [{ type: 'TextBlock', text: String(f.label || ''), wrap: true, size: 'Small', isSubtle: true }],
+            },
+            {
+              type: 'Column',
+              width: '65',
+              items: [{ type: 'TextBlock', text: String(f.value || '-'), wrap: true, size: 'Small', weight: 'Bolder' }],
+            },
+          ],
+        })),
+      }];
 
   return {
     type: 'message',
@@ -91,7 +193,7 @@ function buildTeamsAdaptiveCard({ title, emoji, facts, timestamp }) {
               },
             ],
           },
-          { type: 'Container', spacing: 'Medium', items: factRows },
+          ...detailItems,
           {
             type: 'TextBlock',
             text: `🕐 ${timestamp}`,
@@ -140,9 +242,10 @@ export default async function handler(req, res) {
   catch { return res.status(401).json({ error: 'Invalid or expired token' }); }
 
   try {
-    const { kind, facts } = req.body || {};
+    const { kind, facts, groups, summary } = req.body || {};
     if (!VALID_KINDS.has(kind)) return res.status(400).json({ error: 'invalid kind' });
-    if (!Array.isArray(facts)) return res.status(400).json({ error: 'invalid facts' });
+    const hasGroups = Array.isArray(groups) && groups.length > 0;
+    if (!hasGroups && !Array.isArray(facts)) return res.status(400).json({ error: 'invalid facts' });
 
     // routing → channel
     let title, emoji, teamsChannel;
@@ -166,7 +269,7 @@ export default async function handler(req, res) {
       dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok',
     });
 
-    const card = buildTeamsAdaptiveCard({ title, emoji, facts, timestamp });
+    const card = buildTeamsAdaptiveCard({ title, emoji, facts, groups, summary, timestamp });
     await sendTeamsMessage(teamsUrl, card);
 
     return res.status(200).json({ success: true, channel: teamsChannel });

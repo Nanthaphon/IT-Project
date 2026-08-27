@@ -30,7 +30,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc,
 // 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
 // (รองรับทั้ง staff submit และ admin event เช่น license expiry)
 // ═══════════════════════════════════════════════════════════════
-async function sendLineNotification({ kind, facts }) {
+async function sendLineNotification({ kind, facts, groups, summary }) {
   const user = auth.currentUser;
   if (!user) {
     console.warn('sendLineNotification: ไม่มี user login — ข้ามการแจ้งเตือน');
@@ -44,7 +44,7 @@ async function sendLineNotification({ kind, facts }) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({ kind, facts }),
+    body: JSON.stringify({ kind, facts, groups, summary }),
   });
   if (!resp.ok) {
     const errText = await resp.text().catch(() => '');
@@ -465,113 +465,66 @@ function App() {
       return diff >= 0 && diff <= 90;
     };
 
-    // 🆕 Helper: สร้างชื่อ seat โดยไม่ให้ซ้ำกับ lic.name
-    //    เช่น lic.name = "Corona Solo", label = "Corona Solo Subscription #A-S01046464"
-    //    ก่อน: "Corona Solo — Corona Solo Subscription #A-S01046464"  (ซ้ำ)
-    //    หลัง: "Corona Solo Subscription #A-S01046464"                 (ใช้ label ตรงๆ)
-    const buildSeatName = (licName, seatLabel) => {
-      const l = String(seatLabel || '').trim();
-      const n = String(licName || '').trim();
-      if (!l) return n;
-      if (!n) return l;
-      // ถ้า label ขึ้นต้นด้วย license name อยู่แล้ว → ใช้ label ตรงๆ
-      if (l.toLowerCase().startsWith(n.toLowerCase())) return l;
-      return `${n} — ${l}`;
-    };
-
-    // 🆕 รวบรวมทั้ง parent + per-seat + dedupe entry ซ้ำ (name+date เดียวกัน)
-    const seenKeys = new Set();
-    const expiringEntries = [];
-    const pushEntry = (entry) => {
-      const key = `${entry.name}|${entry.date}`;
-      if (seenKeys.has(key)) return;
-      seenKeys.add(key);
-      expiringEntries.push(entry);
-    };
-
-    // Normalize date เป็น YYYY-MM-DD สำหรับเปรียบเทียบ (กันปัญหา format ต่างกัน)
-    const normDate = (d) => {
-      if (!d) return '';
-      if (typeof d === 'string') return d.split('T')[0];
-      try { return new Date(d).toISOString().split('T')[0]; } catch { return String(d); }
-    };
+    // 🆕 รวบรวมแบบราย seat (มี Product Key + ผู้ถือ) แล้วจัดกลุ่มต่อโปรแกรม
+    //    → เห็นชัดว่าโปรแกรมไหนหมดกี่สิทธิ์ · แต่ละสิทธิ์คีย์อะไร · หมดวันไหน
+    const groups = [];
+    let totalSeats = 0;
 
     licenses.forEach(lic => {
-      // 🆕 dedupe ต่อ license — ถ้ามีหลาย seat หมดวันเดียวกันในไลเซนส์เดียวกัน
-      //    จะรวมเป็น 1 entry (แสดงจำนวน seat แทน)
-      const dateGroup = new Map(); // key: normDate → { name, count, firstLabel }
-      const licParentDate = normDate(lic.expirationDate);
+      const assignees = lic.assignees || [];
+      const totalQty = Number(lic.quantity) || 0;
+      const availCount = Math.max(0, totalQty - assignees.length);
 
-      const addSeat = (date, seatLabel) => {
-        const d = normDate(date);
-        if (!d) return;
-        // ข้ามถ้า seat หมดวันเดียวกับ parent (parent จะ alert อยู่แล้ว)
-        if (d === licParentDate) return;
-        if (!isExpSoon(date)) return;
-        if (dateGroup.has(d)) {
-          const g = dateGroup.get(d);
-          g.count++;
-        } else {
-          dateGroup.set(d, { count: 1, firstLabel: seatLabel, rawDate: date });
-        }
-      };
-
-      // Per-seat available
-      (lic.availableSeatExpirationDates || []).forEach((d, i) => {
-        const label = lic.availableSeatLabels?.[i] || `สิทธิ์ #${i + 1}`;
-        addSeat(d, label);
-      });
-      // Per-seat assigned
-      (lic.assignees || []).forEach((a, i) => {
-        const label = a.seatLabel || a.empName || `สิทธิ์ #${i + 1}`;
-        addSeat(a.seatExpirationDate, label);
-      });
-
-      // Parent level
-      if (isExpSoon(lic.expirationDate)) {
-        // นับจำนวน seat ที่หมดวันเดียวกับ parent (จะรวมใน parent entry)
-        const sameAsParent = [
-          ...(lic.availableSeatExpirationDates || []),
-          ...(lic.assignees || []).map(a => a.seatExpirationDate),
-        ].filter(d => normDate(d) === licParentDate).length;
-
-        pushEntry({
-          name: sameAsParent > 0 ? `${lic.name} (${sameAsParent + 1} สิทธิ์)` : lic.name,
-          date: lic.expirationDate,
-          days: daysUntil(lic.expirationDate),
-          source: 'หลัก',
+      // สร้างรายการ seat ทั้งหมด (แบบเดียวกับหน้ารายละเอียด) พร้อม key/ผู้ถือ
+      const seats = [];
+      for (let i = 0; i < availCount; i++) {
+        seats.push({
+          exp: lic.availableSeatExpirationDates?.[i] || lic.expirationDate,
+          key: lic.availableKeys?.[i] || lic.productKey || '',
+          holder: '',
+          label: lic.availableSeatLabels?.[i] || '',
         });
       }
-
-      // Emit 1 entry per unique seat date
-      dateGroup.forEach((g, d) => {
-        const displayName = g.count > 1
-          ? `${lic.name} (${g.count} สิทธิ์)`
-          : buildSeatName(lic.name, g.firstLabel);
-        pushEntry({
-          name: displayName,
-          date: g.rawDate,
-          days: daysUntil(g.rawDate),
-          source: 'seat',
+      assignees.forEach(a => {
+        seats.push({
+          exp: a.seatExpirationDate || lic.expirationDate,
+          key: a.productKey || lic.productKey || '',
+          holder: a.empName || '',
+          label: a.seatLabel || '',
         });
       });
+      // ไลเซนส์ที่ไม่มี seat ย่อย แต่มีวันหมดอายุหลัก
+      if (seats.length === 0 && lic.expirationDate) {
+        seats.push({ exp: lic.expirationDate, key: lic.productKey || '', holder: '', label: '' });
+      }
+
+      const items = seats
+        .filter(s => isExpSoon(s.exp))
+        .map(s => ({
+          dateText: formatDateShort(s.exp),
+          days: daysUntil(s.exp),
+          productKey: s.key || '',
+          holder: s.holder || '',
+          label: s.label || '',
+        }))
+        .sort((a, b) => a.days - b.days);
+
+      if (items.length) {
+        totalSeats += items.length;
+        groups.push({ name: lic.name || 'License', count: items.length, items });
+      }
     });
 
-    if (expiringEntries.length === 0) return;
-
-    // 🆕 เรียงตามวันที่ใกล้หมดอายุก่อน
-    expiringEntries.sort((a, b) => a.days - b.days);
+    if (groups.length === 0) return;
+    // โปรแกรมที่ใกล้หมดสุดขึ้นก่อน
+    groups.sort((a, b) => a.items[0].days - b.items[0].days);
 
     localStorage.setItem(storageKey, 'sent');
-    // 🆕 แปลงวันที่เป็นรูปแบบไทย DD/MM/YYYY (พ.ศ.)
-    const facts = expiringEntries.map(e => ({
-      label: e.name,
-      value: `${formatDateShort(e.date)} · อีก ${e.days} วัน`,
-    }));
     sendLineNotification({
       kind: 'license',
-      facts: [{ label: 'จำนวนรายการ', value: `${expiringEntries.length} รายการ` }, ...facts],
-    }).catch(err => console.error('License expiry LINE notify failed:', err));
+      summary: { programs: groups.length, seats: totalSeats },
+      groups,
+    }).catch(err => console.error('License expiry notify failed:', err));
   }, [authRole, licenses, isSuperAdmin, adminPermissions, isActiveTab]);
 
   useEffect(() => {

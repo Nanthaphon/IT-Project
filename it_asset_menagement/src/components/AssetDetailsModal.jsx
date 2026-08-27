@@ -2617,83 +2617,69 @@ function SeatDetailModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto bg-white">
           {isEditing ? (
-            <div className="p-6 sm:p-7 space-y-4">
-              {/* EDIT MODE */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ชื่อรายการย่อย</label>
-                <input
-                  type="text"
-                  value={tempLicenseLabel}
-                  onChange={(e) => setTempLicenseLabel(e.target.value)}
-                  className="w-full border border-slate-200 p-2.5 rounded-lg text-[14px] font-semibold focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none"
-                  placeholder="เช่น Sale Team, IT Lead"
-                />
-              </div>
+            <div className="p-6 sm:p-7 space-y-7">
+              {/* EDIT MODE — ธีมเดียวกับฟอร์มอื่นในระบบ */}
+              <section className="space-y-4">
+                <SectionHeader>ข้อมูลสิทธิ์</SectionHeader>
+                <Field label="ชื่อรายการย่อย">
+                  <input type="text" value={tempLicenseLabel} onChange={(e) => setTempLicenseLabel(e.target.value)} className={cls.input} placeholder="เช่น Sale Team, IT Lead, เครื่องของพีช" />
+                </Field>
+                <Field label="Product Key">
+                  <input type="text" value={tempLicenseProductKey} onChange={(e) => setTempLicenseProductKey(e.target.value)} className={cls.inputMono} placeholder="Product Key" />
+                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="รหัสอ้างอิง Key">
+                    <input type="text" value={tempLicenseKeyCode} onChange={(e) => setTempLicenseKeyCode(e.target.value)} className={cls.input} placeholder="รหัสอ้างอิง" />
+                  </Field>
+                  <Field label="ผู้จัดจำหน่าย (Supplier)">
+                    <input type="text" value={tempLicenseSupplier} onChange={(e) => setTempLicenseSupplier(e.target.value)} className={cls.input} placeholder="ที่ซื้อ" />
+                  </Field>
+                </div>
+              </section>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Product Key</label>
-                <input
-                  type="text"
-                  value={tempLicenseProductKey}
-                  onChange={(e) => setTempLicenseProductKey(e.target.value)}
-                  className="w-full border border-slate-200 p-2.5 rounded-lg text-[13px] font-mono focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none"
-                  placeholder="Product Key"
-                />
-              </div>
+              <section className="space-y-4">
+                <SectionHeader>การจัดซื้อและอายุสิทธิ์</SectionHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="ราคา / สิทธิ์ (บาท)">
+                    <input type="number" value={tempLicenseSeatCost} onChange={(e) => setTempLicenseSeatCost(e.target.value)} className={cls.input} placeholder="0" />
+                  </Field>
+                  <Field label="วันที่ซื้อ">
+                    <DateField value={tempLicensePurchaseDate} onChange={(v) => setTempLicensePurchaseDate(v)} inputClassName={cls.input + ' pr-9'} />
+                  </Field>
+                  <Field label="วันหมดอายุ" className="sm:col-span-2">
+                    <DateField value={tempLicenseExpirationDate} onChange={(v) => setTempLicenseExpirationDate(v)} inputClassName={cls.input + ' pr-9'} />
+                  </Field>
+                </div>
+              </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <section className="space-y-4">
+                <SectionHeader>หมายเหตุ / ไฟล์แนบ</SectionHeader>
+                <Field label="หมายเหตุ">
+                  <textarea value={tempLicenseNote} onChange={(e) => setTempLicenseNote(e.target.value)} rows={4} placeholder="เช่น: เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ" className={cls.input + ' resize-y leading-relaxed'} />
+                </Field>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">รหัสอ้างอิง Key</label>
-                  <input type="text" value={tempLicenseKeyCode} onChange={(e) => setTempLicenseKeyCode(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Supplier</label>
-                  <input type="text" value={tempLicenseSupplier} onChange={(e) => setTempLicenseSupplier(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ราคา (บาท)</label>
-                  <input type="number" value={tempLicenseSeatCost} onChange={(e) => setTempLicenseSeatCost(e.target.value)} className="w-full border border-slate-200 p-2 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">วันที่ซื้อ</label>
-                  <DateField value={tempLicensePurchaseDate} onChange={(v) => setTempLicensePurchaseDate(v)} inputClassName="w-full border border-slate-200 p-2 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">วันหมดอายุ</label>
-                  <DateField value={tempLicenseExpirationDate} onChange={(v) => setTempLicenseExpirationDate(v)} inputClassName="w-full border border-slate-200 p-2 pr-9 rounded-lg text-[13px] focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">หมายเหตุ</label>
-                <textarea
-                  value={tempLicenseNote}
-                  onChange={(e) => setTempLicenseNote(e.target.value)}
-                  rows={5}
-                  placeholder="เช่น: เลข PO, รายละเอียดการต่ออายุ, เงื่อนไขพิเศษ, ผู้ใช้ ฯลฯ"
-                  className="w-full border border-slate-200 p-3 rounded-lg text-[13px] resize-y leading-relaxed focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">ไฟล์แนบ</label>
-                  <label className="cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50">
-                    + แนบไฟล์
-                    <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
-                  </label>
-                </div>
-                {tempLicenseSeatDocs.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {tempLicenseSeatDocs.map((d, i) => (
-                      <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-md text-[11px]">
-                        <span className="text-slate-600 truncate max-w-[120px]">{d.name}</span>
-                        <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ไฟล์แนบ</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                      <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
+                      <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
+                    </label>
                   </div>
-                )}
-              </div>
+                  {tempLicenseSeatDocs.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {tempLicenseSeatDocs.map((d, i) => (
+                        <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
+                          <Paperclip className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2} />
+                          <span className="text-slate-600 truncate max-w-[160px]">{d.name}</span>
+                          <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                  )}
+                </div>
+              </section>
             </div>
           ) : (
             <div className="px-6 sm:px-7 divide-y divide-slate-100">

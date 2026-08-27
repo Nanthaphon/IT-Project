@@ -48,8 +48,11 @@ export default function AssetDetailsModal({
   onEditPage,            // 🆕 callback ตอนกด "แก้ไขข้อมูล" ในโหมดหน้าเต็ม (navigate ไปหน้าแก้ไข)
 }) {
   const db = getFirestore(); 
-  const [expandedItem, setExpandedItem] = useState(null); 
-  const [editingItemId, setEditingItemId] = useState(null); 
+  const [expandedItem, setExpandedItem] = useState(null);
+  const [editingItemId, setEditingItemId] = useState(null);
+  // 🆕 ให้ชิ้นย่อยอุปกรณ์เสริมทำงานเหมือน License (ค้นหา + modal รายละเอียด)
+  const [accItemSearch, setAccItemSearch] = useState('');
+  const [accItemDetailModal, setAccItemDetailModal] = useState(null);
   const [tempSNValue, setTempSNValue] = useState('');
   const [tempModelValue, setTempModelValue] = useState('');
   const [tempCostValue, setTempCostValue] = useState('');
@@ -719,6 +722,14 @@ export default function AssetDetailsModal({
       return (a.sn || '').localeCompare((b.sn || ''), undefined, { numeric: true, sensitivity: 'base' });
     });
   }
+
+  // 🆕 กรองชิ้นย่อยอุปกรณ์เสริมตามคำค้นหา (SN, รุ่น, ผู้ถือ, สถานะ)
+  const accSearchQ = accItemSearch.trim().toLowerCase();
+  const visibleIndividualItems = accSearchQ
+    ? individualItems.filter(it => [
+        it.sn, it.model, it.status, it.assignee?.empName, it.assignee?.department,
+      ].filter(Boolean).join(' ').toLowerCase().includes(accSearchQ))
+    : individualItems;
 
   let totalAccessoriesCost = 0;
   if (selectedAssetCategory === 'accessories') {
@@ -1916,7 +1927,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการชิ้นย่อย ({individualItems.length})</h4>
+                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {individualItems.length > 0 && (
@@ -1939,6 +1950,31 @@ export default function AssetDetailsModal({
                     </div>
                   </div>
 
+                  {/* 🆕 ช่องค้นหาในรายการชิ้นย่อย */}
+                  {individualItems.length > 0 && (
+                    <div className="px-5 py-2.5 border-b border-slate-100">
+                      <div className="relative">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                        </svg>
+                        <input
+                          type="text"
+                          value={accItemSearch}
+                          onChange={(e) => setAccItemSearch(e.target.value)}
+                          placeholder="ค้นหาชิ้นย่อย (SN, รุ่น, ผู้ถือ, สถานะ...)"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2 text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] focus:bg-white transition"
+                        />
+                        {accItemSearch && (
+                          <button type="button" onClick={() => setAccItemSearch('')} title="ล้างคำค้นหา" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 w-5 h-5 flex items-center justify-center rounded transition-colors">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-4">
                   {isImportingCSV && (
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
@@ -1958,178 +1994,110 @@ export default function AssetDetailsModal({
                     </div>
                   )}
 
-                  {/* 🆕 Modal popup สำหรับเพิ่มชิ้นใหม่ */}
-                  <Modal open={isAddingNew} onClose={() => setIsAddingNew(false)} size="xl">
-                    <ModalHeader title="เพิ่มชิ้นใหม่" subtitle="กรอกรายละเอียดของชิ้นใหม่" onClose={() => setIsAddingNew(false)} />
-                    <ModalBody className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* 🆕 Modal เพิ่มชิ้นใหม่ — ธีมเดียวกับฟอร์มอื่นในระบบ */}
+                  <Modal open={isAddingNew} onClose={() => setIsAddingNew(false)} size="lg">
+                    <ModalHeader icon={Tag} title="เพิ่มชิ้นใหม่" subtitle="กรอกรายละเอียดของชิ้นใหม่ที่ต้องการเพิ่ม" onClose={() => setIsAddingNew(false)} />
+                    <ModalBody className="space-y-7">
+                      <section className="space-y-4">
+                        <SectionHeader>ข้อมูลชิ้น</SectionHeader>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <Field label="Serial Number">
+                            <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className={cls.inputMono} placeholder="SN" />
+                          </Field>
+                          <Field label="รุ่น / โมเดล">
+                            <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className={cls.input} placeholder="รุ่น" />
+                          </Field>
+                          <Field label="ราคา / ชิ้น (บาท)">
+                            <input type="number" value={newItemData.cost} onChange={e=>setNewItemData({...newItemData, cost: e.target.value})} className={cls.input} placeholder="0" />
+                          </Field>
+                          <Field label="จำนวน (ชิ้น)">
+                            <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className={cls.input} />
+                          </Field>
+                          <Field label="วันที่ซื้อ">
+                            <DateField value={newItemData.purchaseDate} onChange={v=>setNewItemData({...newItemData, purchaseDate: v})} inputClassName={cls.input + ' pr-9'} />
+                          </Field>
+                          <Field label="วันหมดประกัน">
+                            <DateField value={newItemData.warrantyDate} onChange={v=>setNewItemData({...newItemData, warrantyDate: v})} inputClassName={cls.input + ' pr-9'} />
+                          </Field>
+                        </div>
+                      </section>
+                      <section className="space-y-4">
+                        <SectionHeader>ไฟล์แนบ</SectionHeader>
                         <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Serial Number</label>
-                          <input type="text" value={newItemData.sn} onChange={e=>setNewItemData({...newItemData, sn: e.target.value})} className="border border-slate-200 p-2.5 rounded-lg text-[13.5px] font-mono focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="SN" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">รุ่น / โมเดล</label>
-                          <input type="text" value={newItemData.model} onChange={e=>setNewItemData({...newItemData, model: e.target.value})} className="border border-slate-200 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="รุ่น" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">ราคา (บาท)</label>
-                          <input type="number" value={newItemData.cost} onChange={e=>setNewItemData({...newItemData, cost: e.target.value})} className="border border-slate-200 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="0" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">จำนวน (ชิ้น)</label>
-                          <input type="number" min="1" value={newItemData.quantity} onChange={e=>setNewItemData({...newItemData, quantity: e.target.value})} className="border border-slate-200 p-2.5 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันที่ซื้อ</label>
-                          <DateField value={newItemData.purchaseDate} onChange={v=>setNewItemData({...newItemData, purchaseDate: v})} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันหมดประกัน</label>
-                          <DateField value={newItemData.warrantyDate} onChange={v=>setNewItemData({...newItemData, warrantyDate: v})} inputClassName="border border-slate-200 p-2.5 pr-9 rounded-lg text-[13.5px] focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full text-slate-700" />
-                        </div>
-                      </div>
-                      <div className="pt-3 border-t border-slate-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ (ใบเสร็จ / รูป / ใบรับประกัน)</span>
-                          <label className={`cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
-                            + แนบไฟล์
-                            <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
-                          </label>
-                        </div>
-                        {(newItemData.documents || []).length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {newItemData.documents.map((d, i) => (
-                              <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-md text-[12px]">
-                                <span className="text-slate-600 truncate max-w-[180px]">{d.name}</span>
-                                <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
-                              </div>
-                            ))}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                              <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
+                              <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
+                            </label>
                           </div>
-                        )}
-                      </div>
+                          {(newItemData.documents || []).length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {newItemData.documents.map((d, i) => (
+                                <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
+                                  <Paperclip className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2} />
+                                  <span className="text-slate-600 truncate max-w-[180px]">{d.name}</span>
+                                  <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                          )}
+                        </div>
+                      </section>
                     </ModalBody>
                     <ModalFooter>
                       <Button variant="secondary" onClick={() => { setIsAddingNew(false); setNewItemData({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] }); }}>ยกเลิก</Button>
-                      <Button onClick={handleAddNewPiece} disabled={isSavingItem}>{isSavingItem ? 'กำลังบันทึก...' : 'บันทึก'}</Button>
+                      <Button onClick={handleAddNewPiece} disabled={isSavingItem}>{isSavingItem ? 'กำลังบันทึก...' : 'บันทึกชิ้น'}</Button>
                     </ModalFooter>
                   </Modal>
                   
                   <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
-                    {individualItems.map((item, index) => (
+                    {visibleIndividualItems.length === 0 && accSearchQ && (
+                      <div className="py-10 text-center text-slate-400">
+                        <p className="text-[13.5px] font-medium">ไม่พบชิ้นย่อยที่ตรงกับ “{accItemSearch}”</p>
+                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-[12.5px] font-semibold text-[#1E487A] hover:underline">ล้างคำค้นหา</button>
+                      </div>
+                    )}
+                    {visibleIndividualItems.map((item) => (
                       <div key={item.id} className="bg-white transition-colors hover:bg-slate-50">
-                        <div onClick={() => setExpandedItem(expandedItem === index ? null : index)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
+                        <div onClick={() => setAccItemDetailModal(item)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
                           <div className="flex items-center gap-3 overflow-hidden">
                             <input type="checkbox" checked={selectedItemsForDelete.includes(item.id)} onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 shrink-0" />
                             <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-emerald-500' : item.type === 'assigned' ? 'bg-blue-500' : 'bg-red-500'}`}></span>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 truncate">
-                              <span className="text-xs font-semibold text-slate-800 truncate">
-                                {/* 🆕 ใช้ชื่อ accessory หลักเป็นชื่อรายการย่อย (เหมือน License) */}
-                                {item.type === 'assigned'
-                                  ? `${currentAssetDetail.name} — ${item.assignee.empName}`
-                                  : currentAssetDetail.name}
-                              </span>
-                              {item.sn && <span className="text-[11px] text-slate-500 font-mono bg-slate-50 px-1.5 rounded-md border border-slate-200 truncate">SN: {item.sn}</span>}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs font-semibold text-slate-800 truncate">
+                                  {item.type === 'assigned'
+                                    ? `${currentAssetDetail.name} — ${item.assignee.empName}`
+                                    : currentAssetDetail.name}
+                                </span>
+                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border shrink-0 ${item.type === 'available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : item.type === 'assigned' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
+                              </div>
+                              {(item.sn || item.model) && (
+                                <p className="text-[10.5px] text-slate-400 truncate mt-0.5 flex items-center gap-2">
+                                  {item.sn && <span className="font-mono">SN: {item.sn}</span>}
+                                  {item.model && <span className="truncate">· {item.model}</span>}
+                                </p>
+                              )}
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2 shrink-0">
-                            {item.type === 'available' ? (
-                              null /* 🆕 ลบปุ่มเบิกจ่ายต่อแถว — ใช้ปุ่ม "เบิกจ่าย" เดียวใน footer แทน */
-                            ) : item.type === 'assigned' ? (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
-                            ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 px-2.5 py-1 rounded-lg transition-colors">เข้าคลัง</button>
-                            )}
-                            <svg className={`h-4 w-4 text-slate-400 transition-transform ${expandedItem === index ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            {item.type === 'available' ? null
+                              : item.type === 'assigned' ? (
+                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
+                              ) : (
+                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 px-2.5 py-1 rounded-lg transition-colors">เข้าคลัง</button>
+                              )}
+                            <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
                         </div>
-                        
-                        {expandedItem === index && (
-                          <div className="p-4 bg-slate-50 border-t border-slate-100 animate-in fade-in">
-                            {editingItemId === item.id ? (
-                              <div className="space-y-3">
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                  <input type="text" value={tempSNValue} onChange={(e) => setTempSNValue(e.target.value)} className="border border-slate-200 p-2 rounded-lg text-xs focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none font-mono w-full" placeholder="Serial Number" />
-                                  <input type="text" value={tempModelValue} onChange={(e) => setTempModelValue(e.target.value)} className="border border-slate-200 p-2 rounded-lg text-xs focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="รุ่น / โมเดล" />
-                                  <input type="number" value={tempCostValue} onChange={(e) => setTempCostValue(e.target.value)} className="border border-slate-200 p-2 rounded-lg text-xs focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none w-full" placeholder="ราคา (บาท)" />
-                                  <DateField value={tempPurchaseDateValue} onChange={(v) => setTempPurchaseDateValue(v)} inputClassName="border border-slate-200 p-2 pr-9 rounded-lg text-xs focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none text-slate-600 w-full" />
-                                  <DateField value={tempWarrantyDateValue} onChange={(v) => setTempWarrantyDateValue(v)} inputClassName="border border-slate-200 p-2 pr-9 rounded-lg text-xs focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] outline-none text-slate-600 w-full" />
-                                </div>
-                                {/* ไฟล์แนบ */}
-                                <div className="pt-2 border-t border-slate-200">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ไฟล์แนบ (ใบเสร็จ / รูป / ใบรับประกัน)</span>
-                                    <label className={`cursor-pointer text-[11px] font-semibold py-1 px-2.5 rounded border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
-                                      + แนบไฟล์
-                                      <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'edit')} disabled={isSavingItem} className="hidden" />
-                                    </label>
-                                  </div>
-                                  {tempAccDocs.length > 0 && (
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {tempAccDocs.map((d, i) => (
-                                        <div key={i} className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-md text-[11px]">
-                                          <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-slate-600 hover:text-[#1E487A] truncate max-w-[140px]">{d.name}</button>
-                                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-1">✕</button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                  <button onClick={() => { setEditingItemId(null); setTempAccDocs([]); }} className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors">ยกเลิก</button>
-                                  <button onClick={() => handleSaveItemDetails(item)} disabled={isSavingItem} className="px-3 py-1.5 text-xs font-semibold text-white bg-[#1E487A] rounded-lg hover:bg-[#163963] disabled:opacity-50 transition-colors">บันทึก</button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-                                  <div className="grid grid-cols-2 md:flex gap-x-6 gap-y-2 text-xs">
-                                    <div><span className="text-slate-400 block text-[11px]">รุ่น/โมเดล</span><span className="font-medium text-slate-800">{item.model || '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">ราคา/ชิ้น</span><span className="font-medium text-slate-800">{item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">วันที่ซื้อ</span><span className="font-medium text-slate-800">{formatDateShort(item.purchaseDate)}</span></div>
-                                    <div><span className="text-slate-400 block text-[11px]">วันหมดประกัน</span><span className="font-medium text-slate-800">{formatDateShort(item.warrantyDate)}</span></div>
-                                    {(() => {
-                                      const age = calcAccessoryAge(item.purchaseDate);
-                                      if (!age) return null;
-                                      const toneCls = {
-                                        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                        amber:   'bg-amber-50 text-amber-700 border-amber-200',
-                                        slate:   'bg-slate-100 text-slate-600 border-slate-200',
-                                      }[age.tone] || 'bg-slate-100 text-slate-600 border-slate-200';
-                                      return (
-                                        <div>
-                                          <span className="text-slate-400 block text-[11px]">อายุการใช้งาน</span>
-                                          <span className={`inline-block font-semibold text-[11.5px] px-1.5 py-0.5 rounded border ${toneCls}`}>{age.text}</span>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                  <button onClick={() => { setEditingItemId(item.id); setTempSNValue(item.sn); setTempModelValue(item.model); setTempCostValue(item.itemCost); setTempPurchaseDateValue(item.purchaseDate); setTempWarrantyDateValue(item.warrantyDate); setTempAccDocs(item.documents || []); }} className="text-[11.5px] text-[#1E487A] bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 hover:border-blue-200 font-semibold whitespace-nowrap transition-colors">
-                                    แก้ไขข้อมูล
-                                  </button>
-                                </div>
-                                {/* ไฟล์แนบ (read-only) */}
-                                {(item.documents || []).length > 0 && (
-                                  <div className="pt-2 border-t border-slate-200">
-                                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">ไฟล์แนบ ({item.documents.length})</span>
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {item.documents.map((d, i) => (
-                                        <button key={i} type="button" onClick={() => handleOpenAccDoc(d)} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 px-2.5 py-1 rounded text-[11.5px] text-slate-700 hover:text-[#1E487A] transition-colors">
-                                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9" /></svg>
-                                          {d.name}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     ))}
                     {individualItems.length === 0 && (
-                      <div className="py-8 text-center text-[13px] text-slate-400 bg-slate-50 rounded-xl">ไม่มีข้อมูลชิ้นย่อย</div>
+                      <div className="py-8 text-center text-[13px] text-slate-400 bg-slate-50">ไม่มีข้อมูลชิ้นย่อย</div>
                     )}
                   </div>
                   </div>
@@ -2529,6 +2497,41 @@ export default function AssetDetailsModal({
           }}
         />
       )}
+
+      {/* 🆕 Accessory Item Detail Modal — ทำงานเหมือน SeatDetailModal ของ License */}
+      {accItemDetailModal && (
+        <AccessoryItemDetailModal
+          item={accItemDetailModal}
+          accessoryName={currentAssetDetail.name}
+          calcAccessoryAge={calcAccessoryAge}
+          onClose={() => { setAccItemDetailModal(null); setEditingItemId(null); setTempAccDocs([]); }}
+          isEditing={editingItemId === accItemDetailModal.id}
+          onEdit={() => {
+            setEditingItemId(accItemDetailModal.id);
+            setTempSNValue(accItemDetailModal.sn || '');
+            setTempModelValue(accItemDetailModal.model || '');
+            setTempCostValue(accItemDetailModal.itemCost || '');
+            setTempPurchaseDateValue(accItemDetailModal.purchaseDate || '');
+            setTempWarrantyDateValue(accItemDetailModal.warrantyDate || '');
+            setTempAccDocs(accItemDetailModal.documents || []);
+          }}
+          onCancelEdit={() => { setEditingItemId(null); setTempAccDocs([]); }}
+          onSaveEdit={async () => {
+            await handleSaveItemDetails(accItemDetailModal);
+            const updated = individualItems.find(it => it.id === accItemDetailModal.id);
+            if (updated) setAccItemDetailModal(updated); else setAccItemDetailModal(null);
+          }}
+          tempSNValue={tempSNValue} setTempSNValue={setTempSNValue}
+          tempModelValue={tempModelValue} setTempModelValue={setTempModelValue}
+          tempCostValue={tempCostValue} setTempCostValue={setTempCostValue}
+          tempPurchaseDateValue={tempPurchaseDateValue} setTempPurchaseDateValue={setTempPurchaseDateValue}
+          tempWarrantyDateValue={tempWarrantyDateValue} setTempWarrantyDateValue={setTempWarrantyDateValue}
+          tempAccDocs={tempAccDocs} setTempAccDocs={setTempAccDocs}
+          handleAccItemDocUpload={handleAccItemDocUpload}
+          handleOpenAccDoc={handleOpenAccDoc}
+          isSavingItem={isSavingItem}
+        />
+      )}
     </div>
   );
 }
@@ -2800,6 +2803,181 @@ function SeatDetailModal({
               >
                 <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} />
                 แก้ไขข้อมูล
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   🆕 AccessoryItemDetailModal — รายละเอียด + edit ของชิ้นย่อยอุปกรณ์เสริม
+   (โครง/ดีไซน์เดียวกับ SeatDetailModal ของ License)
+════════════════════════════════════════════════ */
+function AccessoryItemDetailModal({
+  item, accessoryName, calcAccessoryAge, onClose, onEdit, isEditing,
+  onCancelEdit, onSaveEdit,
+  tempSNValue, setTempSNValue,
+  tempModelValue, setTempModelValue,
+  tempCostValue, setTempCostValue,
+  tempPurchaseDateValue, setTempPurchaseDateValue,
+  tempWarrantyDateValue, setTempWarrantyDateValue,
+  tempAccDocs, setTempAccDocs,
+  handleAccItemDocUpload, handleOpenAccDoc, isSavingItem,
+}) {
+  const statusBadge = item.type === 'available'
+    ? { label: 'พร้อมใช้งาน', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' }
+    : item.type === 'assigned'
+    ? { label: 'ถูกใช้งาน', cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' }
+    : { label: 'ชำรุดเสียหาย', cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' };
+  const age = calcAccessoryAge(item.purchaseDate);
+  const docs = item.documents || [];
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/60 z-[95] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_24px_60px_-24px_rgba(16,47,87,0.28)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-slate-100">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3.5 min-w-0">
+              <div className="w-11 h-11 rounded-xl bg-[#1E487A]/[0.08] text-[#1E487A] flex items-center justify-center shrink-0">
+                <Tag className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">รายการชิ้นย่อย · {accessoryName}</p>
+                <h3 className="text-[20px] font-bold text-slate-900 leading-tight break-words">{item.sn ? `SN: ${item.sn}` : accessoryName}</h3>
+                <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadge.cls}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
+                    {statusBadge.label}
+                  </span>
+                  {item.type === 'assigned' && item.assignee?.empName && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 text-xs font-semibold border border-slate-200">
+                      <User className="h-3 w-3" strokeWidth={2.2} /> {item.assignee.empName}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center shrink-0 transition-colors">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto bg-white">
+          {isEditing ? (
+            <div className="p-6 sm:p-7 space-y-7">
+              <section className="space-y-4">
+                <SectionHeader>ข้อมูลชิ้น</SectionHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Serial Number">
+                    <input type="text" value={tempSNValue} onChange={(e) => setTempSNValue(e.target.value)} className={cls.inputMono} placeholder="SN" />
+                  </Field>
+                  <Field label="รุ่น / โมเดล">
+                    <input type="text" value={tempModelValue} onChange={(e) => setTempModelValue(e.target.value)} className={cls.input} placeholder="รุ่น" />
+                  </Field>
+                  <Field label="ราคา / ชิ้น (บาท)">
+                    <input type="number" value={tempCostValue} onChange={(e) => setTempCostValue(e.target.value)} className={cls.input} placeholder="0" />
+                  </Field>
+                  <Field label="วันที่ซื้อ">
+                    <DateField value={tempPurchaseDateValue} onChange={(v) => setTempPurchaseDateValue(v)} inputClassName={cls.input + ' pr-9'} />
+                  </Field>
+                  <Field label="วันหมดประกัน" className="sm:col-span-2">
+                    <DateField value={tempWarrantyDateValue} onChange={(v) => setTempWarrantyDateValue(v)} inputClassName={cls.input + ' pr-9'} />
+                  </Field>
+                </div>
+              </section>
+              <section className="space-y-4">
+                <SectionHeader>ไฟล์แนบ</SectionHeader>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                      <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
+                      <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'edit')} disabled={isSavingItem} className="hidden" />
+                    </label>
+                  </div>
+                  {tempAccDocs.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {tempAccDocs.map((d, i) => (
+                        <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
+                          <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-slate-600 hover:text-[#1E487A] truncate max-w-[160px]">{d.name}</button>
+                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                  )}
+                </div>
+              </section>
+            </div>
+          ) : (
+            <div className="px-6 sm:px-7 divide-y divide-slate-100">
+              {item.type === 'assigned' && item.assignee && (
+                <Section icon={User} title="ผู้ถือครอง / การใช้งาน">
+                  <div className="flex items-start gap-3.5 rounded-xl bg-slate-50 border border-slate-100 p-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-[15px] shrink-0 bg-blue-100 text-[#1E487A]">
+                      {item.assignee.empName?.charAt(0) || '?'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] font-bold text-slate-800 break-words">{item.assignee.empName || '-'}</p>
+                      <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1">
+                        {item.assignee.department && <KV icon={Building2} label="แผนก" value={item.assignee.department} />}
+                        {item.assignee.checkoutDate && <KV icon={Calendar} label="เบิกเมื่อ" value={formatDateShort(item.assignee.checkoutDate)} />}
+                      </div>
+                    </div>
+                  </div>
+                </Section>
+              )}
+
+              <Section icon={FileText} title="ข้อมูลชิ้น">
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
+                  <DItem label="Serial Number" value={item.sn || '-'} span={2} />
+                  <DItem label="สถานะ" value={statusBadge.label} />
+                  <DItem label="รุ่น / โมเดล" value={item.model || '-'} />
+                  <DItem label="ราคา / ชิ้น" value={item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'} />
+                  <DItem label="อายุการใช้งาน" value={age ? age.text : '-'} />
+                  <DItem label="วันที่ซื้อ" value={formatDateShort(item.purchaseDate)} />
+                  <DItem label="วันหมดประกัน" value={formatDateShort(item.warrantyDate)} span={2} />
+                </dl>
+              </Section>
+
+              <Section icon={Paperclip} title={`ไฟล์แนบ${docs.length ? ` (${docs.length})` : ''}`}>
+                {docs.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {docs.map((d, i) => (
+                      <button key={i} type="button" onClick={() => handleOpenAccDoc(d)} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-[12.5px] font-medium text-[#1E487A] hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                        <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                        <span className="truncate max-w-[180px]">{d.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[13px] text-slate-300">— ไม่มีไฟล์แนบ</p>
+                )}
+              </Section>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+          {isEditing ? (
+            <>
+              <button onClick={onCancelEdit} disabled={isSavingItem} className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50">ยกเลิก</button>
+              <button onClick={onSaveEdit} disabled={isSavingItem} className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm disabled:opacity-50">{isSavingItem ? 'กำลังบันทึก...' : '✓ บันทึก'}</button>
+            </>
+          ) : (
+            <>
+              <button onClick={onClose} className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300">ปิด</button>
+              <button onClick={onEdit} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm">
+                <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} /> แก้ไขข้อมูล
               </button>
             </>
           )}

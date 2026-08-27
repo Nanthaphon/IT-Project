@@ -21,7 +21,9 @@ function parseRoute(pathname) {
   const assetEdit = !!(assetId && seg[2] === 'edit');   // /assets/:id/edit
   const licenseId = (first === 'licenses' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const licenseEdit = !!(licenseId && seg[2] === 'edit'); // /licenses/:id/edit
-  return { menu, assetId, assetEdit, licenseId, licenseEdit };
+  const accessoryId = (first === 'accessories' && seg[1]) ? decodeURIComponent(seg[1]) : null;
+  const accessoryEdit = !!(accessoryId && seg[2] === 'edit'); // /accessories/:id/edit
+  return { menu, assetId, assetEdit, licenseId, licenseEdit, accessoryId, accessoryEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -115,10 +117,11 @@ function App() {
   // 🆕 activeMenu มาจาก URL (แทน useState) — แถบ URL บอกว่าอยู่หน้าไหน
   const location = useLocation();
   const navigate = useNavigate();
-  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit } = parseRoute(location.pathname);
+  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit, accessoryId: routeAccessoryId, accessoryEdit: routeAccessoryEdit } = parseRoute(location.pathname);
   const setActiveMenu = useCallback((id) => navigate(MENU_PATH[id] || '/'), [navigate]);
   const openAssetPage = useCallback((asset) => navigate(`/assets/${encodeURIComponent(asset.id)}`), [navigate]);
   const openLicensePage = useCallback((lic) => navigate(`/licenses/${encodeURIComponent(lic.id)}`), [navigate]);
+  const openAccessoryPage = useCallback((acc) => navigate(`/accessories/${encodeURIComponent(acc.id)}`), [navigate]);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar drawer
   const [pendingAssetId, setPendingAssetId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -218,6 +221,19 @@ function App() {
       editLicensePopulatedRef.current = null;
     }
   }, [routeLicenseEdit, routeLicenseId, licenses]);
+
+  // 🆕 เมื่อเข้า route แก้ไข (/accessories/:id/edit) → เติมข้อมูลลงฟอร์มครั้งเดียว
+  const editAccessoryPopulatedRef = useRef(null);
+  useEffect(() => {
+    if (routeAccessoryEdit && routeAccessoryId) {
+      if (editAccessoryPopulatedRef.current !== routeAccessoryId) {
+        const a = accessories.find(x => x.id === routeAccessoryId);
+        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'accessories' }); editAccessoryPopulatedRef.current = routeAccessoryId; }
+      }
+    } else {
+      editAccessoryPopulatedRef.current = null;
+    }
+  }, [routeAccessoryEdit, routeAccessoryId, accessories]);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
@@ -1850,6 +1866,12 @@ function App() {
     await handleUpdateAsset(e);
     if (id) navigate(`/assets/${encodeURIComponent(id)}`);
   };
+  // 🆕 บันทึกจากหน้าแก้ไขเต็มหน้า (อุปกรณ์เสริม) → กลับหน้ารายละเอียด
+  const handleUpdateAccessoryPage = async (e) => {
+    const id = editAssetModal.data?.id;
+    await handleUpdateAsset(e);
+    if (id) navigate(`/accessories/${encodeURIComponent(id)}`);
+  };
   const handleEditAssetChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: val } }));
@@ -2860,7 +2882,7 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || isListMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || isListMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
           {routeAssetEdit ? (
             /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
             <div className="h-full">
@@ -2943,6 +2965,54 @@ function App() {
                     selectedAssetDetail={routeLicense}
                     setSelectedAssetDetail={setSelectedAssetDetail}
                     selectedAssetCategory="licenses"
+                    setSelectedAssetCategory={setSelectedAssetCategory}
+                    assets={assets} accessories={accessories} licenses={licenses}
+                    transactions={transactions} employees={employees}
+                    setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
+                    handleCheckin={handleCheckin}
+                    openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
+                    setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks}
+                    showConfirm={showConfirm} setCustomAlert={setCustomAlert}
+                    handleAssignLicenseToAsset={handleAssignLicenseToAsset}
+                    handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
+                  />
+                </div>
+              );
+            })()
+          ) : routeAccessoryEdit ? (
+            /* 🆕 หน้าเต็มแก้ไขอุปกรณ์เสริม (URL /accessories/:id/edit) */
+            <div className="h-full">
+              <EditAssetModal
+                asPage
+                onClosePage={() => navigate(`/accessories/${encodeURIComponent(routeAccessoryId)}`)}
+                editAssetModal={editAssetModal}
+                setEditAssetModal={setEditAssetModal}
+                handleUpdateAsset={handleUpdateAccessoryPage}
+                handleEditAssetChange={handleEditAssetChange}
+                fieldOptions={fieldOptions}
+              />
+            </div>
+          ) : routeAccessoryId ? (
+            /* 🆕 หน้าเต็มรายละเอียดอุปกรณ์เสริม (URL /accessories/:id) — เต็มขอบ */
+            (() => {
+              const routeAccessory = accessories.find(a => a.id === routeAccessoryId);
+              if (!routeAccessory) {
+                return (
+                  <div className="p-5">
+                    <button onClick={() => navigate('/accessories')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบอุปกรณ์นี้ (อาจถูกลบไปแล้ว)</div>
+                  </div>
+                );
+              }
+              return (
+                <div className="h-full">
+                  <AssetDetailsModal
+                    asPage
+                    onClosePage={() => navigate('/accessories')}
+                    onEditPage={() => navigate(`/accessories/${encodeURIComponent(routeAccessory.id)}/edit`)}
+                    selectedAssetDetail={routeAccessory}
+                    setSelectedAssetDetail={setSelectedAssetDetail}
+                    selectedAssetCategory="accessories"
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
@@ -3085,7 +3155,7 @@ function App() {
                     ) : activeMenu === 'office_supplies' ? (
                       <OfficeSupplyTable currentData={paginatedTableData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
                     ) : activeMenu === 'accessories' ? (
-                      <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
+                      <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} onOpenAccessory={openAccessoryPage} onEditAccessory={(a)=>navigate(`/accessories/${encodeURIComponent(a.id)}/edit`)} />
                     ) : activeMenu === 'assets' ? (
                       <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets} onOpenAsset={openAssetPage} onEditAsset={(a)=>navigate(`/assets/${encodeURIComponent(a.id)}/edit`)} />
                     ) : null}
@@ -3128,7 +3198,7 @@ function App() {
         handleAssignLicenseToAsset={handleAssignLicenseToAsset}
         handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
         bundledItems={bundledItems} handleAddBundledItem={handleAddBundledItem} handleDeleteBundledItem={handleDeleteBundledItem}
-        suppressEditAssetModal={routeAssetEdit}
+        suppressEditAssetModal={routeAssetEdit || routeAccessoryEdit}
         suppressEditLicenseModal={routeLicenseEdit}
       />
       {/* 🆕 โหลด modal เฉพาะตอนเปิด — ลด initial bundle */}

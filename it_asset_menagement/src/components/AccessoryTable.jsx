@@ -16,7 +16,12 @@ export default function AccessoryTable({
   openEditAssetModal,
   setConfirmDeleteModal,
   canEdit,
+  onOpenAccessory,   // 🆕 ถ้ามี = เปิดหน้าเต็ม (URL /accessories/:id) แทน modal
+  onEditAccessory,   // 🆕 ถ้ามี = เปิดหน้าแก้ไขเต็มจอ (URL /accessories/:id/edit) แทน modal
 }) {
+  const openAccessory = (item) => onOpenAccessory
+    ? onOpenAccessory(item)
+    : (setSelectedAssetDetail(item), setSelectedAssetCategory('accessories'));
   const totalQty    = currentData.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
   const totalRemain = currentData.reduce((s, i) => s + (Number(i.quantity || 0) - (i.assignees?.length || 0) - Number(i.brokenQuantity || 0)), 0);
   const totalUsed   = currentData.reduce((s, i) => s + (i.assignees?.length || 0), 0);
@@ -68,7 +73,7 @@ export default function AccessoryTable({
               </td>
               <td className={TD}>
                 <button
-                  onClick={() => { setSelectedAssetDetail(item); setSelectedAssetCategory('accessories'); }}
+                  onClick={() => openAccessory(item)}
                   className="text-left flex items-center gap-3 group/link"
                 >
                   {item.image ? (
@@ -113,7 +118,7 @@ export default function AccessoryTable({
                     </button>
                   )}
                   {canEdit && (
-                    <IconBtn onClick={() => openEditAssetModal(item, 'accessories')} title="แก้ไข" kind="warning">
+                    <IconBtn onClick={() => onEditAccessory ? onEditAccessory(item) : openEditAssetModal(item, 'accessories')} title="แก้ไข" kind="warning">
                       <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
                     </IconBtn>
                   )}

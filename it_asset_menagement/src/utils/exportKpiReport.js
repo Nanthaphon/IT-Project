@@ -13,6 +13,11 @@ const hours = (ms) => {
   return +(ms / 3600000).toFixed(2);
 };
 
+// คืนค่าตัวเลข (สำหรับ Excel คำนวณต่อ) หรือ '' ถ้าไม่มี — ไม่ใช้ '-' ในชีตข้อมูลดิบ
+const num = (v) => (v === null || v === undefined || v === '' || Number.isNaN(Number(v))) ? '' : Number(v);
+const round2 = (v) => (v === null || v === undefined || Number.isNaN(Number(v))) ? '' : Math.round(Number(v) * 100) / 100;
+const dt = (ms) => ms ? formatDateTimeShort(ms) : '';
+
 /* ── main export ───────────────────────────────────── */
 /**
  * @param {Object} opts
@@ -117,44 +122,65 @@ export function exportKpiReport({ repairRequests = [], periodLabel = 'ทั้�
     { s: { r: 25, c: 0 }, e: { r: 25, c: 2 } },
   ];
 
-  /* ── 2) Repair Detail Sheet ───────────────────────── */
-  const repairHeader = [
-    'ลำดับ', 'วันที่แจ้ง', 'รหัสพนักงาน', 'ชื่อพนักงาน', 'แผนก',
-    'อุปกรณ์', 'ปัญหาที่แจ้ง', 'สถานะ',
-    'เวลาเริ่มซ่อม', 'เวลาซ่อมเสร็จ',
-    'เวลาตอบสนอง (ชม.)', 'เวลาซ่อม (ชม.)',
-    'ประเมินแล้ว', 'คะแนนรวม',
+  /* ── 2) ข้อมูลเคสทั้งหมด (ตารางมาตรฐาน — 1 แถว/เคส ครบทุกฟิลด์) ── */
+  //  ออกแบบให้เป็น "ข้อมูลดิบ" ที่นำไปทำ Pivot / วิเคราะห์ต่อได้ทันที
+  const dataHeader = [
+    'ลำดับ', 'รหัสเคส', 'วันที่แจ้ง',
+    'ผู้แจ้ง', 'รหัสพนักงาน', 'แผนก',
+    'ประเภท/อุปกรณ์', 'รายละเอียดปัญหา', 'สถานะ',
+    'วันที่เริ่มซ่อม', 'วันที่ซ่อมเสร็จ',
+    'เวลาตอบสนอง (ชม.)', 'เวลาซ่อม (ชม.)', 'เวลารวม (ชม.)',
+    'ประเมินแล้ว', 'คะแนนรวม', 'ความรวดเร็ว', 'คุณภาพ', 'การบริการ',
+    'ความเห็นเพิ่มเติม', 'วันที่ประเมิน', 'ผู้ประเมิน', 'รหัสผู้ประเมิน',
   ];
 
-  const repairRows = list.map((r, idx) => {
+  const dataRows = list.map((r, idx) => {
     const resp   = hours((r.startedAt || 0) - (r.timestamp || 0));
     const repair = hours((r.completedAt || 0) - (r.startedAt || 0));
+    const totalH = hours((r.completedAt || 0) - (r.timestamp || 0));
+    const e = r.evaluation || null;
     return [
       idx + 1,
-      formatDateTime(r.timestamp),
-      r.empId || '-',
-      r.empName || '-',
-      r.department || '-',
-      r.assetName || '-',
-      r.issue || '-',
-      r.status || '-',
-      formatDateTime(r.startedAt),
-      formatDateTime(r.completedAt),
-      resp !== null && resp >= 0 ? resp : '-',
-      repair !== null && repair >= 0 ? repair : '-',
-      r.evaluation ? '✅' : '—',
-      r.evaluation?.overallRating ? r.evaluation.overallRating.toFixed(2) : '-',
+      r.id || '',
+      dt(r.timestamp),
+      r.empName || '',
+      r.empId || '',
+      r.department || '',
+      r.assetName || '',
+      r.issue || '',
+      r.status || '',
+      dt(r.startedAt),
+      dt(r.completedAt),
+      resp !== null && resp >= 0 ? resp : '',
+      repair !== null && repair >= 0 ? repair : '',
+      totalH !== null && totalH >= 0 ? totalH : '',
+      e ? 'ใช่' : 'ไม่',
+      e ? round2(e.overallRating) : '',
+      e ? num(e.speedRating) : '',
+      e ? num(e.qualityRating) : '',
+      e ? num(e.serviceRating) : '',
+      e?.comment || '',
+      e?.evaluatedAt ? dt(e.evaluatedAt) : '',
+      e?.evaluatedByName || '',
+      e?.evaluatedBy || '',
     ];
   });
 
-  const repairSheet = XLSX.utils.aoa_to_sheet([repairHeader, ...repairRows]);
+  const repairSheet = XLSX.utils.aoa_to_sheet([dataHeader, ...dataRows]);
   repairSheet['!cols'] = [
-    { wch: 6 }, { wch: 18 }, { wch: 12 }, { wch: 22 }, { wch: 18 },
-    { wch: 24 }, { wch: 36 }, { wch: 14 },
+    { wch: 6 }, { wch: 22 }, { wch: 18 },
+    { wch: 24 }, { wch: 12 }, { wch: 18 },
+    { wch: 22 }, { wch: 40 }, { wch: 14 },
     { wch: 18 }, { wch: 18 },
-    { wch: 16 }, { wch: 14 },
-    { wch: 10 }, { wch: 10 },
+    { wch: 16 }, { wch: 14 }, { wch: 14 },
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+    { wch: 50 }, { wch: 18 }, { wch: 22 }, { wch: 14 },
   ];
+  // ตรึงหัวตาราง + เปิด AutoFilter ให้กรอง/เรียงได้ทันที
+  repairSheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+  if (dataRows.length > 0) {
+    repairSheet['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: dataRows.length, c: dataHeader.length - 1 } }) };
+  }
 
   /* ── 3) Evaluation Detail Sheet ───────────────────── */
   const evalHeader = [
@@ -212,12 +238,38 @@ export function exportKpiReport({ repairRequests = [], periodLabel = 'ทั้�
   const deptSheet = XLSX.utils.aoa_to_sheet([deptHeader, ...deptRows]);
   deptSheet['!cols'] = [{ wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 18 }, { wch: 14 }];
 
+  /* ── 5) แยกตามผู้แจ้ง (สรุปเคสรายบุคคล) ────────────── */
+  const reporterMap = {};
+  list.forEach(r => {
+    const key = r.empId || r.empName || 'ไม่ระบุ';
+    if (!reporterMap[key]) {
+      reporterMap[key] = { name: r.empName || '-', empId: r.empId || '-', dept: r.department || '-', total: 0, done: 0, evalCount: 0, ratingSum: 0 };
+    }
+    const m = reporterMap[key];
+    m.total += 1;
+    if (r.status === 'ซ่อมเสร็จสิ้น') m.done += 1;
+    if (r.evaluation?.overallRating > 0) { m.evalCount += 1; m.ratingSum += r.evaluation.overallRating; }
+    // เก็บชื่อ/แผนกล่าสุดเผื่อข้อมูลเปลี่ยน
+    if (r.empName) m.name = r.empName;
+    if (r.department) m.dept = r.department;
+  });
+  const reporterHeader = ['ผู้แจ้ง', 'รหัสพนักงาน', 'แผนก', 'จำนวนเคส', 'ปิดเคสแล้ว', 'ประเมินแล้ว', 'คะแนนเฉลี่ย'];
+  const reporterRows = Object.values(reporterMap)
+    .sort((a, b) => b.total - a.total)
+    .map(m => [
+      m.name, m.empId, m.dept, m.total, m.done, m.evalCount,
+      m.evalCount > 0 ? round2(m.ratingSum / m.evalCount) : '',
+    ]);
+  const reporterSheet = XLSX.utils.aoa_to_sheet([reporterHeader, ...reporterRows]);
+  reporterSheet['!cols'] = [{ wch: 24 }, { wch: 14 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+
   /* ── Assemble Workbook ────────────────────────────── */
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, summarySheet, 'สรุป KPI');
-  XLSX.utils.book_append_sheet(wb, repairSheet,  'รายละเอียดเคสซ่อม');
-  XLSX.utils.book_append_sheet(wb, evalSheet,    'รายละเอียดแบบประเมิน');
-  XLSX.utils.book_append_sheet(wb, deptSheet,    'แยกตามแผนก');
+  XLSX.utils.book_append_sheet(wb, summarySheet,  'สรุป KPI');
+  XLSX.utils.book_append_sheet(wb, repairSheet,   'ข้อมูลเคสทั้งหมด');
+  XLSX.utils.book_append_sheet(wb, evalSheet,     'รายละเอียดแบบประเมิน');
+  XLSX.utils.book_append_sheet(wb, reporterSheet, 'แยกตามผู้แจ้ง');
+  XLSX.utils.book_append_sheet(wb, deptSheet,     'แยกตามแผนก');
 
   const safePeriod = periodLabel.replace(/[\\/:*?"<>|]/g, '-');
   const filename = `KPI_Report_${safePeriod}_${formatDate(Date.now()).replace(/\s/g, '')}.xlsx`;

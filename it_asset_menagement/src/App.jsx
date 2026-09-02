@@ -2616,8 +2616,9 @@ function App() {
     if (activeMenu === 'assets' || activeMenu === 'furniture') baseData = assets.filter(item =>
       // 🆕 ทรัพย์สินหลัก = ไม่ใช่ครุภัณฑ์ (assetGroup !== 'office')  |  ครุภัณฑ์ = assetGroup === 'office'
       (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
-      inFilter(assetFilterType, item.type) &&
-      inFilter(assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
+      // ครุภัณฑ์ไม่มีฟิลเตอร์ประเภท/สถานะ (ซ่อนไว้) — ข้ามไม่ให้ค่าที่ค้างจากเมนูทรัพย์สินมากรอง
+      (activeMenu === 'furniture' || inFilter(assetFilterType, item.type)) &&
+      (activeMenu === 'furniture' || inFilter(assetFilterStatus, item.status || 'พร้อมใช้งาน')) &&
       inFilter(assetFilterDepartment, item.forDepartment)
     );
     else if (activeMenu === 'licenses') {

@@ -125,37 +125,42 @@ export default function ActionBar({
               onChange={setAssetFilterDepartment}
               options={(fieldOptions.forDepartments || []).map(opt => ({ value: opt, label: opt }))}
             />
-            <MultiSelectFilter
-              label="ประเภท"
-              selected={assetFilterType}
-              onChange={setAssetFilterType}
-              options={[
-                { value: 'คอมพิวเตอร์',     label: 'คอมพิวเตอร์' },
-                { value: 'โน๊ตบุ๊ค',         label: 'โน๊ตบุ๊ค' },
-                { value: 'หน้าจอ',           label: 'หน้าจอ' },
-                { value: 'แท็บเล็ต/มือถือ', label: 'แท็บเล็ต / มือถือ' },
-                { value: 'ทีวี',             label: 'ทีวี' },
-                { value: 'ปริ้นเตอร์',       label: 'ปริ้นเตอร์' },
-                { value: 'อุปกรณ์ IT',       label: 'อุปกรณ์ IT' },
-                { value: 'อุปกรณ์สำนักงาน',  label: 'อุปกรณ์สำนักงาน' },
-                { value: 'อุปกรณ์เครือข่าย', label: 'อุปกรณ์เครือข่าย' },
-                { value: 'อื่นๆ',            label: 'อื่นๆ' },
-              ]}
-            />
-            <MultiSelectFilter
-              label="สถานะ"
-              selected={assetFilterStatus}
-              onChange={setAssetFilterStatus}
-              options={[
-                { value: 'พร้อมใช้งาน',       label: 'พร้อมใช้งาน' },
-                { value: 'ถูกใช้งาน',         label: 'ถูกใช้งาน' },
-                { value: 'สำรอง',             label: 'สำรอง' },
-                { value: 'ชำรุดเสียหาย',      label: 'ชำรุดเสียหาย' },
-                { value: 'ไม่สามารถใช้งานได้',  label: 'ไม่สามารถใช้งานได้' },
-                { value: 'รอดำเนินการ',       label: 'รอดำเนินการ' },
-                { value: 'ตัดจำหน่าย',        label: 'ตัดจำหน่าย' },
-              ]}
-            />
+            {/* ประเภท + สถานะ — ซ่อนในเมนูครุภัณฑ์ */}
+            {activeMenu !== 'furniture' && (
+              <>
+                <MultiSelectFilter
+                  label="ประเภท"
+                  selected={assetFilterType}
+                  onChange={setAssetFilterType}
+                  options={[
+                    { value: 'คอมพิวเตอร์',     label: 'คอมพิวเตอร์' },
+                    { value: 'โน๊ตบุ๊ค',         label: 'โน๊ตบุ๊ค' },
+                    { value: 'หน้าจอ',           label: 'หน้าจอ' },
+                    { value: 'แท็บเล็ต/มือถือ', label: 'แท็บเล็ต / มือถือ' },
+                    { value: 'ทีวี',             label: 'ทีวี' },
+                    { value: 'ปริ้นเตอร์',       label: 'ปริ้นเตอร์' },
+                    { value: 'อุปกรณ์ IT',       label: 'อุปกรณ์ IT' },
+                    { value: 'อุปกรณ์สำนักงาน',  label: 'อุปกรณ์สำนักงาน' },
+                    { value: 'อุปกรณ์เครือข่าย', label: 'อุปกรณ์เครือข่าย' },
+                    { value: 'อื่นๆ',            label: 'อื่นๆ' },
+                  ]}
+                />
+                <MultiSelectFilter
+                  label="สถานะ"
+                  selected={assetFilterStatus}
+                  onChange={setAssetFilterStatus}
+                  options={[
+                    { value: 'พร้อมใช้งาน',       label: 'พร้อมใช้งาน' },
+                    { value: 'ถูกใช้งาน',         label: 'ถูกใช้งาน' },
+                    { value: 'สำรอง',             label: 'สำรอง' },
+                    { value: 'ชำรุดเสียหาย',      label: 'ชำรุดเสียหาย' },
+                    { value: 'ไม่สามารถใช้งานได้',  label: 'ไม่สามารถใช้งานได้' },
+                    { value: 'รอดำเนินการ',       label: 'รอดำเนินการ' },
+                    { value: 'ตัดจำหน่าย',        label: 'ตัดจำหน่าย' },
+                  ]}
+                />
+              </>
+            )}
 
             <div className="relative" ref={columnDropdownRef}>
               <Btn icon={Columns3} onClick={() => setIsColumnDropdownOpen(!isColumnDropdownOpen)}>

@@ -1611,6 +1611,7 @@ function App() {
             'Purchase Date': 'purchaseDate', 'Purchase Cost': 'cost',
             'Model': 'model', 'Manufacturer': 'vendor', 'Supplier': 'vendor',
             'Asset Tag': 'assetTag', 'Notes': 'note',
+            'Total': 'importQty', 'Qty': 'importQty', 'Quantity': 'importQty', 'จำนวน': 'importQty', 'จำนวนทั้งหมด': 'importQty',
             // แบบไทย (เผื่อโหลด template ของเมนูนี้/เมนูทรัพย์สิน)
             'ชื่ออุปกรณ์': 'name', 'ชื่อครุภัณฑ์': 'name', 'ประเภท': 'type',
             'Serial Number': 'sn', 'รหัสทรัพย์สิน': 'assetTag', 'ยี่ห้อ/รุ่น': 'model',
@@ -1746,7 +1747,11 @@ function App() {
           if (dupKey) seenInBatch.add(dupKey);
 
           // ── Defaults + type conversion per collection ──
+          // 🆕 จำนวนที่จะสร้าง (จากคอลัมน์ Total/จำนวน) — asset = 1 ชิ้น/doc ถ้า >1 จะสร้างหลาย doc
+          let importCopies = 1;
           if (colName === 'assets') {
+            importCopies       = Math.max(1, Math.floor(toNumber(rec.importQty) || 1));
+            delete rec.importQty;
             rec.cost           = toNumber(rec.cost) || 0;
             rec.status         = rec.status || 'พร้อมใช้งาน';
             rec.tier           = rec.tier || 'General';
@@ -1780,8 +1785,11 @@ function App() {
           }
 
           rec.createdAt = serverTimestamp();
-          await addDoc(collection(db, colName), rec);
-          count++;
+          // 🆕 ถ้าไฟล์ระบุจำนวน > 1 → สร้างหลายชิ้น (แต่ละ doc = 1 ชิ้น)
+          for (let c = 0; c < importCopies; c++) {
+            await addDoc(collection(db, colName), rec);
+            count++;
+          }
         }
 
         setIsImportModalOpen(false);

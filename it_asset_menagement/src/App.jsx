@@ -4,7 +4,7 @@ import { db, auth, VERCEL_API_BASE } from './firebase.js';
 
 /* ── URL routing: เมนู ↔ path (ให้แถบ URL บอกว่าอยู่หน้าไหน) ── */
 const MENU_PATH = {
-  dashboard: '/', assets: '/assets', licenses: '/licenses', accessories: '/accessories',
+  dashboard: '/', assets: '/assets', furniture: '/furniture', licenses: '/licenses', accessories: '/accessories',
   office_supplies: '/office-supplies', supply_requests: '/supply-requests',
   accessory_requests: '/accessory-requests', employees: '/employees', repairs: '/repairs',
   replacement_requests: '/replacements', kpi_dashboard: '/kpi', field_options: '/field-options',
@@ -23,7 +23,10 @@ function parseRoute(pathname) {
   const licenseEdit = !!(licenseId && seg[2] === 'edit'); // /licenses/:id/edit
   const accessoryId = (first === 'accessories' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const accessoryEdit = !!(accessoryId && seg[2] === 'edit'); // /accessories/:id/edit
-  return { menu, assetId, assetEdit, licenseId, licenseEdit, accessoryId, accessoryEdit };
+  // 🆕 ครุภัณฑ์สำนักงาน — ใช้ระบบเดียวกับ assets (เก็บใน collection assets, assetGroup='office')
+  const furnitureId = (first === 'furniture' && seg[1]) ? decodeURIComponent(seg[1]) : null;
+  const furnitureEdit = !!(furnitureId && seg[2] === 'edit'); // /furniture/:id/edit
+  return { menu, assetId, assetEdit, licenseId, licenseEdit, accessoryId, accessoryEdit, furnitureId, furnitureEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -117,9 +120,10 @@ function App() {
   // 🆕 activeMenu มาจาก URL (แทน useState) — แถบ URL บอกว่าอยู่หน้าไหน
   const location = useLocation();
   const navigate = useNavigate();
-  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit, accessoryId: routeAccessoryId, accessoryEdit: routeAccessoryEdit } = parseRoute(location.pathname);
+  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit, accessoryId: routeAccessoryId, accessoryEdit: routeAccessoryEdit, furnitureId: routeFurnitureId, furnitureEdit: routeFurnitureEdit } = parseRoute(location.pathname);
   const setActiveMenu = useCallback((id) => navigate(MENU_PATH[id] || '/'), [navigate]);
   const openAssetPage = useCallback((asset) => navigate(`/assets/${encodeURIComponent(asset.id)}`), [navigate]);
+  const openFurniturePage = useCallback((asset) => navigate(`/furniture/${encodeURIComponent(asset.id)}`), [navigate]);
   const openLicensePage = useCallback((lic) => navigate(`/licenses/${encodeURIComponent(lic.id)}`), [navigate]);
   const openAccessoryPage = useCallback((acc) => navigate(`/accessories/${encodeURIComponent(acc.id)}`), [navigate]);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar drawer
@@ -234,6 +238,19 @@ function App() {
       editAccessoryPopulatedRef.current = null;
     }
   }, [routeAccessoryEdit, routeAccessoryId, accessories]);
+
+  // 🆕 เมื่อเข้า route แก้ไข (/furniture/:id/edit) → เติมข้อมูลลงฟอร์มครั้งเดียว (collection assets)
+  const editFurniturePopulatedRef = useRef(null);
+  useEffect(() => {
+    if (routeFurnitureEdit && routeFurnitureId) {
+      if (editFurniturePopulatedRef.current !== routeFurnitureId) {
+        const a = assets.find(x => x.id === routeFurnitureId);
+        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'assets' }); editFurniturePopulatedRef.current = routeFurnitureId; }
+      }
+    } else {
+      editFurniturePopulatedRef.current = null;
+    }
+  }, [routeFurnitureEdit, routeFurnitureId, assets]);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
@@ -571,6 +588,7 @@ function App() {
     // 🆕 ไม่ reset multi-select filters (assetFilterType/Status/Department, accFilterType, licenseExpFilter)
     //    เพื่อให้ persistence ใน localStorage ทำงานได้ + เก็บค่าที่ user เลือกข้าม session
     if (activeMenu === 'assets') setType('คอมพิวเตอร์');
+    else if (activeMenu === 'furniture') setType('');
     else if (activeMenu === 'accessories') setType('เมาส์ (Mouse)');
     else if (activeMenu === 'office_supplies') setType('เครื่องเขียน');
   }, [activeMenu]);
@@ -1131,7 +1149,8 @@ function App() {
 
   const handleAdd = async (e) => {
     e.preventDefault(); if (!name.trim()) return;
-    const collectionName = activeMenu === 'assets' ? 'assets' : activeMenu === 'office_supplies' ? 'office_supplies' : 'accessories';
+    const isAssetMenu = activeMenu === 'assets' || activeMenu === 'furniture';
+    const collectionName = isAssetMenu ? 'assets' : activeMenu === 'office_supplies' ? 'office_supplies' : 'accessories';
     await withLoading(async () => {
       try {
         const qtyToSave = Number(quantity);
@@ -1141,9 +1160,10 @@ function App() {
           await addDoc(collection(db, collectionName), {
             name, type, cost, purchaseDate, warrantyDate, quantity: qtyToSave, brokenQuantity: 0, status: 'พร้อมใช้งาน', assignedTo: null, assignedName: null, image: assetImage || null,
             assignees: activeMenu === 'accessories' ? [] : null,
-            forDepartment: activeMenu === 'assets' ? assetDepartment : null, sn: activeMenu === 'assets' ? sn : null, company: activeMenu === 'assets' ? company : null, assetTag: activeMenu === 'assets' ? assetTag : null, model: activeMenu === 'assets' ? model : null, vendor: (activeMenu === 'assets' || activeMenu === 'accessories') ? vendor : null, note: (activeMenu === 'assets' || activeMenu === 'accessories') ? note : null, remark: activeMenu === 'assets' ? remark : null, document: activeMenu === 'assets' ? assetDocument : null,
-            purchaseCondition: activeMenu === 'assets' ? purchaseCondition : null,
-            scrapValue: activeMenu === 'assets' ? scrapValue : null,  // 🆕 ราคาขายซาก (เฉพาะ asset)
+            forDepartment: isAssetMenu ? assetDepartment : null, sn: isAssetMenu ? sn : null, company: isAssetMenu ? company : null, assetTag: isAssetMenu ? assetTag : null, model: isAssetMenu ? model : null, vendor: (isAssetMenu || activeMenu === 'accessories') ? vendor : null, note: (isAssetMenu || activeMenu === 'accessories') ? note : null, remark: isAssetMenu ? remark : null, document: isAssetMenu ? assetDocument : null,
+            purchaseCondition: isAssetMenu ? purchaseCondition : null,
+            scrapValue: isAssetMenu ? scrapValue : null,  // 🆕 ราคาขายซาก (เฉพาะ asset)
+            assetGroup: activeMenu === 'furniture' ? 'office' : 'main',  // 🆕 แยกกลุ่ม: ครุภัณฑ์สำนักงาน vs ทรัพย์สินหลัก
             createdAt: serverTimestamp(),
             createdTs: Date.now()  // client time — ใช้จัดเรียงทันทีก่อน serverTimestamp จะกลับมา
           });
@@ -1764,6 +1784,7 @@ function App() {
   // 🆕 ส่งออก PDF — รายงานทรัพย์สินพร้อมรูปเอกสารแนบ (ใช้ browser print → save as PDF)
   const handleExportAssetsPDF = async () => {
     const filtered = assets.filter(item =>
+      (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
       _inArr(assetFilterType, item.type) &&
       _inArr(assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
       _inArr(assetFilterDepartment, item.forDepartment)
@@ -1794,6 +1815,7 @@ function App() {
 
   const handleExportAssets = () => {
     const filtered = assets.filter(item =>
+      (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
       _inArr(assetFilterType, item.type) &&
       _inArr(assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
       _inArr(assetFilterDepartment, item.forDepartment)
@@ -1871,6 +1893,12 @@ function App() {
     const id = editAssetModal.data?.id;
     await handleUpdateAsset(e);
     if (id) navigate(`/accessories/${encodeURIComponent(id)}`);
+  };
+  // 🆕 บันทึกจากหน้าแก้ไขเต็มหน้า (ครุภัณฑ์) → กลับหน้ารายละเอียด
+  const handleUpdateFurniturePage = async (e) => {
+    const id = editAssetModal.data?.id;
+    await handleUpdateAsset(e);
+    if (id) navigate(`/furniture/${encodeURIComponent(id)}`);
   };
   const handleEditAssetChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -2585,7 +2613,9 @@ function App() {
     let baseData = [];
     // 🆕 multi-select helper: empty array = no filter (ทั้งหมด)
     const inFilter = (arr, val) => !arr || arr.length === 0 || arr.includes(val);
-    if (activeMenu === 'assets') baseData = assets.filter(item =>
+    if (activeMenu === 'assets' || activeMenu === 'furniture') baseData = assets.filter(item =>
+      // 🆕 ทรัพย์สินหลัก = ไม่ใช่ครุภัณฑ์ (assetGroup !== 'office')  |  ครุภัณฑ์ = assetGroup === 'office'
+      (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
       inFilter(assetFilterType, item.type) &&
       inFilter(assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
       inFilter(assetFilterDepartment, item.forDepartment)
@@ -2664,8 +2694,8 @@ function App() {
       });
     }
 
-    // ── จัดเรียงทรัพย์สิน: สร้างใหม่สุดอยู่บนสุด ──
-    if (activeMenu === 'assets') {
+    // ── จัดเรียงทรัพย์สิน/ครุภัณฑ์: สร้างใหม่สุดอยู่บนสุด ──
+    if (activeMenu === 'assets' || activeMenu === 'furniture') {
       const millisOf = (item) => {
         const t = item.createdAt;
         const server = t?.toMillis?.() ?? (t?.seconds ? t.seconds * 1000 : 0);
@@ -2751,6 +2781,7 @@ function App() {
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวม' :
                     activeMenu === 'kpi_dashboard' ? 'รายงาน KPI' :
                     activeMenu === 'assets' ? 'ทรัพย์สิน' :
+                    activeMenu === 'furniture' ? 'ครุภัณฑ์สำนักงาน' :
                     activeMenu === 'licenses' ? 'โปรแกรม / License' :
                     activeMenu === 'accessories' ? 'อุปกรณ์เสริม' :
                     activeMenu === 'repairs' ? 'แจ้งปัญหา IT' :
@@ -2760,7 +2791,7 @@ function App() {
                     activeMenu === 'accessory_requests' ? 'คำขออุปกรณ์เสริม' :
                     activeMenu === 'users' ? 'จัดการผู้ใช้' : 'พนักงาน';
   // เมนูที่แสดงเป็นตารางแบบเต็มจอ (edge-to-edge) — ตัด max-width / padding รอบออก
-  const isListMenu = ['assets', 'licenses', 'accessories', 'office_supplies', 'employees'].includes(activeMenu);
+  const isListMenu = ['assets', 'furniture', 'licenses', 'accessories', 'office_supplies', 'employees'].includes(activeMenu);
 
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };
@@ -2882,7 +2913,7 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || isListMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || routeFurnitureId || isListMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
           {routeAssetEdit ? (
             /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
             <div className="h-full">
@@ -3027,6 +3058,54 @@ function App() {
                 </div>
               );
             })()
+          ) : routeFurnitureEdit ? (
+            /* 🆕 หน้าเต็มแก้ไขครุภัณฑ์ (URL /furniture/:id/edit) — collection assets */
+            <div className="h-full">
+              <EditAssetModal
+                asPage
+                onClosePage={() => navigate(`/furniture/${encodeURIComponent(routeFurnitureId)}`)}
+                editAssetModal={editAssetModal}
+                setEditAssetModal={setEditAssetModal}
+                handleUpdateAsset={handleUpdateFurniturePage}
+                handleEditAssetChange={handleEditAssetChange}
+                fieldOptions={fieldOptions}
+              />
+            </div>
+          ) : routeFurnitureId ? (
+            /* 🆕 หน้าเต็มรายละเอียดครุภัณฑ์ (URL /furniture/:id) — ใช้ระบบเดียวกับ asset */
+            (() => {
+              const routeFurniture = assets.find(a => a.id === routeFurnitureId);
+              if (!routeFurniture) {
+                return (
+                  <div className="p-5">
+                    <button onClick={() => navigate('/furniture')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบครุภัณฑ์นี้ (อาจถูกลบไปแล้ว)</div>
+                  </div>
+                );
+              }
+              return (
+                <div className="h-full">
+                  <AssetDetailsModal
+                    asPage
+                    onClosePage={() => navigate('/furniture')}
+                    onEditPage={() => navigate(`/furniture/${encodeURIComponent(routeFurniture.id)}/edit`)}
+                    selectedAssetDetail={routeFurniture}
+                    setSelectedAssetDetail={setSelectedAssetDetail}
+                    selectedAssetCategory="assets"
+                    setSelectedAssetCategory={setSelectedAssetCategory}
+                    assets={assets} accessories={accessories} licenses={licenses}
+                    transactions={transactions} employees={employees}
+                    setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
+                    handleCheckin={handleCheckin}
+                    openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
+                    setRepairModal={setRepairModal} setRepairQuantity={setRepairQuantity} setRepairRemarks={setRepairRemarks}
+                    showConfirm={showConfirm} setCustomAlert={setCustomAlert}
+                    handleAssignLicenseToAsset={handleAssignLicenseToAsset}
+                    handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
+                  />
+                </div>
+              );
+            })()
           ) : activeMenu === 'field_options' ? (
             <Suspense fallback={<LazyFallback />}>
               <DropdownOptionsManager
@@ -3156,8 +3235,10 @@ function App() {
                       <OfficeSupplyTable currentData={paginatedTableData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
                     ) : activeMenu === 'accessories' ? (
                       <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} onOpenAccessory={openAccessoryPage} onEditAccessory={(a)=>navigate(`/accessories/${encodeURIComponent(a.id)}/edit`)} />
-                    ) : activeMenu === 'assets' ? (
-                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets} onOpenAsset={openAssetPage} onEditAsset={(a)=>navigate(`/assets/${encodeURIComponent(a.id)}/edit`)} />
+                    ) : (activeMenu === 'assets' || activeMenu === 'furniture') ? (
+                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets}
+                        onOpenAsset={activeMenu === 'furniture' ? openFurniturePage : openAssetPage}
+                        onEditAsset={(a)=>navigate(`/${activeMenu === 'furniture' ? 'furniture' : 'assets'}/${encodeURIComponent(a.id)}/edit`)} />
                     ) : null}
                   </div>
                 )}
@@ -3198,7 +3279,7 @@ function App() {
         handleAssignLicenseToAsset={handleAssignLicenseToAsset}
         handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
         bundledItems={bundledItems} handleAddBundledItem={handleAddBundledItem} handleDeleteBundledItem={handleDeleteBundledItem}
-        suppressEditAssetModal={routeAssetEdit || routeAccessoryEdit}
+        suppressEditAssetModal={routeAssetEdit || routeAccessoryEdit || routeFurnitureEdit}
         suppressEditLicenseModal={routeLicenseEdit}
       />
       {/* 🆕 โหลด modal เฉพาะตอนเปิด — ลด initial bundle */}

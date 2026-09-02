@@ -51,11 +51,14 @@ export default function AddModal({
     }
   };
 
+  // 🆕 ครุภัณฑ์สำนักงาน ใช้ฟอร์มเดียวกับทรัพย์สิน (normalize → 'assets')
+  const menu = activeMenu === 'furniture' ? 'assets' : activeMenu;
   const titleLabel =
     activeMenu === 'employees'      ? 'พนักงาน' :
     activeMenu === 'licenses'       ? 'โปรแกรม / ใบอนุญาต' :
     activeMenu === 'accessories'    ? 'อุปกรณ์เสริม' :
     activeMenu === 'office_supplies'? 'อุปกรณ์สำนักงาน' :
+    activeMenu === 'furniture'      ? 'ครุภัณฑ์สำนักงาน' :
     'ทรัพย์สินหลัก';
 
   const subtitle = `กรอกข้อมูลรายการใหม่ให้ครบ จากนั้นกด "บันทึก" เพื่อเพิ่มเข้าสู่ระบบ`;
@@ -264,7 +267,7 @@ export default function AddModal({
                   value={type}
                   onChange={setType}
                   options={
-                    activeMenu === 'assets'
+                    menu === 'assets'
                       ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'ทีวี', 'ปริ้นเตอร์', 'อุปกรณ์ IT', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
                       : activeMenu === 'office_supplies'
                         ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
@@ -276,7 +279,7 @@ export default function AddModal({
               </Field>
             </section>
 
-            {activeMenu === 'assets' && (
+            {menu === 'assets' && (
               <section className="space-y-4">
                 <SectionHeader>รายละเอียดทะเบียน</SectionHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -313,7 +316,7 @@ export default function AddModal({
                       placeholder="เลือกหรือพิมพ์ใหม่"
                     />
                   </Field>
-                  {activeMenu === 'assets' && (
+                  {menu === 'assets' && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
                         <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
@@ -339,7 +342,7 @@ export default function AddModal({
               </section>
             )}
 
-            {activeMenu === 'assets' && (
+            {menu === 'assets' && (
               <section className="space-y-4">
                 <SectionHeader>การจัดซื้อ</SectionHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -356,7 +359,7 @@ export default function AddModal({
             {activeMenu !== 'office_supplies' && (
               <section className="space-y-4">
                 {activeMenu !== 'assets' && <SectionHeader>ราคา / จำนวน</SectionHeader>}
-                {activeMenu === 'assets' ? (
+                {menu === 'assets' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="ราคา (บาท)">
                       <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
@@ -421,12 +424,12 @@ export default function AddModal({
             )}
 
             {/* ── หมายเหตุ — แสดงทั้ง assets และ accessories ── */}
-            {(activeMenu === 'assets' || activeMenu === 'accessories') && (
+            {(menu === 'assets' || activeMenu === 'accessories') && (
               <section className="space-y-4">
                 <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, สภาพเครื่อง, ผู้ติดต่อ ฯลฯ">
                   <textarea value={note || ''} onChange={(e) => setNote(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่รายละเอียดที่ต้องการบันทึก..." />
                 </Field>
-                {activeMenu === 'assets' && (
+                {menu === 'assets' && (
                   <Field label="Remark" hint="หมายเหตุเพิ่มเติม (แสดงในรายงาน PDF)">
                     <textarea value={remark || ''} onChange={(e) => setRemark(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่ Remark..." />
                   </Field>

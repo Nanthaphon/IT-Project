@@ -116,8 +116,8 @@ export default function ActionBar({
           </>
         )}
 
-        {/* ── Assets ── */}
-        {activeMenu === 'assets' && (
+        {/* ── Assets / ครุภัณฑ์ (ใช้ toolbar เดียวกัน) ── */}
+        {(activeMenu === 'assets' || activeMenu === 'furniture') && (
           <>
             <MultiSelectFilter
               label="สำหรับแผนก"

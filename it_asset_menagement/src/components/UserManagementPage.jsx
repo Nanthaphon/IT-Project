@@ -23,7 +23,7 @@ const secondaryAuth = getAuth(secondaryApp);
 
 /* ── Menu definitions ── */
 const ALL_MENU_IDS = [
-  'dashboard', 'assets', 'licenses', 'accessories', 'office_supplies',
+  'dashboard', 'assets', 'furniture', 'licenses', 'accessories', 'office_supplies',
   'supply_requests', 'employees', 'repairs', 'replacement_requests',
   'kpi_dashboard', 'field_options', 'it_report',
 ];
@@ -31,6 +31,7 @@ const ALL_MENU_IDS = [
 const MENU_LABELS = {
   dashboard:            'แดชบอร์ด',
   assets:               'ทรัพย์สิน IT หลัก',
+  furniture:            'ครุภัณฑ์สำนักงาน',
   licenses:             'โปรแกรม / License',
   accessories:          'อุปกรณ์เสริม',
   office_supplies:      'อุปกรณ์สำนักงาน',

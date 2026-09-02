@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Monitor,
+  Armchair,
   AppWindow,
   Cable,
   Package,
@@ -24,6 +25,7 @@ const NAV_ITEMS = {
       items: [
         { id: 'dashboard',   label: 'แดชบอร์ด',         icon: LayoutDashboard },
         { id: 'assets',      label: 'ทรัพย์สิน',         icon: Monitor },
+        { id: 'furniture',   label: 'ครุภัณฑ์สำนักงาน',   icon: Armchair },
         { id: 'licenses',    label: 'โปรแกรม / License', icon: AppWindow },
         { id: 'accessories', label: 'อุปกรณ์เสริม',      icon: Cable },
       ],

@@ -2115,6 +2115,8 @@ export default function AssetDetailsModal({
                 currentHolder={currentAssetDetail.assignedName ? { empName: currentAssetDetail.assignedName } : null}
                 asset={currentAssetDetail}
                 employees={employees}
+                category={selectedAssetCategory}
+                assetName={currentAssetDetail.name}
               />
             </div>
           )}

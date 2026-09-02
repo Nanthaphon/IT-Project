@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2,
   X, Clock, Pencil, Trash2, Save, Printer, Paperclip, Upload, Download,
-  FileText, Image, File, ChevronDown, ChevronUp,
+  FileText, Image, File, ChevronDown, ChevronUp, Plus,
 } from 'lucide-react';
 import { doc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { formatDateShort } from '../utils/formatDate.js';
+import DateField from './DateField.jsx';
 import ConditionCapture, {
   CHECKLIST_FIELDS, FIELD_STATUS_LABELS, EMPTY_FIELDS, flattenFields, migrateFields,
 } from './ConditionCapture.jsx';
@@ -75,11 +76,14 @@ export default function OwnershipHistory({
   assetId, transactions = [], currentHolder = null,
   asset = null,             // optional: full asset object (for print fields)
   employees = [],           // optional: lookup employee details for print
+  category = 'assets',      // 🆕 หมวด (assets/accessories) → tx collection ที่ถูกต้อง
+  assetName = '',           // 🆕 ชื่อทรัพย์สิน (ใช้ตอนเพิ่มประวัติเอง)
 }) {
   const [viewerImage, setViewerImage] = useState(null);
   const [editPeriod, setEditPeriod] = useState(null);
   const [deletePeriod, setDeletePeriod] = useState(null);
   const [printReturnPeriod, setPrintReturnPeriod] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   // กรอง transactions ของ asset นี้ เรียงใหม่ → เก่า
   // ตัด isAssetBound ออก (license ที่ผูกกับเครื่อง — แสดงใน "ซอฟต์แวร์ / License" แทน)
@@ -100,34 +104,58 @@ export default function OwnershipHistory({
     periods.push({ checkout: co, return: matchedReturn });
   });
 
-  if (periods.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-        <User className="h-10 w-10 mb-3 opacity-40" />
-        <p className="text-sm font-medium">ยังไม่เคยส่งมอบให้พนักงานคนใด</p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="space-y-3">
-        {periods.map((p, i) => {
-          const isCurrent = !p.return;
-          return (
-            <PeriodCard
-              key={p.checkout.id || i}
-              period={p}
-              isCurrent={isCurrent}
-              assetId={assetId}
-              onPhotoClick={setViewerImage}
-              onEdit={() => setEditPeriod(p)}
-              onDelete={() => setDeletePeriod(p)}
-              onPrintReturn={() => setPrintReturnPeriod(p)}
-            />
-          );
-        })}
+      {/* หัวข้อ + ปุ่มเพิ่มประวัติเอง */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
+          <h4 className="text-[13px] font-semibold text-slate-600">ประวัติการครอบครอง ({periods.length})</h4>
+        </div>
+        <button
+          onClick={() => setAddOpen(true)}
+          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.4} /> เพิ่มประวัติ
+        </button>
       </div>
+
+      {periods.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+          <User className="h-10 w-10 mb-3 opacity-40" />
+          <p className="text-sm font-medium">ยังไม่มีประวัติการครอบครอง</p>
+          <p className="text-[12.5px] text-slate-400 mt-1">กด “เพิ่มประวัติ” เพื่อบันทึกย้อนหลังได้</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {periods.map((p, i) => {
+            const isCurrent = !p.return;
+            return (
+              <PeriodCard
+                key={p.checkout.id || i}
+                period={p}
+                isCurrent={isCurrent}
+                assetId={assetId}
+                onPhotoClick={setViewerImage}
+                onEdit={() => setEditPeriod(p)}
+                onDelete={() => setDeletePeriod(p)}
+                onPrintReturn={() => setPrintReturnPeriod(p)}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* เพิ่มประวัติเอง */}
+      {addOpen && (
+        <AddPeriodModal
+          category={category}
+          assetId={assetId}
+          assetName={assetName || asset?.name || ''}
+          employees={employees}
+          onClose={() => setAddOpen(false)}
+        />
+      )}
 
       {/* Image viewer modal */}
       {viewerImage && (
@@ -185,6 +213,104 @@ export default function OwnershipHistory({
         />
       )}
     </>
+  );
+}
+
+/* ── 🆕 Add Period Modal — เพิ่มประวัติการครอบครองเอง (บันทึกย้อนหลัง) ── */
+function AddPeriodModal({ category, assetId, assetName, employees = [], onClose }) {
+  const [empName, setEmpName] = useState('');
+  const [empId, setEmpId] = useState('');
+  const [checkoutDate, setCheckoutDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+
+  const onNameChange = (v) => {
+    setEmpName(v);
+    const m = employees.find(e => (e.fullName || '') === v);
+    setEmpId(m ? (m.empId || m.id || '') : '');
+  };
+  const toMs = (d) => d ? new Date(`${d}T00:00:00`).getTime() : null;
+
+  const save = async () => {
+    setErr('');
+    if (!empName.trim()) { setErr('กรุณาระบุชื่อผู้ครอบครอง'); return; }
+    if (!checkoutDate)   { setErr('กรุณาระบุวันที่รับมอบ'); return; }
+    const coMs = toMs(checkoutDate);
+    const reMs = toMs(returnDate);
+    if (reMs && reMs < coMs) { setErr('วันที่คืนต้องไม่ก่อนวันรับมอบ'); return; }
+    setSaving(true);
+    try {
+      const col = txCollectionOf(category);
+      const checkoutId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const base = {
+        assetId, assetName: assetName || '-', category,
+        empId: empId || '', empName: empName.trim(),
+        condition: 'ปกติ', remarks: remarks.trim() || '-',
+        checkoutId, manual: true,
+      };
+      await addDoc(collection(db, col), { ...base, action: 'เบิกจ่าย', timestamp: coMs });
+      if (reMs) await addDoc(collection(db, col), { ...base, action: 'รับคืน', timestamp: reMs });
+      onClose();
+    } catch (e) {
+      setErr(e?.message || 'บันทึกไม่สำเร็จ');
+      setSaving(false);
+    }
+  };
+
+  const inCls = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition';
+
+  return (
+    <div className="fixed inset-0 bg-slate-950/60 z-[100] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_24px_60px_-24px_rgba(16,47,87,0.28)] w-full max-w-lg flex flex-col overflow-hidden max-h-[92vh]">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#1E487A]/[0.08] text-[#1E487A] flex items-center justify-center shrink-0">
+              <User className="h-5 w-5" strokeWidth={2} />
+            </div>
+            <div>
+              <h3 className="text-[19px] font-bold text-slate-900 leading-tight">เพิ่มประวัติการครอบครอง</h3>
+              <p className="text-[13px] text-slate-500 mt-0.5">บันทึกช่วงการถือครองย้อนหลัง</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center shrink-0 transition-colors">
+            <X className="h-4 w-4" strokeWidth={2.4} />
+          </button>
+        </div>
+
+        <div className="px-6 py-5 overflow-y-auto space-y-4">
+          <div>
+            <label className="block text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">ผู้ครอบครอง <span className="text-rose-500 normal-case">*</span></label>
+            <input list="own-emp-list" value={empName} onChange={(e) => onNameChange(e.target.value)} className={inCls} placeholder="พิมพ์ชื่อ หรือเลือกจากพนักงาน" />
+            <datalist id="own-emp-list">
+              {employees.map(e => <option key={e.id} value={e.fullName}>{e.empId || ''}</option>)}
+            </datalist>
+            {empId && <p className="text-[11.5px] text-slate-400 mt-1">รหัสพนักงาน: {empId}</p>}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันที่รับมอบ <span className="text-rose-500 normal-case">*</span></label>
+              <DateField value={checkoutDate} onChange={setCheckoutDate} inputClassName={inCls + ' pr-9'} />
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">วันที่คืน <span className="text-slate-400 normal-case font-normal">(เว้นว่าง = ยังถืออยู่)</span></label>
+              <DateField value={returnDate} onChange={setReturnDate} inputClassName={inCls + ' pr-9'} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">หมายเหตุ</label>
+            <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={3} className={inCls + ' resize-y'} placeholder="เช่น รับช่วงต่อจากพนักงานเก่า, ข้อมูลย้อนหลัง ฯลฯ" />
+          </div>
+          {err && <p className="text-[12.5px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{err}</p>}
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50">ยกเลิก</button>
+          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
+        </div>
+      </div>
+    </div>
   );
 }
 

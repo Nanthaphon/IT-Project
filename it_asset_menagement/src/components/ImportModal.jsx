@@ -14,6 +14,15 @@ const FIELDS_BY_MENU = {
       'หมายเหตุ', 'สถานะ',
     ],
   },
+  furniture: {
+    title: 'ครุภัณฑ์สำนักงาน',
+    fields: [
+      'Name / ชื่อครุภัณฑ์ (จำเป็น)', 'Serial', 'Category / ประเภท',
+      'Location / บริษัท-สถานที่', 'Order Number', 'Purchase Date (YYYY-MM-DD)',
+      'Purchase Cost / ราคา',
+      'รองรับไฟล์ export จาก Snipe-IT ได้เลย',
+    ],
+  },
   licenses: {
     title: 'โปรแกรม / ใบอนุญาต',
     fields: [

@@ -1493,6 +1493,16 @@ function App() {
       ];
       filename = 'template_assets.csv';
     }
+    else if (activeMenu === 'furniture') {
+      // 🆕 ครุภัณฑ์ — หัวคอลัมน์รองรับทั้งไฟล์ export จาก Snipe-IT และแบบไทย
+      headers = [
+        'Name', 'Serial', 'Category', 'Location', 'Order Number', 'Purchase Date', 'Purchase Cost',
+      ];
+      example = [
+        'ตู้เอกสาร 4 ชั้น', 'SN-CAB-001', 'เฟอร์นิเจอร์', 'บริษัท โกลบ ซินดิเคท (ประเทศไทย) จำกัด', 'PO-2026-001', '2026-01-15', '5500',
+      ];
+      filename = 'template_furniture.csv';
+    }
     else if (activeMenu === 'accessories') {
       headers = [
         'ชื่ออุปกรณ์', 'ประเภท', 'จำนวนทั้งหมด', 'ราคา',
@@ -1593,6 +1603,21 @@ function App() {
             'วันที่ซื้อ': 'purchaseDate', 'วันหมด Warranty': 'warrantyDate',
             'ราคา': 'cost', 'Tier': 'tier', 'หมายเหตุ': 'note', 'สถานะ': 'status',
           },
+          // 🆕 ครุภัณฑ์ — รองรับหัวคอลัมน์จาก Snipe-IT (อังกฤษ) + แบบไทย
+          furniture: {
+            // Snipe-IT export
+            'Name': 'name', 'Serial': 'sn', 'Category': 'type',
+            'Location': 'company', 'Order Number': 'note',
+            'Purchase Date': 'purchaseDate', 'Purchase Cost': 'cost',
+            'Model': 'model', 'Manufacturer': 'vendor', 'Supplier': 'vendor',
+            'Asset Tag': 'assetTag', 'Notes': 'note',
+            // แบบไทย (เผื่อโหลด template ของเมนูนี้/เมนูทรัพย์สิน)
+            'ชื่ออุปกรณ์': 'name', 'ชื่อครุภัณฑ์': 'name', 'ประเภท': 'type',
+            'Serial Number': 'sn', 'รหัสทรัพย์สิน': 'assetTag', 'ยี่ห้อ/รุ่น': 'model',
+            'บริษัท': 'company', 'สถานที่': 'company', 'แผนก': 'department',
+            'ผู้จัดจำหน่าย': 'vendor', 'วันที่ซื้อ': 'purchaseDate',
+            'วันหมด Warranty': 'warrantyDate', 'ราคา': 'cost', 'หมายเหตุ': 'note', 'สถานะ': 'status',
+          },
           accessories: {
             'ชื่ออุปกรณ์': 'name', 'ประเภท': 'type', 'จำนวนทั้งหมด': 'quantity',
             'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'วันหมด Warranty': 'warrantyDate',
@@ -1618,12 +1643,14 @@ function App() {
           },
         };
 
-        const colName = activeMenu === 'assets'          ? 'assets'
+        const colName = (activeMenu === 'assets' || activeMenu === 'furniture') ? 'assets'
                       : activeMenu === 'accessories'     ? 'accessories'
                       : activeMenu === 'licenses'        ? 'licenses'
                       : activeMenu === 'office_supplies' ? 'office_supplies'
                       : 'employees';
-        const fieldMap = MAP[colName];
+        // ครุภัณฑ์เก็บใน collection assets แต่ใช้ header map ของตัวเอง (รองรับ Snipe-IT)
+        const mapKey = activeMenu === 'furniture' ? 'furniture' : colName;
+        const fieldMap = MAP[mapKey];
 
         // ── ตรวจสอบว่ามี header อย่างน้อย 1 อันที่ map ได้ — ป้องกัน import ผิด collection ──
         const recognizedHeaders = headers.filter(h => fieldMap[h]);
@@ -1727,6 +1754,8 @@ function App() {
             rec.brokenQuantity = 0;
             rec.assignedTo     = null;
             rec.assignedName   = null;
+            // 🆕 แยกกลุ่ม: ครุภัณฑ์สำนักงาน vs ทรัพย์สินหลัก
+            rec.assetGroup     = activeMenu === 'furniture' ? 'office' : 'main';
           }
           else if (colName === 'accessories') {
             rec.quantity       = toNumber(rec.quantity) || 1;

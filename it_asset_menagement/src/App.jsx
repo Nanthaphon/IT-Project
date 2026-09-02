@@ -2815,6 +2815,26 @@ function App() {
     else setSelectedAssetIds(prev => prev.filter(id => !idsInView.includes(id)));
   };
   const clearSelectedAssets = () => setSelectedAssetIds([]);
+  // 🆕 ลบทรัพย์สิน/ครุภัณฑ์ที่เลือกไว้ทีเดียวหลายรายการ
+  const handleDeleteSelectedAssets = () => {
+    const ids = [...selectedAssetIds];
+    if (ids.length === 0) return;
+    showConfirm(
+      'ยืนยันการลบ',
+      `ต้องการลบ ${ids.length} รายการที่เลือกออกจากระบบใช่หรือไม่?\n\n⚠️ การลบนี้ย้อนกลับไม่ได้`,
+      async () => {
+        await withLoading(async () => {
+          let ok = 0;
+          for (const id of ids) {
+            try { await deleteDoc(doc(db, 'assets', id)); ok++; } catch (e) { /* ข้ามรายการที่ลบไม่ได้ */ }
+          }
+          setSelectedAssetIds([]);
+          setCustomAlert({ isOpen: true, title: 'ลบสำเร็จ!', message: `ลบ ${ok} รายการเรียบร้อยแล้ว`, type: 'success' });
+        }, 'กำลังลบ...');
+      },
+      { confirmText: `ยืนยันลบ ${ids.length} รายการ`, icon: 'trash' }
+    );
+  };
 
   const menuTitle = activeMenu === 'dashboard' ? 'ภาพรวม' :
                     activeMenu === 'kpi_dashboard' ? 'รายงาน KPI' :
@@ -3233,6 +3253,7 @@ function App() {
                   fieldOptions={fieldOptions}
                   selectedAssetIds={selectedAssetIds}
                   handleExportSelectedAssetsPDF={handleExportSelectedAssetsPDF}
+                  handleDeleteSelectedAssets={handleDeleteSelectedAssets}
                   clearSelectedAssets={clearSelectedAssets}
                 />
                 </div>

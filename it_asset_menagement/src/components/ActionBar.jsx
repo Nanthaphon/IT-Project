@@ -43,6 +43,7 @@ export default function ActionBar({
   fieldOptions = {},
   selectedAssetIds = [],
   handleExportSelectedAssetsPDF,
+  handleDeleteSelectedAssets,
   clearSelectedAssets,
 }) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = React.useState(false);
@@ -181,16 +182,28 @@ export default function ActionBar({
               <Btn icon={FileText} onClick={handleExportAssetsPDF}>PDF ทั้งหมด</Btn>
             )}
             {/* 🆕 พิมพ์ PDF เฉพาะที่ติ๊กเลือก (ขึ้นเมื่อเลือก ≥ 1) */}
-            {canEdit && selectedAssetIds.length > 0 && handleExportSelectedAssetsPDF && (
+            {canEdit && selectedAssetIds.length > 0 && (
               <>
-                <button
-                  onClick={handleExportSelectedAssetsPDF}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-lg transition-colors whitespace-nowrap"
-                  title="พิมพ์ PDF เฉพาะทรัพย์สินที่เลือก"
-                >
-                  <FileText className="h-[14px] w-[14px]" strokeWidth={2} />
-                  พิมพ์ที่เลือก ({selectedAssetIds.length})
-                </button>
+                {handleExportSelectedAssetsPDF && (
+                  <button
+                    onClick={handleExportSelectedAssetsPDF}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] rounded-lg transition-colors whitespace-nowrap"
+                    title="พิมพ์ PDF เฉพาะรายการที่เลือก"
+                  >
+                    <FileText className="h-[14px] w-[14px]" strokeWidth={2} />
+                    พิมพ์ที่เลือก ({selectedAssetIds.length})
+                  </button>
+                )}
+                {handleDeleteSelectedAssets && (
+                  <button
+                    onClick={handleDeleteSelectedAssets}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold text-rose-600 bg-white border border-rose-200 hover:bg-rose-50 hover:border-rose-300 rounded-lg transition-colors whitespace-nowrap"
+                    title="ลบรายการที่เลือกทั้งหมด"
+                  >
+                    <Trash2 className="h-[14px] w-[14px]" strokeWidth={2} />
+                    ลบที่เลือก ({selectedAssetIds.length})
+                  </button>
+                )}
                 {clearSelectedAssets && (
                   <button
                     onClick={clearSelectedAssets}

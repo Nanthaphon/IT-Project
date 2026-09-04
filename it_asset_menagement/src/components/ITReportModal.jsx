@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateITReport } from '../utils/generateITReport.js';
+import { generateITReport, getHardwareSummary } from '../utils/generateITReport.js';
 import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
@@ -250,28 +250,8 @@ export default function ITReportModal({
   const closedWon  = monthly.filter(r => ['เสร็จสิ้น','สำเร็จ','แก้ไขแล้ว','ปิดแล้ว'].includes(r.status)).length;
   const closedLose = monthly.filter(r => ['ยกเลิก','ไม่สำเร็จ'].includes(r.status)).length;
 
-  // Hardware summary
-  const hwGroups = {};
-  assets.forEach(a => {
-    const t = a.type || 'อื่นๆ';
-    if (a.status === 'ตัดจำหน่าย') return;   // 🆕 ไม่นับทรัพย์สินที่ตัดจำหน่าย
-    if (!hwGroups[t]) hwGroups[t] = { total: 0, inUse: 0, avail: 0, broken: 0 };
-    hwGroups[t].total++;
-    if (a.status === 'ถูกใช้งาน') hwGroups[t].inUse++;
-    else if (a.status === 'ชำรุดเสียหาย') hwGroups[t].broken++;
-    else hwGroups[t].avail++;
-  });
-  accessories.forEach(a => {
-    const t = a.type || 'อุปกรณ์เสริม';
-    const qty = Number(a.quantity || 0);
-    const inUse = (a.assignees || []).length;
-    const broken = Number(a.brokenQuantity || 0);
-    if (!hwGroups[t]) hwGroups[t] = { total: 0, inUse: 0, avail: 0, broken: 0 };
-    hwGroups[t].total  += qty;
-    hwGroups[t].inUse  += inUse;
-    hwGroups[t].avail  += Math.max(0, qty - inUse - broken);
-    hwGroups[t].broken += broken;
-  });
+  // Hardware summary — ใช้ helper ร่วมกับ PPTX เพื่อให้ตัวเลขตรงกันเป๊ะ
+  const hwSummary = getHardwareSummary(assets, accessories);
 
   // Software summary
   const swRows = licenses.map(l => ({
@@ -376,39 +356,41 @@ export default function ITReportModal({
 
             {/* Support stats */}
             <div>
-              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">Slide 3 — Support ({TH_MONTHS[month]})</p>
+              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">หน้า 3 — ฝ่ายสนับสนุน ({TH_MONTHS[month]})</p>
               <div className="grid grid-cols-2 gap-2">
-                <PreviewCard title="พนักงานทั้งหมด" value={employees.length} sub="Employee" />
+                <PreviewCard title="พนักงานทั้งหมด" value={employees.length} sub="จำนวนพนักงาน" />
                 <PreviewCard title="เคสทั้งหมด" value={monthly.length} sub={`เดือน${TH_MONTHS[month]}`} />
-                <PreviewCard title="ปิดสำเร็จ" value={closedWon} sub="Close Won" color="#16a34a" />
-                <PreviewCard title="ไม่สำเร็จ" value={closedLose} sub="Close Lose" color="#dc2626" />
+                <PreviewCard title="ปิดสำเร็จ" value={closedWon} sub="ปิดงานสำเร็จ" color="#16a34a" />
+                <PreviewCard title="ไม่สำเร็จ" value={closedLose} sub="ยกเลิก/ไม่สำเร็จ" color="#dc2626" />
               </div>
             </div>
 
             {/* Hardware */}
             <div>
-              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">Slide 4 — Hardware</p>
+              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">หน้า 4 — ฮาร์ดแวร์</p>
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-[#1E487A] text-white">
                     <tr>
-                      <th className="px-3 py-2 text-left">ประเภท</th>
+                      <th className="px-3 py-2 text-left">ประเภทอุปกรณ์</th>
                       <th className="px-2 py-2 text-center">รวม</th>
                       <th className="px-2 py-2 text-center">ใช้งาน</th>
-                      <th className="px-2 py-2 text-center">ว่าง</th>
+                      <th className="px-2 py-2 text-center">พร้อมส่งมอบ</th>
                       <th className="px-2 py-2 text-center text-red-300">ชำรุด</th>
+                      <th className="px-2 py-2 text-left">หมายเหตุ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {Object.entries(hwGroups).length === 0 ? (
-                      <tr><td colSpan={5} className="px-3 py-3 text-center text-slate-400">ไม่มีข้อมูล</td></tr>
-                    ) : Object.entries(hwGroups).map(([type, g]) => (
-                      <tr key={type} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 font-semibold text-slate-700">{type}</td>
+                    {hwSummary.length === 0 ? (
+                      <tr><td colSpan={6} className="px-3 py-3 text-center text-slate-400">ไม่มีข้อมูล</td></tr>
+                    ) : hwSummary.map((g) => (
+                      <tr key={g.type} className="hover:bg-slate-50">
+                        <td className="px-3 py-2 font-semibold text-slate-700">{g.type}</td>
                         <td className="px-2 py-2 text-center font-bold text-[#1E487A]">{g.total}</td>
                         <td className="px-2 py-2 text-center text-slate-600">{g.inUse}</td>
-                        <td className="px-2 py-2 text-center text-emerald-600">{g.avail}</td>
+                        <td className="px-2 py-2 text-center text-emerald-600">{g.avail || '–'}</td>
                         <td className="px-2 py-2 text-center text-red-500 font-semibold">{g.broken || '–'}</td>
+                        <td className="px-2 py-2 text-left text-slate-400">{g.note}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -418,15 +400,15 @@ export default function ITReportModal({
 
             {/* Software */}
             <div>
-              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">Slide 5 — Software ({licenses.length} รายการ)</p>
+              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">หน้า 5 — ซอฟต์แวร์ ({licenses.length} รายการ)</p>
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-[#1E487A] text-white">
                     <tr>
-                      <th className="px-3 py-2 text-left">Software</th>
-                      <th className="px-2 py-2 text-center">Stock</th>
-                      <th className="px-2 py-2 text-center text-green-300">Active</th>
-                      <th className="px-2 py-2 text-center text-amber-300">Inactive</th>
+                      <th className="px-3 py-2 text-left">ซอฟต์แวร์</th>
+                      <th className="px-2 py-2 text-center">จำนวน</th>
+                      <th className="px-2 py-2 text-center text-green-300">ใช้งาน</th>
+                      <th className="px-2 py-2 text-center text-amber-300">คงเหลือ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">

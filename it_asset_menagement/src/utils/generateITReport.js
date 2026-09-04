@@ -121,7 +121,7 @@ addFooter = (pptx, slide, pageNum, month, year, company) => {
   // Split runs so English uses FE (Calibri) and Thai uses F (Sarabun) — fixes spread chars
   slide.addText(
     [
-      { text: `${company}  |  IT Performance – `, options: { color: 'AAAAAA', fontFace: FE } },
+      { text: `${company}  |  รายงานผล IT – `,     options: { color: 'AAAAAA', fontFace: F  } },
       { text: `${TH_MONTHS[month]} `,              options: { color: 'AAAAAA', fontFace: F  } },
       { text: String(year + 543),                  options: { color: 'AAAAAA', fontFace: FE } },
       { text: `   ${pageNum}`,                     options: { color: C.blue, bold: true, fontFace: FE } },
@@ -200,7 +200,7 @@ addHeader = (pptx, slide, titleTh, titleEn = '') => {
   if (titleEn) {
     slide.addText(titleEn, {
       x: 0.45, y: 0.58, w: 9, h: 0.38,
-      fontSize: 14, italic: true, color: 'B0C8E0', fontFace: FE, valign: 'top', charSpacing: 0,
+      fontSize: 14, italic: true, color: 'B0C8E0', fontFace: fontFor(titleEn), valign: 'top', charSpacing: 0,
     });
   }
 };
@@ -220,9 +220,9 @@ function slide1(pptx, { month, year, company, reportDate }) {
     fontSize: 28, bold: true, color: C.blueLight, align:'center', fontFace: FE, charSpacing: 0,
   });
   s.addShape(pptx.ShapeType.rect, { x:3.5, y:2.65, w:6.33, h:0.05, fill:{ color: C.blueLight }, line:{ color: C.blueLight } });
-  s.addText('IT Performance', {
+  s.addText('รายงานผลการดำเนินงาน IT', {
     x:0.8, y:2.8, w:11.73, h:0.9,
-    fontSize: 42, bold: true, color: C.white, align:'center', fontFace: FE, charSpacing: 0,
+    fontSize: 40, bold: true, color: C.white, align:'center', fontFace: F, charSpacing: 0,
   });
   s.addText(
     [
@@ -235,9 +235,9 @@ function slide1(pptx, { month, year, company, reportDate }) {
     x:0.8, y:4.6, w:11.73, h:0.5,
     fontSize: 17, color: '90B4CC', align:'center', fontFace: F, charSpacing: 0,
   });
-  s.addText('Monthly IT Performance Report', {
+  s.addText('รายงานผลการดำเนินงานฝ่าย IT ประจำเดือน', {
     x:0.8, y:6.0, w:11.73, h:0.45,
-    fontSize: 14, italic: true, color: C.blueLight, align:'center', fontFace: FE, charSpacing: 0,
+    fontSize: 14, italic: true, color: C.blueLight, align:'center', fontFace: F, charSpacing: 0,
   });
 }
 
@@ -247,13 +247,13 @@ function slide1(pptx, { month, year, company, reportDate }) {
 function slide2(pptx, { month, year, company, reportDate }) {
   const s = pptx.addSlide();
   s.background = { color: C.white };
-  addHeader(pptx, s, 'Agenda');
+  addHeader(pptx, s, 'สารบัญ');
 
   const items = [
-    { num:'01', th:'สรุปผลการดำเนินงาน Support',     en:'Support performance overview' },
-    { num:'02', th:'สรุปผล Hardware & License',       en:'Hardware & Software inventory' },
-    { num:'03', th:'สรุปภาพรวม สถานะโปรเจค R&D',    en:'R&D project status summary' },
-    { num:'04', th:'วาระติดตาม',                      en:'Follow-up agenda' },
+    { num:'01', th:'สรุปผลการดำเนินงานฝ่ายสนับสนุน',  en:'ภาพรวมงานสนับสนุน' },
+    { num:'02', th:'สรุปผลฮาร์ดแวร์และซอฟต์แวร์',      en:'รายการทรัพย์สินในระบบ' },
+    { num:'03', th:'สรุปภาพรวมสถานะโปรเจค R&D',       en:'สถานะโปรเจควิจัยและพัฒนา' },
+    { num:'04', th:'วาระติดตาม',                       en:'รายการติดตามงาน' },
   ];
 
   items.forEach((it, i) => {
@@ -270,7 +270,7 @@ function slide2(pptx, { month, year, company, reportDate }) {
     s.addText(it.th,  { x:x+0.3, y:y+0.9,  w:w-0.5, h:0.65,
       fontSize: 17, bold: true, color: C.blue, fontFace: F, charSpacing: 0 });
     s.addText(it.en,  { x:x+0.3, y:y+1.58, w:w-0.5, h:0.45,
-      fontSize: 12, italic: true, color: C.grayText, fontFace: FE, charSpacing: 0 });
+      fontSize: 12, italic: true, color: C.grayText, fontFace: F, charSpacing: 0 });
   });
 
   s.addText(`อัพเดท: ${reportDate}`, {
@@ -284,7 +284,7 @@ function slide2(pptx, { month, year, company, reportDate }) {
 function slide3(pptx, { month, year, company, employees, repairRequests, bigIssues }) {
   const s = pptx.addSlide();
   s.background = { color: C.white };
-  addHeader(pptx, s, 'สรุปผลการดำเนินงาน', 'Support');
+  addHeader(pptx, s, 'สรุปผลการดำเนินงาน', 'ฝ่ายสนับสนุน');
 
   const monthly = repairRequests.filter(r => {
     const d = new Date(r.timestamp);
@@ -296,10 +296,10 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
   const closedLose = monthly.filter(r => loseKw.some(k => (r.status||'').includes(k))).length;
 
   const stats = [
-    { v: employees.length, label:'พนักงานทั้งหมด', sub:'Employee',   color: C.blue  },
-    { v: monthly.length,   label:'เคส',             sub:'Case',       color: C.blue  },
-    { v: closedWon,        label:'ปิดสำเร็จ',       sub:'Close Won',  color: C.green },
-    { v: closedLose,       label:'ไม่สำเร็จ',       sub:'Close Lose', color: C.red   },
+    { v: employees.length, label:'พนักงานทั้งหมด', sub:'จำนวนพนักงาน', color: C.blue  },
+    { v: monthly.length,   label:'เคสทั้งหมด',       sub:'เดือนนี้',      color: C.blue  },
+    { v: closedWon,        label:'ปิดสำเร็จ',       sub:'ปิดงานสำเร็จ',  color: C.green },
+    { v: closedLose,       label:'ไม่สำเร็จ',       sub:'ยกเลิก/ไม่สำเร็จ', color: C.red },
   ];
   stats.forEach((st, i) => {
     const bx = 0.4 + i * 3.13, by = 1.18, bw = 2.9, bh = 1.65;
@@ -310,20 +310,20 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
     s.addText(st.label, { x:bx, y:by+bh*0.62, w:bw, h:0.4,
       fontSize:15, bold:true, color:C.blue, align:'center', fontFace:F, charSpacing:0 });
     s.addText(st.sub,   { x:bx, y:by+bh*0.82, w:bw, h:0.28,
-      fontSize:11, color:C.grayText, align:'center', fontFace:FE, charSpacing:0 });
+      fontSize:11, color:C.grayText, align:'center', fontFace:F, charSpacing:0 });
   });
 
   s.addShape(pptx.ShapeType.rect, { x:0.4, y:3.05, w:3.5, h:0.38,
     fill:{ color: C.red }, line:{ color: C.red } });
-  s.addText('🔴  Big Issue Discussion', { x:0.4, y:3.05, w:3.5, h:0.38,
-    fontSize:12, bold:true, color:C.white, fontFace:FE, valign:'middle', inset:0.1, charSpacing:0 });
+  s.addText('🔴  ประเด็นสำคัญ', { x:0.4, y:3.05, w:3.5, h:0.38,
+    fontSize:12, bold:true, color:C.white, fontFace:F, valign:'middle', inset:0.1, charSpacing:0 });
 
   const hdr = [
-    cellH('No',       { w:0.5  }),
-    cellH('Issue',    { align:'left' }),
-    cellH('Raise by', {}),
-    cellH('Status',   {}),
-    cellH('Due',      {}),
+    cellH('ลำดับ',    { w:0.5  }),
+    cellH('ปัญหา',    { align:'left' }),
+    cellH('แจ้งโดย',  {}),
+    cellH('สถานะ',   {}),
+    cellH('กำหนด',   {}),
   ];
 
   const dataRows = (bigIssues||[]).map((iss, i) => {
@@ -358,96 +358,83 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
 /* ═══════════════════════════════════
    SLIDE 4 – HARDWARE
 ═══════════════════════════════════ */
-function slide4(pptx, ctx, startPageNum) {
-  const { assets, accessories, employees } = ctx;
-
+/* 🆕 สรุปจำนวน Hardware ต่อประเภท — ใช้ร่วมกันทั้ง PPTX และ Preview
+   นับ "รวม" ตามจำนวนจริงในระบบ (รวมตัดจำหน่ายด้วย เพื่อให้ตรงกับหน้าจอ) */
+export function getHardwareSummary(assets = [], accessories = []) {
   const groups = {};
-  const holdersByType = {};
-
+  const ensure = (t) => {
+    if (!groups[t]) groups[t] = { type: t, total: 0, inUse: 0, avail: 0, broken: 0, reserve: 0, disposed: 0 };
+    return groups[t];
+  };
   assets.forEach(a => {
     const t = a.type || 'อื่นๆ';
     const st = a.status || 'พร้อมใช้งาน';
-    if (st === 'ตัดจำหน่าย') return;   // 🆕 ไม่นับทรัพย์สินที่ตัดจำหน่ายในรายงานคลัง
-    if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0, reserve:0 };
-    if (!holdersByType[t]) holdersByType[t] = [];
-    groups[t].total++;
-    if (st === 'ถูกใช้งาน') {
-      groups[t].inUse++;
-      const name = getShortName(a.assignedTo, employees, a.assignedName);
-      if (name) holdersByType[t].push(name);
-    } else if (st === 'ชำรุดเสียหาย') {
-      groups[t].broken++;
-    } else if (st === 'สำรอง') {
-      groups[t].reserve++;
-    } else {
-      groups[t].avail++;
-    }
+    const g = ensure(t);
+    g.total++;
+    if (st === 'ถูกใช้งาน') g.inUse++;
+    else if (st === 'ชำรุดเสียหาย' || st === 'ไม่สามารถใช้งานได้') g.broken++;
+    else if (st === 'สำรอง') g.reserve++;
+    else if (st === 'ตัดจำหน่าย') g.disposed++;
+    else g.avail++;
   });
-
   accessories.forEach(a => {
     const t = a.type || 'อุปกรณ์เสริม';
-    const qty    = Number(a.quantity||0);
-    const inUse  = (a.assignees||[]).length;
-    const broken = Number(a.brokenQuantity||0);
-    const avail  = Math.max(0, qty - inUse - broken);
-    if (!groups[t]) groups[t] = { total:0, inUse:0, avail:0, broken:0, reserve:0 };
-    if (!holdersByType[t]) holdersByType[t] = [];
-    groups[t].total  += qty;
-    groups[t].inUse  += inUse;
-    groups[t].avail  += avail;
-    groups[t].broken += broken;
-    (a.assignees || []).forEach(asg => {
-      const name = getShortName(asg.empId, employees, asg.empName);
-      if (name) holdersByType[t].push(name);
-    });
+    const qty = Number(a.quantity || 0);
+    const inUse = (a.assignees || []).length;
+    const broken = Number(a.brokenQuantity || 0);
+    const avail = Math.max(0, qty - inUse - broken);
+    const g = ensure(t);
+    g.total += qty; g.inUse += inUse; g.avail += avail; g.broken += broken;
   });
+  return Object.values(groups).map(g => {
+    const notes = [];
+    if (g.reserve > 0) notes.push(`สำรอง ${g.reserve}`);
+    if (g.disposed > 0) notes.push(`ตัดจำหน่าย ${g.disposed}`);
+    return { ...g, note: notes.join(' · ') || '–' };
+  });
+}
+
+function slide4(pptx, ctx, startPageNum) {
+  const { assets, accessories } = ctx;
+  const summary = getHardwareSummary(assets, accessories);
 
   const hdr = [
-    cellH('No',           {}),
+    cellH('ลำดับ',          {}),
     cellH('ประเภทอุปกรณ์', { align:'left' }),
     cellH('รวม',           {}),
     cellH('ใช้งาน',        {}),
     cellH('พร้อมส่งมอบ',  {}),
     cellH('ชำรุด',         {}),
-    cellH('ผู้ถือครอง',     { align:'left' }),
+    cellH('หมายเหตุ',      { align:'left' }),
   ];
 
-  const entries = Object.entries(groups);
-  const rows = entries.map(([type, g], i) => {
+  const rows = summary.map((g, i) => {
     const f = rowFill(i);
-    const holderText = formatHolders(holdersByType[type] || [], Infinity);   // 🆕 โชว์ครบ
     const brokenCell = g.broken > 0
       ? { text: String(g.broken), options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.red, border:bdr(), charSpacing:0, ...f } }
       : { text: '–',              options: { fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } };
     return [
       { text:String(i+1),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
-      { text:type,            options:{ fontSize:14, fontFace:fontFor(type), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
+      { text:g.type,          options:{ fontSize:14, fontFace:fontFor(g.type), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
       { text:String(g.total), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), charSpacing:0, ...f } },
       { text:String(g.inUse), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
       { text:g.avail > 0 ? String(g.avail):'–', options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color:C.green, border:bdr(), charSpacing:0, ...f } },
       brokenCell,
-      { text:holderText,      options:{ fontSize:9, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
+      { text:g.note,          options:{ fontSize:11, fontFace:fontFor(g.note), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
-  });
-
-  // 🆕 ความสูงแต่ละแถวตามจำนวนผู้ถือครอง (คอลัมน์กว้าง 5.98")
-  const rowHeights = entries.map(([type]) => {
-    const names = [...new Set((holdersByType[type] || []).filter(Boolean))];
-    return estimateRowH(names.join(', '), 5.98, 9);
   });
 
   const emptyRow = [
     cellC('–'), cell('ไม่มีข้อมูล',{ align:'left', color:C.grayText }),
-    cellC('–'), cellC('–'), cellC('–'), cellC('–'), cell('',{}),
+    cellC('–'), cellC('–'), cellC('–'), cellC('–'), cell('–',{ align:'left' }),
   ];
 
   return addPaginatedTableSlides(pptx, ctx, {
-    titleTh: 'สรุปผล Hardware', titleEn: 'Hardware Inventory',
+    titleTh: 'สรุปผลฮาร์ดแวร์', titleEn: 'รายการฮาร์ดแวร์ในระบบ',
     startPageNum,
     hdr, rows,
-    colW: [0.5, 2.5, 0.75, 0.85, 1.2, 0.75, 5.98],
+    colW: [0.6, 3.0, 0.9, 0.9, 1.3, 0.9, 3.93],
     rowH: 0.62,
-    rowHeights,   // 🆕 แถวสูงตามจำนวนชื่อ
     emptyRow,
   });
 }
@@ -459,11 +446,11 @@ function slide5(pptx, ctx, startPageNum) {
   const { licenses, employees } = ctx;
 
   const hdr = [
-    cellH('No',        {}),
-    cellH('Software',  { align:'left' }),
-    cellH('Stock',     {}),
-    cellH('Active',    { color: 'A8FFB0' }),
-    cellH('Inactive',  { color: 'FFD0D0' }),
+    cellH('ลำดับ',     {}),
+    cellH('ซอฟต์แวร์', { align:'left' }),
+    cellH('จำนวน',     {}),
+    cellH('ใช้งาน',    { color: 'A8FFB0' }),
+    cellH('คงเหลือ',   { color: 'FFD0D0' }),
     cellH('ผู้ใช้งาน',  { align:'left' }),
   ];
 
@@ -501,7 +488,7 @@ function slide5(pptx, ctx, startPageNum) {
   ];
 
   return addPaginatedTableSlides(pptx, ctx, {
-    titleTh: 'สรุปผล Software / License', titleEn: 'Software Inventory',
+    titleTh: 'สรุปผลซอฟต์แวร์ / ลิขสิทธิ์', titleEn: 'รายการซอฟต์แวร์ในระบบ',
     startPageNum,
     hdr, rows,
     colW: [0.5, 2.5, 0.85, 0.9, 0.95, 6.83],
@@ -518,11 +505,11 @@ function slide6(pptx, ctx, startPageNum) {
   const { rdProjects } = ctx;
 
   const hdr = [
-    cellH('No',          {}),
-    cellH('Project',     { align:'left' }),
+    cellH('ลำดับ',       {}),
+    cellH('โปรเจค',      { align:'left' }),
     cellH('รายละเอียด',  { align:'left' }),
-    cellH('Status',      {}),
-    cellH('Due',         {}),
+    cellH('สถานะ',      {}),
+    cellH('กำหนด',      {}),
     cellH('หมายเหตุ',   { align:'left' }),
   ];
 
@@ -546,7 +533,7 @@ function slide6(pptx, ctx, startPageNum) {
   ];
 
   return addPaginatedTableSlides(pptx, ctx, {
-    titleTh: 'สรุปภาพรวม สถานะโปรเจค', titleEn: 'R&D Project Status',
+    titleTh: 'สรุปภาพรวม สถานะโปรเจค', titleEn: 'สถานะโปรเจค R&D',
     startPageNum,
     hdr, rows,
     colW: [0.5, 2.5, 4.3, 1.5, 1.0, 2.73],
@@ -562,10 +549,10 @@ function slide7(pptx, ctx, startPageNum) {
   const { followUps } = ctx;
 
   const hdr = [
-    cellH('No',          {}),
+    cellH('ลำดับ',       {}),
     cellH('รายละเอียด',  { align:'left' }),
-    cellH('Status',      {}),
-    cellH('Due',         {}),
+    cellH('สถานะ',      {}),
+    cellH('กำหนด',      {}),
     cellH('หมายเหตุ',   { align:'left' }),
   ];
 
@@ -588,7 +575,7 @@ function slide7(pptx, ctx, startPageNum) {
   ];
 
   return addPaginatedTableSlides(pptx, ctx, {
-    titleTh: 'วาระติดตาม', titleEn: 'Follow-up Agenda',
+    titleTh: 'วาระติดตาม', titleEn: 'รายการติดตามงาน',
     startPageNum,
     hdr, rows,
     colW: [0.5, 5.5, 1.5, 1.0, 4.03],
@@ -609,13 +596,13 @@ function slide8(pptx, { month, year, company }) {
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.52, w:13.33, h:1.98,
     fill:{ color:'163860' }, line:{ color:'163860' } });
 
-  s.addText('THANK YOU', { x:0.8, y:1.6, w:11.73, h:1.6,
-    fontSize:72, bold:true, color:C.white, align:'center', fontFace:FE, charSpacing:0 });
+  s.addText('ขอบคุณครับ', { x:0.8, y:1.6, w:11.73, h:1.6,
+    fontSize:64, bold:true, color:C.white, align:'center', fontFace:F, charSpacing:0 });
   s.addText(company.toUpperCase(), { x:0.8, y:5.7, w:11.73, h:0.65,
     fontSize:22, bold:true, color:C.blueLight, align:'center', fontFace:FE, charSpacing:0 });
   s.addText(
     [
-      { text: 'IT Performance – ',         options: { color:'90B4CC', fontFace: FE } },
+      { text: 'รายงานผล IT – ',           options: { color:'90B4CC', fontFace: F  } },
       { text: `${TH_MONTHS[month]} `,      options: { color:'90B4CC', fontFace: F  } },
       { text: String(year + 543),          options: { color:'90B4CC', fontFace: FE } },
     ],

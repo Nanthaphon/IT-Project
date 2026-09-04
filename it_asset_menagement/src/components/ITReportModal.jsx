@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateITReport, getHardwareSummary } from '../utils/generateITReport.js';
+import { generateITReport, getHardwareSummary, getSoftwareSummary } from '../utils/generateITReport.js';
 import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
@@ -253,12 +253,8 @@ export default function ITReportModal({
   // Hardware summary — ใช้ helper ร่วมกับ PPTX เพื่อให้ตัวเลขตรงกันเป๊ะ
   const hwSummary = getHardwareSummary(assets, accessories);
 
-  // Software summary
-  const swRows = licenses.map(l => ({
-    name: l.name,
-    stock: Number(l.quantity || 0),
-    active: (l.assignees || []).length,
-  }));
+  // Software summary — ใช้ helper ร่วมกับ PPTX
+  const swSummary = getSoftwareSummary(licenses);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -409,17 +405,19 @@ export default function ITReportModal({
                       <th className="px-2 py-2 text-center">จำนวน</th>
                       <th className="px-2 py-2 text-center text-green-300">ใช้งาน</th>
                       <th className="px-2 py-2 text-center text-amber-300">คงเหลือ</th>
+                      <th className="px-2 py-2 text-left">หมายเหตุ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {swRows.length === 0 ? (
-                      <tr><td colSpan={4} className="px-3 py-3 text-center text-slate-400">ไม่มีข้อมูล</td></tr>
-                    ) : swRows.map((r, i) => (
+                    {swSummary.length === 0 ? (
+                      <tr><td colSpan={5} className="px-3 py-3 text-center text-slate-400">ไม่มีข้อมูล</td></tr>
+                    ) : swSummary.map((r, i) => (
                       <tr key={i} className="hover:bg-slate-50">
                         <td className="px-3 py-2 font-semibold text-slate-700">{r.name}</td>
                         <td className="px-2 py-2 text-center text-[#1E487A] font-bold">{r.stock}</td>
                         <td className="px-2 py-2 text-center text-emerald-600 font-semibold">{r.active}</td>
-                        <td className="px-2 py-2 text-center text-amber-600">{Math.max(0, r.stock - r.active)}</td>
+                        <td className="px-2 py-2 text-center text-amber-600">{r.inactive}</td>
+                        <td className="px-2 py-2 text-left text-slate-400">{r.note}</td>
                       </tr>
                     ))}
                   </tbody>

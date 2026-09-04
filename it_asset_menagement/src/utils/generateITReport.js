@@ -1,4 +1,5 @@
 import PptxGenJS from 'pptxgenjs';
+import { formatDateShort } from './formatDate.js';
 
 /* ═══════════════════════════════════
    PALETTE
@@ -442,8 +443,34 @@ function slide4(pptx, ctx, startPageNum) {
 /* ═══════════════════════════════════
    SLIDE 5 – SOFTWARE
 ═══════════════════════════════════ */
+/* 🆕 สรุปซอฟต์แวร์ต่อรายการ (ใช้ร่วม PPTX + Preview) — หมายเหตุ = สถานะวันหมดอายุ */
+export function getSoftwareSummary(licenses = []) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const daysUntil = (d) => Math.ceil((new Date(d) - today) / (1000 * 60 * 60 * 24));
+  return (licenses || []).map(lic => {
+    const stock = Number(lic.quantity || 0);
+    const active = (lic.assignees || []).length;
+    const inactive = Math.max(0, stock - active);
+    // วันหมดอายุที่ใกล้สุด (parent + per-seat)
+    const dates = [
+      lic.expirationDate,
+      ...(lic.availableSeatExpirationDates || []),
+      ...((lic.assignees || []).map(a => a.seatExpirationDate)),
+    ].filter(Boolean);
+    let note = '–';
+    if (dates.length > 0) {
+      const minD = Math.min(...dates.map(daysUntil));
+      if (minD < 0) note = 'หมดอายุแล้ว';
+      else if (minD <= 90) note = `ใกล้หมดอายุ (${minD} วัน)`;
+      else if (lic.expirationDate) note = `หมดอายุ ${formatDateShort(lic.expirationDate)}`;
+    }
+    return { name: lic.name || '–', stock, active, inactive, note };
+  });
+}
+
 function slide5(pptx, ctx, startPageNum) {
-  const { licenses, employees } = ctx;
+  const { licenses } = ctx;
+  const summary = getSoftwareSummary(licenses);
 
   const hdr = [
     cellH('ลำดับ',     {}),
@@ -451,49 +478,33 @@ function slide5(pptx, ctx, startPageNum) {
     cellH('จำนวน',     {}),
     cellH('ใช้งาน',    { color: 'A8FFB0' }),
     cellH('คงเหลือ',   { color: 'FFD0D0' }),
-    cellH('ผู้ใช้งาน',  { align:'left' }),
+    cellH('หมายเหตุ',  { align:'left' }),
   ];
 
-  const rows = licenses.map((lic, i) => {
-    const stock    = Number(lic.quantity||0);
-    const active   = (lic.assignees||[]).length;
-    const inactive = Math.max(0, stock - active);
+  const rows = summary.map((s, i) => {
     const f = rowFill(i);
-
-    const assigneeNames = (lic.assignees || []).map(a =>
-      getShortName(a.empId, employees, a.empName)
-    );
-    const holderText = formatHolders(assigneeNames, Infinity);   // 🆕 โชว์ครบทุกชื่อ
-
     return [
-      { text:String(i+1),      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
-      { text:lic.name||'–',    options:{ fontSize:14, fontFace:fontFor(lic.name), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
-      { text:String(stock),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), charSpacing:0, ...f } },
-      { text:String(active),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), charSpacing:0, ...f } },
-      { text:String(inactive), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color: inactive>0?C.amber:C.grayText, border:bdr(), charSpacing:0, ...f } },
-      { text:holderText,       options:{ fontSize:9, fontFace:fontFor(holderText), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
+      { text:String(i+1),        options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:s.name,             options:{ fontSize:14, fontFace:fontFor(s.name), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
+      { text:String(s.stock),    options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.blue, border:bdr(), charSpacing:0, ...f } },
+      { text:String(s.active),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', bold:true, color:C.green, border:bdr(), charSpacing:0, ...f } },
+      { text:String(s.inactive), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', color: s.inactive>0?C.amber:C.grayText, border:bdr(), charSpacing:0, ...f } },
+      { text:s.note,             options:{ fontSize:11, fontFace:fontFor(s.note), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
     ];
-  });
-
-  // 🆕 ความสูงแต่ละแถวตามจำนวนชื่อในคอลัมน์ผู้ใช้งาน (กว้าง 6.83")
-  const rowHeights = licenses.map((lic) => {
-    const names = [...new Set((lic.assignees || []).map(a => getShortName(a.empId, employees, a.empName)).filter(Boolean))];
-    return estimateRowH(names.join(', '), 6.83, 9);
   });
 
   const emptyRow = [
     cellC('–'),
     cell('ไม่มีข้อมูล',{ align:'left', color:C.grayText }),
-    cellC('–'), cellC('–'), cellC('–'), cell('',{}),
+    cellC('–'), cellC('–'), cellC('–'), cell('–',{ align:'left' }),
   ];
 
   return addPaginatedTableSlides(pptx, ctx, {
     titleTh: 'สรุปผลซอฟต์แวร์ / ลิขสิทธิ์', titleEn: 'รายการซอฟต์แวร์ในระบบ',
     startPageNum,
     hdr, rows,
-    colW: [0.5, 2.5, 0.85, 0.9, 0.95, 6.83],
+    colW: [0.6, 3.4, 0.9, 0.9, 1.0, 4.73],
     rowH: 0.62,
-    rowHeights,   // 🆕 แถวสูงตามจำนวนชื่อ
     emptyRow,
   });
 }

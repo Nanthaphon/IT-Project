@@ -136,7 +136,7 @@ export default function AssetTable({
             {visibleAssetColumns.forDepartment && (
               <td className={`${TD} text-slate-700`}>
                 {item.forDepartment
-                  ? <span className="inline-flex items-center bg-blue-50 text-[#1E487A] text-xs px-2 py-0.5 rounded-md font-semibold border border-blue-200">{item.forDepartment}</span>
+                  ? <span className="inline-flex items-center bg-slate-50 text-slate-600 text-xs px-2 py-0.5 rounded-md font-medium border border-slate-200">{item.forDepartment}</span>
                   : <span className="text-slate-400">-</span>}
               </td>
             )}
@@ -282,10 +282,11 @@ function ActionBtn({ onClick, kind, icon: Icon, children }) {
 }
 
 function IconBtn({ onClick, title, children, kind }) {
+  // Minimal: ปกติเทานิ่ง → เผยสีเฉพาะตอน hover
   const map = {
-    warning: 'text-amber-600 hover:bg-amber-50 hover:border-amber-300',
-    danger:  'text-rose-500 hover:bg-rose-50 hover:border-rose-300',
-    info:    'text-[#1E487A] hover:bg-blue-50 hover:border-blue-300',
+    warning: 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-300',
+    danger:  'text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300',
+    info:    'text-slate-400 hover:text-[#1E487A] hover:bg-blue-50 hover:border-blue-300',
   }[kind];
   return (
     <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Columns3, Trash2, Upload, Download, ChevronDown, Sparkles, FileText } from 'lucide-react';
+import { Search, Plus, Columns3, Trash2, Upload, Download, ChevronDown, Sparkles, FileText, History } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 
 export default function ActionBar({
@@ -45,6 +45,7 @@ export default function ActionBar({
   handleExportSelectedAssetsPDF,
   handleDeleteSelectedAssets,
   clearSelectedAssets,
+  setIsHistoryImportOpen,
 }) {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = React.useState(false);
   const columnDropdownRef = React.useRef(null);
@@ -216,6 +217,7 @@ export default function ActionBar({
               </>
             )}
             {canEdit && <Btn icon={Upload} onClick={() => setIsImportModalOpen(true)}>นำเข้า</Btn>}
+            {canEdit && setIsHistoryImportOpen && <Btn icon={History} onClick={() => setIsHistoryImportOpen(true)}>นำเข้าประวัติ</Btn>}
           </>
         )}
 

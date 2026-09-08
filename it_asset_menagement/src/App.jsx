@@ -62,6 +62,7 @@ import useAdminPermissions from './hooks/useAdminPermissions.jsx';
 import useGlobalLoading from './hooks/useGlobalLoading.jsx';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay.jsx';
 import Sidebar from './components/Sidebar.jsx';
+import HistoryImportModal from './components/HistoryImportModal.jsx';
 import { formatDateShort } from './utils/formatDate.js';
 import { useActiveTab } from './hooks/useActiveTab.js';
 import { EMPTY_CHECKLIST, EMPTY_FIELDS, flattenFields } from './components/ConditionCapture.jsx';
@@ -252,6 +253,7 @@ function App() {
     }
   }, [routeFurnitureEdit, routeFurnitureId, assets]);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isHistoryImportOpen, setIsHistoryImportOpen] = useState(false); // 🆕 นำเข้าประวัติถือครอง
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
   const [checkoutSearchTerm, setCheckoutSearchTerm] = useState('');
@@ -2815,6 +2817,132 @@ function App() {
     else setSelectedAssetIds(prev => prev.filter(id => !idsInView.includes(id)));
   };
   const clearSelectedAssets = () => setSelectedAssetIds([]);
+
+  // 🆕 ── นำเข้าประวัติการถือครองทรัพย์สิน (ย้ายจาก Snipe-IT ผ่าน CSV) ──
+  const handleDownloadHistoryTemplate = () => {
+    const headers = ['Asset Tag', 'Serial', 'Action', 'Date', 'Name', 'Note'];
+    const rows = [
+      ['GCO-OS-2605001', 'SN12345', 'checkout', '2026-01-15', 'นายสมชาย ใจดี', 'ย้ายจากระบบเก่า'],
+      ['GCO-OS-2605001', 'SN12345', 'checkin',  '2026-06-30', 'นายสมชาย ใจดี', ''],
+      ['GCO-OS-2605001', 'SN12345', 'checkout', '2026-07-01', 'นางสาวมณฑิตา', 'ผู้ถือครองปัจจุบัน (ไม่ต้องมีแถว checkin)'],
+    ];
+    const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map(r => r.map(esc).join(',')).join('\n') + '\n';
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'template_ownership_history.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+
+  const handleImportHistory = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      await withLoading(async () => {
+        try {
+          const text = ev.target.result;
+          const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+          if (lines.length < 2) throw new Error('ไฟล์ว่างหรือไม่มีข้อมูล');
+
+          const parseRow = (line) => {
+            const res = []; let cur = '', inQ = false;
+            for (let i = 0; i < line.length; i++) {
+              const ch = line[i];
+              if (ch === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+              else if (ch === ',' && !inQ) { res.push(cur); cur = ''; }
+              else cur += ch;
+            }
+            res.push(cur); return res.map(s => s.trim());
+          };
+          const norm = (s) => String(s || '').trim().toLowerCase();
+          const headers = parseRow(lines[0]);
+          const findIdx = (names) => headers.findIndex(h => names.includes(norm(h)));
+          const idxTag    = findIdx(['asset tag', 'asset_tag', 'assettag', 'รหัสทรัพย์สิน', 'tag']);
+          const idxSn     = findIdx(['serial', 'serial number', 'sn', 'หมายเลขเครื่อง']);
+          const idxAction = findIdx(['action', 'การกระทำ', 'ประเภท', 'type']);
+          const idxDate   = findIdx(['date', 'วันที่', 'created at', 'created_at', 'วันเวลา', 'datetime']);
+          const idxName   = findIdx(['name', 'target', 'to', 'user', 'ผู้ถือครอง', 'ผู้ใช้งาน', 'ชื่อ', 'ชื่อผู้ถือครอง']);
+          const idxNote   = findIdx(['note', 'notes', 'หมายเหตุ', 'remark', 'remarks']);
+          const idxEmpId  = findIdx(['employee id', 'emp id', 'empid', 'รหัสพนักงาน']);
+          if (idxTag === -1 && idxSn === -1) throw new Error('ต้องมีคอลัมน์ Asset Tag หรือ Serial เพื่อจับคู่เครื่อง');
+          if (idxAction === -1 || idxDate === -1) throw new Error('ต้องมีคอลัมน์ Action และ Date');
+
+          const byTag = new Map(), bySn = new Map();
+          assets.forEach(a => {
+            if (a.assetTag) byTag.set(norm(a.assetTag), a);
+            if (a.sn) bySn.set(norm(a.sn), a);
+          });
+          const parseDate = (v) => {
+            const s = String(v || '').trim(); if (!s) return null;
+            const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            const d = m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])) : new Date(s.replace(' ', 'T'));
+            return isNaN(d.getTime()) ? null : d.getTime();
+          };
+          const normAction = (v) => {
+            const s = norm(v);
+            if (s.includes('checkout') || s.includes('checked out') || s.includes('เบิก')) return 'เบิกจ่าย';
+            if (s.includes('checkin') || s.includes('checked in') || s.includes('คืน') || s.includes('return')) return 'รับคืน';
+            return null;
+          };
+
+          const events = [];
+          const skipped = [];
+          for (let i = 1; i < lines.length; i++) {
+            const vals = parseRow(lines[i]);
+            if (vals.every(v => !v)) continue;
+            const tag = idxTag >= 0 ? norm(vals[idxTag]) : '';
+            const sn  = idxSn  >= 0 ? norm(vals[idxSn])  : '';
+            const asset = (tag && byTag.get(tag)) || (sn && bySn.get(sn)) || null;
+            if (!asset) { skipped.push(i + 1); continue; }
+            const action = normAction(vals[idxAction]);
+            const ts = parseDate(vals[idxDate]);
+            if (!action || !ts) { skipped.push(i + 1); continue; }
+            events.push({
+              assetId: asset.id, assetName: asset.name, action, ts,
+              empName: idxName >= 0 ? (vals[idxName] || '').trim() : '',
+              empId:   idxEmpId >= 0 ? (vals[idxEmpId] || '').trim() : '',
+              note:    idxNote >= 0 ? (vals[idxNote] || '').trim() : '',
+            });
+          }
+          if (events.length === 0) throw new Error(`ไม่พบแถวที่นำเข้าได้ (ข้าม ${skipped.length} แถว — จับคู่เครื่องไม่ได้/ข้อมูลไม่ครบ)`);
+
+          // เรียงตามเครื่อง + เวลา แล้วจับคู่ เบิก→คืน ด้วย checkoutId เดียวกัน
+          events.sort((a, b) => a.assetId === b.assetId ? a.ts - b.ts : String(a.assetId).localeCompare(String(b.assetId)));
+          const open = {};
+          let created = 0;
+          for (const evt of events) {
+            const base = {
+              assetId: evt.assetId, assetName: evt.assetName, category: 'assets',
+              empName: evt.empName, empId: evt.empId, condition: 'ปกติ',
+              remarks: evt.note || '-', timestamp: evt.ts, imported: true,
+            };
+            if (evt.action === 'เบิกจ่าย') {
+              const checkoutId = `hist-${evt.ts}-${Math.random().toString(36).slice(2, 6)}`;
+              open[evt.assetId] = checkoutId;
+              await addDoc(collection(db, 'assets_transactions'), { ...base, action: 'เบิกจ่าย', checkoutId });
+            } else {
+              const checkoutId = open[evt.assetId] || `hist-${evt.ts}-${Math.random().toString(36).slice(2, 6)}`;
+              delete open[evt.assetId];
+              await addDoc(collection(db, 'assets_transactions'), { ...base, action: 'รับคืน', checkoutId });
+            }
+            created++;
+          }
+
+          setIsHistoryImportOpen(false);
+          setCustomAlert({
+            isOpen: true, title: 'นำเข้าประวัติสำเร็จ!',
+            message: `สร้างประวัติ ${created} รายการ${skipped.length ? ` · ข้าม ${skipped.length} แถว (จับคู่เครื่องไม่ได้/ข้อมูลไม่ครบ)` : ''}`,
+            type: 'success',
+          });
+        } catch (err) {
+          setCustomAlert({ isOpen: true, title: 'นำเข้าประวัติผิดพลาด', message: err.message, type: 'error' });
+        }
+      }, 'กำลังนำเข้าประวัติ...');
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
   // 🆕 ลบทรัพย์สิน/ครุภัณฑ์ที่เลือกไว้ทีเดียวหลายรายการ
   const handleDeleteSelectedAssets = () => {
     const ids = [...selectedAssetIds];
@@ -3249,6 +3377,7 @@ function App() {
                   visibleLicenseColumns={visibleLicenseColumns} setVisibleLicenseColumns={setVisibleLicenseColumns}
                   licenseExpFilter={licenseExpFilter} setLicenseExpFilter={setLicenseExpFilter}
                   setIsSnipeITImportOpen={setIsSnipeITImportOpen}
+                  setIsHistoryImportOpen={setIsHistoryImportOpen}
                   canEdit={canEdit}
                   fieldOptions={fieldOptions}
                   selectedAssetIds={selectedAssetIds}
@@ -3366,6 +3495,14 @@ function App() {
           />
         </Suspense>
       )}
+
+      {/* 🆕 นำเข้าประวัติการถือครอง (CSV) */}
+      <HistoryImportModal
+        isOpen={isHistoryImportOpen}
+        onClose={() => setIsHistoryImportOpen(false)}
+        onDownloadTemplate={handleDownloadHistoryTemplate}
+        onUpload={handleImportHistory}
+      />
     </div>
   );
 }

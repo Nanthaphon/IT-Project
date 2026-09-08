@@ -13,12 +13,16 @@ const toDate = (val) => {
   if (typeof val === 'string') {
     const s = val.trim();
     if (!s) return null;
-    // "DD/MM/YYYY" (ค่าที่ระบบเก็บเป็นสตริงแสดงผล) — parse เอง กัน browser สลับ MM/DD
+    // "D/M/YYYY" — parse เอง กัน browser สลับ MM/DD และรองรับค่า import ที่เป็น MM/DD
     const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (m) {
       let year = Number(m[3]);
       if (year >= 2400) year -= 543;   // เผื่อค่าเก่าที่เก็บเป็น พ.ศ.
-      const dt = new Date(year, Number(m[2]) - 1, Number(m[1]));
+      const a = Number(m[1]), b = Number(m[2]);
+      // ถ้าตัวกลาง > 12 = ต้องเป็นวัน → ไฟล์นั้นเป็น MM/DD/YYYY (เช่นจาก Snipe-IT)
+      // ไม่งั้นถือเป็น DD/MM/YYYY ตามมาตรฐานระบบ
+      const [day, mon] = (b > 12 && a <= 12) ? [b, a] : [a, b];
+      const dt = new Date(year, mon - 1, day);
       return isNaN(dt.getTime()) ? null : dt;
     }
     const dt = new Date(s);

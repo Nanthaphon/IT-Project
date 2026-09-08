@@ -1233,7 +1233,7 @@ export default function AssetDetailsModal({
           }
         `}</style>
 
-        <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-md w-full overflow-hidden flex flex-col border border-slate-200 print:border-none print:shadow-none print:bg-transparent">
+        <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04)] max-w-md w-full overflow-hidden flex flex-col border border-slate-200 print:border-none print:shadow-none print:bg-transparent">
           <div className="bg-slate-50 border-b border-slate-200 px-5 py-4 flex justify-between items-center print:hidden">
             <h3 className="font-semibold text-slate-800">ตัวอย่างป้าย (Label Preview)</h3>
             <button onClick={() => setShowLabelPreview(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -1427,37 +1427,37 @@ export default function AssetDetailsModal({
               {selectedAssetCategory === 'assets' && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-600' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-[#1E487A]' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-600'}`}>
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">สถานะ</p>
                     <p className="text-[14px] font-semibold text-slate-800 leading-[1.4] mt-0.5">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#1E487A] flex items-center justify-center mb-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">ราคาจัดซื้อ</p>
                     <p className="text-[16px] font-bold text-slate-800 leading-[1.4] mt-0.5 tabular-nums">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">อายุใช้งาน</p>
                     <p className="text-[14px] font-semibold text-slate-800 leading-[1.4] mt-0.5">{calculateAge(currentAssetDetail.purchaseDate)}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">หมดประกัน</p>
-                    <p className={`text-[14px] font-semibold leading-[1.4] mt-0.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-rose-500' : 'text-slate-800'}`}>{currentAssetDetail.warrantyDate || 'ไม่ระบุ'}</p>
+                    <p className={`text-[14px] font-semibold leading-[1.4] mt-0.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-rose-600' : 'text-slate-800'}`}>{currentAssetDetail.warrantyDate ? formatDateShort(currentAssetDetail.warrantyDate) : 'ไม่ระบุ'}</p>
                   </div>
                 </div>
               )}
 
-              <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
+              <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)] overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                   <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
                   <h4 className="text-[13.5px] font-semibold text-slate-600">ข้อมูลจำเพาะ</h4>
@@ -1555,7 +1555,7 @@ export default function AssetDetailsModal({
               {selectedAssetCategory === 'assets' && (() => {
                 const gallery = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
                 return (
-                  <div className="bg-white p-4 rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]">
+                  <div className="bg-white p-4 rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)]">
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
@@ -1610,7 +1610,7 @@ export default function AssetDetailsModal({
 
               {/* รายการสิทธิ์ผู้ถือครอง (เฉพาะ licenses) */}
               {selectedAssetCategory === 'licenses' && (
-                <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
+                <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
@@ -1923,7 +1923,7 @@ export default function AssetDetailsModal({
 
               {/* ส่วนจัดการชิ้นย่อย (เฉพาะอุปกรณ์เสริม) */}
               {selectedAssetCategory === 'accessories' && (
-                <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
+                <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
@@ -2208,7 +2208,7 @@ export default function AssetDetailsModal({
                   )}
                 </>
               ) : (
-                <div className="bg-white border border-slate-200/70 p-6 rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]">
+                <div className="bg-white border border-slate-200/70 p-6 rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04)]">
                   <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100">
                     <div className="w-1 h-5 rounded-full bg-[#1E487A]" />
                     <h4 className="text-[14px] font-semibold text-slate-700">
@@ -2315,7 +2315,7 @@ export default function AssetDetailsModal({
           {/* TAB: เอกสารแนบ */}
           {activeTab === 'docs' && (
             <div className="space-y-3 animate-in fade-in duration-200">
-              <div className="bg-white p-4 rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]">
+              <div className="bg-white p-4 rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)]">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
                   <h4 className="text-[13px] font-semibold text-slate-600">จัดการเอกสารแนบ</h4>

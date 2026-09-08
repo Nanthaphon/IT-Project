@@ -82,35 +82,37 @@ export default function EditAssetModal({
         ? 'bg-white w-full h-full overflow-hidden flex flex-col'
         : 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
-        <div className="px-7 py-5 flex items-start justify-between border-b border-slate-100">
-          <div className="flex items-start gap-3.5">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: `${BRAND}10`, color: BRAND }}
+        <div className="px-7 py-5 border-b border-slate-100">
+          <div className={`flex items-start justify-between ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
+            <div className="flex items-start gap-3.5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: `${BRAND}0F`, color: BRAND }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM19.5 13.5V19a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h5.5" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">แก้ไข{title}</h3>
+                <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>
+              </div>
+            </div>
+            <button
+              onClick={close}
+              className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors focus:outline-none"
+              aria-label="ปิด"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM19.5 13.5V19a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h5.5" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </div>
-            <div>
-              <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">แก้ไข{title}</h3>
-              <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>
-            </div>
+            </button>
           </div>
-          <button
-            onClick={close}
-            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors focus:outline-none"
-            aria-label="ปิด"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
 
         {/* Body */}
         <form onSubmit={handleUpdateAsset} className="overflow-y-auto flex-1">
-          <div className={`px-7 py-6 space-y-7 ${asPage ? 'max-w-3xl mx-auto w-full' : ''}`}>
+          <div className={`px-7 py-6 space-y-7 ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
 
             {/* รูปภาพ */}
             <section className="space-y-3">
@@ -141,15 +143,16 @@ export default function EditAssetModal({
                     </svg>
                   </div>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="flex-1 min-w-0 text-sm text-slate-500
-                    file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-                    file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700
-                    hover:file:bg-slate-200 file:cursor-pointer file:transition-colors"
-                />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[13.5px] font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
+                    </svg>
+                    {editAssetModal.data.image ? 'เปลี่ยนรูป' : 'เลือกรูปภาพ'}
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  </label>
+                  <span className="text-[12.5px] text-slate-400">รองรับ .jpg .png (ย่อขนาดอัตโนมัติ)</span>
+                </div>
               </div>
             </section>
 
@@ -502,20 +505,22 @@ export default function EditAssetModal({
           </div>
 
           {/* Footer */}
-          <div className="px-7 py-4 border-t border-slate-100 bg-slate-50/60 flex justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={close}
-              className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-[#1E487A] hover:bg-[#163963] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
-            >
-              บันทึกการแก้ไข
-            </button>
+          <div className="px-7 py-4 border-t border-slate-100 bg-white">
+            <div className={`flex justify-end gap-2.5 ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
+              <button
+                type="button"
+                onClick={close}
+                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-[#1E487A] hover:bg-[#163963] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
+              >
+                บันทึกการแก้ไข
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -1,417 +1,322 @@
 import React, { useMemo } from 'react';
 import {
-  Server, FileText, Users, Wallet, Activity,
-  Layers, Package, Building2, Sparkles, Boxes,
-  CheckCircle2, AlertCircle,
+  Monitor, Armchair, AppWindow, Cable, Users,
+  Wallet, Layers, Building2, AlertTriangle,
 } from 'lucide-react';
-import { BRAND } from '../ui/theme.js';
 
-/* ─── Design tokens (v2 — clean / airy) ─────────────────────── */
-const CARD = 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)]';
+/* ── Minimal tokens ─────────────────────────────────────────
+   การ์ดขาว ขอบบาง เงาเบามาก · สีใช้เฉพาะที่สื่อความหมาย (สถานะ)
+   ─────────────────────────────────────────────────────────── */
+const CARD = 'bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)]';
+const NAVY = '#1E487A';
+
+/* palette สำหรับสถานะ (functional color) */
+const ST = {
+  inUse:   NAVY,
+  avail:   '#10b981',
+  reserve: '#8b5cf6',
+  wait:    '#f59e0b',
+  broken:  '#f43f5e',
+  disposed:'#94a3b8',
+  license: '#7c3aed',
+};
 
 export default function DashboardStats({ assets = [], licenses = [], accessories = [], employees = [] }) {
-  /* ════════════════════════════════════════════════
-     คำนวณข้อมูล
-  ════════════════════════════════════════════════ */
-  const stats = useMemo(() => {
-    const totalAssets       = assets.length;
-    const assetAvailable    = assets.filter(a => !a.status || a.status === 'พร้อมใช้งาน').length;
-    const assetInUse        = assets.filter(a => a.status === 'ถูกใช้งาน').length;
-    const assetReserve      = assets.filter(a => a.status === 'สำรอง').length;
-    const assetBroken       = assets.filter(a => a.status === 'ชำรุดเสียหาย' || a.status === 'ไม่สามารถใช้งานได้').length;
-    const assetMaintenance  = assets.filter(a => a.status === 'รอดำเนินการ').length;
-    const assetDisposed     = assets.filter(a => a.status === 'ตัดจำหน่าย').length;
+  const s = useMemo(() => {
+    // แยกทรัพย์สินหลัก vs ครุภัณฑ์ (assetGroup === 'office')
+    const mainAssets = assets.filter(a => a.assetGroup !== 'office');
+    const furniture  = assets.filter(a => a.assetGroup === 'office');
 
-    const accTotal  = accessories.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
-    const accUsed   = accessories.reduce((s, i) => s + (i.assignees?.length || 0), 0);
-    const accBroken = accessories.reduce((s, i) => s + (Number(i.brokenQuantity) || 0), 0);
+    const byStatus = (list, st) => list.filter(a => (a.status || 'พร้อมใช้งาน') === st).length;
+    const assetStatus = {
+      inUse:    mainAssets.filter(a => a.status === 'ถูกใช้งาน').length,
+      avail:    mainAssets.filter(a => !a.status || a.status === 'พร้อมใช้งาน').length,
+      reserve:  byStatus(mainAssets, 'สำรอง'),
+      wait:     byStatus(mainAssets, 'รอดำเนินการ'),
+      broken:   mainAssets.filter(a => a.status === 'ชำรุดเสียหาย' || a.status === 'ไม่สามารถใช้งานได้').length,
+      disposed: byStatus(mainAssets, 'ตัดจำหน่าย'),
+    };
+
+    const accTotal  = accessories.reduce((n, i) => n + (Number(i.quantity) || 0), 0);
+    const accUsed   = accessories.reduce((n, i) => n + (i.assignees?.length || 0), 0);
+    const accBroken = accessories.reduce((n, i) => n + (Number(i.brokenQuantity) || 0), 0);
     const accRemain = Math.max(0, accTotal - accUsed - accBroken);
 
-    const totalLicenses = licenses.length;
-    const licAvailable  = licenses.filter(l => !l.status || l.status === 'พร้อมใช้งาน').length;
-    const licInUse      = licenses.filter(l => l.status === 'ถูกใช้งาน').length;
+    const licActive = licenses.reduce((n, l) => n + (l.assignees?.length || 0), 0);
+    const licStock  = licenses.reduce((n, l) => n + (Number(l.quantity) || 0), 0);
 
-    const calcValue    = (arr) => arr.reduce((s, i) => s + (Number(i.cost) || 0), 0);
-    const calcAccValue = (arr) => arr.reduce((s, i) => s + ((Number(i.cost) || 0) * (Number(i.quantity) || 0)), 0);
-
-    const assetValue = calcValue(assets);
-    const licValue   = calcValue(licenses);
-    const accValue   = calcAccValue(accessories);
+    // มูลค่า
+    const sum = (arr, f) => arr.reduce((n, i) => n + f(i), 0);
+    const assetValue = sum(assets, i => Number(i.cost) || 0);
+    const licValue   = sum(licenses, i => Number(i.cost) || 0);
+    const accValue   = sum(accessories, i => (Number(i.cost) || 0) * (Number(i.quantity) || 0));
     const totalValue = assetValue + licValue + accValue;
 
-    const assetByType = {};
-    assets.forEach(a => {
+    // ทรัพย์สินหลักตามประเภท (มูลค่ามาก→น้อย)
+    const typeMap = {};
+    mainAssets.forEach(a => {
       const t = a.type?.trim() || 'ไม่ระบุประเภท';
-      if (!assetByType[t]) assetByType[t] = { count: 0, value: 0, type: t };
-      assetByType[t].count += 1;
-      assetByType[t].value += Number(a.cost) || 0;
+      if (!typeMap[t]) typeMap[t] = { type: t, count: 0, value: 0 };
+      typeMap[t].count++; typeMap[t].value += Number(a.cost) || 0;
     });
-    const assetTypeBreakdown = Object.values(assetByType).sort((a, b) => b.value - a.value);
+    const byType = Object.values(typeMap).sort((a, b) => b.value - a.value);
 
-    const empByDept = {};
+    // พนักงานตามแผนก (Top 6)
+    const deptMap = {};
     employees.forEach(e => {
       const d = e.department?.trim() || 'ไม่ระบุแผนก';
-      empByDept[d] = (empByDept[d] || 0) + 1;
+      deptMap[d] = (deptMap[d] || 0) + 1;
     });
-    const deptBreakdown = Object.entries(empByDept)
-      .map(([dept, count]) => ({ dept, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
+    const byDept = Object.entries(deptMap).map(([dept, count]) => ({ dept, count }))
+      .sort((a, b) => b.count - a.count).slice(0, 6);
+
+    // แจ้งเตือน (แสดงเฉพาะที่ต้องดูแล)
+    const alerts = [];
+    if (assetStatus.broken > 0) alerts.push({ label: 'ทรัพย์สินชำรุด', value: assetStatus.broken });
+    if (accBroken > 0)          alerts.push({ label: 'อุปกรณ์เสริมชำรุด', value: accBroken });
 
     return {
-      totalAssets, assetAvailable, assetInUse, assetReserve, assetBroken, assetMaintenance, assetDisposed,
-      accTotal, accUsed, accBroken, accRemain,
-      totalLicenses, licAvailable, licInUse,
+      mainCount: mainAssets.length, furnitureCount: furniture.length,
+      assetStatus, accTotal, accUsed, accBroken, accRemain,
+      licActive, licStock,
       assetValue, licValue, accValue, totalValue,
-      assetTypeBreakdown, deptBreakdown,
+      byType, byDept, alerts,
     };
   }, [assets, licenses, accessories, employees]);
 
-  const fmt = (v) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(v);
-  const fmtShort = (v) => {
-    if (v >= 1_000_000) return `฿${(v / 1_000_000).toFixed(1)}M`;
-    if (v >= 1_000) return `฿${(v / 1_000).toFixed(0)}K`;
-    return `฿${v.toLocaleString()}`;
-  };
+  const fmtFull  = (v) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(v);
+  const fmtShort = (v) => v >= 1e6 ? `฿${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `฿${(v / 1e3).toFixed(0)}K` : `฿${v.toLocaleString()}`;
   const pct = (v, t) => (t > 0 ? (v / t) * 100 : 0);
 
-  // คำนวณ stroke-dasharray สำหรับ donut chart (circumference = 87.9 ที่ r=14)
-  const donutSegment = (val, total) => `${pct(val, total) * 0.879} 87.9`;
-  const donutOffset  = (acc, total) => `-${pct(acc, total) * 0.879}`;
+  const assetTotal = s.mainCount;
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto">
+    <div className="max-w-[1360px] mx-auto space-y-5">
 
-      {/* ════════════════════════════════════════════
-          Page header
-          ════════════════════════════════════════════ */}
-      <div>
-        <h1 className="text-[22px] font-bold text-slate-800 tracking-tight">ภาพรวมระบบ</h1>
-        <p className="text-[13.5px] text-slate-400 mt-1">สรุปทรัพย์สิน มูลค่า และสถานะทั้งหมดในระบบ</p>
+      {/* ── KPI strip (monochrome, minimal) ── */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
+        <Kpi label="ทรัพย์สิน" value={s.mainCount} unit="รายการ" icon={Monitor}
+             sub={`พร้อมใช้ ${s.assetStatus.avail.toLocaleString()}`} />
+        <Kpi label="ครุภัณฑ์สำนักงาน" value={s.furnitureCount} unit="รายการ" icon={Armchair} />
+        <Kpi label="License" value={licenses.length} unit="รายการ" icon={AppWindow}
+             sub={`ใช้งาน ${s.licActive.toLocaleString()} / ${s.licStock.toLocaleString()}`} />
+        <Kpi label="อุปกรณ์เสริม" value={s.accTotal} unit="ชิ้น" icon={Cable}
+             sub={`คงเหลือ ${s.accRemain.toLocaleString()}`} />
+        <Kpi label="พนักงาน" value={employees.length} unit="คน" icon={Users} />
       </div>
 
-      {/* ════════════════════════════════════════════
-          ROW 1 — Stat cards (4 แยกใบ)
-          ════════════════════════════════════════════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="ทรัพย์สินรวม"   value={stats.totalAssets}   unit="รายการ" icon={Server}   color={BRAND.primary} tint="#EFF6FF" />
-        <StatCard label="License ทั้งหมด" value={stats.totalLicenses} unit="รายการ" icon={FileText} color="#7C3AED"      tint="#F5F3FF" />
-        <StatCard label="อุปกรณ์ในคลัง"  value={stats.accTotal}      unit="ชิ้น"   icon={Boxes}    color="#059669"      tint="#ECFDF5" />
-        <StatCard label="พนักงาน"        value={employees.length}    unit="คน"     icon={Users}    color="#D97706"      tint="#FFFBEB" />
-      </div>
+      {/* ── แจ้งเตือน (เฉพาะเมื่อมี) ── */}
+      {s.alerts.length > 0 && (
+        <div className={`${CARD} px-5 py-3.5 flex flex-wrap items-center gap-x-6 gap-y-2`}>
+          <div className="flex items-center gap-2 text-rose-600">
+            <AlertTriangle className="h-4 w-4" strokeWidth={2.2} />
+            <span className="text-[13px] font-semibold">ต้องดูแล</span>
+          </div>
+          {s.alerts.map(a => (
+            <span key={a.label} className="text-[13px] text-slate-600">
+              {a.label} <b className="text-rose-600 tabular-nums">{a.value}</b>
+            </span>
+          ))}
+        </div>
+      )}
 
-      {/* ════════════════════════════════════════════
-          ROW 2 — Total value (donut) + Asset value by type
-          ════════════════════════════════════════════ */}
+      {/* ── สถานะทรัพย์สิน + มูลค่ารวม ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
-        {/* ── Donut + Total value (2/5 col) ── */}
+        {/* สถานะทรัพย์สินหลัก */}
+        <div className={`lg:col-span-3 ${CARD} p-6`}>
+          <SectionHead icon={Monitor} title="สถานะทรัพย์สินหลัก" meta={`${assetTotal.toLocaleString()} รายการ`} />
+          {assetTotal === 0 ? (
+            <Empty text="ยังไม่มีข้อมูลทรัพย์สิน" />
+          ) : (
+            <>
+              <div className="w-full h-2 rounded-full bg-slate-100 flex overflow-hidden mb-5">
+                {[
+                  { v: s.assetStatus.inUse,    c: ST.inUse },
+                  { v: s.assetStatus.avail,    c: ST.avail },
+                  { v: s.assetStatus.reserve,  c: ST.reserve },
+                  { v: s.assetStatus.wait,     c: ST.wait },
+                  { v: s.assetStatus.broken,   c: ST.broken },
+                  { v: s.assetStatus.disposed, c: ST.disposed },
+                ].map((seg, i) => seg.v > 0 && (
+                  <div key={i} className="h-full" style={{ width: `${pct(seg.v, assetTotal)}%`, backgroundColor: seg.c }} />
+                ))}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
+                <Legend color={ST.inUse}    label="ถูกใช้งาน"  value={s.assetStatus.inUse}    total={assetTotal} />
+                <Legend color={ST.avail}    label="พร้อมใช้"    value={s.assetStatus.avail}    total={assetTotal} />
+                <Legend color={ST.reserve}  label="สำรอง"      value={s.assetStatus.reserve}  total={assetTotal} />
+                <Legend color={ST.wait}     label="รอจัดการ"   value={s.assetStatus.wait}     total={assetTotal} />
+                <Legend color={ST.broken}   label="ชำรุด"      value={s.assetStatus.broken}   total={assetTotal} />
+                <Legend color={ST.disposed} label="ตัดจำหน่าย"  value={s.assetStatus.disposed} total={assetTotal} />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* มูลค่ารวม (donut minimal) */}
         <div className={`lg:col-span-2 ${CARD} p-6`}>
-          <div className="flex items-center gap-2.5 mb-5">
-            <IconBadge icon={Wallet} color={BRAND.primary} tint="#EFF6FF" />
-            <div>
-              <p className="text-[15px] font-bold text-slate-800 tracking-tight">มูลค่าทรัพย์สินรวม</p>
-              <p className="text-[12px] text-slate-400 mt-0.5">แบ่งตาม 3 หมวดหลัก</p>
-            </div>
-          </div>
-
-          <p className="text-[30px] font-bold text-slate-800 tabular-nums leading-none mb-5">{fmt(stats.totalValue)}</p>
-
+          <SectionHead icon={Wallet} title="มูลค่ารวม" />
+          <p className="text-[28px] font-bold text-slate-800 tabular-nums leading-none mb-5">{fmtFull(s.totalValue)}</p>
           <div className="flex items-center gap-5">
-            <div className="relative shrink-0 w-32 h-32">
+            <div className="relative shrink-0 w-28 h-28">
               <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="5" />
-                {stats.totalValue > 0 && (
-                  <>
-                    <circle cx="18" cy="18" r="14" fill="none" stroke={BRAND.primary} strokeWidth="5"
-                      strokeDasharray={donutSegment(stats.assetValue, stats.totalValue)} strokeLinecap="round" />
-                    <circle cx="18" cy="18" r="14" fill="none" stroke="#7C3AED" strokeWidth="5"
-                      strokeDasharray={donutSegment(stats.licValue, stats.totalValue)}
-                      strokeDashoffset={donutOffset(stats.assetValue, stats.totalValue)} strokeLinecap="round" />
-                    <circle cx="18" cy="18" r="14" fill="none" stroke="#059669" strokeWidth="5"
-                      strokeDasharray={donutSegment(stats.accValue, stats.totalValue)}
-                      strokeDashoffset={donutOffset(stats.assetValue + stats.licValue, stats.totalValue)} strokeLinecap="round" />
-                  </>
-                )}
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="4.5" />
+                {s.totalValue > 0 && (() => {
+                  const segs = [
+                    { v: s.assetValue, c: NAVY },
+                    { v: s.licValue,   c: ST.license },
+                    { v: s.accValue,   c: ST.avail },
+                  ];
+                  let acc = 0;
+                  return segs.map((seg, i) => {
+                    const dash = `${pct(seg.v, s.totalValue) * 0.879} 87.9`;
+                    const off = `-${pct(acc, s.totalValue) * 0.879}`;
+                    acc += seg.v;
+                    return <circle key={i} cx="18" cy="18" r="14" fill="none" stroke={seg.c} strokeWidth="4.5"
+                      strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="round" />;
+                  });
+                })()}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[11px] text-slate-400 font-medium">3 หมวด</span>
-                <span className="text-[18px] font-bold text-slate-800 tabular-nums">{fmtShort(stats.totalValue)}</span>
+                <span className="text-[10px] text-slate-400 font-medium">รวม</span>
+                <span className="text-[15px] font-bold text-slate-800 tabular-nums">{fmtShort(s.totalValue)}</span>
               </div>
             </div>
-
-            {/* Legend */}
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-2.5">
               {[
-                { label: 'ทรัพย์สินหลัก', value: stats.assetValue, color: BRAND.primary },
-                { label: 'License',        value: stats.licValue,   color: '#7C3AED' },
-                { label: 'อุปกรณ์เสริม',  value: stats.accValue,   color: '#059669' },
-              ].map(item => {
-                const p = pct(item.value, stats.totalValue);
-                return (
-                  <div key={item.label}>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-[12.5px] font-semibold text-slate-700 truncate">{item.label}</span>
-                      </div>
-                      <span className="text-[12px] font-bold tabular-nums shrink-0 text-slate-500">{p.toFixed(0)}%</span>
-                    </div>
-                    <div className="text-[13px] text-slate-500 tabular-nums font-medium">{fmtShort(item.value)}</div>
-                  </div>
-                );
-              })}
+                { label: 'ทรัพย์สิน', value: s.assetValue, color: NAVY },
+                { label: 'License',   value: s.licValue,   color: ST.license },
+                { label: 'อุปกรณ์เสริม', value: s.accValue, color: ST.avail },
+              ].map(it => (
+                <div key={it.label} className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: it.color }} />
+                    <span className="text-[12.5px] text-slate-600 truncate">{it.label}</span>
+                  </span>
+                  <span className="text-[12.5px] font-semibold text-slate-700 tabular-nums shrink-0">{fmtShort(it.value)}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ── Asset value by type (3/5 col) ── */}
-        <div className={`lg:col-span-3 ${CARD} p-6`}>
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <IconBadge icon={Layers} color={BRAND.primary} tint="#EFF6FF" />
-              <div>
-                <p className="text-[15px] font-bold text-slate-800 tracking-tight">มูลค่าทรัพย์สินหลัก</p>
-                <p className="text-[12px] text-slate-400 mt-0.5">แยกตามประเภท · มาก → น้อย</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">รวม</p>
-              <p className="text-[16px] font-bold tabular-nums text-slate-800">{fmt(stats.assetValue)}</p>
-            </div>
-          </div>
+      {/* ── ทรัพย์สินตามประเภท + พนักงานตามแผนก ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-          {stats.assetTypeBreakdown.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-[13px]">ยังไม่มีข้อมูลทรัพย์สิน</div>
+        {/* ตามประเภท */}
+        <div className={`${CARD} p-6`}>
+          <SectionHead icon={Layers} title="ทรัพย์สินตามประเภท" meta={fmtShort(s.assetValue)} />
+          {s.byType.length === 0 ? (
+            <Empty text="ยังไม่มีข้อมูล" />
           ) : (
-            <div className="space-y-3.5 max-h-[260px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
-              {stats.assetTypeBreakdown.map((item, idx) => {
-                const percent = stats.assetValue > 0 ? (item.value / stats.assetValue) * 100 : 0;
-                const colors = ['#1E487A', '#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#BE185D'];
-                const color = colors[idx % colors.length];
+            <div className="space-y-4 max-h-[280px] overflow-y-auto pr-1">
+              {s.byType.map(item => {
+                const p = pct(item.value, s.assetValue);
                 return (
                   <div key={item.type}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                        <span className="text-[13px] font-semibold text-slate-700 truncate">{item.type}</span>
-                        <span className="text-[10.5px] text-slate-500 font-semibold tabular-nums shrink-0 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-md">
-                          {item.count}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        <span className="text-[10.5px] text-slate-400 font-medium tabular-nums">{percent.toFixed(1)}%</span>
-                        <span className="text-[13px] font-bold text-slate-800 tabular-nums min-w-[68px] text-right">{fmtShort(item.value)}</span>
-                      </div>
+                    <div className="flex items-center justify-between mb-1.5 gap-2">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <span className="text-[13px] font-medium text-slate-700 truncate">{item.type}</span>
+                        <span className="text-[10.5px] text-slate-400 tabular-nums shrink-0">×{item.count}</span>
+                      </span>
+                      <span className="text-[12.5px] font-semibold text-slate-700 tabular-nums shrink-0">{fmtShort(item.value)}</span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${Math.max(percent, 1)}%`, backgroundColor: color }} />
-                    </div>
+                    <Bar percent={p} color={NAVY} />
                   </div>
                 );
               })}
             </div>
           )}
         </div>
-      </div>
 
-      {/* ════════════════════════════════════════════
-          ROW 3 — Status Cards
-          ════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <StatusCard
-          title="ทรัพย์สินหลัก" icon={Server} color={BRAND.primary} tint="#EFF6FF"
-          total={stats.totalAssets} totalLabel="รายการ"
-          segments={[
-            { label: 'ถูกใช้งาน', value: stats.assetInUse,        color: BRAND.primary },
-            { label: 'พร้อมใช้',   value: stats.assetAvailable,    color: '#10b981' },
-            { label: 'สำรอง',     value: stats.assetReserve,       color: '#8b5cf6' },
-            { label: 'รอจัดการ',  value: stats.assetMaintenance,  color: '#f59e0b' },
-            { label: 'ชำรุด',     value: stats.assetBroken,        color: '#f43f5e' },
-            { label: 'ตัดจำหน่าย', value: stats.assetDisposed,      color: '#94a3b8' },
-          ]}
-        />
-        <StatusCard
-          title="อุปกรณ์เสริม" icon={Package} color="#059669" tint="#ECFDF5"
-          total={stats.accTotal} totalLabel="ชิ้น"
-          segments={[
-            { label: 'คงเหลือ', value: stats.accRemain, color: '#10b981' },
-            { label: 'ถูกใช้',  value: stats.accUsed,   color: BRAND.primary },
-            { label: 'ชำรุด',  value: stats.accBroken, color: '#f43f5e' },
-          ]}
-        />
-        <StatusCard
-          title="License / โปรแกรม" icon={Sparkles} color="#7C3AED" tint="#F5F3FF"
-          total={stats.totalLicenses} totalLabel="รายการ"
-          segments={[
-            { label: 'ถูกใช้', value: stats.licInUse,     color: '#7C3AED' },
-            { label: 'ว่าง',   value: stats.licAvailable, color: '#10b981' },
-          ]}
-        />
-      </div>
-
-      {/* ════════════════════════════════════════════
-          ROW 4 — Department + Health Summary
-          ════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        {/* พนักงานแยกตามแผนก (2/3 col) */}
-        <div className={`lg:col-span-2 ${CARD} p-6`}>
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <IconBadge icon={Building2} color="#D97706" tint="#FFFBEB" />
-              <div>
-                <p className="text-[15px] font-bold text-slate-800 tracking-tight">พนักงานแยกตามแผนก</p>
-                <p className="text-[12px] text-slate-400 mt-0.5">Top 6 แผนกที่มีพนักงานมากที่สุด</p>
-              </div>
-            </div>
-            <span className="text-[12px] text-slate-400 font-semibold tabular-nums">{stats.deptBreakdown.length} แผนก</span>
-          </div>
-
-          {stats.deptBreakdown.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-[13px]">ยังไม่มีข้อมูลพนักงาน</div>
+        {/* ตามแผนก */}
+        <div className={`${CARD} p-6`}>
+          <SectionHead icon={Building2} title="พนักงานตามแผนก" meta={`${employees.length} คน`} />
+          {s.byDept.length === 0 ? (
+            <Empty text="ยังไม่มีข้อมูลพนักงาน" />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-              {stats.deptBreakdown.map((d, i) => {
-                const maxCount = stats.deptBreakdown[0].count;
-                const percent = (d.count / maxCount) * 100;
-                const colors = ['#1E487A', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2'];
-                const color = colors[i % colors.length];
+            <div className="space-y-4">
+              {s.byDept.map((d, i) => {
+                const p = (d.count / s.byDept[0].count) * 100;
                 return (
                   <div key={d.dept}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[12.5px] font-semibold text-slate-700 truncate flex-1">{d.dept}</span>
-                      <span className="text-[12.5px] font-bold tabular-nums shrink-0 ml-2 text-slate-800">
-                        {d.count} <span className="text-[10px] text-slate-400 font-medium">คน</span>
+                    <div className="flex items-center justify-between mb-1.5 gap-2">
+                      <span className="text-[13px] font-medium text-slate-700 truncate">{d.dept}</span>
+                      <span className="text-[12.5px] font-semibold text-slate-700 tabular-nums shrink-0">
+                        {d.count} <span className="text-[10px] text-slate-400 font-normal">คน</span>
                       </span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: color }} />
-                    </div>
+                    <Bar percent={p} color={NAVY} />
                   </div>
                 );
               })}
             </div>
           )}
         </div>
-
-        {/* Health Summary (1/3 col) */}
-        <div className={`${CARD} p-6`}>
-          <div className="flex items-center gap-2.5 mb-5">
-            <IconBadge icon={Activity} color="#16A34A" tint="#F0FDF4" />
-            <div>
-              <p className="text-[15px] font-bold text-slate-800 tracking-tight">สรุปสถานะระบบ</p>
-              <p className="text-[12px] text-slate-400 mt-0.5">ภาพรวมสุขภาพทรัพย์สิน</p>
-            </div>
-          </div>
-
-          <div className="space-y-2.5">
-            <HealthRow ok={stats.assetBroken === 0} label="ทรัพย์สินชำรุด"       value={stats.assetBroken}    total={stats.totalAssets} />
-            <HealthRow ok={stats.accBroken === 0}   label="อุปกรณ์เสริมชำรุด"    value={stats.accBroken}      total={stats.accTotal} />
-            <HealthRow ok={stats.assetAvailable > 0} label="ทรัพย์สินพร้อมแจกจ่าย" value={stats.assetAvailable} total={stats.totalAssets} positive />
-            <HealthRow ok={stats.licAvailable > 0}   label="License พร้อมจัดสรร"   value={stats.licAvailable}   total={stats.totalLicenses} positive />
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
-/* ─── Icon badge (หัวการ์ด) ─────────────────────────────────── */
-function IconBadge({ icon: Icon, color, tint }) {
-  return (
-    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: tint, color }}>
-      <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
-    </div>
-  );
-}
-
-/* ─── Stat card (row 1 — แยกใบ) ─────────────────────────────── */
-function StatCard({ label, value, unit, icon: Icon, color, tint }) {
+/* ── subcomponents ────────────────────────────────────────── */
+function Kpi({ label, value, unit, sub, icon: Icon }) {
   return (
     <div className={`${CARD} p-5`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: tint, color }}>
-          <Icon className="h-5 w-5" strokeWidth={2} />
-        </div>
+      <div className="flex items-start justify-between">
+        <p className="text-[11.5px] font-semibold text-slate-400 uppercase tracking-wide leading-tight">{label}</p>
+        {Icon && (
+          <span className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center shrink-0">
+            <Icon className="h-4 w-4" strokeWidth={2} />
+          </span>
+        )}
       </div>
-      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
-      <div className="flex items-baseline gap-1.5 mt-1">
-        <span className="text-[26px] font-bold text-slate-800 tabular-nums leading-none">{value.toLocaleString()}</span>
-        <span className="text-[12px] text-slate-400 font-medium">{unit}</span>
+      <div className="mt-2.5 flex items-baseline gap-1.5">
+        <span className="text-[27px] font-bold text-slate-800 tabular-nums leading-none">{Number(value).toLocaleString()}</span>
+        {unit && <span className="text-[12px] text-slate-400 font-medium">{unit}</span>}
       </div>
+      {sub && <p className="text-[12px] text-slate-400 mt-1.5 truncate">{sub}</p>}
     </div>
   );
 }
 
-/* ─── Status Card (combined stat + segments) ────────────────── */
-function StatusCard({ title, icon: Icon, color, tint, total, totalLabel, segments }) {
-  const totalSum = segments.reduce((s, x) => s + x.value, 0);
-  const pct = (v) => totalSum > 0 ? (v / totalSum) * 100 : 0;
-
+function SectionHead({ icon: Icon, title, meta }) {
   return (
-    <div className={`${CARD} overflow-hidden`}>
-      {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">
-        <div className="flex items-center gap-2.5">
-          <IconBadge icon={Icon} color={color} tint={tint} />
-          <p className="text-[14px] font-bold text-slate-800 tracking-tight">{title}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-[19px] font-bold tabular-nums leading-tight text-slate-800">{total.toLocaleString()}</p>
-          <p className="text-[10px] text-slate-400 font-medium leading-tight">{totalLabel}</p>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="p-6">
-        {/* Stacked bar */}
-        <div className="w-full h-2 rounded-full bg-slate-100 flex overflow-hidden mb-4">
-          {segments.map((s, i) => (
-            <div key={i} className="h-full" style={{ width: `${pct(s.value)}%`, backgroundColor: s.color }} title={`${s.label}: ${s.value}`} />
-          ))}
-        </div>
-
-        {/* List */}
-        <div className="space-y-2">
-          {segments.map((s, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
-                <span className="text-[12.5px] text-slate-600 font-medium">{s.label}</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[10.5px] text-slate-400 font-medium tabular-nums">{pct(s.value).toFixed(0)}%</span>
-                <span className="text-[13px] font-bold tabular-nums min-w-[24px] text-right text-slate-800">{s.value}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Health Row ────────────────────────────────────────────── */
-function HealthRow({ ok, label, value, total, positive = false }) {
-  const showOk = positive ? value > 0 : ok;
-  const color = showOk ? '#16A34A' : (value === 0 ? '#94A3B8' : '#DC2626');
-  const Icon = showOk ? CheckCircle2 : AlertCircle;
-  const bgColor = showOk ? '#F0FDF4' : (value === 0 ? '#F8FAFC' : '#FEF2F2');
-
-  return (
-    <div
-      className="flex items-center justify-between px-3.5 py-3 rounded-xl border transition-colors"
-      style={{ background: bgColor, borderColor: showOk ? '#BBF7D0' : (value === 0 ? '#E2E8F0' : '#FECACA') }}
-    >
+    <div className="flex items-center justify-between mb-4 gap-2">
       <div className="flex items-center gap-2 min-w-0">
-        <Icon className="h-4 w-4 shrink-0" style={{ color }} strokeWidth={2.2} />
-        <span className="text-[12.5px] text-slate-700 font-medium truncate">{label}</span>
+        {Icon && <Icon className="h-4 w-4 text-slate-400 shrink-0" strokeWidth={2} />}
+        <h3 className="text-[13.5px] font-bold text-slate-700 tracking-tight truncate">{title}</h3>
       </div>
-      <div className="flex items-baseline gap-1 shrink-0">
-        <span className="text-[15px] font-bold tabular-nums" style={{ color }}>{value}</span>
-        {total > 0 && <span className="text-[10.5px] text-slate-400 font-medium">/ {total}</span>}
-      </div>
+      {meta != null && <span className="text-[12px] text-slate-400 font-medium tabular-nums shrink-0">{meta}</span>}
     </div>
   );
+}
+
+function Legend({ color, label, value, total }) {
+  const p = total > 0 ? (value / total) * 100 : 0;
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="flex items-center gap-2 min-w-0">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+        <span className="text-[12.5px] text-slate-600 truncate">{label}</span>
+      </span>
+      <span className="flex items-baseline gap-1.5 shrink-0">
+        <span className="text-[10.5px] text-slate-400 tabular-nums">{p.toFixed(0)}%</span>
+        <span className="text-[13px] font-bold text-slate-800 tabular-nums min-w-[22px] text-right">{value}</span>
+      </span>
+    </div>
+  );
+}
+
+function Bar({ percent, color }) {
+  return (
+    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+      <div className="h-full rounded-full" style={{ width: `${Math.max(percent, 2)}%`, backgroundColor: color }} />
+    </div>
+  );
+}
+
+function Empty({ text }) {
+  return <div className="py-12 text-center text-[13px] text-slate-400">{text}</div>;
 }

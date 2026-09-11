@@ -1342,13 +1342,17 @@ function App() {
 
   const handleExportEmployees = () => {
     const rows = [[
-      'บริษัท', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
-      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
+      'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
+      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
     ]];
-    employees.forEach(emp => rows.push([
-      emp.company || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
-      emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', emp.fullNameEng || '', emp.startDate || '',
-    ]));
+    employees.forEach(emp => {
+      const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
+      const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
+      rows.push([
+        emp.company || '', th.first || '', th.last || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
+        emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '',
+      ]);
+    });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -1544,13 +1548,13 @@ function App() {
     }
     else {
       headers = [
-        'บริษัท', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
-        'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อภาษาอังกฤษ',
+        'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
+        'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)',
         'วันที่เริ่มงาน', 'M365 Password',
       ];
       example = [
-        'Globe Syndicate (Thailand) Co., Ltd.', 'นายตัวอย่าง ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
-        'ทอม', 'EMP001', 'IT', '', 'Sample Test',
+        'Globe Syndicate (Thailand) Co., Ltd.', 'ตัวอย่าง', 'ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
+        'ทอม', 'EMP001', 'IT', '', 'Sample', 'Test',
         '2024-01-15', '',
       ];
       filename = 'template_employees.csv';
@@ -1642,6 +1646,8 @@ function App() {
           },
           employees: {
             'รหัสพนักงาน': 'empId',
+            'ชื่อจริง': 'firstName', 'นามสกุล': 'lastName',
+            'ชื่อจริง (EN)': 'firstNameEng', 'นามสกุล (EN)': 'lastNameEng',
             'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
             'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
@@ -1708,7 +1714,7 @@ function App() {
           });
 
           // ── Validate required ──
-          const hasName = (rec.name || rec.fullName || '').trim();
+          const hasName = (rec.name || rec.fullName || rec.firstName || '').trim();
           if (!hasName) { skippedNoName.push(i + 1); continue; }
 
           // ── Duplicate check ──

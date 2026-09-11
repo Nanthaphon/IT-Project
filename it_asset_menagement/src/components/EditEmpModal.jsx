@@ -44,11 +44,17 @@ export default function EditEmpModal({
               <Field label="รหัสพนักงาน" required>
                 <input type="text" name="empId" value={data.empId || ''} onChange={handleEditEmpChange} required className={cls.input} />
               </Field>
-              <Field label="ชื่อ-นามสกุล (TH)" required>
-                <input type="text" name="fullName" value={data.fullName || ''} onChange={handleEditEmpChange} required className={cls.input} />
+              <Field label="ชื่อจริง (TH)" required>
+                <input type="text" name="firstName" value={data.firstName || ''} onChange={handleEditEmpChange} required className={cls.input} placeholder="เช่น ณัฐพงศ์" />
               </Field>
-              <Field label="ชื่อ-นามสกุล (EN)">
-                <input type="text" name="fullNameEng" value={data.fullNameEng || ''} onChange={handleEditEmpChange} className={cls.input} />
+              <Field label="นามสกุล (TH)">
+                <input type="text" name="lastName" value={data.lastName || ''} onChange={handleEditEmpChange} className={cls.input} placeholder="เช่น พงศ์ปฐมกุล" />
+              </Field>
+              <Field label="ชื่อจริง (EN)">
+                <input type="text" name="firstNameEng" value={data.firstNameEng || ''} onChange={handleEditEmpChange} className={cls.input} placeholder="e.g. Nattapong" />
+              </Field>
+              <Field label="นามสกุล (EN)">
+                <input type="text" name="lastNameEng" value={data.lastNameEng || ''} onChange={handleEditEmpChange} className={cls.input} placeholder="e.g. Pongpatomkul" />
               </Field>
               <Field label="ชื่อเล่น">
                 <input type="text" name="nickname" value={data.nickname || ''} onChange={handleEditEmpChange} className={cls.input} />

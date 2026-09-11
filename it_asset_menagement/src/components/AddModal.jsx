@@ -76,11 +76,17 @@ export default function AddModal({
                 <Field label="รหัสพนักงาน" required>
                   <input type="text" name="empId" value={empForm.empId || ''} onChange={handleEmpChange} required className={cls.input} placeholder="เช่น EMP001" />
                 </Field>
-                <Field label="ชื่อ-นามสกุล (TH)" required>
-                  <input type="text" name="fullName" value={empForm.fullName || ''} onChange={handleEmpChange} required className={cls.input} placeholder="ชื่อ-นามสกุล" />
+                <Field label="ชื่อจริง (TH)" required>
+                  <input type="text" name="firstName" value={empForm.firstName || ''} onChange={handleEmpChange} required className={cls.input} placeholder="เช่น ณัฐพงศ์" />
                 </Field>
-                <Field label="ชื่อ-นามสกุล (EN)">
-                  <input type="text" name="fullNameEng" value={empForm.fullNameEng || ''} onChange={handleEmpChange} className={cls.input} placeholder="Firstname Lastname" />
+                <Field label="นามสกุล (TH)">
+                  <input type="text" name="lastName" value={empForm.lastName || ''} onChange={handleEmpChange} className={cls.input} placeholder="เช่น พงศ์ปฐมกุล" />
+                </Field>
+                <Field label="ชื่อจริง (EN)">
+                  <input type="text" name="firstNameEng" value={empForm.firstNameEng || ''} onChange={handleEmpChange} className={cls.input} placeholder="e.g. Nattapong" />
+                </Field>
+                <Field label="นามสกุล (EN)">
+                  <input type="text" name="lastNameEng" value={empForm.lastNameEng || ''} onChange={handleEmpChange} className={cls.input} placeholder="e.g. Pongpatomkul" />
                 </Field>
                 <Field label="ชื่อเล่น">
                   <input type="text" name="nickname" value={empForm.nickname || ''} onChange={handleEmpChange} className={cls.input} placeholder="ชื่อเล่น" />

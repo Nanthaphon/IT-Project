@@ -64,6 +64,7 @@ import GlobalLoadingOverlay from './components/GlobalLoadingOverlay.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import HistoryImportModal from './components/HistoryImportModal.jsx';
 import { formatDateShort } from './utils/formatDate.js';
+import { splitName, joinName, resolveName } from './utils/nameUtils.js';
 import { useActiveTab } from './hooks/useActiveTab.js';
 import { EMPTY_CHECKLIST, EMPTY_FIELDS, flattenFields } from './components/ConditionCapture.jsx';
 import TopHeader from './components/TopHeader.jsx';
@@ -181,6 +182,7 @@ function App() {
   const [purchaseCondition, setPurchaseCondition] = useState('new'); // 'new' | 'used'
 
   const [empForm, setEmpForm] = useState({
+    firstName: '', lastName: '', firstNameEng: '', lastNameEng: '',
     fullName: '', fullNameEng: '', empId: '', department: '',
     company: '', position: '', nickname: '', manager: '', phone: '',
     m365Email: '', m365Password: '', startDate: ''
@@ -1181,12 +1183,14 @@ function App() {
 
   const handleAddEmployee = async (e) => {
     e.preventDefault();
-    const isDuplicate = employees.some(emp => String(emp.empId).toLowerCase() === empForm.empId.trim().toLowerCase() || String(emp.fullName).toLowerCase() === empForm.fullName.trim().toLowerCase());
+    const fullName = joinName(empForm.firstName, empForm.lastName);
+    const fullNameEng = joinName(empForm.firstNameEng, empForm.lastNameEng);
+    const isDuplicate = employees.some(emp => String(emp.empId).toLowerCase() === empForm.empId.trim().toLowerCase() || String(emp.fullName || '').toLowerCase() === fullName.toLowerCase());
     if (isDuplicate) return setCustomAlert({ isOpen: true, title: 'ข้อมูลซ้ำซ้อน!', message: `รหัสพนักงาน หรือ ชื่อ-นามสกุล นี้มีอยู่ในระบบแล้ว`, type: 'error' });
     await withLoading(async () => {
       try {
-        await addDoc(collection(db, 'employees'), { ...empForm, createdAt: serverTimestamp() });
-        setEmpForm({ fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '', startDate: '' });
+        await addDoc(collection(db, 'employees'), { ...empForm, fullName, fullNameEng, createdAt: serverTimestamp() });
+        setEmpForm({ firstName: '', lastName: '', firstNameEng: '', lastNameEng: '', fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '', startDate: '' });
         setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
       } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังบันทึก...');
@@ -1785,6 +1789,15 @@ function App() {
             rec.unit           = rec.unit || 'ชิ้น';
             rec.status         = 'พร้อมใช้งาน';
           }
+          else if (colName === 'employees') {
+            // 🆕 แยกชื่อจริง/นามสกุล จาก fullName (space) — คง fullName ไว้ให้ส่วนอื่นใช้
+            const th = resolveName(rec.firstName, rec.lastName, rec.fullName);
+            const en = resolveName(rec.firstNameEng, rec.lastNameEng, rec.fullNameEng);
+            rec.firstName = th.first; rec.lastName = th.last;
+            rec.firstNameEng = en.first; rec.lastNameEng = en.last;
+            rec.fullName = joinName(th.first, th.last) || (rec.fullName || '');
+            rec.fullNameEng = joinName(en.first, en.last) || (rec.fullNameEng || '');
+          }
 
           rec.createdAt = serverTimestamp();
           // 🆕 ถ้าไฟล์ระบุจำนวน > 1 → สร้างหลายชิ้น (แต่ละ doc = 1 ชิ้น)
@@ -1900,13 +1913,21 @@ function App() {
     const a = document.createElement('a'); a.href = url; a.download = 'assets.csv'; a.click(); URL.revokeObjectURL(url);
   };
   
-  const openEditEmpModal = (emp) => setEditEmpModal({ isOpen: true, data: { ...emp } });
+  const openEditEmpModal = (emp) => {
+    // 🆕 เติมชื่อจริง/นามสกุล จากการแยก fullName (ถ้ายังไม่เคยแยก)
+    const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
+    const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
+    setEditEmpModal({ isOpen: true, data: { ...emp, firstName: th.first, lastName: th.last, firstNameEng: en.first, lastNameEng: en.last } });
+  };
   const handleEditEmpChange = (e) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));
   const handleUpdateEmployee = async (e) => {
     e.preventDefault();
     await withLoading(async () => {
       try {
         const updatedData = { ...editEmpModal.data }; delete updatedData.id;
+        // 🆕 รวมชื่อจริง + นามสกุล → fullName / fullNameEng (คงไว้ให้ส่วนอื่นใช้)
+        updatedData.fullName = joinName(updatedData.firstName, updatedData.lastName);
+        updatedData.fullNameEng = joinName(updatedData.firstNameEng, updatedData.lastNameEng);
         if (Array.isArray(updatedData.links)) {
           updatedData.links = updatedData.links
             .map(l => ({ label: (l?.label || '').trim(), url: (l?.url || '').trim() }))

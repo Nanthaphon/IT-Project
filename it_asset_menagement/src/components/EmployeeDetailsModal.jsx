@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';
+import { resolveName } from '../utils/nameUtils.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
@@ -236,8 +237,10 @@ export default function EmployeeDetailsModal({
             <div className="space-y-6">
               <Section title="ข้อมูลส่วนตัวและตำแหน่ง">
                 <InfoGrid>
-                  <InfoItem label="ชื่อ-นามสกุล (TH)"  value={selectedEmployee.fullName} />
-                  <InfoItem label="ชื่อ-นามสกุล (EN)"  value={selectedEmployee.fullNameEng} />
+                  <InfoItem label="ชื่อจริง (TH)" value={resolveName(selectedEmployee.firstName, selectedEmployee.lastName, selectedEmployee.fullName).first} />
+                  <InfoItem label="นามสกุล (TH)" value={resolveName(selectedEmployee.firstName, selectedEmployee.lastName, selectedEmployee.fullName).last || '-'} />
+                  <InfoItem label="ชื่อจริง (EN)" value={resolveName(selectedEmployee.firstNameEng, selectedEmployee.lastNameEng, selectedEmployee.fullNameEng).first} />
+                  <InfoItem label="นามสกุล (EN)" value={resolveName(selectedEmployee.firstNameEng, selectedEmployee.lastNameEng, selectedEmployee.fullNameEng).last || '-'} />
                   <InfoItem label="ตำแหน่ง"            value={selectedEmployee.position} />
                   <InfoItem label="แผนก"               value={selectedEmployee.department} />
                   <InfoItem label="บริษัท"             value={selectedEmployee.company} />

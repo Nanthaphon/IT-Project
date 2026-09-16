@@ -304,8 +304,8 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-stone-950/60 z-[90] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-stone-200/60">
+    <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-stone-200/60">
 
         {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-3 shrink-0">
@@ -365,7 +365,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
               <button
                 onClick={handleConfirmImport}
                 disabled={importing || !parsed.grouped?.length}
-                className="inline-flex items-center gap-2 px-5 py-2 text-[13px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-5 py-2 text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {importing ? (
                   <><Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.4} /> กำลัง Import...</>
@@ -400,8 +400,8 @@ function UploadArea({ onFile }) {
         }}
         className={`block cursor-pointer rounded-xl border-2 border-dashed transition-colors p-12 text-center ${
           drag
-            ? 'border-[#A65F3C] bg-[#A65F3C]/5'
-            : 'border-stone-300 hover:border-[#A65F3C]/50 bg-white hover:bg-stone-50'
+            ? 'border-clay-600 bg-clay-600/5'
+            : 'border-stone-300 hover:border-clay-600/50 bg-white hover:bg-stone-50'
         }`}
       >
         <input
@@ -410,8 +410,8 @@ function UploadArea({ onFile }) {
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
           className="hidden"
         />
-        <div className="w-14 h-14 rounded-xl bg-[#A65F3C]/10 flex items-center justify-center mx-auto mb-4">
-          <Upload className="h-7 w-7 text-[#A65F3C]" strokeWidth={2} />
+        <div className="w-14 h-14 rounded-xl bg-clay-600/10 flex items-center justify-center mx-auto mb-4">
+          <Upload className="h-7 w-7 text-clay-600" strokeWidth={2} />
         </div>
         <p className="text-[15px] font-medium text-stone-800 mb-1">ลาก CSV จาก Snipe-IT มาวาง</p>
         <p className="text-[13px] text-stone-500">หรือคลิกเพื่อเลือกไฟล์</p>
@@ -500,9 +500,9 @@ function LicenseRow({ lic }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <Package className="h-3.5 w-3.5 text-[#A65F3C] shrink-0" strokeWidth={2} />
+            <Package className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
             <p className="text-[13.5px] font-medium text-stone-800 truncate">{lic.name}</p>
-            <span className="text-[10.5px] font-medium text-[#A65F3C] bg-stone-50 px-2 py-0.5 rounded">{lic.quantity} seats</span>
+            <span className="text-[10.5px] font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded">{lic.quantity} seats</span>
             {lic._meta?.extrasCount > 0 && (
               <span
                 className="text-[10px] font-medium text-clay-600 bg-clay-100 px-1.5 py-0.5 rounded border border-clay-200"
@@ -528,7 +528,7 @@ function LicenseRow({ lic }) {
                   </span>
                 ))}
                 {allKeys.length > 3 && !expand && (
-                  <button onClick={() => setExpand(true)} className="text-[10.5px] font-medium text-[#A65F3C] hover:underline">
+                  <button onClick={() => setExpand(true)} className="text-[10.5px] font-medium text-clay-600 hover:underline">
                     +{allKeys.length - 3} เพิ่มเติม
                   </button>
                 )}
@@ -574,7 +574,7 @@ function ResultSection({ result, onClose, onAnother }) {
         <button onClick={onAnother} className="px-5 py-2 text-[13px] font-medium text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50">
           Import อีก
         </button>
-        <button onClick={onClose} className="px-5 py-2 text-[13px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] rounded-lg shadow-sm">
+        <button onClick={onClose} className="px-5 py-2 text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm">
           เสร็จสิ้น
         </button>
       </div>

@@ -93,7 +93,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
       {/* ── Section header ── */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full bg-[#A65F3C]" />
+          <div className="w-1 h-4 rounded-full bg-clay-600" />
           <h4 className="text-[13px] font-semibold text-stone-600">
             ซอฟต์แวร์ / License ที่ติดตั้ง ({boundSeats.length})
           </h4>
@@ -101,7 +101,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-[#A65F3C] text-white px-3.5 py-2 rounded-lg hover:bg-[#8E4E30] transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             เพิ่ม License
@@ -111,11 +111,11 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
 
       {/* ── Assign panel (inline) ── */}
       {isAdding && (
-        <div className="bg-white border border-[#A65F3C]/30 rounded-xl p-5 space-y-4">
+        <div className="bg-white border border-clay-600/30 rounded-xl p-5 space-y-4">
           {/* Panel header */}
           <div className="flex items-center justify-between">
             <p className="text-[14px] font-semibold text-stone-800 flex items-center gap-2">
-              <Monitor className="h-4 w-4 text-[#A65F3C]" strokeWidth={2} />
+              <Monitor className="h-4 w-4 text-clay-600" strokeWidth={2} />
               เลือก License ที่ต้องการผูกกับเครื่องนี้
             </p>
             <button
@@ -134,7 +134,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
               value={search}
               onChange={e => { setSearch(e.target.value); setSelectedLicId(null); }}
               placeholder="ค้นหา License..."
-              className="w-full pl-9 pr-4 py-2 text-[13px] bg-stone-50 border border-stone-200 rounded-lg outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+              className="w-full pl-9 pr-4 py-2 text-[13px] bg-stone-50 border border-stone-200 rounded-lg outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
             />
           </div>
 
@@ -158,7 +158,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     onClick={() => { setSelectedLicId(lic.id); setSelectedSeatIdx(0); }}
                     className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
                       isSel
-                        ? 'bg-[#A65F3C]/8 border border-[#A65F3C]/25'
+                        ? 'bg-clay-600/8 border border-clay-600/25'
                         : 'bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300'
                     }`}
                   >
@@ -176,7 +176,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                         {lic.expirationDate && ` · หมดอายุ ${formatDateShort(lic.expirationDate)}`}
                       </p>
                     </div>
-                    {isSel && <CheckCircle2 className="h-4 w-4 text-[#A65F3C] shrink-0" strokeWidth={2} />}
+                    {isSel && <CheckCircle2 className="h-4 w-4 text-clay-600 shrink-0" strokeWidth={2} />}
                   </button>
                 );
               })
@@ -192,7 +192,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                   <select
                     value={selectedSeatIdx}
                     onChange={e => setSelectedSeatIdx(Number(e.target.value))}
-                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                   >
                     {Array.from({ length: availableCount }, (_, i) => (
                       <option key={i} value={i}>
@@ -220,7 +220,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                   value={remarks}
                   onChange={e => setRemarks(e.target.value)}
                   placeholder="เช่น ติดตั้งโดย IT, License OEM ประจำเครื่อง..."
-                  className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+                  className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                 />
               </div>
             </div>

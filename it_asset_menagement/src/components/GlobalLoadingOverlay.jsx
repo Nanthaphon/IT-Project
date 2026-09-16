@@ -20,7 +20,7 @@ export default function GlobalLoadingOverlay({ show, message }) {
       aria-busy="true"
       data-no-scroll-lock
     >
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] px-10 py-7 flex flex-col items-center gap-4 border border-stone-200">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] px-10 py-7 flex flex-col items-center gap-4 border border-stone-200">
         {/* Spinner */}
         <div
           className="w-12 h-12 rounded-full animate-spin"

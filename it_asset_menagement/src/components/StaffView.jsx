@@ -607,13 +607,13 @@ export default function StaffView({
   };
 
   /* ---------- shared input class ---------- */
-  const inputCls = 'w-full border border-stone-200 bg-white px-3 py-2.5 rounded-lg text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C] transition';
+  const inputCls = 'w-full border border-stone-200 bg-white px-3 py-2.5 rounded-lg text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 transition';
   const labelCls = 'block text-xs font-medium text-stone-500 mb-1.5';
   const primaryBtn = (disabled) =>
     `w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
       disabled
         ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-        : 'bg-gradient-to-b from-[#22518A] to-[#A65F3C] hover:from-[#A65F3C] hover:to-[#8E4E30] text-white shadow-md shadow-[#A65F3C]/25 hover:shadow-lg hover:shadow-[#A65F3C]/30 active:scale-[0.98]'
+        : 'bg-gradient-to-b from-[#22518A] to-clay-600 hover:from-clay-600 hover:to-clay-700 text-white shadow-md shadow-clay-600/25 hover:shadow-lg hover:shadow-clay-600/30 active:scale-[0.98]'
     }`;
 
   /* ========================================
@@ -623,22 +623,22 @@ export default function StaffView({
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-white to-[#F3E7DF] relative overflow-hidden">
         {/* decorative glow */}
-        <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-[#A65F3C]/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-[#A65F3C]/[0.07] blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-clay-600/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-clay-600/[0.07] blur-3xl" />
         <div className="w-full max-w-sm relative z-10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-7">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-[#A65F3C] to-[#6E3B26] shadow-lg shadow-[#A65F3C]/30 ring-1 ring-white/20">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-clay-600 to-clay-800 shadow-lg shadow-clay-600/30 ring-1 ring-white/20">
               <img src="/gb_icon.svg" alt="Logo" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
-            <h1 className="text-[21px] font-semibold text-[#A65F3C] tracking-tight">พนักงานทั่วไป</h1>
+            <h1 className="text-[21px] font-semibold text-clay-600 tracking-tight">พนักงานทั่วไป</h1>
             <p className="text-[14px] text-stone-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] p-7">
             <h2 className="text-[16px] font-semibold text-stone-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
             <p className="text-[12.5px] text-stone-500 mb-5 leading-relaxed">
-              💡 รหัสผ่านเริ่มต้น = <span className="font-semibold text-[#A65F3C]">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
+              💡 รหัสผ่านเริ่มต้น = <span className="font-semibold text-clay-600">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
             </p>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -675,13 +675,13 @@ export default function StaffView({
               </div>
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-stone-300 text-[#A65F3C] focus:ring-[#A65F3C]" />
+                  className="w-4 h-4 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
                 <span className="text-[14px] text-stone-500">จดจำการเข้าสู่ระบบ</span>
               </label>
               <button
                 type="submit"
                 disabled={isLoggingIn}
-                className="w-full py-3 bg-[#A65F3C] hover:bg-[#8E4E30] text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
                 style={{ boxShadow: '0 4px 14px rgba(166,95,60,0.25)' }}
               >
                 {isLoggingIn ? (
@@ -696,7 +696,7 @@ export default function StaffView({
 
           <button
             onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-            className="w-full mt-5 text-[14px] text-stone-500 hover:text-[#A65F3C] transition-colors text-center inline-flex items-center justify-center gap-1.5"
+            className="w-full mt-5 text-[14px] text-stone-500 hover:text-clay-600 transition-colors text-center inline-flex items-center justify-center gap-1.5"
           >
             ← กลับไปหน้าเลือกบทบาท
           </button>
@@ -713,7 +713,7 @@ export default function StaffView({
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-white to-[#F3E7DF] relative overflow-hidden">
         <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-clay-400/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-[#A65F3C]/[0.06] blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-clay-600/[0.06] blur-3xl" />
         <div className="w-full max-w-md relative z-10">
           <div className="flex flex-col items-center mb-6">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-clay-400 to-clay-600 shadow-lg shadow-amber-500/30 ring-1 ring-white/20">
@@ -723,7 +723,7 @@ export default function StaffView({
             </div>
             <h1 className="text-[21px] font-semibold text-stone-800 tracking-tight">ตั้งรหัสผ่านใหม่</h1>
             <p className="text-[13.5px] text-stone-500 mt-1.5 text-center px-4 leading-relaxed">
-              สวัสดี <span className="font-semibold text-[#A65F3C]">{currentStaff?.fullName}</span> —<br />
+              สวัสดี <span className="font-semibold text-clay-600">{currentStaff?.fullName}</span> —<br />
               กรุณาตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัย (เข้าใช้ครั้งแรก)
             </p>
           </div>
@@ -754,7 +754,7 @@ export default function StaffView({
                 </div>
               )}
               <button type="submit" disabled={changeSubmitting}
-                className="w-full py-3 bg-[#A65F3C] hover:bg-[#8E4E30] text-white text-[14.5px] font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
+                className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-[14.5px] font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
                 style={{ boxShadow: '0 4px 14px rgba(166,95,60,0.25)' }}>
                 {changeSubmitting ? (
                   <>
@@ -823,7 +823,7 @@ export default function StaffView({
       } lg:translate-x-0`}>
 
         {/* Brand */}
-        <div className="px-5 py-5 flex items-center justify-between bg-gradient-to-br from-[#A65F3C] to-[#6E3B26] relative overflow-hidden">
+        <div className="px-5 py-5 flex items-center justify-between bg-gradient-to-br from-clay-600 to-clay-800 relative overflow-hidden">
           <div className="pointer-events-none absolute -top-8 -right-6 w-28 h-28 rounded-full bg-white/[0.06] blur-2xl" />
           <div className="flex items-center gap-2.5 relative">
             <div className="w-8 h-8 rounded-lg bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0 backdrop-blur-sm">
@@ -869,17 +869,17 @@ export default function StaffView({
                 onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }}
                 className={`group w-full flex items-center gap-3 px-3 py-2.5 text-[13.5px] rounded-xl transition-all relative ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#A65F3C]/[0.12] to-[#A65F3C]/[0.04] text-[#A65F3C] font-semibold shadow-sm shadow-[#A65F3C]/10'
+                    ? 'bg-gradient-to-r from-clay-600/[0.12] to-clay-600/[0.04] text-clay-600 font-semibold shadow-sm shadow-clay-600/10'
                     : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900 font-medium'
                 }`}
               >
                 {/* Active left bar indicator */}
                 {isActive && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-[#A65F3C] to-[#6E3B26]" />
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-clay-600 to-clay-800" />
                 )}
                 {Icon && (
                   <Icon
-                    className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive ? 'text-[#A65F3C]' : 'text-stone-400 group-hover:text-stone-500'}`}
+                    className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive ? 'text-clay-600' : 'text-stone-400 group-hover:text-stone-500'}`}
                     strokeWidth={isActive ? 2.2 : 1.8}
                   />
                 )}
@@ -887,7 +887,7 @@ export default function StaffView({
                 {tab.count > 0 && (
                   <span className={`shrink-0 min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${
                     isActive
-                      ? 'bg-[#A65F3C] text-white'
+                      ? 'bg-clay-600 text-white'
                       : 'bg-stone-100 text-stone-500 group-hover:bg-stone-200'
                   }`}>
                     {tab.count}
@@ -939,8 +939,8 @@ export default function StaffView({
         <div className="hidden lg:flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-stone-200/80 px-8 py-4 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             {activeTabInfo?.icon && (
-              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#A65F3C]/[0.12] to-[#A65F3C]/[0.04] ring-1 ring-[#A65F3C]/10 flex items-center justify-center">
-                <activeTabInfo.icon className="h-[18px] w-[18px] text-[#A65F3C]" strokeWidth={2} />
+              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-clay-600/[0.12] to-clay-600/[0.04] ring-1 ring-clay-600/10 flex items-center justify-center">
+                <activeTabInfo.icon className="h-[18px] w-[18px] text-clay-600" strokeWidth={2} />
               </span>
             )}
             <p className="text-[18px] font-semibold text-stone-800 leading-tight tracking-tight">{activeTabInfo?.label}</p>
@@ -953,7 +953,7 @@ export default function StaffView({
         {activeTab === 'profile' && (
           <>
           {/* ── Hero card ── */}
-          <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-[#A65F3C] via-[#1A3F6D] to-[#6E3B26] shadow-lg shadow-[#A65F3C]/25 ring-1 ring-white/10">
+          <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-clay-600 via-[#1A3F6D] to-clay-800 shadow-lg shadow-clay-600/25 ring-1 ring-white/10">
             {/* decorative glow */}
             <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/[0.07] blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-10 w-56 h-56 rounded-full bg-white/[0.04] blur-3xl" />
@@ -998,10 +998,10 @@ export default function StaffView({
                     <button
                       onClick={saveProfile}
                       disabled={isSavingProfile}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-[#A65F3C] bg-white hover:bg-white/90 shadow-sm disabled:opacity-60"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold text-clay-600 bg-white hover:bg-white/90 shadow-sm disabled:opacity-60"
                     >
                       {isSavingProfile
-                        ? <><div className="w-3.5 h-3.5 border-2 border-[#A65F3C]/30 border-t-[#A65F3C] rounded-full animate-spin" /> กำลังบันทึก...</>
+                        ? <><div className="w-3.5 h-3.5 border-2 border-clay-600/30 border-t-clay-600 rounded-full animate-spin" /> กำลังบันทึก...</>
                         : <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึก</>
                       }
                     </button>
@@ -1222,11 +1222,11 @@ export default function StaffView({
                     <label className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors text-[13px] font-semibold ${
                       isUploadingDamagePhoto
                         ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                        : 'text-[#A65F3C] bg-white border border-dashed border-stone-300 hover:border-[#A65F3C] hover:bg-stone-50'
+                        : 'text-clay-600 bg-white border border-dashed border-stone-300 hover:border-clay-600 hover:bg-stone-50'
                     }`}>
                       {isUploadingDamagePhoto ? (
                         <>
-                          <div className="w-3.5 h-3.5 border-2 border-stone-200 border-t-[#A65F3C] rounded-full animate-spin" />
+                          <div className="w-3.5 h-3.5 border-2 border-stone-200 border-t-clay-600 rounded-full animate-spin" />
                           กำลังประมวลผลรูป...
                         </>
                       ) : (
@@ -1348,9 +1348,9 @@ export default function StaffView({
                 {/* 🆕 บอกบริษัทที่พนักงานสังกัด (fixed — ไม่ให้เลือกเปลี่ยน) */}
                 {staffCompany && (
                   <div className="pt-2 border-t border-stone-100 flex items-center gap-1.5 text-[11.5px] text-stone-500">
-                    <Building2 className="h-3 w-3 text-[#A65F3C] shrink-0" strokeWidth={2.4} />
+                    <Building2 className="h-3 w-3 text-clay-600 shrink-0" strokeWidth={2.4} />
                     <span>อุปกรณ์ของ</span>
-                    <span className="inline-flex items-center gap-1 font-medium text-[#A65F3C] bg-stone-50 px-2 py-0.5 rounded-full ring-1 ring-stone-100">
+                    <span className="inline-flex items-center gap-1 font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded-full ring-1 ring-stone-100">
                       {staffCompany}
                     </span>
                     <span className="text-stone-400">· {filteredSupplies.length} รายการ</span>
@@ -1387,7 +1387,7 @@ export default function StaffView({
                           isOut
                             ? 'border-stone-200 opacity-50 cursor-not-allowed'
                             : inCart
-                              ? 'border-[#A65F3C] ring-1 ring-[#A65F3C]/20'
+                              ? 'border-clay-600 ring-1 ring-clay-600/20'
                               : 'border-stone-200 hover:border-stone-300'
                         }`}
                       >
@@ -1397,7 +1397,7 @@ export default function StaffView({
                             : <Package className="h-10 w-10 text-stone-300" strokeWidth={1.5} />
                           }
                           {inCart && (
-                            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-[#A65F3C] text-white flex items-center justify-center shadow-sm">
+                            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-clay-600 text-white flex items-center justify-center shadow-sm">
                               <Check className="h-3.5 w-3.5" strokeWidth={3} />
                             </span>
                           )}
@@ -1414,7 +1414,7 @@ export default function StaffView({
                         <div className="p-3 border-t border-stone-100">
                           <p className="text-[13px] font-semibold text-stone-800 truncate leading-tight">{item.name}</p>
                           {item.company ? (
-                            <p className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#A65F3C] bg-stone-50 px-1.5 py-0.5 rounded mt-1 max-w-full">
+                            <p className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded mt-1 max-w-full">
                               <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
                               <span className="truncate">{item.company}</span>
                             </p>
@@ -1449,7 +1449,7 @@ export default function StaffView({
                               {formatDateShort(req.timestamp)}
                             </p>
                           </div>
-                          <span className="text-[13px] font-semibold text-[#A65F3C] tabular-nums">× {req.requestedQty}</span>
+                          <span className="text-[13px] font-semibold text-clay-600 tabular-nums">× {req.requestedQty}</span>
                           <span className={statusBadge(req.status)}>{req.status}</span>
                           {/* 🆕 ยกเลิกได้เฉพาะที่ยังรอดำเนินการ (เบิกผิด) */}
                           {req.status === 'รอดำเนินการ' && handleStaffCancelSupplyRequest && (
@@ -1478,7 +1478,7 @@ export default function StaffView({
                 <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
                   <p className="text-[14.5px] font-semibold text-stone-800">รายการที่เลือก</p>
                   {supplyCart.length > 0 && (
-                    <span className="text-[12px] font-semibold text-[#A65F3C] bg-[#A65F3C]/8 px-2 py-0.5 rounded">
+                    <span className="text-[12px] font-semibold text-clay-600 bg-clay-600/8 px-2 py-0.5 rounded">
                       {supplyCart.length}
                     </span>
                   )}
@@ -1502,7 +1502,7 @@ export default function StaffView({
                           <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-semibold text-stone-800 truncate leading-tight">{cartItem.name}</p>
                             {cartItem.company && (
-                              <p className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#A65F3C] bg-stone-50 px-1 py-0.5 rounded mt-0.5 max-w-full">
+                              <p className="inline-flex items-center gap-1 text-[10px] font-semibold text-clay-600 bg-stone-50 px-1 py-0.5 rounded mt-0.5 max-w-full">
                                 <Building2 className="h-2 w-2 shrink-0" strokeWidth={2.4} />
                                 <span className="truncate">{cartItem.company}</span>
                               </p>
@@ -1527,7 +1527,7 @@ export default function StaffView({
                           <input
                             type="number" min="1" max={cartItem.maxQty} value={cartItem.quantity}
                             onChange={e => { const nc = [...supplyCart]; nc[index].quantity = e.target.value; setSupplyCart(nc); }}
-                            className="w-12 bg-white border border-stone-200 rounded-lg px-1 py-1 text-[12.5px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C]"
+                            className="w-12 bg-white border border-stone-200 rounded-lg px-1 py-1 text-[12.5px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
                             required
                           />
                           <button
@@ -1540,7 +1540,7 @@ export default function StaffView({
                             type="text" value={cartItem.note}
                             onChange={e => { const nc = [...supplyCart]; nc[index].note = e.target.value; setSupplyCart(nc); }}
                             placeholder="หมายเหตุ"
-                            className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-[11.5px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C] focus:bg-white"
+                            className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-[11.5px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 focus:bg-white"
                           />
                         </div>
                       </div>
@@ -1552,7 +1552,7 @@ export default function StaffView({
                   <button
                     type="submit"
                     disabled={supplyCart.length === 0 || isSubmittingSupply}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13.5px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {isSubmittingSupply
                       ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>
@@ -1594,7 +1594,7 @@ export default function StaffView({
                   const icon = isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑';
 
                   return (
-                    <div key={item.uniqueKey || item.id} className="border border-stone-200 rounded-xl p-4 hover:border-[#A65F3C]/30 transition-colors flex flex-col gap-3">
+                    <div key={item.uniqueKey || item.id} className="border border-stone-200 rounded-xl p-4 hover:border-clay-600/30 transition-colors flex flex-col gap-3">
                       <div className="flex items-start gap-3">
                         {item.image
                           ? <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0" />
@@ -1662,7 +1662,7 @@ export default function StaffView({
                   className={inputCls} rows="4" required
                 />
               </div>
-              <button type="submit" className="w-full py-2.5 bg-[#A65F3C] hover:bg-[#6E3B26] text-white text-sm font-semibold rounded-lg transition">
+              <button type="submit" className="w-full py-2.5 bg-clay-600 hover:bg-clay-800 text-white text-sm font-semibold rounded-lg transition">
                 บันทึกการแก้ไข
               </button>
             </form>
@@ -1713,7 +1713,7 @@ function EvaluationCell({ req, onOpen }) {
   return (
     <button
       onClick={onOpen}
-      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#A65F3C] hover:bg-[#8E4E30] text-white text-[11.5px] font-medium transition-colors"
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-clay-600 hover:bg-clay-700 text-white text-[11.5px] font-medium transition-colors"
     >
       <Sparkles className="h-3 w-3" strokeWidth={2.2} />
       ทำแบบประเมิน
@@ -1740,7 +1740,7 @@ function InfoItem({ label, value, accent, mono }) {
   return (
     <div className="flex flex-col px-4 py-3 border-b border-stone-100 last:border-b-0">
       <span className="text-[12.5px] font-medium text-stone-400 mb-0.5">{label}</span>
-      <span className={`text-sm font-medium ${accent ? 'text-[#A65F3C]' : 'text-stone-800'} ${mono ? 'font-mono' : ''}`}>
+      <span className={`text-sm font-medium ${accent ? 'text-clay-600' : 'text-stone-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-stone-300">—</span>}
       </span>
     </div>
@@ -1770,7 +1770,7 @@ function PasswordRevealItem({ label, value, show, setShow }) {
             {show ? value : '•'.repeat(Math.min(String(value).length, 12))}
           </span>
           <button type="button" onClick={() => setShow(s => !s)}
-            className="text-stone-400 hover:text-[#A65F3C] transition-colors"
+            className="text-stone-400 hover:text-clay-600 transition-colors"
             title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
             aria-label={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}>
             {show
@@ -1778,7 +1778,7 @@ function PasswordRevealItem({ label, value, show, setShow }) {
               : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
           </button>
           <button type="button" onClick={handleCopy}
-            className="text-stone-400 hover:text-[#A65F3C] transition-colors"
+            className="text-stone-400 hover:text-clay-600 transition-colors"
             title="คัดลอก" aria-label="คัดลอก">
             {copied
               ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -1795,7 +1795,7 @@ function CompactItem({ label, value, accent }) {
   return (
     <div className="px-5 py-3.5">
       <p className="text-[11.5px] text-stone-500 mb-0.5">{label}</p>
-      <p className={`text-[14.5px] font-medium break-words ${accent ? 'text-[#A65F3C]' : 'text-stone-800'}`}>
+      <p className={`text-[14.5px] font-medium break-words ${accent ? 'text-clay-600' : 'text-stone-800'}`}>
         {value || <span className="text-stone-300 font-normal">—</span>}
       </p>
     </div>
@@ -1825,14 +1825,14 @@ function CompactPassword({ label, value, show, setShow }) {
             {show ? value : '•'.repeat(Math.min(String(value).length, 12))}
           </span>
           <button type="button" onClick={() => setShow(s => !s)}
-            className="text-stone-400 hover:text-[#A65F3C] transition-colors"
+            className="text-stone-400 hover:text-clay-600 transition-colors"
             title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}>
             {show
               ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
               : <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
           </button>
           <button type="button" onClick={handleCopy}
-            className="text-stone-400 hover:text-[#A65F3C] transition-colors" title="คัดลอก">
+            className="text-stone-400 hover:text-clay-600 transition-colors" title="คัดลอก">
             {copied
               ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               : <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
@@ -1856,8 +1856,8 @@ function EditableItem({ label, name, value, accent, mono, editing, form, setForm
         value={form[name] ?? ''}
         onChange={(e) => setForm(prev => ({ ...prev, [name]: e.target.value }))}
         className={`w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px]
-                    focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition
-                    ${accent ? 'text-[#A65F3C] font-medium' : 'text-stone-800'}
+                    focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition
+                    ${accent ? 'text-clay-600 font-medium' : 'text-stone-800'}
                     ${mono ? 'font-mono' : ''}`}
       />
     </div>
@@ -1896,12 +1896,12 @@ function LinkCards({ links }) {
           const label = (l.label || '').trim() || host || href;
           return (
             <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-               className="group flex items-center gap-3 rounded-lg border border-stone-200 hover:border-[#A65F3C]/40 hover:bg-[#A65F3C]/[0.03] px-3.5 py-3 transition-colors">
-              <span className="w-9 h-9 rounded-lg bg-[#A65F3C]/[0.08] text-[#A65F3C] flex items-center justify-center shrink-0">
+               className="group flex items-center gap-3 rounded-lg border border-stone-200 hover:border-clay-600/40 hover:bg-clay-600/[0.03] px-3.5 py-3 transition-colors">
+              <span className="w-9 h-9 rounded-lg bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
                 <ExternalLink className="h-4 w-4" strokeWidth={2} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-medium text-stone-800 truncate group-hover:text-[#A65F3C]">{label}</span>
+                <span className="block text-[14px] font-medium text-stone-800 truncate group-hover:text-clay-600">{label}</span>
                 {host && <span className="block text-[12px] text-stone-400 truncate">{host}</span>}
               </span>
             </a>
@@ -1918,7 +1918,7 @@ function LinksEditor({ links, setLinks }) {
   const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
   const add = () => setLinks([...rows, { label: '', url: '' }]);
   const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
-  const inCls = 'bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition';
+  const inCls = 'bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
   return (
     <div>
       <label className="block text-[11.5px] text-stone-500 font-medium mb-2">ลิงก์ / เว็บไซต์</label>
@@ -1940,7 +1940,7 @@ function LinksEditor({ links, setLinks }) {
         ))}
       </div>
       <button type="button" onClick={add}
-        className="mt-2.5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#A65F3C] hover:text-[#153a63] transition-colors">
+        className="mt-2.5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-clay-600 hover:text-[#153a63] transition-colors">
         <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
       </button>
     </div>
@@ -2005,7 +2005,7 @@ function Pagination({ page, total, onChange }) {
       {Array.from({ length: total }).map((_, i) => (
         <button
           key={i} onClick={() => onChange(i + 1)}
-          className={`w-7 h-7 rounded-lg text-xs font-semibold transition ${page === i + 1 ? 'bg-[#A65F3C] text-white' : 'text-stone-500 hover:bg-stone-100'}`}
+          className={`w-7 h-7 rounded-lg text-xs font-semibold transition ${page === i + 1 ? 'bg-clay-600 text-white' : 'text-stone-500 hover:bg-stone-100'}`}
         >
           {i + 1}
         </button>
@@ -2122,7 +2122,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                     isDisabled
                       ? 'border-stone-200 opacity-50 cursor-not-allowed'
                       : isSelected
-                        ? 'border-[#A65F3C] ring-1 ring-[#A65F3C]/20'
+                        ? 'border-clay-600 ring-1 ring-clay-600/20'
                         : 'border-stone-200 hover:border-stone-300'
                   }`}
                 >
@@ -2132,7 +2132,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                       : <Package className="h-10 w-10 text-stone-300" strokeWidth={1.5} />
                     }
                     {isSelected && (
-                      <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-[#A65F3C] text-white flex items-center justify-center shadow-sm">
+                      <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-clay-600 text-white flex items-center justify-center shadow-sm">
                         <Check className="h-3.5 w-3.5" strokeWidth={3} />
                       </span>
                     )}
@@ -2172,7 +2172,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-[13.5px] font-semibold text-stone-800 truncate">{req.accessoryName}</p>
-                      <span className="text-[12px] font-semibold text-[#A65F3C] tabular-nums">× {req.quantity || 1}</span>
+                      <span className="text-[12px] font-semibold text-clay-600 tabular-nums">× {req.quantity || 1}</span>
                     </div>
                     {req.reason && <p className="text-[11.5px] text-stone-500 mt-1 line-clamp-2">{req.reason}</p>}
                     {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
@@ -2238,7 +2238,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                     max={stockAvailable || 1}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                    className="flex-1 bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13.5px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C]"
+                    className="flex-1 bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13.5px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
                   />
                   <button
                     type="button"
@@ -2260,7 +2260,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                   rows={4}
                   required
                   placeholder="เช่น เมาส์ใช้งานไม่ได้ ขอเปลี่ยน / เพิ่งเข้างานใหม่"
-                  className="w-full bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C] resize-none"
+                  className="w-full bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 resize-none"
                 />
               </div>
             </div>
@@ -2270,7 +2270,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
             <button
               type="submit"
               disabled={isSubmitting || !accessoryId || !reason.trim()}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13.5px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting
                 ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>

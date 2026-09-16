@@ -143,7 +143,7 @@ export default function EditEmpModal({
           </section>
 
           <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-[#A65F3C]">
+            <div className="flex items-center gap-2 text-clay-600">
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
               <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
             </div>
@@ -184,7 +184,7 @@ function EmpLinksEditor({ links, setLinks }) {
   const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
   const add = () => setLinks([...rows, { label: '', url: '' }]);
   const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
-  const inCls = 'w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition';
+  const inCls = 'w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
   return (
     <div className="space-y-2">
       {rows.length === 0 && (
@@ -203,7 +203,7 @@ function EmpLinksEditor({ links, setLinks }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#A65F3C] hover:text-[#153a63] transition-colors">
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-clay-600 hover:text-[#153a63] transition-colors">
         <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
       </button>
     </div>

@@ -39,7 +39,7 @@ export default function ReturnModal({
 
             <div className="mt-3 pt-3 border-t border-stone-200">
               <p className="text-[12px] text-stone-500 font-medium mb-1">รับคืนจาก</p>
-              <p className="text-[14.5px] font-semibold text-[#A65F3C] flex items-center gap-1.5">
+              <p className="text-[14.5px] font-semibold text-clay-600 flex items-center gap-1.5">
                 <User className="h-4 w-4" strokeWidth={2} />
                 {returnModal.empName}
               </p>

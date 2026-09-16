@@ -244,7 +244,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             <>
               <button
                 onClick={() => onUpdateStatus(req.id, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-clay-600 text-white hover:bg-[#8E4E30] transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-clay-600 text-white hover:bg-clay-700 transition-colors"
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                 อนุมัติ

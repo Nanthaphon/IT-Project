@@ -85,9 +85,9 @@ export default function SatisfactionSurveyModal({
   const dateStr = repair.timestamp ? formatDateShort(repair.timestamp) : '-';
 
   return (
-    <div className="fixed inset-0 bg-stone-950/60 flex items-center justify-center p-4 z-[95]">
+    <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[95]">
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/30 max-w-lg w-full overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-lg w-full overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header gradient ── */}
@@ -124,7 +124,7 @@ export default function SatisfactionSurveyModal({
 
         {/* ── Repair info ── */}
         <div className="px-6 py-3 bg-stone-50/40 border-b border-stone-100/60 flex items-center gap-3 text-[13.5px]">
-          <Wrench className="h-3.5 w-3.5 text-[#A65F3C] shrink-0" strokeWidth={2} />
+          <Wrench className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
           <span className="font-semibold text-stone-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
           <span className="text-stone-300">·</span>
           <CalendarDays className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.8} />
@@ -163,7 +163,7 @@ export default function SatisfactionSurveyModal({
                 placeholder="เช่น ขอบคุณทีม IT ที่แก้ปัญหาเร็วครับ..."
                 rows={3}
                 maxLength={500}
-                className="w-full bg-stone-50/70 border border-stone-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] outline-none transition-colors text-[14px] text-stone-800 placeholder:text-stone-400 resize-none"
+                className="w-full bg-stone-50/70 border border-stone-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors text-[14px] text-stone-800 placeholder:text-stone-400 resize-none"
               />
               <p className="text-[11.5px] text-stone-400 mt-1 text-right">{comment.length}/500</p>
             </label>
@@ -174,7 +174,7 @@ export default function SatisfactionSurveyModal({
             <div className="bg-gradient-to-br from-stone-50 via-clay-100/60 to-stone-50 border border-stone-100 rounded-2xl px-5 py-4 flex items-center justify-between">
               <div>
                 <p className="text-[12.5px] text-stone-500 font-medium">คะแนนเฉลี่ยรวม</p>
-                <p className="text-[27px] font-black text-[#A65F3C] leading-none mt-1 tabular-nums">
+                <p className="text-[27px] font-black text-clay-600 leading-none mt-1 tabular-nums">
                   {overall.toFixed(2)} <span className="text-[15px] text-stone-400 font-medium">/ 5.00</span>
                 </p>
               </div>
@@ -234,7 +234,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
   return (
     <div>
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-6 h-6 rounded-full bg-[#A65F3C]/10 text-[#A65F3C] flex items-center justify-center text-[12.5px] font-medium shrink-0 mt-0.5">
+        <div className="w-6 h-6 rounded-full bg-clay-600/10 text-clay-600 flex items-center justify-center text-[12.5px] font-medium shrink-0 mt-0.5">
           {index}
         </div>
         <div className="min-w-0 flex-1">

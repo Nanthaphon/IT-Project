@@ -170,12 +170,12 @@ export default function EmployeeDetailsModal({
       data-modal="employee-detail"
       className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[60]"
     >
-      <div className="bg-white rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#A65F3C] text-white flex items-center justify-center text-base font-medium shrink-0 select-none">
+            <div className="w-10 h-10 rounded-xl bg-clay-600 text-white flex items-center justify-center text-base font-medium shrink-0 select-none">
               {initial}
             </div>
             <div className="min-w-0">
@@ -213,14 +213,14 @@ export default function EmployeeDetailsModal({
               onClick={() => setEmpModalTab(tab.id)}
               className={`flex items-center gap-2 py-3 px-1 mr-6 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 empModalTab === tab.id
-                  ? 'border-[#A65F3C] text-[#A65F3C]'
+                  ? 'border-clay-600 text-clay-600'
                   : 'border-transparent text-stone-400 hover:text-stone-700'
               }`}
             >
               {tab.label}
               {tab.count !== undefined && (
                 <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-lg ${
-                  empModalTab === tab.id ? 'bg-[#A65F3C]/10 text-[#A65F3C]' : 'bg-stone-100 text-stone-400'
+                  empModalTab === tab.id ? 'bg-clay-600/10 text-clay-600' : 'bg-stone-100 text-stone-400'
                 }`}>
                   {tab.count}
                 </span>
@@ -311,7 +311,7 @@ export default function EmployeeDetailsModal({
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAssetDetail(); } }}
-                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-stone-200 hover:border-[#A65F3C]/40 hover:bg-stone-50/40 hover:shadow-sm cursor-pointer transition-colors group"
+                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-stone-200 hover:border-clay-600/40 hover:bg-stone-50/40 hover:shadow-sm cursor-pointer transition-colors group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {item.image
@@ -319,7 +319,7 @@ export default function EmployeeDetailsModal({
                             : <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 border ${catColor}`}>{icon}</div>
                           }
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-stone-800 truncate group-hover:text-[#A65F3C] transition-colors">
+                            <p className="text-sm font-semibold text-stone-800 truncate group-hover:text-clay-600 transition-colors">
                               {item.name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
@@ -335,7 +335,7 @@ export default function EmployeeDetailsModal({
 
                         <div className="flex items-center gap-2 shrink-0">
                           {/* hint icon (เห็นชัดตอน hover) */}
-                          <svg className="h-3.5 w-3.5 text-stone-300 group-hover:text-[#A65F3C] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="h-3.5 w-3.5 text-stone-300 group-hover:text-clay-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M9 5l7 7-7 7" />
                           </svg>
 
@@ -428,7 +428,7 @@ export default function EmployeeDetailsModal({
                 });
               }}
               title="พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors text-white bg-[#A65F3C] hover:bg-[#8E4E30]"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors text-white bg-clay-600 hover:bg-clay-700"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               พิมพ์ PDF
@@ -474,8 +474,8 @@ export default function EmployeeDetailsModal({
 
       {/* ── Picker เลือกเครื่องที่จะพิมพ์ใบรับคืน (เมื่อพนักงานถือหลายเครื่อง) ── */}
       {returnPickerOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setReturnPickerOpen(false)}>
-          <div className="bg-white rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-stone-950/50 p-4" onClick={() => setReturnPickerOpen(false)}>
+          <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-semibold text-stone-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
               <button onClick={() => setReturnPickerOpen(false)} className="text-stone-400 hover:text-stone-600 text-xl leading-none">×</button>
@@ -552,7 +552,7 @@ function InfoItem({ label, value, accent, span2, mono }) {
   return (
     <div className={`px-4 py-2.5 ${span2 ? 'sm:col-span-2' : ''} border-b border-stone-100 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0`}>
       <span className="block text-[11px] text-stone-400 mb-0.5">{label}</span>
-      <span className={`block text-[13.5px] ${accent ? 'text-[#A65F3C] font-semibold' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
+      <span className={`block text-[13.5px] ${accent ? 'text-clay-600 font-semibold' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-stone-300">—</span>}
       </span>
     </div>
@@ -658,7 +658,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
 
       {/* Info banner */}
       <div className="bg-stone-50/40 border border-stone-200 rounded-lg px-3 py-2 flex items-start gap-2">
-        <Shield className="h-3.5 w-3.5 text-[#A65F3C] shrink-0 mt-0.5" strokeWidth={2.2} />
+        <Shield className="h-3.5 w-3.5 text-clay-600 shrink-0 mt-0.5" strokeWidth={2.2} />
         <p className="text-[11.5px] text-stone-900/85 leading-relaxed">
           ระบบเก็บทั้ง <strong>hash + salt</strong> (สำหรับ login) และ <strong>plaintext</strong> (visibility สำหรับ admin) —
           Firestore rules จำกัดให้เฉพาะ admin เท่านั้นที่อ่านได้
@@ -696,7 +696,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
             value={pwd}
             onChange={e => handleChange(e.target.value)}
             placeholder={isUnset ? 'พนักงานยังไม่เคย login — รหัสจะเป็นรหัสพนักงานอัตโนมัติ' : 'รหัสผ่าน'}
-            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2 rounded-lg text-[14px] font-mono focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C]"
+            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2 rounded-lg text-[14px] font-mono focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
             autoComplete="new-password"
             spellCheck={false}
           />
@@ -745,7 +745,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleSave}
           disabled={saving || resetting || !isDirty}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
@@ -792,7 +792,7 @@ function PasswordReveal({ label, value }) {
           <button
             type="button"
             onClick={() => setShow(s => !s)}
-            className="text-stone-400 hover:text-[#A65F3C] transition-colors"
+            className="text-stone-400 hover:text-clay-600 transition-colors"
             title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
             aria-label={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
           >
@@ -803,7 +803,7 @@ function PasswordReveal({ label, value }) {
           <button
             type="button"
             onClick={handleCopy}
-            className="text-stone-400 hover:text-[#A65F3C] transition-colors"
+            className="text-stone-400 hover:text-clay-600 transition-colors"
             title="คัดลอก"
             aria-label="คัดลอก"
           >
@@ -918,7 +918,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                   {(rec._sn || rec._assetTag) && (
                     <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                       {rec._assetTag && (
-                        <span className="text-[11px] font-medium text-[#A65F3C] bg-stone-50 px-1.5 py-0.5 rounded font-mono">
+                        <span className="text-[11px] font-medium text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded font-mono">
                           {rec._assetTag}
                         </span>
                       )}
@@ -944,7 +944,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                 {canPrint && (
                   <button
                     onClick={() => openPrintReturn(rec)}
-                    className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-medium text-[#A65F3C] hover:bg-stone-50 px-2.5 py-1 rounded transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition-colors"
                     title="พิมพ์ใบรับคืน"
                   >
                     <Printer className="h-3 w-3" strokeWidth={2.2} />

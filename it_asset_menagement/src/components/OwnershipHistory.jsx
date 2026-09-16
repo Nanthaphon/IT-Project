@@ -109,12 +109,12 @@ export default function OwnershipHistory({
       {/* หัวข้อ + ปุ่มเพิ่มประวัติเอง */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full bg-[#A65F3C]" />
+          <div className="w-1 h-4 rounded-full bg-clay-600" />
           <h4 className="text-[13px] font-semibold text-stone-600">ประวัติการครอบครอง ({periods.length})</h4>
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] px-3 py-1.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={2.4} /> เพิ่มประวัติ
         </button>
@@ -259,14 +259,14 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
     }
   };
 
-  const inCls = 'w-full border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition';
+  const inCls = 'w-full border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
 
   return (
-    <div className="fixed inset-0 bg-stone-950/60 z-[100] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_24px_60px_-24px_rgba(74,43,41,0.28)] w-full max-w-lg flex flex-col overflow-hidden max-h-[92vh]">
+    <div className="fixed inset-0 bg-stone-950/50 z-[100] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-lg flex flex-col overflow-hidden max-h-[92vh]">
         <div className="px-6 py-5 border-b border-stone-100 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#A65F3C]/[0.08] text-[#A65F3C] flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
               <User className="h-5 w-5" strokeWidth={2} />
             </div>
             <div>
@@ -307,7 +307,7 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
 
         <div className="px-6 py-4 border-t border-stone-100 bg-white flex justify-end gap-2.5">
           <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-lg text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 disabled:opacity-50">ยกเลิก</button>
-          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
+          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
         </div>
       </div>
     </div>
@@ -376,7 +376,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
             isCurrent
-              ? 'bg-stone-50 text-[#A65F3C]'
+              ? 'bg-stone-50 text-clay-600'
               : damages.length > 0
               ? 'bg-rose-50 text-rose-500'
               : 'bg-stone-100 text-stone-400'
@@ -388,7 +388,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="text-[15px] font-medium text-stone-800 truncate">{checkout.empName || '-'}</p>
               {isCurrent && (
-                <span className="inline-flex items-center text-[10.5px] font-semibold text-[#A65F3C] bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-lg">
+                <span className="inline-flex items-center text-[10.5px] font-semibold text-clay-600 bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-lg">
                   ปัจจุบัน
                 </span>
               )}
@@ -442,7 +442,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <button
               onClick={onPrintReturn}
               title="พิมพ์ใบรับคืน"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-[#A65F3C] border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-200 transition"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-clay-600 border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-200 transition"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
               <span className="hidden sm:inline">ใบรับคืน</span>
@@ -753,7 +753,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
           <Paperclip className="h-3.5 w-3.5 text-stone-500" strokeWidth={2.2} />
           เอกสารแนบ (ฉบับลงนามแล้ว)
           {attachments?.length > 0 && (
-            <span className="text-[11px] font-semibold bg-stone-50 border border-stone-200 text-[#A65F3C] px-1.5 py-0.5 rounded-lg ml-0.5">
+            <span className="text-[11px] font-semibold bg-stone-50 border border-stone-200 text-clay-600 px-1.5 py-0.5 rounded-lg ml-0.5">
               {attachments.length}
             </span>
           )}
@@ -761,7 +761,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
         {!pendingFile && !saving && (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#A65F3C] hover:bg-[#A65F3C]/8 px-2.5 py-1 rounded-lg border border-stone-200 hover:border-stone-200 transition-colors"
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-clay-600 hover:bg-clay-600/8 px-2.5 py-1 rounded-lg border border-stone-200 hover:border-stone-200 transition-colors"
           >
             <Upload className="h-3.5 w-3.5" strokeWidth={2.2} />
             แนบไฟล์
@@ -778,7 +778,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 
       {/* ── Pending file: pick document type ── */}
       {pendingFile && !saving && (
-        <div className="mb-4 rounded-xl border border-[#A65F3C]/20 bg-[#A65F3C]/4 p-4">
+        <div className="mb-4 rounded-xl border border-clay-600/20 bg-clay-600/4 p-4">
           {/* File info row */}
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg bg-white border border-stone-200 flex items-center justify-center shrink-0">
@@ -809,18 +809,18 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                 onClick={() => setDocType(dt.value)}
                 className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl border transition-colors text-center ${
                   docType === dt.value
-                    ? `border-[#A65F3C] bg-white shadow-sm`
+                    ? `border-clay-600 bg-white shadow-sm`
                     : 'border-transparent bg-white/60 hover:bg-white hover:border-stone-200'
                 }`}
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dt.iconBg} ${dt.iconCol}`}>
                   <FileText className="h-3.5 w-3.5" strokeWidth={2} />
                 </div>
-                <span className={`text-[12.5px] font-medium leading-tight ${docType === dt.value ? 'text-[#A65F3C]' : 'text-stone-600'}`}>
+                <span className={`text-[12.5px] font-medium leading-tight ${docType === dt.value ? 'text-clay-600' : 'text-stone-600'}`}>
                   {dt.label}
                 </span>
                 {dt.formNo && (
-                  <span className={`text-[10.5px] font-medium ${docType === dt.value ? 'text-[#A65F3C]/70' : 'text-stone-400'}`}>
+                  <span className={`text-[10.5px] font-medium ${docType === dt.value ? 'text-clay-600/70' : 'text-stone-400'}`}>
                     {dt.formNo}
                   </span>
                 )}
@@ -835,7 +835,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
               value={otherLabel}
               onChange={(e) => setOtherLabel(e.target.value)}
               placeholder="ระบุชื่อเอกสาร เช่น สัญญายืม, ใบเสร็จ..."
-              className="w-full mb-3 bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+              className="w-full mb-3 bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
             />
           )}
 
@@ -863,7 +863,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
       {/* ── Saving indicator ── */}
       {saving && (
         <div className="mb-4 rounded-lg bg-stone-50/50 border border-stone-200 p-3 flex items-center gap-2.5">
-          <div className="w-4 h-4 border-2 border-[#A65F3C] border-t-transparent rounded-full animate-spin shrink-0" />
+          <div className="w-4 h-4 border-2 border-clay-600 border-t-transparent rounded-full animate-spin shrink-0" />
           <span className="text-[12.5px] font-medium text-stone-700">กำลังบันทึกเอกสาร...</span>
         </div>
       )}
@@ -886,7 +886,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
             return (
               <div
                 key={att.id}
-                className="group flex items-center gap-3 rounded-lg bg-white border border-stone-200 px-3 py-2.5 hover:border-[#A65F3C]/40 transition-colors"
+                className="group flex items-center gap-3 rounded-lg bg-white border border-stone-200 px-3 py-2.5 hover:border-clay-600/40 transition-colors"
               >
                 {/* Doc-type badge (left strip) */}
                 <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] border ${dt.badge}`}>
@@ -926,11 +926,11 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                   <button
                     onClick={() => handleOpen(att)}
                     disabled={openingId === att.id}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#A65F3C] hover:bg-[#A65F3C]/8 px-2.5 py-1.5 rounded-lg transition disabled:opacity-60"
+                    className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-clay-600 hover:bg-clay-600/8 px-2.5 py-1.5 rounded-lg transition disabled:opacity-60"
                     title="เปิด / ดาวน์โหลด"
                   >
                     {openingId === att.id
-                      ? <div className="w-3.5 h-3.5 border-2 border-[#A65F3C] border-t-transparent rounded-full animate-spin" />
+                      ? <div className="w-3.5 h-3.5 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
                       : <Download className="h-3.5 w-3.5" strokeWidth={2} />
                     }
                     <span className="hidden sm:inline">{openingId === att.id ? 'โหลด...' : 'เปิด'}</span>
@@ -986,7 +986,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
         </p>
 
         {/* Score banner (compact) */}
-        <div className="bg-[#A65F3C] text-white rounded-lg p-3 flex items-center justify-between mb-3">
+        <div className="bg-clay-600 text-white rounded-lg p-3 flex items-center justify-between mb-3">
           <div>
             <div className="text-[10.5px] opacity-80 font-medium">คะแนนรวม</div>
             <div className="text-[22px] font-medium leading-none mt-0.5">{total % 1 === 0 ? total : total.toFixed(1)}<span className="text-[13px] opacity-70 font-normal">/100</span></div>
@@ -1004,7 +1004,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             return (
               <div key={sec.title} className="border border-stone-200 rounded-lg bg-white overflow-hidden">
                 <div className="flex items-center justify-between gap-2 bg-stone-50 px-3 py-1.5 border-b border-stone-100">
-                  <span className="text-[12px] font-semibold text-[#A65F3C]">{sec.title}</span>
+                  <span className="text-[12px] font-semibold text-clay-600">{sec.title}</span>
                   <span className="text-[11px] font-medium text-stone-600 bg-white px-1.5 py-0.5 rounded-lg border border-stone-200">
                     {secScore % 1 === 0 ? secScore : secScore.toFixed(1)}/{sec.max}
                   </span>
@@ -1037,7 +1037,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
               {PHOTO_SLOTS.map(slot => slots[slot.key] ? (
                 <button key={slot.key} type="button" onClick={() => onPhotoClick?.(slots[slot.key])}
-                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-[#A65F3C] transition-colors"
+                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors"
                   title={slot.label}>
                   <img src={slots[slot.key]} alt={slot.label} className="w-full h-full object-cover" />
                 </button>
@@ -1137,7 +1137,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                   {onAddPhotos && (
                     <button
                       onClick={onAddPhotos}
-                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#A65F3C] bg-[#A65F3C]/8 hover:bg-[#A65F3C]/15 px-2.5 py-1 rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-clay-600 bg-clay-600/8 hover:bg-clay-600/15 px-2.5 py-1 rounded-lg transition-colors"
                     >
                       <Upload className="h-3 w-3" strokeWidth={2.2} />
                       เพิ่มรูปย้อนหลัง
@@ -1167,7 +1167,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                     const cell = fields[f.key];
                     const v = cell.status || 'normal';
                     return (
-                      <div key={f.key} className="group rounded-lg bg-white border border-stone-200 p-2.5 hover:border-[#A65F3C]/40 transition-colors">
+                      <div key={f.key} className="group rounded-lg bg-white border border-stone-200 p-2.5 hover:border-clay-600/40 transition-colors">
                         {/* Title + status row */}
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <p className="text-[12.5px] font-semibold text-stone-800 leading-snug line-clamp-2 flex-1" title={f.label}>{f.label}</p>
@@ -1184,7 +1184,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                               key={i}
                               type="button"
                               onClick={() => onPhotoClick(src)}
-                              className="w-16 h-16 rounded-lg overflow-hidden border border-stone-200 hover:border-[#A65F3C] transition-colors shrink-0 bg-stone-50 relative block group/photo"
+                              className="w-16 h-16 rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors shrink-0 bg-stone-50 relative block group/photo"
                               title={`${f.label} - รูปที่ ${i + 1}`}
                             >
                               <img src={src} alt={`${f.label}-${i + 1}`} className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform" />
@@ -1230,7 +1230,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-3">
               {photos.map((src, i) => (
                 <button key={i} type="button" onClick={() => onPhotoClick(src)}
-                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-[#A65F3C] transition-colors">
+                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors">
                   <img src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -1350,7 +1350,7 @@ function EditPeriodModal({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col">
         <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
@@ -1388,7 +1388,7 @@ function EditPeriodModal({ period, onClose }) {
               type="text"
               value={empName}
               onChange={(e) => setEmpName(e.target.value)}
-              className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+              className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
               placeholder="ชื่อ-นามสกุล"
             />
             <p className="text-[11px] text-stone-400 mt-1">การเปลี่ยนชื่อจะมีผลกับทั้งบันทึกส่งมอบและรับคืน</p>
@@ -1406,7 +1406,7 @@ function EditPeriodModal({ period, onClose }) {
                     type="datetime-local"
                     value={checkoutDate}
                     onChange={(e) => setCheckoutDate(e.target.value)}
-                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                   />
                 </div>
               </div>
@@ -1432,7 +1432,7 @@ function EditPeriodModal({ period, onClose }) {
                     type="datetime-local"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                   />
                 </div>
               </div>
@@ -1524,7 +1524,7 @@ function DeletePeriodConfirm({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-md overflow-hidden">
         <div className="px-6 py-5 text-center">
           <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="h-6 w-6" strokeWidth={2} />

@@ -180,7 +180,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <select
               value={rangeValue}
               onChange={(e) => setRangeValue(e.target.value)}
-              className="appearance-none bg-stone-50 border border-stone-200/60 pl-9 pr-9 py-2.5 rounded-xl text-[14px] text-stone-700 font-medium focus:bg-white focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] outline-none transition-colors"
+              className="appearance-none bg-stone-50 border border-stone-200/60 pl-9 pr-9 py-2.5 rounded-xl text-[14px] text-stone-700 font-medium focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors"
             >
               {RANGE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>

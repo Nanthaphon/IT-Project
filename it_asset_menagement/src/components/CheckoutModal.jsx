@@ -154,7 +154,7 @@ export default function CheckoutModal({
                     <label
                       key={slot.index}
                       className={`flex items-start gap-3 p-3.5 rounded-lg cursor-pointer transition-colors border ${
-                        isSelected ? 'bg-stone-50 border-[#A65F3C]' : 'bg-white border-stone-200 hover:border-stone-300 hover:bg-stone-50/60'
+                        isSelected ? 'bg-stone-50 border-clay-600' : 'bg-white border-stone-200 hover:border-stone-300 hover:bg-stone-50/60'
                       }`}
                     >
                       <input
@@ -163,7 +163,7 @@ export default function CheckoutModal({
                         value={slot.index}
                         checked={isSelected}
                         onChange={() => selectSlot(slot)}
-                        className="mt-1 w-4 h-4 text-[#A65F3C] focus:ring-[#A65F3C] border-stone-300 shrink-0"
+                        className="mt-1 w-4 h-4 text-clay-600 focus:ring-clay-600 border-stone-300 shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -210,7 +210,7 @@ export default function CheckoutModal({
                 className={`w-full pl-10 pr-4 py-3 text-[15px] bg-white border rounded-lg outline-none transition-colors ${
                   !checkoutEmpId && checkoutSearchTerm
                     ? 'border-clay-300 focus:ring-2 focus:ring-clay-200 focus:border-clay-400'
-                    : 'border-stone-200 hover:border-stone-300 focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]'
+                    : 'border-stone-200 hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600'
                 }`}
                 autoComplete="off"
               />
@@ -228,7 +228,7 @@ export default function CheckoutModal({
                           setIsDropdownOpen(false);
                         }}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-stone-100 text-[#A65F3C] flex items-center justify-center font-semibold text-[15px] shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-stone-100 text-clay-600 flex items-center justify-center font-semibold text-[15px] shrink-0">
                           {emp.fullName?.charAt(0) || '?'}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -237,7 +237,7 @@ export default function CheckoutModal({
                           </div>
                           <div className="text-[13px] text-stone-500 truncate">{emp.empId} • {emp.department || '-'}</div>
                         </div>
-                        {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-[#A65F3C] shrink-0" strokeWidth={2.4} />}
+                        {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-clay-600 shrink-0" strokeWidth={2.4} />}
                       </div>
                     ))
                   ) : (
@@ -286,7 +286,7 @@ export default function CheckoutModal({
             disabled={!canSubmit}
             className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 ${
               canSubmit
-                ? 'bg-[#A65F3C] hover:bg-[#8E4E30] text-white shadow-sm focus:ring-[#A65F3C]/30'
+                ? 'bg-clay-600 hover:bg-clay-700 text-white shadow-sm focus:ring-clay-600/30'
                 : 'bg-stone-200 text-stone-400 cursor-not-allowed'
             }`}
           >

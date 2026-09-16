@@ -152,12 +152,12 @@ export default function PreHandoverAssessmentModal({
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-stone-200/60 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-stone-200/60 overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-stone-100 shrink-0">
           <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#A65F3C]/10 text-[#A65F3C] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-clay-600/10 text-clay-600 flex items-center justify-center shrink-0">
               <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div>
@@ -195,12 +195,12 @@ export default function PreHandoverAssessmentModal({
                       onClick={() => setSelectedAssetId(a.id)}
                       className={`text-left p-3 rounded-lg border transition-colors ${
                         isSelected
-                          ? 'bg-white border border-[#A65F3C] shadow-sm'
+                          ? 'bg-white border border-clay-600 shadow-sm'
                           : 'bg-white/60 border-stone-200 hover:border-stone-300 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full border ${isSelected ? 'border-[#A65F3C] bg-[#A65F3C]' : 'border-stone-300 bg-white'} shrink-0`}>
+                        <div className={`w-4 h-4 rounded-full border ${isSelected ? 'border-clay-600 bg-clay-600' : 'border-stone-300 bg-white'} shrink-0`}>
                           {isSelected && (
                             <svg viewBox="0 0 20 20" className="w-full h-full text-white p-0.5" fill="currentColor">
                               <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clipRule="evenodd" />
@@ -230,7 +230,7 @@ export default function PreHandoverAssessmentModal({
               value={handoverDate}
               onChange={(v) => setHandoverDate(v)}
               className="w-full sm:w-72"
-              inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+              inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
             />
             {selectedAsset && (
               <p className="mt-2 text-[12px] text-stone-500">
@@ -245,7 +245,7 @@ export default function PreHandoverAssessmentModal({
           </div>
 
           {/* Score banner */}
-          <div className="bg-[#A65F3C] text-white rounded-lg p-4 flex items-center justify-between">
+          <div className="bg-clay-600 text-white rounded-lg p-4 flex items-center justify-between">
             <div>
               <div className="text-[12px] opacity-80 font-medium">คะแนนรวม (100)</div>
               <div className="text-[34px] font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
@@ -271,7 +271,7 @@ export default function PreHandoverAssessmentModal({
                   <div key={sec.title} className="border border-stone-200 rounded-xl overflow-hidden bg-white">
                     <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[14px] font-semibold text-[#A65F3C] truncate">{sec.title}</span>
+                        <span className="text-[14px] font-semibold text-clay-600 truncate">{sec.title}</span>
                         <span className="text-[12px] font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                           {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                         </span>
@@ -312,7 +312,7 @@ export default function PreHandoverAssessmentModal({
                               })}
                             </div>
                             <div className="w-14 shrink-0 text-right">
-                              <span className="text-[13px] font-medium text-[#A65F3C] tabular-nums">
+                              <span className="text-[13px] font-medium text-clay-600 tabular-nums">
                                 {cell.score != null ? (cell.score % 1 === 0 ? cell.score : cell.score.toFixed(2)) : '-'}
                               </span>
                               <span className="text-[10px] text-stone-400">/{itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</span>
@@ -334,7 +334,7 @@ export default function PreHandoverAssessmentModal({
               onChange={(e) => setDefectsNote(e.target.value)}
               rows={3}
               placeholder='ระบุตำหนิ / รอย / Dead Pixel ที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")'
-              className="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] resize-none"
+              className="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -375,7 +375,7 @@ export default function PreHandoverAssessmentModal({
                         key={item.id}
                         className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors border ${
                           checked
-                            ? 'bg-stone-50 border border-[#A65F3C]'
+                            ? 'bg-stone-50 border border-clay-600'
                             : 'bg-white border-stone-200 hover:border-stone-300 hover:bg-stone-50/60'
                         }`}
                       >
@@ -383,7 +383,7 @@ export default function PreHandoverAssessmentModal({
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleBundle(item.id)}
-                          className="mt-1 w-4 h-4 text-[#A65F3C] focus:ring-[#A65F3C] border-stone-300 rounded shrink-0"
+                          className="mt-1 w-4 h-4 text-clay-600 focus:ring-clay-600 border-stone-300 rounded shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -427,13 +427,13 @@ export default function PreHandoverAssessmentModal({
                       value={newBundle.name}
                       onChange={e => setNewBundle({ ...newBundle, name: e.target.value })}
                       placeholder="ชื่อ (เช่น Lenovo Bag, USB-C 65W)"
-                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30 focus:border-[#A65F3C]"
+                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
                       autoFocus
                     />
                     <select
                       value={newBundle.type}
                       onChange={e => setNewBundle({ ...newBundle, type: e.target.value })}
-                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30"
+                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-clay-600/30"
                     >
                       <option>กระเป๋า</option>
                       <option>สายชาร์จ / Adapter</option>
@@ -446,14 +446,14 @@ export default function PreHandoverAssessmentModal({
                       value={newBundle.model}
                       onChange={e => setNewBundle({ ...newBundle, model: e.target.value })}
                       placeholder="รุ่น / สี (ถ้ามี)"
-                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30"
+                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30"
                     />
                     <input
                       type="text"
                       value={newBundle.note}
                       onChange={e => setNewBundle({ ...newBundle, note: e.target.value })}
                       placeholder="หมายเหตุ (ถ้ามี)"
-                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30"
+                      className="border border-stone-200/60 px-2.5 py-1.5 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
@@ -468,7 +468,7 @@ export default function PreHandoverAssessmentModal({
                       type="button"
                       onClick={handleSaveNewBundle}
                       disabled={!newBundle.name.trim() || savingBundle}
-                      className="px-3 py-1.5 text-[12.5px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] rounded-lg disabled:opacity-50"
+                      className="px-3 py-1.5 text-[12.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg disabled:opacity-50"
                     >
                       {savingBundle ? 'กำลังเพิ่ม...' : 'เพิ่มเข้า Catalog + เลือก'}
                     </button>
@@ -478,7 +478,7 @@ export default function PreHandoverAssessmentModal({
                 <button
                   type="button"
                   onClick={() => setShowAddBundleForm(true)}
-                  className="w-full px-3 py-2 text-[13px] font-semibold text-[#A65F3C] bg-white border border-dashed border-stone-300 rounded-lg hover:bg-stone-50 hover:border-[#A65F3C] transition-colors"
+                  className="w-full px-3 py-2 text-[13px] font-semibold text-clay-600 bg-white border border-dashed border-stone-300 rounded-lg hover:bg-stone-50 hover:border-clay-600 transition-colors"
                 >
                   + เพิ่มของแถมใหม่เข้า Catalog
                 </button>
@@ -498,7 +498,7 @@ export default function PreHandoverAssessmentModal({
           <div className="flex flex-col gap-1.5">
             <div className="text-[12.5px] text-stone-500">
               แนบรูปแล้ว <span className="font-semibold text-stone-700">{Object.keys(photos).length}/6</span> รูป
-              · คะแนนรวม <span className="font-semibold text-[#A65F3C]">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
+              · คะแนนรวม <span className="font-semibold text-clay-600">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
             </div>
             {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
             {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
@@ -507,7 +507,7 @@ export default function PreHandoverAssessmentModal({
                   type="checkbox"
                   checked={includeHoldings}
                   onChange={(e) => setIncludeHoldings(e.target.checked)}
-                  className="w-3.5 h-3.5 text-[#A65F3C] rounded border-stone-300 focus:ring-[#A65F3C]/30"
+                  className="w-3.5 h-3.5 text-clay-600 rounded border-stone-300 focus:ring-clay-600/30"
                 />
                 รวม License/อุปกรณ์เสริมในใบนี้
                 <span className="text-stone-400">({(empLicenses?.length || 0) + (empAccessories?.length || 0)} รายการ)</span>
@@ -527,7 +527,7 @@ export default function PreHandoverAssessmentModal({
               title={!selectedAsset ? 'กรุณาเลือกเครื่องก่อน' : ''}
               className={`inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold rounded-lg shadow-sm transition ${
                 selectedAsset
-                  ? 'text-white bg-[#A65F3C] hover:bg-[#8E4E30]'
+                  ? 'text-white bg-clay-600 hover:bg-clay-700'
                   : 'text-stone-400 bg-stone-200 cursor-not-allowed'
               }`}
               style={selectedAsset ? { boxShadow: '0 4px 14px rgba(166,95,60,0.30)' } : undefined}
@@ -615,10 +615,10 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
             type="button"
             onClick={() => ref.current?.click()}
             disabled={uploading}
-            className="w-full h-32 rounded-lg border border-dashed border-stone-300 hover:border-[#A65F3C] hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-[#A65F3C]"
+            className="w-full h-32 rounded-lg border border-dashed border-stone-300 hover:border-clay-600 hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-clay-600"
           >
             {uploading ? (
-              <div className="w-5 h-5 border-2 border-[#A65F3C] border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <ImagePlus className="h-6 w-6" strokeWidth={1.8} />

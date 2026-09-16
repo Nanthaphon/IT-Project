@@ -335,7 +335,7 @@ function ThankYouSlide({ company, month, year }) {
 }
 
 /* ════════════════ EDIT PANEL PRIMITIVES ════════════════ */
-const fld = 'w-full bg-white border border-stone-200 rounded-lg px-2.5 py-1.5 text-[13px] text-stone-800 outline-none transition focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C]';
+const fld = 'w-full bg-white border border-stone-200 rounded-lg px-2.5 py-1.5 text-[13px] text-stone-800 outline-none transition focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600';
 const lbl = 'block text-[11px] font-semibold text-stone-500 mb-1';
 
 function Fld({ label, children }) {
@@ -378,7 +378,7 @@ function RowsEditor({ rows, setRows, columns, makeEmpty, addLabel, itemLabel }) 
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#A65F3C] hover:text-[#6E3B26] border border-dashed border-[#A65F3C]/40 hover:border-[#A65F3C] px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> {addLabel}
       </button>
     </div>
@@ -546,7 +546,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
           className="shrink-0 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors disabled:opacity-25 disabled:cursor-not-allowed" aria-label="ก่อนหน้า">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <div className="w-full max-w-5xl shadow-2xl rounded-lg overflow-hidden ring-1 ring-white/10">
+        <div className="w-full max-w-5xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] rounded-lg overflow-hidden ring-1 ring-white/10">
           <SlideCanvas>{slides[idx]()}</SlideCanvas>
         </div>
         <button onClick={() => go(1)} disabled={idx === total - 1}
@@ -569,7 +569,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
             ปิด
           </button>
           <button onClick={() => onExport()} disabled={exporting}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14px] transition-colors ${exporting ? 'bg-stone-500 text-stone-300 cursor-not-allowed' : 'bg-white text-[#A65F3C] hover:bg-stone-100'}`}>
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14px] transition-colors ${exporting ? 'bg-stone-500 text-stone-300 cursor-not-allowed' : 'bg-white text-clay-600 hover:bg-stone-100'}`}>
             {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้างไฟล์...</> : <><FileDown className="h-4 w-4" strokeWidth={2} /> Export .pptx</>}
           </button>
         </div>

@@ -159,7 +159,7 @@ export default function PreReturnAssessmentModal({
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-stone-200/60 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-stone-200/60 overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-stone-100 shrink-0">
@@ -188,18 +188,18 @@ export default function PreReturnAssessmentModal({
               <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่รับมอบ (ขา 1)</label>
               <DateField value={editableHandoverDate}
                 onChange={(v) => setEditableHandoverDate(v)}
-                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"/>
+                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่คืน (ขา 2)</label>
               <DateField value={editableReturnDate}
                 onChange={(v) => setEditableReturnDate(v)}
-                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"/>
+                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-stone-600 mb-1.5">Tier (อัตราค่าปรับ)</label>
               <select value={tier} onChange={(e) => setTier(e.target.value)}
-                className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]">
+                className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600">
                 <option value="General">General (~25K)</option>
                 <option value="Data">Data (~35K)</option>
                 <option value="Graphic/DX">Graphic/DX (~55K)</option>
@@ -208,7 +208,7 @@ export default function PreReturnAssessmentModal({
           </div>
 
           {/* Score banner */}
-          <div className="bg-[#A65F3C] text-white rounded-lg p-4 flex items-center justify-between">
+          <div className="bg-clay-600 text-white rounded-lg p-4 flex items-center justify-between">
             <div>
               <div className="text-[12px] opacity-80 font-medium">คะแนนรับคืน (ขา 2) /100</div>
               <div className="text-[34px] font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
@@ -244,7 +244,7 @@ export default function PreReturnAssessmentModal({
                 <p className="text-[13.5px] font-semibold text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
                 <p className="text-[11.5px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
               </div>
-              <span className="text-[12px] font-semibold text-[#A65F3C]">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
+              <span className="text-[12px] font-semibold text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
             </button>
             {showHandover && (
               <div className="px-4 pb-4 border-t border-stone-100">
@@ -289,7 +289,7 @@ export default function PreReturnAssessmentModal({
                             <select
                               value=""
                               onChange={(e) => pickDamageTemplate(i, e.target.value)}
-                              className="text-[12px] bg-stone-50 border border-stone-200 rounded px-2 py-1 outline-none hover:border-stone-300 focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+                              className="text-[12px] bg-stone-50 border border-stone-200 rounded px-2 py-1 outline-none hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                             >
                               <option value="">เลือกจากตารางอ้างอิง...</option>
                               {DAMAGE_ITEMS.map(row => (
@@ -301,7 +301,7 @@ export default function PreReturnAssessmentModal({
                               value={d.name}
                               onChange={(e) => updateDamage(i, { name: e.target.value })}
                               placeholder="หรือพิมพ์รายละเอียดเอง"
-                              className="w-full text-[14px] bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+                              className="w-full text-[14px] bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                             />
                           </div>
                         </td>
@@ -310,7 +310,7 @@ export default function PreReturnAssessmentModal({
                             type="number" min="0" step="any"
                             value={d.fee}
                             onChange={(e) => updateDamage(i, { fee: e.target.value })}
-                            className="w-full text-[14px] bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] tabular-nums text-right"
+                            className="w-full text-[14px] bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 tabular-nums text-right"
                           />
                         </td>
                         <td className="px-3 py-2 text-center">
@@ -336,7 +336,7 @@ export default function PreReturnAssessmentModal({
                 <button
                   type="button"
                   onClick={addDamage}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#A65F3C] hover:bg-stone-50 px-2.5 py-1 rounded transition"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่มรายการ
                 </button>
@@ -349,7 +349,7 @@ export default function PreReturnAssessmentModal({
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               placeholder="หมายเหตุ / เงื่อนไขพิเศษ (ถ้ามี)"
-              className="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] resize-none"
+              className="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -396,7 +396,7 @@ export default function PreReturnAssessmentModal({
                   type="checkbox"
                   checked={includeHoldings}
                   onChange={(e) => setIncludeHoldings(e.target.checked)}
-                  className="w-3.5 h-3.5 text-[#A65F3C] rounded border-stone-300 focus:ring-[#A65F3C]/30"
+                  className="w-3.5 h-3.5 text-clay-600 rounded border-stone-300 focus:ring-clay-600/30"
                 />
                 รวม License/อุปกรณ์เสริมในใบนี้
                 <span className="text-stone-400">({(empLicenses?.length || 0) + (empAccessories?.length || 0)} รายการ)</span>
@@ -458,7 +458,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
           <div key={sec.title} className="border border-stone-200 rounded-xl overflow-hidden bg-white">
             <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-[14px] font-semibold text-[#A65F3C] truncate">{sec.title}</span>
+                <span className="text-[14px] font-semibold text-clay-600 truncate">{sec.title}</span>
                 <span className="text-[12px] font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                   {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                 </span>
@@ -499,7 +499,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                       })}
                     </div>
                     <div className="w-14 shrink-0 text-right">
-                      <span className="text-[13px] font-medium text-[#A65F3C] tabular-nums">
+                      <span className="text-[13px] font-medium text-clay-600 tabular-nums">
                         {cell.score != null ? (cell.score % 1 === 0 ? cell.score : cell.score.toFixed(2)) : '-'}
                       </span>
                       <span className="text-[10px] text-stone-400">/{itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</span>
@@ -554,9 +554,9 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
           </div>
         ) : (
           <button type="button" onClick={() => ref.current?.click()} disabled={uploading}
-            className={`w-full ${h} rounded-lg border border-dashed border-stone-300 hover:border-[#A65F3C] hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-[#A65F3C]`}>
+            className={`w-full ${h} rounded-lg border border-dashed border-stone-300 hover:border-clay-600 hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-clay-600`}>
             {uploading ? (
-              <div className="w-5 h-5 border-2 border-[#A65F3C] border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <ImagePlus className="h-6 w-6" strokeWidth={1.8} />

@@ -102,7 +102,7 @@ import AccessoryRequestTable from './components/AccessoryRequestTable.jsx';
 // Fallback spinner สำหรับ lazy-loaded routes
 const LazyFallback = () => (
   <div className="flex items-center justify-center py-20">
-    <div className="w-8 h-8 border-3 border-stone-200 border-t-[#A65F3C] rounded-full animate-spin" />
+    <div className="w-8 h-8 border-3 border-stone-200 border-t-clay-600 rounded-full animate-spin" />
   </div>
 );
 
@@ -3064,7 +3064,7 @@ function App() {
   const totalSystemItems = assets.length + licenses.length + accessories.length + employees.length;
   const currentDataLength = currentData.length;
 
-  if (authLoading || (authRole === 'admin' && permLoading)) return (<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-[#A65F3C] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>);
+  if (authLoading || (authRole === 'admin' && permLoading)) return (<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-clay-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>);
   
   if (authRole === null) return (
     <React.Fragment>
@@ -3158,7 +3158,7 @@ function App() {
               if (!routeAsset) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/assets')} className="text-[13.5px] font-semibold text-[#A65F3C] hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
+                    <button onClick={() => navigate('/assets')} className="text-[13.5px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบทรัพย์สินนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
@@ -3206,7 +3206,7 @@ function App() {
               if (!routeLicense) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/licenses')} className="text-[13.5px] font-semibold text-[#A65F3C] hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
+                    <button onClick={() => navigate('/licenses')} className="text-[13.5px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบโปรแกรมนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
@@ -3254,7 +3254,7 @@ function App() {
               if (!routeAccessory) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/accessories')} className="text-[13.5px] font-semibold text-[#A65F3C] hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
+                    <button onClick={() => navigate('/accessories')} className="text-[13.5px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบอุปกรณ์นี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
@@ -3302,7 +3302,7 @@ function App() {
               if (!routeFurniture) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/furniture')} className="text-[13.5px] font-semibold text-[#A65F3C] hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
+                    <button onClick={() => navigate('/furniture')} className="text-[13.5px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบครุภัณฑ์นี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );

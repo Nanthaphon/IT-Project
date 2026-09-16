@@ -18,7 +18,7 @@ export default function HistoryImportModal({ isOpen, onClose, onDownloadTemplate
       />
       <ModalBody className="space-y-4">
         <div className="bg-stone-50/50 border border-stone-200 rounded-xl p-4">
-          <p className="text-[13px] font-semibold text-[#A65F3C] flex items-center gap-1.5 mb-2">
+          <p className="text-[13px] font-semibold text-clay-600 flex items-center gap-1.5 mb-2">
             <Info className="h-4 w-4" strokeWidth={2} /> คอลัมน์ที่รองรับ
           </p>
           <ul className="text-[12.5px] text-stone-600 space-y-1 leading-relaxed list-disc pl-5">
@@ -45,7 +45,7 @@ export default function HistoryImportModal({ isOpen, onClose, onDownloadTemplate
           </div>
           <div className="border border-stone-200 rounded-xl p-4">
             <p className="text-xs font-semibold text-stone-700 mb-2">2. อัปโหลดไฟล์ประวัติ</p>
-            <label className="w-full inline-flex items-center justify-center gap-1.5 py-2 bg-[#A65F3C] text-white text-[13px] font-semibold rounded-lg hover:bg-[#8E4E30] transition-colors cursor-pointer">
+            <label className="w-full inline-flex items-center justify-center gap-1.5 py-2 bg-clay-600 text-white text-[13px] font-semibold rounded-lg hover:bg-clay-700 transition-colors cursor-pointer">
               <Upload className="h-4 w-4" strokeWidth={2} /> เลือกไฟล์ .csv
               <input type="file" accept=".csv" onChange={onUpload} className="hidden" />
             </label>

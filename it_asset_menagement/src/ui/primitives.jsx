@@ -146,7 +146,7 @@ const BADGE_CLS = {
   danger:  'bg-rose-50 text-rose-700 border-rose-200',
   info:    'bg-stone-50 text-stone-700 border-stone-200',
   neutral: 'bg-stone-50 text-stone-600 border-stone-200',
-  brand:   'bg-[#F3E7DF] text-[#A65F3C] border-[#A65F3C]/20',
+  brand:   'bg-[#F3E7DF] text-clay-600 border-clay-600/20',
 };
 export function Badge({ kind = 'neutral', dot = false, children, className = '' }) {
   return (

@@ -126,7 +126,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
   if (loading) {
     return (
       <div className="py-16 text-center">
-        <div className="w-10 h-10 mx-auto mb-3 border-3 border-[#A65F3C]/20 border-t-[#A65F3C] rounded-full animate-spin" />
+        <div className="w-10 h-10 mx-auto mb-3 border-3 border-clay-600/20 border-t-clay-600 rounded-full animate-spin" />
         <p className="text-sm text-stone-500">กำลังโหลดรายการเอกสาร...</p>
       </div>
     );
@@ -148,12 +148,12 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full bg-[#A65F3C]" />
+          <div className="w-1 h-4 rounded-full bg-clay-600" />
           <h4 className="text-[13.5px] font-semibold text-stone-600">เอกสารที่พิมพ์แล้ว ({docs.length})</h4>
         </div>
         <button
           onClick={reload}
-          className="inline-flex items-center gap-1.5 text-[12.5px] text-stone-500 hover:text-[#A65F3C] px-2 py-1 rounded-lg hover:bg-stone-100 transition-colors"
+          className="inline-flex items-center gap-1.5 text-[12.5px] text-stone-500 hover:text-clay-600 px-2 py-1 rounded-lg hover:bg-stone-100 transition-colors"
           title="โหลดใหม่"
         >
           <RefreshCw className="h-3.5 w-3.5" strokeWidth={2} />
@@ -166,7 +166,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
           const isHandover = d.formType === 'handover';
           const typeLabel = isHandover ? 'ใบส่งมอบ' : 'ใบรับคืน';
           const typeCls = isHandover
-            ? 'bg-stone-50 text-[#A65F3C] border-stone-200'
+            ? 'bg-stone-50 text-clay-600 border-stone-200'
             : 'bg-olive-50 text-olive-700 border-olive-200';
           const Icon = isHandover ? FileText : ArrowLeftRight;
 
@@ -206,7 +206,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                   <button
                     onClick={() => handleReprint(d.id)}
                     disabled={reprinting === d.id}
-                    className="inline-flex items-center gap-1 text-[12px] font-semibold bg-[#A65F3C] hover:bg-[#8E4E30] text-white px-3 py-1.5 rounded-lg shadow-sm disabled:opacity-50"
+                    className="inline-flex items-center gap-1 text-[12px] font-semibold bg-clay-600 hover:bg-clay-700 text-white px-3 py-1.5 rounded-lg shadow-sm disabled:opacity-50"
                     title="พิมพ์ซ้ำ"
                   >
                     {reprinting === d.id ? (
@@ -255,7 +255,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                     <button
                       onClick={() => fileInputRefs.current[d.id]?.click()}
                       disabled={uploadingFor === d.id}
-                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#A65F3C] hover:text-white hover:bg-[#A65F3C] px-2 py-1 rounded-lg disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-clay-600 hover:text-white hover:bg-clay-600 px-2 py-1 rounded-lg disabled:opacity-50"
                       title="อัปโหลดใหม่ทับ"
                     >
                       <Upload className="h-3 w-3" strokeWidth={2.2} />
@@ -273,11 +273,11 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                   <button
                     onClick={() => fileInputRefs.current[d.id]?.click()}
                     disabled={uploadingFor === d.id}
-                    className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[#A65F3C] bg-white border border-dashed border-[#A65F3C]/40 hover:border-[#A65F3C] hover:bg-stone-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-clay-600 bg-white border border-dashed border-clay-600/40 hover:border-clay-600 hover:bg-stone-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {uploadingFor === d.id ? (
                       <>
-                        <div className="w-3 h-3 border-2 border-stone-200 border-t-[#A65F3C] rounded-full animate-spin" />
+                        <div className="w-3 h-3 border-2 border-stone-200 border-t-clay-600 rounded-full animate-spin" />
                         กำลังอัปโหลด...
                       </>
                     ) : (

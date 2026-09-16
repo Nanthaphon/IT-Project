@@ -82,7 +82,7 @@ export default function LoginView({
             <p className="text-stone-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm shadow-slate-950/5 border border-stone-200/70 p-7">
+          <div className="bg-white rounded-xl shadow-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-stone-200/70 p-7">
             <form onSubmit={handleAdminLogin} className="space-y-4">
               {loginError && (
                 <div className="bg-rose-50 text-rose-700 p-3.5 rounded-xl text-sm font-medium border border-rose-200 flex items-start gap-2.5">
@@ -96,7 +96,7 @@ export default function LoginView({
                   type="email"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                  className="w-full bg-stone-50/70 border border-stone-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400"
+                  className="w-full bg-stone-50/70 border border-stone-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400"
                   placeholder="admin@example.com"
                   required
                 />
@@ -107,7 +107,7 @@ export default function LoginView({
                   type="password"
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  className="w-full bg-stone-50/70 border border-stone-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400"
+                  className="w-full bg-stone-50/70 border border-stone-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400"
                   placeholder="••••••••"
                   required
                 />
@@ -116,7 +116,7 @@ export default function LoginView({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3.5 bg-[#A65F3C] text-white font-semibold rounded-lg hover:bg-[#8E4E30] mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
+                className="w-full py-3.5 bg-clay-600 text-white font-semibold rounded-lg hover:bg-clay-700 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
               >
                 {loginLoading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -133,7 +133,7 @@ export default function LoginView({
                 <button
                   type="button"
                   onClick={() => setForgotOpen(true)}
-                  className="text-[13.5px] font-medium text-stone-500 hover:text-[#A65F3C] transition-colors inline-flex items-center gap-1.5"
+                  className="text-[13.5px] font-medium text-stone-500 hover:text-clay-600 transition-colors inline-flex items-center gap-1.5"
                 >
                   <KeyRound className="h-3.5 w-3.5" strokeWidth={1.8} />
                   ลืมรหัสผ่าน?
@@ -169,7 +169,7 @@ export default function LoginView({
                 setLoginError('');
                 setLoginForm({ username: '', password: '' });
               }}
-              className="text-sm font-medium text-stone-500 hover:text-[#A65F3C] transition-colors inline-flex items-center gap-1.5"
+              className="text-sm font-medium text-stone-500 hover:text-clay-600 transition-colors inline-flex items-center gap-1.5"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
               กลับไปหน้าเลือกบทบาท
@@ -184,7 +184,7 @@ export default function LoginView({
 function Logo() {
   return (
     <div
-      className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-[#A65F3C]/25 border border-white/50"
+      className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-clay-600/25 border border-white/50"
       style={{ background: 'linear-gradient(135deg, #A65F3C 0%, #8E4E30 100%)' }}
     >
       <img
@@ -204,8 +204,8 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
       className={`group w-full bg-white rounded-xl border flex items-center gap-5 px-6 py-5 text-left
                   transition-colors hover:shadow-sm
                   ${accent
-                    ? 'border-[#A65F3C]/15 hover:border-[#A65F3C]/40 hover:shadow-[#A65F3C]/10'
-                    : 'border-stone-200/70 hover:border-[#A65F3C]/30 hover:shadow-slate-300/30'
+                    ? 'border-clay-600/15 hover:border-clay-600/40 hover:shadow-clay-600/10'
+                    : 'border-stone-200/70 hover:border-clay-600/30 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]'
                   }`}
     >
       {/* Icon */}
@@ -224,7 +224,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <h2 className="text-[18px] font-semibold text-stone-900 group-hover:text-[#A65F3C] transition-colors leading-tight">
+        <h2 className="text-[18px] font-semibold text-stone-900 group-hover:text-clay-600 transition-colors leading-tight">
           {title}
         </h2>
         <p className="text-stone-500 text-[14px] mt-1 leading-snug">{description}</p>
@@ -236,7 +236,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 
       {/* Arrow */}
       <ArrowRight
-        className="h-5 w-5 text-stone-300 shrink-0 group-hover:text-[#A65F3C] group-hover:translate-x-0.5 transition-colors"
+        className="h-5 w-5 text-stone-300 shrink-0 group-hover:text-clay-600 group-hover:translate-x-0.5 transition-colors"
         strokeWidth={2.2}
       />
     </button>

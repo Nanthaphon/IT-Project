@@ -101,7 +101,7 @@ export default function Sidebar({
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen && setSidebarOpen(false)}
-          className="fixed inset-0 bg-stone-950/30 z-40 md:hidden"
+          className="fixed inset-0 bg-stone-950/50 z-40 md:hidden"
         />
       )}
 
@@ -158,7 +158,7 @@ export default function Sidebar({
                         <Icon className="h-[16px] w-[16px]" strokeWidth={active ? 2.4 : 2} />
                         {/* จุดสีบน icon เมื่อมีค้าง (ไม่ active) */}
                         {!active && count > 0 && (
-                          <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-[#6E3B26] ${
+                          <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-clay-800 ${
                             isExpiryBadge ? 'bg-clay-400' : 'bg-rose-400'
                           }`} />
                         )}

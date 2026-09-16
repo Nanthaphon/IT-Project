@@ -161,13 +161,13 @@ export default function ConditionCapture({
     <div className="space-y-3 border border-stone-200 rounded-xl p-3.5 bg-stone-50/40">
       <div className="flex items-center justify-between gap-2 pb-2 border-b border-stone-200">
         <div className="flex items-center gap-2">
-          <Camera className="h-4 w-4 text-[#A65F3C]" strokeWidth={2} />
+          <Camera className="h-4 w-4 text-clay-600" strokeWidth={2} />
           <p className="text-[14.5px] font-semibold text-stone-700">
             {isCheckout ? 'ตรวจสภาพอุปกรณ์ตอนส่งมอบ' : 'ตรวจสภาพอุปกรณ์ตอนรับคืน'}
           </p>
         </div>
         <span className="text-[11.5px] text-stone-500 font-medium">
-          แนบรูปแล้ว <span className="font-medium text-[#A65F3C]">{totalPhotos}</span> รูป
+          แนบรูปแล้ว <span className="font-medium text-clay-600">{totalPhotos}</span> รูป
         </span>
       </div>
 
@@ -209,7 +209,7 @@ export default function ConditionCapture({
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] resize-none"
+          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
           placeholder={isCheckout ? 'เช่น มีรอยขีดเล็กที่ฝาหลัง...' : 'เช่น พบรอยใหม่บริเวณบอดี้...'}
           rows="2"
         />
@@ -318,16 +318,16 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       onDrop={handleDrop}
       className={`relative rounded-lg border px-3 py-2 transition-colors ${
         isDragging
-          ? 'border border-[#A65F3C] bg-stone-50/70 shadow-inner'
+          ? 'border border-clay-600 bg-stone-50/70 shadow-inner'
           : `border-stone-200 ${tint}`
       }`}
     >
       {/* Drop overlay hint */}
       {isDragging && (
-        <div className="absolute inset-0 rounded-lg bg-[#A65F3C]/5 border-2 border-dashed border-[#A65F3C] pointer-events-none flex items-center justify-center z-10">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-[#A65F3C]/20">
-            <ImagePlus className="h-4 w-4 text-[#A65F3C]" strokeWidth={2.4} />
-            <span className="text-[12px] font-medium text-[#A65F3C]">
+        <div className="absolute inset-0 rounded-lg bg-clay-600/5 border-2 border-dashed border-clay-600 pointer-events-none flex items-center justify-center z-10">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-clay-600/20">
+            <ImagePlus className="h-4 w-4 text-clay-600" strokeWidth={2.4} />
+            <span className="text-[12px] font-medium text-clay-600">
               วางรูปเพื่อแนบใน "{field.label}"
             </span>
           </div>
@@ -368,13 +368,13 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
               disabled={uploading}
               className={`ml-1 w-7 h-7 rounded-lg transition flex items-center justify-center shrink-0 ${
                 hasPhotos
-                  ? 'border border-stone-200 text-stone-500 hover:border-[#A65F3C] hover:text-[#A65F3C] bg-white'
-                  : 'border border-dashed border-stone-300 text-stone-400 hover:border-[#A65F3C] hover:text-[#A65F3C] hover:bg-stone-50/60 bg-white/50'
+                  ? 'border border-stone-200 text-stone-500 hover:border-clay-600 hover:text-clay-600 bg-white'
+                  : 'border border-dashed border-stone-300 text-stone-400 hover:border-clay-600 hover:text-clay-600 hover:bg-stone-50/60 bg-white/50'
               }`}
               title={hasPhotos ? `เพิ่มรูป (เหลือ ${slotsLeft} รูป) · ลากไฟล์มาวางได้` : `แนบรูปของ "${field.label}" · คลิกเลือกไฟล์ หรือลากรูปมาวางในแถวนี้`}
             >
               {uploading ? (
-                <div className="w-3 h-3 border-2 border-[#A65F3C] border-t-transparent rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ImagePlus className="h-3.5 w-3.5" strokeWidth={2} />
               )}
@@ -383,7 +383,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
 
           {/* Photo count badge — only when has photos */}
           {hasPhotos && (
-            <span className="text-[10.5px] font-medium text-[#A65F3C] bg-stone-50 border border-stone-200 px-1.5 py-0.5 rounded-lg shrink-0 ml-0.5">
+            <span className="text-[10.5px] font-medium text-clay-600 bg-stone-50 border border-stone-200 px-1.5 py-0.5 rounded-lg shrink-0 ml-0.5">
               {photos.length}/{MAX_PHOTOS_PER_FIELD}
             </span>
           )}

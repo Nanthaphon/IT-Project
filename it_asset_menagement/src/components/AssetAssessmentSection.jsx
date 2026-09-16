@@ -72,7 +72,7 @@ export default function AssetAssessmentSection({
   return (
     <div className="space-y-4">
       {/* ── Score banner ── */}
-      <div className="bg-[#A65F3C] text-white rounded-lg p-3.5 flex items-center justify-between">
+      <div className="bg-clay-600 text-white rounded-lg p-3.5 flex items-center justify-between">
         <div>
           <div className="text-[11.5px] opacity-80 font-medium">คะแนนรวม (100)</div>
           <div className="text-[28px] font-medium leading-none mt-0.5">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
@@ -97,7 +97,7 @@ export default function AssetAssessmentSection({
               <div key={sec.title} className="border border-stone-200 rounded-xl overflow-hidden bg-white">
                 <div className="flex items-center justify-between gap-2 bg-stone-50 px-3 py-2 border-b border-stone-200">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-[13px] font-semibold text-[#A65F3C] truncate">{sec.title}</span>
+                    <span className="text-[13px] font-semibold text-clay-600 truncate">{sec.title}</span>
                     <span className="text-[11px] font-semibold text-stone-500 bg-white px-1.5 py-0.5 rounded-lg border border-stone-200 shrink-0">
                       {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)}/{sec.max}
                     </span>
@@ -138,7 +138,7 @@ export default function AssetAssessmentSection({
                           })}
                         </div>
                         <div className="w-11 shrink-0 text-right">
-                          <span className="text-[12px] font-medium text-[#A65F3C] tabular-nums">
+                          <span className="text-[12px] font-medium text-clay-600 tabular-nums">
                             {cell.score != null ? (cell.score % 1 === 0 ? cell.score : cell.score.toFixed(1)) : '-'}
                           </span>
                           <span className="text-[9.5px] text-stone-400">/{itemMax}</span>
@@ -161,7 +161,7 @@ export default function AssetAssessmentSection({
           onChange={(e) => setDefectsNote(e.target.value)}
           rows={2}
           placeholder='ระบุตำหนิ / รอย / Dead Pixel ที่มีอยู่แล้ว (ถ้าไม่มีให้ระบุ "ไม่มี")'
-          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] outline-none focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] resize-none"
+          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
         />
       </div>
 
@@ -248,10 +248,10 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
             type="button"
             onClick={() => ref.current?.click()}
             disabled={uploading}
-            className="w-full h-24 rounded border border-dashed border-stone-300 hover:border-[#A65F3C] hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-[#A65F3C]"
+            className="w-full h-24 rounded border border-dashed border-stone-300 hover:border-clay-600 hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-clay-600"
           >
             {uploading ? (
-              <div className="w-4 h-4 border-2 border-[#A65F3C] border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <ImagePlus className="h-5 w-5" strokeWidth={1.8} />

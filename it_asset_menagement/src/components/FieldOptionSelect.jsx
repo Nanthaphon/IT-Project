@@ -141,14 +141,14 @@ export default function FieldOptionSelect({
           transition-colors flex items-center gap-2
           ${disabled ? 'bg-stone-50 text-stone-400 cursor-not-allowed border-stone-200' :
             open
-              ? 'border-[#A65F3C] border border-[#A65F3C]/15 shadow-sm'
+              ? 'border-clay-600 border border-clay-600/15 shadow-sm'
               : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/40'
           }
         `}
       >
         {Icon && (
           <Icon
-            className={`h-4 w-4 shrink-0 ${open ? 'text-[#A65F3C]' : 'text-stone-400'}`}
+            className={`h-4 w-4 shrink-0 ${open ? 'text-clay-600' : 'text-stone-400'}`}
             strokeWidth={1.9}
           />
         )}
@@ -170,7 +170,7 @@ export default function FieldOptionSelect({
         )}
 
         <ChevronDown
-          className={`h-4 w-4 text-stone-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180 text-[#A65F3C]' : ''}`}
+          className={`h-4 w-4 text-stone-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180 text-clay-600' : ''}`}
           strokeWidth={2}
         />
       </button>
@@ -191,7 +191,7 @@ export default function FieldOptionSelect({
       {/* ── Dropdown Panel ── */}
       {open && (
         <div
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-sm shadow-slate-950/10 border border-stone-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-stone-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
         >
           {/* Search input */}
           <div className="relative border-b border-stone-100">
@@ -237,12 +237,12 @@ export default function FieldOptionSelect({
                   className={`
                     w-full px-3 py-2 text-[14px] text-left flex items-center justify-between gap-2 transition-colors
                     ${isHighlighted ? 'bg-stone-50/70' : ''}
-                    ${isSelected ? 'text-[#A65F3C] font-semibold' : 'text-stone-700'}
+                    ${isSelected ? 'text-clay-600 font-semibold' : 'text-stone-700'}
                   `}
                 >
                   <span className="truncate">{opt}</span>
                   {isSelected && (
-                    <Check className="h-3.5 w-3.5 text-[#A65F3C] shrink-0" strokeWidth={2.5} />
+                    <Check className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2.5} />
                   )}
                 </button>
               );

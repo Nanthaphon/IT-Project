@@ -84,9 +84,9 @@ export default function ImportModal({
         {/* ── Field preview — ให้ผู้ใช้รู้ว่าจะ import field อะไรบ้าง ── */}
         <div className="bg-stone-50/60 border border-stone-200 p-4 rounded-xl">
           <div className="flex items-start gap-2.5">
-            <Info className="h-4 w-4 text-[#A65F3C] mt-0.5 shrink-0" strokeWidth={2.2} />
+            <Info className="h-4 w-4 text-clay-600 mt-0.5 shrink-0" strokeWidth={2.2} />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-[#A65F3C] mb-1.5">
+              <p className="text-[13px] font-semibold text-clay-600 mb-1.5">
                 คอลัมน์ที่ระบบจะนำเข้า ({meta.fields.length} คอลัมน์):
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -113,7 +113,7 @@ export default function ImportModal({
         {/* Step 1 */}
         <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-stone-100 text-[#A65F3C] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-stone-200/60">
+            <span className="bg-stone-100 text-clay-600 w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-stone-200/60">
               1
             </span>
             <h4 className="font-semibold text-stone-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
@@ -124,7 +124,7 @@ export default function ImportModal({
           <div className="pl-10">
             <button
               onClick={handleDownloadTemplate}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-[#A65F3C]/30 text-[#A65F3C] rounded-lg font-semibold text-[14.5px] hover:bg-stone-50/60 hover:border-[#A65F3C]/50 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-clay-600/30 text-clay-600 rounded-lg font-semibold text-[14.5px] hover:bg-stone-50/60 hover:border-clay-600/50 transition-colors"
             >
               <Download className="h-4 w-4" strokeWidth={2} />
               โหลด Template.csv
@@ -135,7 +135,7 @@ export default function ImportModal({
         {/* Step 2 */}
         <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-stone-100 text-[#A65F3C] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-stone-200/60">
+            <span className="bg-stone-100 text-clay-600 w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-stone-200/60">
               2
             </span>
             <h4 className="font-semibold text-stone-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>
@@ -152,7 +152,7 @@ export default function ImportModal({
               style={{ marginLeft: '2.5rem' }}
             />
             <div
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#A65F3C] hover:bg-[#8E4E30] text-white rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-clay-600 hover:bg-clay-700 text-white rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm cursor-pointer"
               style={{ boxShadow: '0 4px 12px rgba(166,95,60,0.25)' }}
             >
               <Upload className="h-4 w-4" strokeWidth={2.2} />

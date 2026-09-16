@@ -279,7 +279,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-[#A65F3C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-clay-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -317,7 +317,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       </div>
 
       {/* ── Table ── */}
-      <div className="bg-white rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
             <thead className="bg-stone-50/80 border-b border-stone-200">
@@ -346,7 +346,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       <div>
                         <p className="font-semibold text-stone-800">{user.displayName || '-'}</p>
                         {user.isSuperAdmin && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-stone-50 border border-stone-200 text-[#A65F3C] mt-0.5">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-stone-50 border border-stone-200 text-clay-600 mt-0.5">
                             <Shield className="h-2.5 w-2.5" strokeWidth={2.2} />
                             SuperAdmin
                           </span>
@@ -361,7 +361,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   {/* สิทธิ์ */}
                   <td className="px-5 py-3.5 text-center">
                     {user.isSuperAdmin ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#A65F3C] text-white border border-[#A65F3C]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-clay-600 text-white border border-clay-600">
                         Full
                       </span>
                     ) : user.permissions?.level === 'full' ? (
@@ -379,7 +379,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   {/* เมนูที่เข้าถึง */}
                   <td className="px-5 py-3.5 text-center">
                     {user.isSuperAdmin ? (
-                      <span className="text-[14px] font-semibold text-[#A65F3C]">ทั้งหมด ({ALL_MENU_IDS.length})</span>
+                      <span className="text-[14px] font-semibold text-clay-600">ทั้งหมด ({ALL_MENU_IDS.length})</span>
                     ) : (
                       <span className="text-[14px] font-semibold text-stone-700">
                         {(user.permissions?.menus || []).length} / {ALL_MENU_IDS.length}
@@ -437,7 +437,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Add/Edit Modal ── */}
       {modalOpen && (
         <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[85]">
-          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-lg overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]">
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-lg overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
@@ -514,7 +514,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       value="view"
                       checked={form.level === 'view'}
                       onChange={() => setForm(prev => ({ ...prev, level: 'view' }))}
-                      className="w-4 h-4 text-[#A65F3C] border-stone-300 focus:ring-[#A65F3C]"
+                      className="w-4 h-4 text-clay-600 border-stone-300 focus:ring-clay-600"
                     />
                     <span className="text-[14.5px] text-stone-700 font-medium group-hover:text-stone-900 select-none">
                       ดูอย่างเดียว
@@ -527,7 +527,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       value="full"
                       checked={form.level === 'full'}
                       onChange={() => setForm(prev => ({ ...prev, level: 'full' }))}
-                      className="w-4 h-4 text-[#A65F3C] border-stone-300 focus:ring-[#A65F3C]"
+                      className="w-4 h-4 text-clay-600 border-stone-300 focus:ring-clay-600"
                     />
                     <span className="text-[14.5px] text-stone-700 font-medium group-hover:text-stone-900 select-none">
                       แก้ไขได้ทุกอย่าง
@@ -544,7 +544,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     <button
                       type="button"
                       onClick={selectAll}
-                      className="text-[13px] text-[#A65F3C] font-semibold hover:underline flex items-center gap-1"
+                      className="text-[13px] text-clay-600 font-semibold hover:underline flex items-center gap-1"
                     >
                       <CheckSquare className="h-3 w-3" strokeWidth={2} />
                       เลือกทั้งหมด
@@ -571,7 +571,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                         type="checkbox"
                         checked={form.menus.includes(id)}
                         onChange={() => toggleMenu(id)}
-                        className="w-3.5 h-3.5 rounded border-stone-300 text-[#A65F3C] focus:ring-[#A65F3C] focus:ring-offset-0"
+                        className="w-3.5 h-3.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600 focus:ring-offset-0"
                       />
                       <span className="text-[13.5px] text-stone-700 font-medium truncate">
                         {MENU_LABELS[id]}
@@ -589,7 +589,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     type="checkbox"
                     checked={form.canManagePasswords}
                     onChange={() => setForm(prev => ({ ...prev, canManagePasswords: !prev.canManagePasswords }))}
-                    className="w-4 h-4 mt-0.5 rounded border-stone-300 text-[#A65F3C] focus:ring-[#A65F3C] focus:ring-offset-0"
+                    className="w-4 h-4 mt-0.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600 focus:ring-offset-0"
                   />
                   <div>
                     <p className="text-[14px] font-semibold text-stone-700">อนุญาตให้รีเซ็ตรหัสผ่านผู้ใช้อื่น</p>
@@ -639,7 +639,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Confirm Delete ── */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-sm overflow-hidden border border-stone-200/60">
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-sm overflow-hidden border border-stone-200/60">
             <div className="p-6">
               <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
@@ -671,7 +671,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Reset Password Modal ── */}
       {pwUser && (
         <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-sm overflow-hidden border border-stone-200/60">
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-sm overflow-hidden border border-stone-200/60">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">
@@ -763,7 +763,7 @@ function IconBtn({ onClick, title, children, kind }) {
   const map = {
     warning: 'text-clay-600 hover:bg-clay-100 hover:border-clay-300',
     danger:  'text-rose-500 hover:bg-rose-50 hover:border-rose-300',
-    primary: 'text-[#A65F3C] hover:bg-stone-50 hover:border-stone-300',
+    primary: 'text-clay-600 hover:bg-stone-50 hover:border-stone-300',
   }[kind];
   return (
     <button

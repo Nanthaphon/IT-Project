@@ -30,7 +30,7 @@ function Field({ label, required, hint, children, className = '' }) {
 const inputCls =
   'w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-sm text-stone-800 ' +
   'placeholder:text-stone-400 outline-none transition-colors ' +
-  'hover:border-stone-300 focus:border-[#A65F3C] focus:ring-2 focus:ring-[#A65F3C]/15';
+  'hover:border-stone-300 focus:border-clay-600 focus:ring-2 focus:ring-clay-600/15';
 
 const monoCls = inputCls + ' font-mono tracking-tight';
 
@@ -80,7 +80,7 @@ export default function EditAssetModal({
     <div className={asPage ? 'h-full' : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[70]'}>
       <div className={asPage
         ? 'bg-white w-full h-full overflow-hidden flex flex-col'
-        : 'bg-white rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
+        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
         <div className="px-7 py-5 border-b border-stone-100">
           <div className={`flex items-start justify-between ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
@@ -463,7 +463,7 @@ export default function EditAssetModal({
                     name="requestDisabled"
                     checked={!!editAssetModal.data.requestDisabled}
                     onChange={(e) => handleEditAssetChange({ target: { name: 'requestDisabled', value: e.target.checked, type: 'checkbox', checked: e.target.checked } })}
-                    className="mt-0.5 w-4 h-4 text-[#A65F3C] rounded border-stone-300 focus:ring-[#A65F3C]/30"
+                    className="mt-0.5 w-4 h-4 text-clay-600 rounded border-stone-300 focus:ring-clay-600/30"
                   />
                   <div className="flex-1">
                     <p className="text-[13.5px] font-semibold text-stone-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
@@ -516,7 +516,7 @@ export default function EditAssetModal({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-[#A65F3C] hover:bg-[#8E4E30] transition-colors focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30"
+                className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-clay-600 hover:bg-clay-700 transition-colors focus:outline-none focus:ring-2 focus:ring-clay-600/30"
               >
                 บันทึกการแก้ไข
               </button>

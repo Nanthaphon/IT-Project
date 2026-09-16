@@ -128,7 +128,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={category.placeholder}
-          className="flex-1 bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]"
+          className="flex-1 bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
         />
         <button
           type="button"

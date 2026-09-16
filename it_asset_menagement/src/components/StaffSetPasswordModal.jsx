@@ -89,7 +89,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] max-w-md w-full overflow-hidden border border-stone-200/60 max-h-[92vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-md w-full overflow-hidden border border-stone-200/60 max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -125,7 +125,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
             onClick={() => { setMode('set'); setError(''); }}
             className={`flex-1 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5 ${
               mode === 'set'
-                ? 'bg-[#A65F3C] text-white shadow-sm'
+                ? 'bg-clay-600 text-white shadow-sm'
                 : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-stone-100'
             }`}
           >
@@ -292,7 +292,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-colors text-[14px] text-stone-800 placeholder:text-stone-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
-            : 'border-stone-200 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]'
+            : 'border-stone-200 focus:ring-clay-600/15 focus:border-clay-600'
         }`}
       />
       <button

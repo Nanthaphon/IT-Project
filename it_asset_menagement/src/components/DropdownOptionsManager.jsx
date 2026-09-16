@@ -79,7 +79,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
   };
 
   return (
-    <div className="rounded-xl border border-stone-200/70 bg-white p-5 flex flex-col gap-4 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] hover:border-stone-300 transition-colors">
+    <div className="rounded-2xl border border-stone-200/60 bg-white p-6 flex flex-col gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-stone-300 transition-colors">
       {/* Header */}
       <div className="flex items-start gap-3">
         <div
@@ -128,7 +128,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={category.placeholder}
-          className="flex-1 bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+          className="flex-1 bg-white border border-stone-200/60 px-3 py-2 rounded-xl text-[14px] outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
         />
         <button
           type="button"
@@ -180,20 +180,13 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+    <div className="bg-sand-50 min-h-full">
+      <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-start gap-3.5">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
-          >
-            <SlidersHorizontal className="h-5 w-5" strokeWidth={1.8} />
-          </div>
-          <div>
-            <h1 className="text-[23px] font-semibold text-stone-900 tracking-tight leading-tight">ตั้งค่าตัวเลือกฟิลด์</h1>
-            <p className="text-sm text-stone-500 mt-1">จัดการรายการตัวเลือกที่จะแสดงใน Dropdown ของฟอร์มต่างๆ</p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-medium tracking-tight text-stone-900">ตั้งค่าตัวเลือกฟิลด์</h1>
+          <p className="mt-1 text-sm text-stone-500">จัดการรายการตัวเลือกที่จะแสดงใน Dropdown ของฟอร์มต่างๆ</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {savedAt && !dirty && (
@@ -246,6 +239,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
             saving={saving}
           />
         ))}
+      </div>
       </div>
     </div>
   );

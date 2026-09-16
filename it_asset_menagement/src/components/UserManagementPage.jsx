@@ -285,20 +285,14 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex max-w-[1360px] flex-col gap-6">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-            style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}
-          >
-            <Users className="h-5 w-5" strokeWidth={1.8} />
-          </div>
           <div>
-            <h1 className="text-[19px] font-medium text-stone-800 tracking-tight">จัดการผู้ใช้งานระบบ</h1>
-            <p className="text-[13px] text-stone-400 mt-0.5">{users.length} บัญชีในระบบ</p>
+            <h1 className="text-[22px] font-medium tracking-tight text-stone-900">จัดการผู้ใช้งานระบบ</h1>
+            <p className="mt-1 text-sm text-stone-500">{users.length} บัญชีในระบบ</p>
           </div>
         </div>
 

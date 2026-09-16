@@ -435,7 +435,7 @@ export default function ITReportPage({
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-12">
+    <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
 
       {/* ── Page header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -444,7 +444,7 @@ export default function ITReportPage({
             <BarChart3 className="h-[22px] w-[22px]" strokeWidth={2} />
           </div>
           <div>
-            <h1 className="text-[22px] font-semibold text-stone-900 tracking-tight leading-tight">สร้าง IT Monthly Report</h1>
+            <h1 className="text-[22px] font-medium tracking-tight text-stone-900">สร้าง IT Monthly Report</h1>
             <p className="text-stone-500 text-[13.5px] mt-1">
               แก้ไขข้อมูลทุกสไลด์ได้ในหน้านี้ · กด <span className="font-medium text-stone-600">บันทึก</span> เพื่อจำข้อมูล แล้ว Export เป็น <span className="font-medium text-stone-600">.pptx</span>
             </p>

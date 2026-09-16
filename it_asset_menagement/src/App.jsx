@@ -3015,7 +3015,7 @@ function App() {
   // (dashboard ธีม v3 วาดพื้น stone-50 เต็มพื้นที่เอง)
   const isFullBleedMenu = isListMenu
     || ['dashboard', 'replacement_requests', 'repairs',
-        'supply_requests', 'accessory_requests'].includes(activeMenu);
+        'supply_requests', 'accessory_requests', 'field_options'].includes(activeMenu);
 
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };

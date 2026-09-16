@@ -145,28 +145,28 @@ export default function AddModal({
                     autoComplete="off"
                   />
                   {isManagerDropdownOpen && (
-                    <div className="absolute z-20 w-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] max-h-56 overflow-y-auto">
+                    <div className="absolute z-20 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(74,43,41,0.12)] max-h-56 overflow-y-auto">
                       {employees.filter(emp =>
                         emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
                         emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())
                       ).map(emp => (
                         <div
                           key={emp.id}
-                          className="px-4 py-2.5 hover:bg-blue-50/60 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 transition-colors"
+                          className="px-4 py-2.5 hover:bg-stone-50/60 cursor-pointer text-sm border-b border-stone-50 last:border-b-0 transition-colors"
                           onClick={() => {
                             handleEmpChange({ target: { name: 'manager', value: emp.fullName } });
                             setIsManagerDropdownOpen(false);
                           }}
                         >
-                          <div className="font-medium text-slate-800">{emp.fullName}</div>
-                          <div className="text-[12.5px] text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                          <div className="font-medium text-stone-800">{emp.fullName}</div>
+                          <div className="text-[12.5px] text-stone-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
                         </div>
                       ))}
                       {employees.filter(emp =>
                         emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
                         emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())
                       ).length === 0 && (
-                        <div className="p-3 text-center text-[13px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                        <div className="p-3 text-center text-[13px] text-stone-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
                       )}
                     </div>
                   )}
@@ -175,8 +175,8 @@ export default function AddModal({
             </section>
 
             {/* Microsoft 365 */}
-            <section className="rounded-lg border border-blue-200 bg-blue-50/40 p-4 space-y-3">
-              <div className="flex items-center gap-2 text-[#1E487A]">
+            <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-[#A65F3C]">
                 <ShieldCheck className="h-4 w-4" strokeWidth={2} />
                 <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
               </div>
@@ -327,16 +327,16 @@ export default function AddModal({
                       <div className="flex gap-2">
                         <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           purchaseCondition === 'new'
-                            ? 'bg-emerald-50 border border-emerald-500 text-emerald-700'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-olive-50 border border-olive-500 text-olive-700'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="new" checked={purchaseCondition === 'new'} onChange={() => setPurchaseCondition?.('new')} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
                         <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           purchaseCondition === 'used'
-                            ? 'bg-amber-50 border border-amber-500 text-amber-700'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-clay-100 border border-clay-500 text-clay-600'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="used" checked={purchaseCondition === 'used'} onChange={() => setPurchaseCondition?.('used')} className="sr-only" />
                           <span>♻️ เครื่องเก่า / มือสอง</span>
@@ -415,7 +415,7 @@ export default function AddModal({
                     <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={cls.input} placeholder="ระบุจำนวน..." required />
                   </Field>
                   <Field label="วันที่ซื้อ">
-                    <DateField value={purchaseDate} onChange={(v) => setPurchaseDate(v)} inputClassName={cls.input + ' text-slate-700 pr-9'} />
+                    <DateField value={purchaseDate} onChange={(v) => setPurchaseDate(v)} inputClassName={cls.input + ' text-stone-700 pr-9'} />
                   </Field>
                 </div>
                 <Field label="ผู้จัดจำหน่าย (Vendor)" hint="ชื่อร้าน/บริษัทที่ซื้อมา">
@@ -459,7 +459,7 @@ function ImagePicker({ image, onRemove, onUpload }) {
     <div className="flex items-center gap-4">
       {image ? (
         <div className="relative shrink-0">
-          <img src={image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-slate-200" />
+          <img src={image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
           <button
             type="button"
             onClick={onRemove}
@@ -470,7 +470,7 @@ function ImagePicker({ image, onRemove, onUpload }) {
           </button>
         </div>
       ) : (
-        <div className="w-20 h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 border border-dashed border-slate-300 shrink-0">
+        <div className="w-20 h-20 rounded-lg bg-stone-50 flex items-center justify-center text-stone-300 border border-dashed border-stone-300 shrink-0">
           <ImageIcon className="h-7 w-7" strokeWidth={1.5} />
         </div>
       )}
@@ -478,10 +478,10 @@ function ImagePicker({ image, onRemove, onUpload }) {
         type="file"
         accept="image/*"
         onChange={onUpload}
-        className="flex-1 min-w-0 text-sm text-slate-500
-          file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-          file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700
-          hover:file:bg-slate-200 file:cursor-pointer file:transition-colors"
+        className="flex-1 min-w-0 text-sm text-stone-500
+ file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
+          file:text-sm file:font-medium file:bg-stone-100 file:text-stone-700
+          hover:file:bg-stone-200 file:cursor-pointer file:transition-colors"
       />
     </div>
   );
@@ -502,7 +502,7 @@ function CostInput({ value, onChange, name }) {
         className={cls.input + ' pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'}
         placeholder="0.00"
       />
-      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
+      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium pointer-events-none">฿</span>
     </div>
   );
 }

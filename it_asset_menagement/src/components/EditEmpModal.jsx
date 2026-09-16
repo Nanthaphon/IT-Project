@@ -113,28 +113,28 @@ export default function EditEmpModal({
                   autoComplete="off"
                 />
                 {isManagerDropdownOpen && (
-                  <div className="absolute z-20 w-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] max-h-56 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(74,43,41,0.12)] max-h-56 overflow-y-auto">
                     {employees.filter(emp =>
                       emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
                       emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())
                     ).map(emp => (
                       <div
                         key={emp.id}
-                        className="px-4 py-2.5 hover:bg-blue-50/60 cursor-pointer text-sm border-b border-slate-50 last:border-b-0 transition-colors"
+                        className="px-4 py-2.5 hover:bg-stone-50/60 cursor-pointer text-sm border-b border-stone-50 last:border-b-0 transition-colors"
                         onClick={() => {
                           handleEditEmpChange({ target: { name: 'manager', value: emp.fullName } });
                           setIsManagerDropdownOpen(false);
                         }}
                       >
-                        <div className="font-medium text-slate-800">{emp.fullName}</div>
-                        <div className="text-[12.5px] text-slate-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                        <div className="font-medium text-stone-800">{emp.fullName}</div>
+                        <div className="text-[12.5px] text-stone-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
                       </div>
                     ))}
                     {employees.filter(emp =>
                       emp.fullName?.toLowerCase().includes((data.manager || '').toLowerCase()) ||
                       emp.empId?.toLowerCase().includes((data.manager || '').toLowerCase())
                     ).length === 0 && (
-                      <div className="p-3 text-center text-[13px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
+                      <div className="p-3 text-center text-[13px] text-stone-500 font-medium">ไม่พบข้อมูลพนักงานในระบบ</div>
                     )}
                   </div>
                 )}
@@ -142,8 +142,8 @@ export default function EditEmpModal({
             </Field>
           </section>
 
-          <section className="rounded-lg border border-blue-200 bg-blue-50/40 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-[#1E487A]">
+          <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-[#A65F3C]">
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
               <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
             </div>
@@ -157,12 +157,12 @@ export default function EditEmpModal({
             </div>
           </section>
 
-          <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-slate-700">
+          <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-stone-700">
               <Link2 className="h-4 w-4" strokeWidth={2} />
               <p className="text-[13px] font-semibold tracking-wide">ลิงก์ / เว็บไซต์</p>
             </div>
-            <p className="text-[12px] text-slate-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
+            <p className="text-[12px] text-stone-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
             <EmpLinksEditor
               links={data.links}
               setLinks={(next) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, links: next } }))}
@@ -184,26 +184,26 @@ function EmpLinksEditor({ links, setLinks }) {
   const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
   const add = () => setLinks([...rows, { label: '', url: '' }]);
   const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
-  const inCls = 'w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition';
+  const inCls = 'w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition';
   return (
     <div className="space-y-2">
       {rows.length === 0 && (
-        <p className="text-[12.5px] text-slate-400">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์”</p>
+        <p className="text-[12.5px] text-stone-400">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์”</p>
       )}
       {rows.map((r, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <input value={r.label ?? ''} onChange={e => update(i, 'label', e.target.value)}
-            placeholder="ชื่อลิงก์ (เช่น Microsoft 365)" className={`${inCls} sm:w-1/3 text-slate-800`} />
+            placeholder="ชื่อลิงก์ (เช่น Microsoft 365)" className={`${inCls} sm:w-1/3 text-stone-800`} />
           <input value={r.url ?? ''} onChange={e => update(i, 'url', e.target.value)}
-            placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-slate-700`} />
+            placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-stone-700`} />
           <button type="button" onClick={() => remove(i)} title="ลบลิงก์"
-            className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+            className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors">
             <X className="h-4 w-4" strokeWidth={2.2} />
           </button>
         </div>
       ))}
       <button type="button" onClick={add}
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1E487A] hover:text-[#153a63] transition-colors">
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#A65F3C] hover:text-[#153a63] transition-colors">
         <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
       </button>
     </div>

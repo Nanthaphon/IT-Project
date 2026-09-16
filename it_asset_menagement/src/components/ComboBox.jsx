@@ -84,7 +84,7 @@ export default function ComboBox({
           setIsOpen((prev) => !prev);
           inputRef.current?.focus();
         }}
-        className="absolute inset-y-0 right-0 w-9 flex items-center justify-center text-slate-400 hover:text-[#1E487A] transition-colors"
+        className="absolute inset-y-0 right-0 w-9 flex items-center justify-center text-stone-400 hover:text-[#A65F3C] transition-colors"
       >
         <ChevronDown
           size={15}
@@ -95,7 +95,7 @@ export default function ComboBox({
 
       {/* ── Dropdown panel ── */}
       {isOpen && options.length > 0 && (
-        <div className="absolute z-[200] top-[calc(100%+4px)] left-0 right-0 bg-white rounded-xl shadow-sm shadow-slate-950/10 border border-slate-200 overflow-hidden">
+        <div className="absolute z-[200] top-[calc(100%+4px)] left-0 right-0 bg-white rounded-xl shadow-sm shadow-slate-950/10 border border-stone-200 overflow-hidden">
           <div className="max-h-52 overflow-y-auto scrollbar-hide py-1">
             {filtered.length > 0 ? (
               filtered.map((opt) => (
@@ -108,21 +108,21 @@ export default function ComboBox({
                   }}
                   className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center gap-2.5 transition-colors ${
                     opt === value
-                      ? 'bg-[#1E487A]/[.07] text-[#1E487A] font-semibold'
-                      : 'text-slate-700 hover:bg-slate-50'
+                      ? 'bg-[#A65F3C]/[.07] text-[#A65F3C] font-semibold'
+                      : 'text-stone-700 hover:bg-stone-50'
                   }`}
                 >
                   {/* checkmark column — fixed width so text stays aligned */}
                   <span className="w-3.5 shrink-0 flex items-center justify-center">
                     {opt === value && (
-                      <Check size={13} strokeWidth={2.5} className="text-[#1E487A]" />
+                      <Check size={13} strokeWidth={2.5} className="text-[#A65F3C]" />
                     )}
                   </span>
                   {opt}
                 </button>
               ))
             ) : (
-              <div className="px-4 py-3 text-[13px] text-slate-400 text-center italic">
+              <div className="px-4 py-3 text-[13px] text-stone-400 text-center italic">
                 ไม่พบตัวเลือก — พิมพ์เพื่อเพิ่มใหม่
               </div>
             )}

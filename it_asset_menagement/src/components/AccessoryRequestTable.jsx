@@ -8,19 +8,19 @@ import { formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
-  'รอดำเนินการ': { bar: 'bg-amber-400',   badge: 'bg-amber-50 text-amber-700 border-amber-200',     icon: Clock },
-  'อนุมัติแล้ว':  { bar: 'bg-emerald-400', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
+  'รอดำเนินการ': { bar: 'bg-clay-400',   badge: 'bg-ochre-50 text-ochre-700 border-ochre-200',     icon: Clock },
+  'อนุมัติแล้ว':  { bar: 'bg-olive-400', badge: 'bg-olive-50 text-olive-700 border-olive-200', icon: CheckCircle2 },
   'ปฏิเสธคำขอ':  { bar: 'bg-rose-400',    badge: 'bg-rose-50 text-rose-700 border-rose-200',         icon: XCircle },
-  'คืนแล้ว':     { bar: 'bg-slate-400',   badge: 'bg-slate-50 text-slate-700 border-slate-200',      icon: RotateCcw },
+  'คืนแล้ว':     { bar: 'bg-stone-400',   badge: 'bg-stone-50 text-stone-700 border-stone-200',      icon: RotateCcw },
 };
 
 /* ─── Request type config ─── */
 const REQUEST_TYPE = {
   pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#64748B', bg: '#F1F5F9' },
-  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#1E487A', bg: '#EFF6FF' },
+  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
   // legacy aliases
-  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#1E487A', bg: '#EFF6FF' },
-  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#1E487A', bg: '#EFF6FF' },
+  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
+  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
   replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#B45309', bg: '#FFFBEB' },
   borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#7C3AED', bg: '#F5F3FF' },
 };
@@ -92,11 +92,11 @@ export default function AccessoryRequestTable({
         <SummaryChip label="ปฏิเสธ" value={counts.rejected} color="#DC2626" active={statusFilter === 'ปฏิเสธคำขอ'} onClick={() => setStatusFilter('ปฏิเสธคำขอ')} />
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[12.5px] text-slate-500 font-medium">ประเภท:</span>
+          <span className="text-[12.5px] text-stone-500 font-medium">ประเภท:</span>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
+            className="bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30"
           >
             <option value="ทั้งหมด">ทุกประเภท</option>
             <option value="pending">รอ IT พิจารณา</option>
@@ -109,13 +109,13 @@ export default function AccessoryRequestTable({
 
       {/* ── List — Compact row layout ── */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200/70 p-12 text-center">
-          <ClipboardList className="h-10 w-10 text-slate-300 mx-auto mb-3" strokeWidth={1.5} />
-          <p className="text-[14.5px] font-semibold text-slate-500">ไม่มีคำขอ</p>
-          <p className="text-[12.5px] text-slate-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
+        <div className="bg-white rounded-2xl border border-stone-200/60/70 p-12 text-center">
+          <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
+          <p className="text-[14.5px] font-semibold text-stone-500">ไม่มีคำขอ</p>
+          <p className="text-[12.5px] text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] overflow-hidden">
           {pagedRequests.map((req, idx) => {
             const status = STATUS[req.status] || STATUS['รอดำเนินการ'];
             const reqType = REQUEST_TYPE[req.requestType] || REQUEST_TYPE.new;
@@ -131,7 +131,7 @@ export default function AccessoryRequestTable({
             return (
               <div
                 key={req.id}
-                className={`${idx > 0 ? 'border-t border-slate-100' : ''} transition-colors ${isExpanded ? 'bg-slate-50/50' : 'hover:bg-slate-50/40'}`}
+                className={`${idx > 0 ? 'border-t border-stone-100' : ''} transition-colors ${isExpanded ? 'bg-stone-50/50' : 'hover:bg-stone-50/40'}`}
               >
                 {/* Compact row */}
                 <div className="flex items-center gap-3 px-4 py-3">
@@ -140,29 +140,29 @@ export default function AccessoryRequestTable({
 
                   {/* Item image */}
                   {acc?.image ? (
-                    <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-slate-200 shrink-0 bg-slate-50 p-1" />
+                    <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-stone-200 shrink-0 bg-stone-50 p-1" />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
-                      <Package className="h-4 w-4 text-slate-400" strokeWidth={2} />
+                    <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200">
+                      <Package className="h-4 w-4 text-stone-400" strokeWidth={2} />
                     </div>
                   )}
 
                   {/* Main info — flex column */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13.5px] font-bold text-slate-800 truncate">
+                      <span className="text-[13.5px] font-medium text-stone-800 truncate">
                         {req.empName}
-                        {req.nickname && <span className="text-slate-500 font-medium ml-1">({req.nickname})</span>}
+                        {req.nickname && <span className="text-stone-500 font-medium ml-1">({req.nickname})</span>}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-mono">#{req.id?.slice(-6)}</span>
+                      <span className="text-[11px] text-stone-400 font-mono">#{req.id?.slice(-6)}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-[12px] text-slate-600 truncate">
+                      <span className="text-[12px] text-stone-600 truncate">
                         {req.accessoryName}
-                        <span className="text-slate-400 ml-1">× {req.quantity || 1}</span>
+                        <span className="text-stone-400 ml-1">× {req.quantity || 1}</span>
                       </span>
-                      <span className="text-[11px] text-slate-400">·</span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-stone-400">·</span>
+                      <span className="text-[11px] text-stone-400">
                         {formatDate(req.timestamp)} {formatTime(req.timestamp)}
                       </span>
                     </div>
@@ -170,7 +170,7 @@ export default function AccessoryRequestTable({
 
                   {/* Type badge */}
                   <span
-                    className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold shrink-0"
+                    className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold shrink-0"
                     style={{ background: reqType.bg, color: reqType.color }}
                   >
                     <TypeIcon className="h-3 w-3" strokeWidth={2.4} />
@@ -178,7 +178,7 @@ export default function AccessoryRequestTable({
                   </span>
 
                   {/* Status badge */}
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border ${status.badge} shrink-0`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border ${status.badge} shrink-0`}>
                     <StatusIcon className="h-3 w-3" strokeWidth={2.4} />
                     <span className="hidden sm:inline">{req.status}</span>
                   </span>
@@ -187,7 +187,7 @@ export default function AccessoryRequestTable({
                   {hasDetails && (
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : req.id)}
-                      className="w-7 h-7 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-md transition shrink-0"
+                      className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-lg transition shrink-0"
                       title={isExpanded ? 'ย่อ' : 'ดูรายละเอียด'}
                     >
                       <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -200,14 +200,14 @@ export default function AccessoryRequestTable({
                       <>
                         <button
                           onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '', { requestType: 'request' })}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-olive-600 hover:bg-olive-700 transition-colors"
                         >
                           <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
                           <span className="hidden sm:inline">อนุมัติ</span>
                         </button>
                         <button
                           onClick={() => openRejectModal(req)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
                         >
                           <X className="h-3.5 w-3.5" strokeWidth={2.4} />
                           <span className="hidden sm:inline">ปฏิเสธ</span>
@@ -216,7 +216,7 @@ export default function AccessoryRequestTable({
                     ) : !isPending && canEdit ? (
                       <button
                         onClick={() => handleDeleteAccessoryRequest(req.id)}
-                        className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
+                        className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                         title="ลบรายการ"
                       >
                         <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
@@ -227,15 +227,15 @@ export default function AccessoryRequestTable({
 
                 {/* Expanded details */}
                 {isExpanded && hasDetails && (
-                  <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100 bg-slate-50/40">
+                  <div className="px-4 pb-4 pt-1 space-y-2 border-t border-stone-100 bg-stone-50/40">
                     {req.requestType === 'replace' && req.oldAccessoryName && (
-                      <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                        <p className="text-[11px] font-semibold text-slate-500 mb-0.5">ของเดิมที่ต้องการเปลี่ยน</p>
-                        <p className="text-[12.5px] font-semibold text-slate-800">
+                      <div className="p-2.5 rounded-lg bg-white border border-stone-200">
+                        <p className="text-[11px] font-semibold text-stone-500 mb-0.5">ของเดิมที่ต้องการเปลี่ยน</p>
+                        <p className="text-[12.5px] font-semibold text-stone-800">
                           {req.oldAccessoryName}
-                          {req.oldAccessoryModel && <span className="text-slate-500 font-normal ml-1">(รุ่น: {req.oldAccessoryModel})</span>}
+                          {req.oldAccessoryModel && <span className="text-stone-500 font-normal ml-1">(รุ่น: {req.oldAccessoryModel})</span>}
                         </p>
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11.5px] text-slate-500">
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11.5px] text-stone-500">
                           {req.oldPurchaseDate && <span>ซื้อ: {req.oldPurchaseDate}</span>}
                           {req.oldAge && <span>อายุ: {req.oldAge}</span>}
                           {req.oldWarranty && <span>{req.oldWarranty}</span>}
@@ -243,12 +243,12 @@ export default function AccessoryRequestTable({
                       </div>
                     )}
                     {req.reason && (
-                      <p className="text-[12.5px] text-slate-700">
-                        <span className="font-semibold text-slate-500">เหตุผล:</span> {req.reason}
+                      <p className="text-[12.5px] text-stone-700">
+                        <span className="font-semibold text-stone-500">เหตุผล:</span> {req.reason}
                       </p>
                     )}
                     {req.requestType === 'borrow' && req.returnDate && (
-                      <div className="inline-flex items-center gap-1.5 text-[12px] text-slate-700 bg-white px-2 py-1 rounded-md border border-slate-200">
+                      <div className="inline-flex items-center gap-1.5 text-[12px] text-stone-700 bg-white px-2 py-1 rounded-lg border border-stone-200">
                         <CalendarDays className="h-3 w-3" strokeWidth={2.2} />
                         กำหนดคืน: <span className="font-semibold">{req.returnDate}</span>
                       </div>
@@ -256,7 +256,7 @@ export default function AccessoryRequestTable({
                     {req.damagePhoto && (
                       <button
                         onClick={() => setPreviewPhoto(req.damagePhoto)}
-                        className="inline-flex items-center gap-1.5 text-[12px] text-slate-700 hover:text-[#1E487A] bg-white hover:bg-slate-50 px-2 py-1 rounded-md border border-slate-200 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-[12px] text-stone-700 hover:text-[#A65F3C] bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
                       >
                         <ImageIcon className="h-3 w-3" strokeWidth={2.2} />
                         ดูรูปอุปกรณ์ที่ชำรุด
@@ -278,14 +278,14 @@ export default function AccessoryRequestTable({
       {/* ── Pagination ── */}
       {filtered.length > PAGE_SIZE && (
         <div className="flex items-center justify-between gap-3 pt-1">
-          <p className="text-[12px] text-slate-500">
+          <p className="text-[12px] text-stone-500">
             แสดง {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} จาก {filtered.length} รายการ
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-2.5 py-1.5 text-[12px] font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ‹
             </button>
@@ -294,14 +294,14 @@ export default function AccessoryRequestTable({
               .map((p, i, arr) => (
                 <React.Fragment key={p}>
                   {i > 0 && p - arr[i - 1] > 1 && (
-                    <span className="px-1 text-slate-400 text-[12px]">…</span>
+                    <span className="px-1 text-stone-400 text-[12px]">…</span>
                   )}
                   <button
                     onClick={() => setCurrentPage(p)}
-                    className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-md transition ${
+                    className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
                       p === currentPage
-                        ? 'bg-[#1E487A] text-white'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        ? 'bg-[#A65F3C] text-white'
+                        : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
                     }`}
                   >
                     {p}
@@ -311,7 +311,7 @@ export default function AccessoryRequestTable({
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-2.5 py-1.5 text-[12px] font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ›
             </button>
@@ -322,7 +322,7 @@ export default function AccessoryRequestTable({
       {/* ── Photo preview modal ── */}
       {previewPhoto && (
         <div
-          className="fixed inset-0 bg-slate-950/80 z-[95] flex items-center justify-center p-6"
+          className="fixed inset-0 bg-stone-950/80 z-[95] flex items-center justify-center p-6"
           onClick={() => setPreviewPhoto(null)}
         >
           <img src={previewPhoto} alt="damage" className="max-w-full max-h-full rounded-xl" />
@@ -338,11 +338,11 @@ export default function AccessoryRequestTable({
 
       {/* ── Reject reason modal ── */}
       {rejectModal.open && (
-        <div className="fixed inset-0 bg-slate-950/50 z-[90] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-md w-full overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100">
-              <h3 className="text-[16px] font-bold text-slate-800">เหตุผลในการปฏิเสธคำขอ</h3>
-              <p className="text-[12.5px] text-slate-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
+        <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] max-w-md w-full overflow-hidden">
+            <div className="px-6 py-5 border-b border-stone-100">
+              <h3 className="text-[16px] font-medium text-stone-800">เหตุผลในการปฏิเสธคำขอ</h3>
+              <p className="text-[12.5px] text-stone-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
             </div>
             <div className="px-6 py-5">
               <textarea
@@ -351,13 +351,13 @@ export default function AccessoryRequestTable({
                 rows={4}
                 autoFocus
                 placeholder="เช่น: เพิ่งเปลี่ยนเมื่อ 2 สัปดาห์ที่แล้ว / ยังมีของเก่าอยู่ในสต็อก"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 resize-none"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 resize-none"
               />
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2.5">
+            <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/50 flex justify-end gap-2.5">
               <button
                 onClick={() => setRejectModal({ open: false, req: null, reason: '' })}
-                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50"
+                className="px-4 py-2 rounded-lg text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50"
               >
                 ยกเลิก
               </button>
@@ -381,13 +381,13 @@ function SummaryChip({ label, value, color, active, onClick }) {
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
         active
-          ? 'bg-[#1E487A] text-white shadow-sm'
-          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          ? 'bg-[#A65F3C] text-white shadow-sm'
+          : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
       }`}
     >
       <span>{label}</span>
       <span
-        className="px-1.5 py-0.5 rounded text-[11px] tabular-nums font-bold"
+        className="px-1.5 py-0.5 rounded text-[11px] tabular-nums font-medium"
         style={
           active
             ? { background: 'rgba(255,255,255,0.18)' }

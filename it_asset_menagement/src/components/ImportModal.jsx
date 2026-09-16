@@ -82,28 +82,28 @@ export default function ImportModal({
       />
       <ModalBody className="space-y-4">
         {/* ── Field preview — ให้ผู้ใช้รู้ว่าจะ import field อะไรบ้าง ── */}
-        <div className="bg-blue-50/60 border border-blue-200 p-4 rounded-xl">
+        <div className="bg-stone-50/60 border border-stone-200 p-4 rounded-xl">
           <div className="flex items-start gap-2.5">
-            <Info className="h-4 w-4 text-[#1E487A] mt-0.5 shrink-0" strokeWidth={2.2} />
+            <Info className="h-4 w-4 text-[#A65F3C] mt-0.5 shrink-0" strokeWidth={2.2} />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-[#1E487A] mb-1.5">
+              <p className="text-[13px] font-semibold text-[#A65F3C] mb-1.5">
                 คอลัมน์ที่ระบบจะนำเข้า ({meta.fields.length} คอลัมน์):
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {meta.fields.map((f, i) => (
                   <span
                     key={i}
-                    className={`inline-flex items-center text-[11.5px] font-medium px-2 py-0.5 rounded-md border ${
+                    className={`inline-flex items-center text-[11.5px] font-medium px-2 py-0.5 rounded-lg border ${
                       f.includes('จำเป็น')
                         ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : 'bg-white text-slate-700 border-slate-200'
+                        : 'bg-white text-stone-700 border-stone-200'
                     }`}
                   >
                     {f}
                   </span>
                 ))}
               </div>
-              <p className="text-[11px] text-slate-500 mt-2 leading-snug">
+              <p className="text-[11px] text-stone-500 mt-2 leading-snug">
                 💡 Template มีแถวตัวอย่าง 1 แถว ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
               </p>
             </div>
@@ -111,20 +111,20 @@ export default function ImportModal({
         </div>
 
         {/* Step 1 */}
-        <div className="bg-slate-50/70 border border-slate-200 p-5 rounded-xl">
+        <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-blue-100 text-[#1E487A] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-blue-200/60">
+            <span className="bg-stone-100 text-[#A65F3C] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-stone-200/60">
               1
             </span>
-            <h4 className="font-semibold text-slate-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
+            <h4 className="font-semibold text-stone-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
           </div>
-          <p className="text-[13.5px] text-slate-500 mb-3.5 pl-10">
+          <p className="text-[13.5px] text-stone-500 mb-3.5 pl-10">
             โหลดไฟล์ CSV (.csv) ที่มีหัวคอลัมน์ถูกต้อง เพื่อนำไปกรอกข้อมูล{title}
           </p>
           <div className="pl-10">
             <button
               onClick={handleDownloadTemplate}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-[#1E487A]/30 text-[#1E487A] rounded-lg font-semibold text-[14.5px] hover:bg-blue-50/60 hover:border-[#1E487A]/50 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-[#A65F3C]/30 text-[#A65F3C] rounded-lg font-semibold text-[14.5px] hover:bg-stone-50/60 hover:border-[#A65F3C]/50 transition-colors"
             >
               <Download className="h-4 w-4" strokeWidth={2} />
               โหลด Template.csv
@@ -133,14 +133,14 @@ export default function ImportModal({
         </div>
 
         {/* Step 2 */}
-        <div className="bg-slate-50/70 border border-slate-200 p-5 rounded-xl">
+        <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-blue-100 text-[#1E487A] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-blue-200/60">
+            <span className="bg-stone-100 text-[#A65F3C] w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13.5px] border border-stone-200/60">
               2
             </span>
-            <h4 className="font-semibold text-slate-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>
+            <h4 className="font-semibold text-stone-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>
           </div>
-          <p className="text-[13.5px] text-slate-500 mb-3.5 pl-10">
+          <p className="text-[13.5px] text-stone-500 mb-3.5 pl-10">
             เลือกไฟล์ CSV ที่กรอกข้อมูลเสร็จแล้ว ระบบจะนำเข้าข้อมูลทันที
           </p>
           <div className="pl-10 relative">
@@ -152,8 +152,8 @@ export default function ImportModal({
               style={{ marginLeft: '2.5rem' }}
             />
             <div
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#1E487A] hover:bg-[#163963] text-white rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm cursor-pointer"
-              style={{ boxShadow: '0 4px 12px rgba(30,72,122,0.25)' }}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#A65F3C] hover:bg-[#8E4E30] text-white rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm cursor-pointer"
+              style={{ boxShadow: '0 4px 12px rgba(166,95,60,0.25)' }}
             >
               <Upload className="h-4 w-4" strokeWidth={2.2} />
               เลือกไฟล์เพื่อนำเข้า

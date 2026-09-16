@@ -8,7 +8,7 @@ import { formatDateShort, formatDateTimeShort, formatDateMedium } from './format
 const formatDateTime = formatDateTimeShort;
 const formatDate = formatDateMedium;
 
-/* ── สไตล์ Excel (xlsx-js-style) — โทนเดียวกับระบบ (navy #1E487A) ── */
+/* ── สไตล์ Excel (xlsx-js-style) — โทนเดียวกับระบบ (navy #A65F3C) ── */
 const FONT = 'Tahoma';
 const NAVY = '1E487A', NAVY2 = '3A5A85', TINT = 'E8EFF8', GREY = '6B7280', LINE = 'E2E8F0', ZEBRA = 'F7F9FC';
 const thin = { style: 'thin', color: { rgb: LINE } };

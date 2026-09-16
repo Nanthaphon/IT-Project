@@ -18,7 +18,7 @@ const field = (label, value) => `
   </div>`;
 
 const sectionTitle = (title) => `
-  <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">${e(title)}</div>`;
+  <div style="font-size:11px;font-weight:700;color:#A65F3C;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #A65F3C;padding-bottom:4px;margin-bottom:10px">${e(title)}</div>`;
 
 export function printEmployeeSummary({
   employee,
@@ -40,7 +40,7 @@ export function printEmployeeSummary({
   /* ── ข้อมูลพนักงาน ── */
   const profileSection = `
     <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start">
-      <div style="width:64px;height:64px;border-radius:8px;background:#1E487A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:28px;flex-shrink:0">
+      <div style="width:64px;height:64px;border-radius:8px;background:#A65F3C;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:28px;flex-shrink:0">
         ${e((employee.fullName || '?').charAt(0))}
       </div>
       <div style="flex:1">
@@ -50,7 +50,7 @@ export function printEmployeeSummary({
         </div>
         <div style="font-size:13px;color:#475569;margin-top:2px">${e(employee.position) || '-'}</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;font-size:11px;color:#64748b">
-          <span style="font-family:'Courier New',monospace;font-weight:600;color:#1E487A">${e(employee.empId) || '-'}</span>
+          <span style="font-family:'Courier New',monospace;font-weight:600;color:#A65F3C">${e(employee.empId) || '-'}</span>
           ${employee.department ? `<span>·</span><span>${e(employee.department)}</span>` : ''}
           ${employee.company ? `<span>·</span><span>${e(employee.company)}</span>` : ''}
         </div>
@@ -125,11 +125,11 @@ export function printEmployeeSummary({
         : `<table style="width:100%;border-collapse:collapse">
             <thead>
               <tr>
-                <th style="background:#1E487A;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #163963;text-align:center;width:5%">#</th>
-                <th style="background:#1E487A;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #163963;text-align:left">ชื่อรายการ</th>
-                <th style="background:#1E487A;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #163963;text-align:center;width:14%">ประเภท</th>
-                <th style="background:#1E487A;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #163963;text-align:left;width:32%">รหัสอ้างอิง / SN</th>
-                <th style="background:#1E487A;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #163963;text-align:center;width:14%">สถานะ</th>
+                <th style="background:#A65F3C;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #8E4E30;text-align:center;width:5%">#</th>
+                <th style="background:#A65F3C;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #8E4E30;text-align:left">ชื่อรายการ</th>
+                <th style="background:#A65F3C;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #8E4E30;text-align:center;width:14%">ประเภท</th>
+                <th style="background:#A65F3C;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #8E4E30;text-align:left;width:32%">รหัสอ้างอิง / SN</th>
+                <th style="background:#A65F3C;color:#fff;font-size:11px;font-weight:600;padding:7px 8px;border:1px solid #8E4E30;text-align:center;width:14%">สถานะ</th>
               </tr>
             </thead>
             <tbody>
@@ -145,19 +145,19 @@ export function printEmployeeSummary({
   const summaryBoxes = `
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <div style="flex:1;border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;background:#f8fafc">
-        <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.1">${empAssets.length}</div>
+        <div style="font-size:18px;font-weight:700;color:#A65F3C;line-height:1.1">${empAssets.length}</div>
         <div style="font-size:10.5px;color:#64748b;margin-top:1px">ทรัพย์สิน</div>
       </div>
       <div style="flex:1;border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;background:#f8fafc">
-        <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.1">${empLicenses.length}</div>
+        <div style="font-size:18px;font-weight:700;color:#A65F3C;line-height:1.1">${empLicenses.length}</div>
         <div style="font-size:10.5px;color:#64748b;margin-top:1px">License</div>
       </div>
       <div style="flex:1;border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;background:#f8fafc">
-        <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.1">${empAccessories.length}</div>
+        <div style="font-size:18px;font-weight:700;color:#A65F3C;line-height:1.1">${empAccessories.length}</div>
         <div style="font-size:10.5px;color:#64748b;margin-top:1px">อุปกรณ์เสริม</div>
       </div>
       <div style="flex:1;border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;background:#f8fafc">
-        <div style="font-size:18px;font-weight:700;color:#1E487A;line-height:1.1">${total}</div>
+        <div style="font-size:18px;font-weight:700;color:#A65F3C;line-height:1.1">${total}</div>
         <div style="font-size:10.5px;color:#64748b;margin-top:1px">รวมทั้งหมด</div>
       </div>
     </div>`;
@@ -182,7 +182,7 @@ export function printEmployeeSummary({
       line-height: 1.4;
     }
     .page-header {
-      border-bottom: 2px solid #1E487A;
+      border-bottom: 2px solid #A65F3C;
       padding-bottom: 8px;
       margin-bottom: 14px;
       display: flex;
@@ -192,7 +192,7 @@ export function printEmployeeSummary({
     .page-header .company {
       font-size: 14px;
       font-weight: 700;
-      color: #1E487A;
+      color: #A65F3C;
     }
     .page-header .title {
       font-size: 11px;

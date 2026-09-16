@@ -139,21 +139,21 @@ export default function FieldOptionSelect({
         className={`
           group w-full bg-white border rounded-lg px-3.5 py-2.5 text-sm text-left
           transition-colors flex items-center gap-2
-          ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' :
+          ${disabled ? 'bg-stone-50 text-stone-400 cursor-not-allowed border-stone-200' :
             open
-              ? 'border-[#1E487A] border border-[#1E487A]/15 shadow-sm'
-              : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/40'
+              ? 'border-[#A65F3C] border border-[#A65F3C]/15 shadow-sm'
+              : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/40'
           }
         `}
       >
         {Icon && (
           <Icon
-            className={`h-4 w-4 shrink-0 ${open ? 'text-[#1E487A]' : 'text-slate-400'}`}
+            className={`h-4 w-4 shrink-0 ${open ? 'text-[#A65F3C]' : 'text-stone-400'}`}
             strokeWidth={1.9}
           />
         )}
 
-        <span className={`flex-1 truncate ${hasValue ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>
+        <span className={`flex-1 truncate ${hasValue ? 'text-stone-800 font-medium' : 'text-stone-400'}`}>
           {hasValue ? value : placeholder}
         </span>
 
@@ -162,15 +162,15 @@ export default function FieldOptionSelect({
             onClick={handleClear}
             role="button"
             tabIndex={-1}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-slate-100"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-stone-100"
             title="ล้างค่า"
           >
-            <X className="h-3.5 w-3.5 text-slate-400 hover:text-rose-500" strokeWidth={2} />
+            <X className="h-3.5 w-3.5 text-stone-400 hover:text-rose-500" strokeWidth={2} />
           </span>
         )}
 
         <ChevronDown
-          className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180 text-[#1E487A]' : ''}`}
+          className={`h-4 w-4 text-stone-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180 text-[#A65F3C]' : ''}`}
           strokeWidth={2}
         />
       </button>
@@ -191,11 +191,11 @@ export default function FieldOptionSelect({
       {/* ── Dropdown Panel ── */}
       {open && (
         <div
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-sm shadow-slate-950/10 border border-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-sm shadow-slate-950/10 border border-stone-200/80 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
         >
           {/* Search input */}
-          <div className="relative border-b border-slate-100">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" strokeWidth={2} />
+          <div className="relative border-b border-stone-100">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400 pointer-events-none" strokeWidth={2} />
             <input
               ref={inputRef}
               type="text"
@@ -203,23 +203,23 @@ export default function FieldOptionSelect({
               onChange={(e) => { setQuery(e.target.value); setHighlight(0); }}
               onKeyDown={handleKeyDown}
               placeholder={allowCustom ? 'ค้นหา หรือพิมพ์เพื่อสร้างใหม่...' : 'ค้นหา...'}
-              className="w-full pl-9 pr-3 py-2.5 text-sm bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+              className="w-full pl-9 pr-3 py-2.5 text-sm bg-transparent outline-none text-stone-700 placeholder:text-stone-400"
             />
           </div>
 
           {/* List */}
           <div
             ref={listRef}
-            className="max-h-56 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full"
+            className="max-h-56 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-stone-200 [&::-webkit-scrollbar-thumb]:rounded-full"
           >
             {filtered.length === 0 && !allowCustom && (
-              <div className="px-3 py-6 text-center text-[13.5px] text-slate-400">
+              <div className="px-3 py-6 text-center text-[13.5px] text-stone-400">
                 ไม่พบรายการ
               </div>
             )}
 
             {filtered.length === 0 && allowCustom && !query.trim() && (
-              <div className="px-3 py-6 text-center text-[13.5px] text-slate-400">
+              <div className="px-3 py-6 text-center text-[13.5px] text-stone-400">
                 ยังไม่มีตัวเลือก — พิมพ์เพื่อสร้างใหม่
               </div>
             )}
@@ -236,13 +236,13 @@ export default function FieldOptionSelect({
                   onClick={() => handleSelect(opt)}
                   className={`
                     w-full px-3 py-2 text-[14px] text-left flex items-center justify-between gap-2 transition-colors
-                    ${isHighlighted ? 'bg-blue-50/70' : ''}
-                    ${isSelected ? 'text-[#1E487A] font-semibold' : 'text-slate-700'}
+                    ${isHighlighted ? 'bg-stone-50/70' : ''}
+                    ${isSelected ? 'text-[#A65F3C] font-semibold' : 'text-stone-700'}
                   `}
                 >
                   <span className="truncate">{opt}</span>
                   {isSelected && (
-                    <Check className="h-3.5 w-3.5 text-[#1E487A] shrink-0" strokeWidth={2.5} />
+                    <Check className="h-3.5 w-3.5 text-[#A65F3C] shrink-0" strokeWidth={2.5} />
                   )}
                 </button>
               );
@@ -254,10 +254,10 @@ export default function FieldOptionSelect({
                 type="button"
                 onClick={handleCreate}
                 onMouseEnter={() => setHighlight(-1)}
-                className="w-full px-3 py-2 text-[14px] text-left flex items-center gap-2 text-emerald-700 hover:bg-emerald-50/60 border-t border-slate-100 mt-1 pt-2.5"
+                className="w-full px-3 py-2 text-[14px] text-left flex items-center gap-2 text-olive-700 hover:bg-olive-50/60 border-t border-stone-100 mt-1 pt-2.5"
               >
-                <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
-                  <Plus className="h-3 w-3 text-emerald-600" strokeWidth={2.5} />
+                <div className="w-5 h-5 rounded-lg bg-olive-100 flex items-center justify-center shrink-0">
+                  <Plus className="h-3 w-3 text-olive-600" strokeWidth={2.5} />
                 </div>
                 <span className="truncate">
                   สร้างใหม่: <span className="font-semibold">"{query.trim()}"</span>
@@ -268,14 +268,14 @@ export default function FieldOptionSelect({
 
           {/* Footer hint */}
           {filtered.length > 5 && (
-            <div className="px-3 py-1.5 border-t border-slate-100 bg-slate-50/40 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">
+            <div className="px-3 py-1.5 border-t border-stone-100 bg-stone-50/40 flex items-center justify-between">
+              <span className="text-[11px] text-stone-400">
                 {filtered.length} รายการ
               </span>
-              <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                <kbd className="px-1 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono">↑↓</kbd>
+              <span className="text-[11px] text-stone-400 flex items-center gap-1.5">
+                <kbd className="px-1 py-0.5 bg-white border border-stone-200 rounded text-[10px] font-mono">↑↓</kbd>
                 เลื่อน
-                <kbd className="px-1 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono">⏎</kbd>
+                <kbd className="px-1 py-0.5 bg-white border border-stone-200 rounded text-[10px] font-mono">⏎</kbd>
                 เลือก
               </span>
             </div>

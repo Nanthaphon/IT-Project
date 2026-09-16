@@ -101,7 +101,7 @@ export default function Sidebar({
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen && setSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-950/30 z-40 md:hidden"
+          className="fixed inset-0 bg-stone-950/30 z-40 md:hidden"
         />
       )}
 
@@ -110,7 +110,7 @@ export default function Sidebar({
           fixed md:static inset-y-0 left-0 z-50
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         style={{
-          background: 'linear-gradient(180deg, #1E487A 0%, #112F57 100%)',
+          background: 'linear-gradient(180deg, #6E3B26 0%, #4A2B29 100%)',
         }}
       >
 
@@ -150,7 +150,7 @@ export default function Sidebar({
                           ? 'font-semibold text-white bg-white/15 border border-white/15'
                           : hovered
                             ? 'font-medium text-white bg-white/8'
-                            : 'font-medium text-blue-100/85 hover:text-white'
+                            : 'font-medium text-stone-100/85 hover:text-white'
                         }`}
                     >
                       {/* Icon container */}
@@ -158,8 +158,8 @@ export default function Sidebar({
                         <Icon className="h-[16px] w-[16px]" strokeWidth={active ? 2.4 : 2} />
                         {/* จุดสีบน icon เมื่อมีค้าง (ไม่ active) */}
                         {!active && count > 0 && (
-                          <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-[#1E487A] ${
-                            isExpiryBadge ? 'bg-amber-400' : 'bg-rose-400'
+                          <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-[#6E3B26] ${
+                            isExpiryBadge ? 'bg-clay-400' : 'bg-rose-400'
                           }`} />
                         )}
                       </span>
@@ -169,11 +169,11 @@ export default function Sidebar({
                       {/* Count badge */}
                       {count > 0 && (
                         <span
-                          className={`text-[10.5px] font-bold tabular-nums px-1.5 min-w-[20px] h-[19px] inline-flex items-center justify-center rounded-full shrink-0 ${
+                          className={`text-[10.5px] font-medium tabular-nums px-1.5 min-w-[20px] h-[19px] inline-flex items-center justify-center rounded-full shrink-0 ${
                             active
                               ? 'bg-white/25 text-white'
                               : isExpiryBadge
-                                ? 'bg-amber-400 text-amber-950'
+                                ? 'bg-clay-400 text-clay-950'
                                 : 'bg-rose-400 text-white'
                           }`}
                           title={isExpiryBadge ? `${count} รายการใกล้หมดอายุ` : `${count} รายการรอดำเนินการ`}
@@ -184,7 +184,7 @@ export default function Sidebar({
 
                       {/* Arrow ตอน hover (เฉพาะไม่ active และไม่มี badge) */}
                       {!active && hovered && count === 0 && (
-                        <ChevronRight className="h-3.5 w-3.5 text-blue-200/60 shrink-0" strokeWidth={2.4} />
+                        <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2.4} />
                       )}
 
                       {/* Active dot indicator */}
@@ -213,7 +213,7 @@ export default function Sidebar({
               className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-colors ${
                 hoveredId === '__changepwd__'
                   ? 'bg-white/8 text-white'
-                  : 'text-blue-100/85 hover:text-white'
+                  : 'text-stone-100/85 hover:text-white'
               }`}
             >
               <span className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0">
@@ -221,7 +221,7 @@ export default function Sidebar({
               </span>
               <span className="truncate flex-1 text-left">เปลี่ยนรหัสผ่าน</span>
               {hoveredId === '__changepwd__' && (
-                <ChevronRight className="h-3.5 w-3.5 text-blue-200/60 shrink-0" strokeWidth={2.4} />
+                <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2.4} />
               )}
             </button>
           </div>

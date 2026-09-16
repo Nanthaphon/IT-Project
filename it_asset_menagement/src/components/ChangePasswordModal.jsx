@@ -72,13 +72,13 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={handleClose}>
+    <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]" onClick={handleClose}>
       <div
-        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-md w-full overflow-hidden border border-slate-200/60"
+        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] max-w-md w-full overflow-hidden border border-stone-200/60"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── header ── */}
-        <div className="px-6 pt-6 pb-5 text-center border-b border-slate-100">
+        <div className="px-6 pt-6 pb-5 text-center border-b border-stone-100">
           <div
             className="mx-auto flex items-center justify-center h-14 w-14 rounded-xl mb-4 border"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
@@ -88,7 +88,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           <h3 className="text-[19px] font-semibold tracking-tight" style={{ color: BRAND.primary }}>
             เปลี่ยนรหัสผ่าน
           </h3>
-          <p className="text-[13.5px] text-slate-500 mt-1">
+          <p className="text-[13.5px] text-stone-500 mt-1">
             ยืนยันด้วยรหัสผ่านปัจจุบัน เพื่อความปลอดภัยของบัญชี
           </p>
         </div>
@@ -129,14 +129,14 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 
           {/* requirements */}
           {newPassword.length > 0 && (
-            <div className="bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-2.5 space-y-1">
+            <div className="bg-stone-50 border border-stone-100 rounded-xl px-3.5 py-2.5 space-y-1">
               {rules.map((r, i) => (
                 <div key={i} className="flex items-center gap-2 text-[12.5px]">
                   <CheckCircle2
-                    className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-emerald-500' : 'text-slate-300'}`}
+                    className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-olive-500' : 'text-stone-300'}`}
                     strokeWidth={2.2}
                   />
-                  <span className={r.ok ? 'text-slate-700 font-medium' : 'text-slate-400'}>{r.label}</span>
+                  <span className={r.ok ? 'text-stone-700 font-medium' : 'text-stone-400'}>{r.label}</span>
                 </div>
               ))}
             </div>
@@ -156,7 +156,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
               <p className="text-[12.5px] text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
             )}
             {confirmPassword.length > 0 && matchOk && (
-              <p className="text-[12.5px] text-emerald-600 mt-1.5 font-medium flex items-center gap-1">
+              <p className="text-[12.5px] text-olive-600 mt-1.5 font-medium flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" strokeWidth={2.5} /> ตรงกันแล้ว
               </p>
             )}
@@ -167,7 +167,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
             >
               ยกเลิก
             </button>
@@ -190,7 +190,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 function Field({ label, required, children }) {
   return (
     <div>
-      <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">
+      <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}
@@ -208,17 +208,17 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         placeholder={placeholder}
         autoFocus={autoFocus}
         required
-        className={`w-full bg-slate-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-colors text-[14.5px] text-slate-800 placeholder:text-slate-400 ${
+        className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-colors text-[14.5px] text-stone-800 placeholder:text-stone-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
-            : 'border-slate-200 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'
+            : 'border-stone-200 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C]'
         }`}
       />
       <button
         type="button"
         onClick={onToggle}
         tabIndex={-1}
-        className="absolute right-0 top-0 h-full px-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+        className="absolute right-0 top-0 h-full px-3 flex items-center text-stone-400 hover:text-stone-600 transition-colors"
       >
         {show ? <EyeOff className="h-4 w-4" strokeWidth={1.8} /> : <Eye className="h-4 w-4" strokeWidth={1.8} />}
       </button>

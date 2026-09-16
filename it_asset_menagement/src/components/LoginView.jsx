@@ -21,7 +21,7 @@ export default function LoginView({
       className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{
         background:
-          'radial-gradient(60% 50% at 50% 0%, rgba(30,72,122,0.10) 0%, rgba(30,72,122,0) 60%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F8 100%)',
+          'radial-gradient(60% 50% at 50% 0%, rgba(166,95,60,0.10) 0%, rgba(166,95,60,0) 60%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F8 100%)',
       }}
     >
       {/* Subtle decoration */}
@@ -41,10 +41,10 @@ export default function LoginView({
           {/* Logo + title */}
           <div className="text-center mb-10">
             <Logo />
-            <h1 className="text-[34px] font-semibold text-slate-900 mb-2 tracking-tight">
+            <h1 className="text-[34px] font-semibold text-stone-900 mb-2 tracking-tight">
               ระบบจัดการทรัพย์สิน IT
             </h1>
-            <p className="text-slate-500 text-[15.5px]">เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
+            <p className="text-stone-500 text-[15.5px]">เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
           </div>
 
           {/* Role buttons — compact horizontal pills */}
@@ -69,7 +69,7 @@ export default function LoginView({
           </div>
 
           {/* Footer hint */}
-          <p className="mt-9 text-[12.5px] text-slate-400 text-center">
+          <p className="mt-9 text-[12.5px] text-stone-400 text-center">
             © {new Date().getFullYear()} Globe Syndicate — IT Asset Management
           </p>
         </div>
@@ -78,11 +78,11 @@ export default function LoginView({
         <div className="w-full max-w-md mx-auto relative z-10">
           <div className="text-center mb-7">
             <Logo />
-            <h2 className="text-[25px] font-semibold text-slate-900 tracking-tight">IT Administrator</h2>
-            <p className="text-slate-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
+            <h2 className="text-[25px] font-semibold text-stone-900 tracking-tight">IT Administrator</h2>
+            <p className="text-stone-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm shadow-slate-950/5 border border-slate-200/70 p-7">
+          <div className="bg-white rounded-xl shadow-sm shadow-slate-950/5 border border-stone-200/70 p-7">
             <form onSubmit={handleAdminLogin} className="space-y-4">
               {loginError && (
                 <div className="bg-rose-50 text-rose-700 p-3.5 rounded-xl text-sm font-medium border border-rose-200 flex items-start gap-2.5">
@@ -96,7 +96,7 @@ export default function LoginView({
                   type="email"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                  className="w-full bg-slate-50/70 border border-slate-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors text-sm text-slate-800 placeholder:text-slate-400"
+                  className="w-full bg-stone-50/70 border border-stone-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400"
                   placeholder="admin@example.com"
                   required
                 />
@@ -107,7 +107,7 @@ export default function LoginView({
                   type="password"
                   value={loginForm.password}
                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  className="w-full bg-slate-50/70 border border-slate-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors text-sm text-slate-800 placeholder:text-slate-400"
+                  className="w-full bg-stone-50/70 border border-stone-200 pl-10 pr-4 py-3 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#A65F3C]/15 focus:border-[#A65F3C] outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400"
                   placeholder="••••••••"
                   required
                 />
@@ -116,7 +116,7 @@ export default function LoginView({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3.5 bg-[#1E487A] text-white font-semibold rounded-lg hover:bg-[#163963] mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
+                className="w-full py-3.5 bg-[#A65F3C] text-white font-semibold rounded-lg hover:bg-[#8E4E30] mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
               >
                 {loginLoading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -133,7 +133,7 @@ export default function LoginView({
                 <button
                   type="button"
                   onClick={() => setForgotOpen(true)}
-                  className="text-[13.5px] font-medium text-slate-500 hover:text-[#1E487A] transition-colors inline-flex items-center gap-1.5"
+                  className="text-[13.5px] font-medium text-stone-500 hover:text-[#A65F3C] transition-colors inline-flex items-center gap-1.5"
                 >
                   <KeyRound className="h-3.5 w-3.5" strokeWidth={1.8} />
                   ลืมรหัสผ่าน?
@@ -146,7 +146,7 @@ export default function LoginView({
           {alertMsg && (
             <div className={`mt-4 px-4 py-3 rounded-xl text-[13.5px] font-medium border flex items-start gap-2 ${
               alertMsg.type === 'success'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                ? 'bg-olive-50 text-olive-700 border-olive-200'
                 : 'bg-rose-50 text-rose-700 border-rose-200'
             }`}>
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
@@ -169,7 +169,7 @@ export default function LoginView({
                 setLoginError('');
                 setLoginForm({ username: '', password: '' });
               }}
-              className="text-sm font-medium text-slate-500 hover:text-[#1E487A] transition-colors inline-flex items-center gap-1.5"
+              className="text-sm font-medium text-stone-500 hover:text-[#A65F3C] transition-colors inline-flex items-center gap-1.5"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
               กลับไปหน้าเลือกบทบาท
@@ -184,8 +184,8 @@ export default function LoginView({
 function Logo() {
   return (
     <div
-      className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-[#1E487A]/25 border border-white/50"
-      style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
+      className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-[#A65F3C]/25 border border-white/50"
+      style={{ background: 'linear-gradient(135deg, #A65F3C 0%, #8E4E30 100%)' }}
     >
       <img
         src="/gb_icon.svg"
@@ -204,8 +204,8 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
       className={`group w-full bg-white rounded-xl border flex items-center gap-5 px-6 py-5 text-left
                   transition-colors hover:shadow-sm
                   ${accent
-                    ? 'border-[#1E487A]/15 hover:border-[#1E487A]/40 hover:shadow-[#1E487A]/10'
-                    : 'border-slate-200/70 hover:border-[#1E487A]/30 hover:shadow-slate-300/30'
+                    ? 'border-[#A65F3C]/15 hover:border-[#A65F3C]/40 hover:shadow-[#A65F3C]/10'
+                    : 'border-stone-200/70 hover:border-[#A65F3C]/30 hover:shadow-slate-300/30'
                   }`}
     >
       {/* Icon */}
@@ -224,11 +224,11 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <h2 className="text-[18px] font-semibold text-slate-900 group-hover:text-[#1E487A] transition-colors leading-tight">
+        <h2 className="text-[18px] font-semibold text-stone-900 group-hover:text-[#A65F3C] transition-colors leading-tight">
           {title}
         </h2>
-        <p className="text-slate-500 text-[14px] mt-1 leading-snug">{description}</p>
-        <p className="text-slate-400 text-[12.5px] font-medium flex items-center gap-1.5 mt-1.5">
+        <p className="text-stone-500 text-[14px] mt-1 leading-snug">{description}</p>
+        <p className="text-stone-400 text-[12.5px] font-medium flex items-center gap-1.5 mt-1.5">
           <HintIcon className="h-3.5 w-3.5" strokeWidth={2} />
           {hint}
         </p>
@@ -236,7 +236,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 
       {/* Arrow */}
       <ArrowRight
-        className="h-5 w-5 text-slate-300 shrink-0 group-hover:text-[#1E487A] group-hover:translate-x-0.5 transition-colors"
+        className="h-5 w-5 text-stone-300 shrink-0 group-hover:text-[#A65F3C] group-hover:translate-x-0.5 transition-colors"
         strokeWidth={2.2}
       />
     </button>
@@ -246,10 +246,10 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 function FormField({ label, icon: Icon, children }) {
   return (
     <div>
-      <label className="block text-[14px] font-medium text-slate-600 mb-1.5">{label}</label>
+      <label className="block text-[14px] font-medium text-stone-600 mb-1.5">{label}</label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <Icon className="h-4 w-4 text-slate-400" strokeWidth={1.8} />
+          <Icon className="h-4 w-4 text-stone-400" strokeWidth={1.8} />
         </div>
         {children}
       </div>

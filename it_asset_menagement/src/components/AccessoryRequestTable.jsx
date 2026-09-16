@@ -109,13 +109,13 @@ export default function AccessoryRequestTable({
 
       {/* ── List — Compact row layout ── */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200/60/70 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-stone-200/60 p-12 text-center">
           <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
           <p className="text-[14.5px] font-semibold text-stone-500">ไม่มีคำขอ</p>
           <p className="text-[12.5px] text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] overflow-hidden">
           {pagedRequests.map((req, idx) => {
             const status = STATUS[req.status] || STATUS['รอดำเนินการ'];
             const reqType = REQUEST_TYPE[req.requestType] || REQUEST_TYPE.new;

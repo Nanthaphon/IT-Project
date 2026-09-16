@@ -3013,7 +3013,8 @@ function App() {
   const isListMenu = ['assets', 'furniture', 'licenses', 'accessories', 'office_supplies', 'employees'].includes(activeMenu);
   // หน้าที่คุม padding + พื้นหลังของตัวเอง -> container ไม่ต้องใส่ padding ให้
   // (dashboard ธีม v3 วาดพื้น stone-50 เต็มพื้นที่เอง)
-  const isFullBleedMenu = isListMenu || activeMenu === 'dashboard';
+  const isFullBleedMenu = isListMenu
+    || ['dashboard', 'replacement_requests', 'repairs'].includes(activeMenu);
 
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };

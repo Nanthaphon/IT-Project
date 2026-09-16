@@ -7,7 +7,7 @@ import {
 import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens (ให้ตรงกับฝั่ง user) ─────────────── */
-const CARD = 'bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
+const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
 const LABEL = 'text-[11px] font-semibold text-stone-400';
 
 /* ─── Status config ──────────────────────────────────────── */
@@ -43,19 +43,14 @@ export default function ReplacementRequestTable({
   ];
 
   return (
-    <div className={`h-full flex flex-col overflow-hidden ${CARD}`}>
+    <div className="bg-sand-50 h-full overflow-y-auto">
 
       {/* ══ Header ══════════════════════════════════════════ */}
-      <div className="shrink-0">
-        <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
-              <RefreshCw className="h-[18px] w-[18px]" strokeWidth={1.9} />
-            </div>
-            <div>
-              <p className="text-[15px] font-medium text-stone-800 tracking-tight">ขอเปลี่ยนเครื่อง</p>
-              <p className="text-[12px] text-stone-400 mt-0.5">{filtered.length} รายการในมุมมองนี้</p>
-            </div>
+      <div className="mx-auto max-w-[1360px] space-y-6 px-6 pt-6 lg:px-8 lg:pt-8">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-[22px] font-medium tracking-tight text-stone-900">ขอเปลี่ยนเครื่อง</h1>
+            <p className="mt-1 text-sm text-stone-500">{filtered.length} รายการในมุมมองนี้</p>
           </div>
 
           {/* status filter pills */}
@@ -81,16 +76,16 @@ export default function ReplacementRequestTable({
           </div>
         </div>
 
-        {/* stat strip */}
-        <div className="grid grid-cols-3 divide-x divide-stone-100 border-b border-stone-100">
-          <StatCell label="รอดำเนินการ" count={counts.pending}  dot="bg-clay-400"   />
-          <StatCell label="อนุมัติแล้ว"  count={counts.approved} dot="bg-olive-400" />
-          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-rose-400"    />
+        {/* แถบสถิติ — การ์ดของตัวเอง */}
+        <div className={`${CARD} grid grid-cols-3 divide-x divide-stone-100`}>
+          <StatCell label="รอดำเนินการ" count={counts.pending}  dot="bg-ochre-600" />
+          <StatCell label="อนุมัติแล้ว"  count={counts.approved} dot="bg-olive-600" />
+          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-rose-500"  />
         </div>
       </div>
 
       {/* ══ Body ════════════════════════════════════════════ */}
-      <div className="flex-1 overflow-y-auto p-5 bg-sand-50">
+      <div className="mx-auto max-w-[1360px] px-6 py-6 lg:px-8 lg:pb-8">
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
@@ -98,7 +93,7 @@ export default function ReplacementRequestTable({
             <p className="text-[12.5px] text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
             {filtered.map((req) => (
               <ReplacementCard
                 key={req.id}
@@ -307,11 +302,11 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
 /* ─── Stat cell (minimal, ธีมเดียวกับฝั่ง user) ──────────── */
 function StatCell({ label, count, dot }) {
   return (
-    <div className="px-5 py-3 flex items-center gap-2.5">
+    <div className="px-6 py-5 flex items-center gap-3">
       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold text-stone-400 truncate">{label}</p>
-        <p className="text-[19px] font-medium text-stone-800 tabular-nums leading-tight">{count}</p>
+        <p className="text-[13px] text-stone-500 truncate">{label}</p>
+        <p className="mt-0.5 text-[26px] font-medium text-stone-900 tabular-nums leading-none">{count}</p>
       </div>
     </div>
   );

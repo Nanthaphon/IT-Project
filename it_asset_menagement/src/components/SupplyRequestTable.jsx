@@ -7,7 +7,7 @@ import {
 import { formatDateTimeShort, formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
-const CARD = 'bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
+const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
 const LABEL = 'text-[11px] font-semibold text-stone-400';
 const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 

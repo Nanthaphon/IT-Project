@@ -7,7 +7,7 @@ import {
 import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
-const CARD = 'bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
+const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
 const LABEL = 'text-[11px] font-semibold text-stone-400';
 const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 
@@ -91,23 +91,18 @@ export default function RepairTable({
   ];
 
   return (
-    <div className={`h-full flex flex-col overflow-hidden ${CARD}`}>
+    <div className="bg-sand-50 h-full overflow-y-auto">
 
       {/* ══ Header ══════════════════════════════════════════ */}
-      <div className="shrink-0">
+      <div className="mx-auto max-w-[1360px] space-y-6 px-6 pt-6 lg:px-8 lg:pt-8">
 
-        {/* title + date filter */}
-        <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
-              <Wrench className="h-[18px] w-[18px]" strokeWidth={1.9} />
-            </div>
-            <div>
-              <p className="text-[15px] font-medium text-stone-800 tracking-tight">แจ้งซ่อม</p>
-              <p className="text-[12px] text-stone-400 mt-0.5">
-                {currentRepairRequests.length} รายการในมุมมองนี้
-              </p>
-            </div>
+        {/* หัวหน้า + ตัวกรองวันที่ */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-[22px] font-medium tracking-tight text-stone-900">แจ้งซ่อม</h1>
+            <p className="mt-1 text-sm text-stone-500">
+              {currentRepairRequests.length} รายการในมุมมองนี้
+            </p>
           </div>
 
           {/* date filters — ปี / เดือน / วัน */}
@@ -146,11 +141,11 @@ export default function RepairTable({
         </div>
 
         {/* stat strip — จุดสี + ตัวเลข (ธีมพนักงาน) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-stone-100 border-b border-stone-100">
-          <StatCell label="รอดำเนินการ"    count={counts.pending}    dot="bg-clay-400"   />
-          <StatCell label="กำลังดำเนินการ" count={counts.inProgress} dot="bg-stone-400"    />
-          <StatCell label="ซ่อมเสร็จสิ้น"  count={counts.done}       dot="bg-olive-400" />
-          <StatCell label="ยกเลิก"         count={counts.cancelled}  dot="bg-stone-300"   />
+        <div className={`${CARD} grid grid-cols-2 sm:grid-cols-4 divide-x divide-stone-100`}>
+          <StatCell label="รอดำเนินการ"    count={counts.pending}    dot="bg-ochre-600" />
+          <StatCell label="กำลังดำเนินการ" count={counts.inProgress} dot="bg-clay-500"  />
+          <StatCell label="ซ่อมเสร็จสิ้น"  count={counts.done}       dot="bg-olive-600" />
+          <StatCell label="ยกเลิก"         count={counts.cancelled}  dot="bg-sand-300"  />
         </div>
 
         {/* status filter pills */}
@@ -177,7 +172,7 @@ export default function RepairTable({
       </div>
 
       {/* ══ Body — Compact horizontal rows ══════════════════ */}
-      <div className="flex-1 overflow-y-auto p-5 bg-sand-50">
+      <div className="mx-auto max-w-[1360px] px-6 py-6 lg:px-8 lg:pb-8">
         {currentRepairRequests.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
@@ -436,11 +431,11 @@ function EvaluationDetail({ evaluation }) {
 /* ─── Stat cell (ธีมพนักงาน — จุดสี + ตัวเลข) ────────────── */
 function StatCell({ label, count, dot }) {
   return (
-    <div className="px-5 py-3 flex items-center gap-2.5">
+    <div className="px-6 py-5 flex items-center gap-3">
       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
         <p className={`${LABEL} truncate`}>{label}</p>
-        <p className="text-[19px] font-medium text-stone-800 tabular-nums leading-tight">{count}</p>
+        <p className="mt-0.5 text-[26px] font-medium text-stone-900 tabular-nums leading-none">{count}</p>
       </div>
     </div>
   );

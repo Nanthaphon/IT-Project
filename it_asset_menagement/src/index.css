@@ -1,4 +1,48 @@
 @import "tailwindcss";
+/* ════════════════════════════════════════════════════════════════
+   Canyon palette (ธีม v3) — ลงทะเบียนเป็นสีของ Tailwind v4
+   ใช้ clay-* / sand-* / ochre-* / olive-* ได้เหมือนสีมาตรฐาน
+   แก้เฉดทั้งระบบได้จากบล็อกนี้บล็อกเดียว
+   ════════════════════════════════════════════════════════════════ */
+@theme {
+  /* terracotta — สีหลัก (ปุ่ม/ไฮไลท์) */
+  --color-clay-50:  #FAF4F0;
+  --color-clay-100: #F3E7DF;
+  --color-clay-200: #E6CDBD;
+  --color-clay-300: #D6AC91;
+  --color-clay-400: #C08761;
+  --color-clay-500: #B06844;
+  --color-clay-600: #A65F3C;   /* ตัวอักษร/ปุ่มทึบ — ผ่าน WCAG AA บนพื้นขาว */
+  --color-clay-700: #8E4E30;
+  --color-clay-800: #6E3B26;
+  --color-clay-900: #4A2B29;   /* maroon — เข้มสุด (sidebar) */
+
+  /* ครีม/เบจ — พื้นหลังและเส้นคั่น */
+  --color-sand-50:  #F7F2EF;
+  --color-sand-100: #EFE8E2;
+  --color-sand-200: #E3DAD1;
+  --color-sand-300: #D3C7BA;
+
+  /* ochre — สถานะกำลังดำเนินการ (แยกจากสีแบรนด์ชัดเจน) */
+  --color-ochre-50:  #FBF4E6;
+  --color-ochre-200: #EBD6A8;
+  --color-ochre-600: #A87A2C;
+  --color-ochre-700: #8A6520;
+  --color-ochre-100: #F5E7C6;
+  --color-ochre-500: #C99542;
+
+  /* olive — สถานะพร้อมใช้งาน/สำเร็จ */
+  --color-olive-50:  #EEF1E9;
+  --color-olive-200: #C9D1BC;
+  --color-olive-600: #5A6749;
+  --color-olive-700: #47513B;
+  --color-olive-100: #E2E8D9;
+  --color-olive-300: #A9B598;
+  --color-olive-400: #8B9A76;
+  --color-olive-500: #6E7C5A;
+  --color-olive-800: #39412F;
+}
+
 
 *, *::before, *::after {
   font-family: 'Bai Jamjuree', sans-serif;
@@ -7,4 +51,15 @@
 /* ยกเว้นฟอร์ม — ใช้ฟ้อนระบบเดิม */
 input, textarea, select {
   font-family: inherit;
+}
+
+/* ธีม v3 (earth tone) — ให้ control ของเบราว์เซอร์เอง (checkbox / radio /
+   progress / แถบเลือกข้อความ) ใช้สีแบรนด์แทนสีฟ้า default ของระบบ */
+:root {
+  accent-color: #A65F3C;
+  color-scheme: light;
+}
+::selection {
+  background: #A65F3C;
+  color: #fff;
 }

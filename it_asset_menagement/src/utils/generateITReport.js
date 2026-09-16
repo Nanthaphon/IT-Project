@@ -282,7 +282,7 @@ function slide2(pptx, { month, year, company, reportDate }) {
 /* ═══════════════════════════════════
    SLIDE 3 – SUPPORT
 ═══════════════════════════════════ */
-function slide3(pptx, { month, year, company, employees, repairRequests, bigIssues }) {
+function slide3(pptx, { month, year, company, employees, repairRequests, bigIssues, supportStats }) {
   const s = pptx.addSlide();
   s.background = { color: C.white };
   addHeader(pptx, s, 'สรุปผลการดำเนินงาน', 'ฝ่ายสนับสนุน');
@@ -296,11 +296,17 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
   const closedWon  = monthly.filter(r => doneKw.some(k => (r.status||'').includes(k))).length;
   const closedLose = monthly.filter(r => loseKw.some(k => (r.status||'').includes(k))).length;
 
+  // 🆕 ใช้ค่าที่ผู้ใช้แก้ใน preview (ถ้ามี) มิฉะนั้นคำนวณจากระบบ
+  const empCount  = supportStats?.employees  ?? employees.length;
+  const caseCount = supportStats?.monthly    ?? monthly.length;
+  const won       = supportStats?.closedWon  ?? closedWon;
+  const lose      = supportStats?.closedLose ?? closedLose;
+
   const stats = [
-    { v: employees.length, label:'พนักงานทั้งหมด', sub:'จำนวนพนักงาน', color: C.blue  },
-    { v: monthly.length,   label:'เคสทั้งหมด',       sub:'เดือนนี้',      color: C.blue  },
-    { v: closedWon,        label:'ปิดสำเร็จ',       sub:'ปิดงานสำเร็จ',  color: C.green },
-    { v: closedLose,       label:'ไม่สำเร็จ',       sub:'ยกเลิก/ไม่สำเร็จ', color: C.red },
+    { v: empCount,  label:'พนักงานทั้งหมด', sub:'จำนวนพนักงาน', color: C.blue  },
+    { v: caseCount, label:'เคสทั้งหมด',       sub:'เดือนนี้',      color: C.blue  },
+    { v: won,       label:'ปิดสำเร็จ',       sub:'ปิดงานสำเร็จ',  color: C.green },
+    { v: lose,      label:'ไม่สำเร็จ',       sub:'ยกเลิก/ไม่สำเร็จ', color: C.red },
   ];
   stats.forEach((st, i) => {
     const bx = 0.4 + i * 3.13, by = 1.18, bw = 2.9, bh = 1.65;
@@ -396,8 +402,9 @@ export function getHardwareSummary(assets = [], accessories = []) {
 }
 
 function slide4(pptx, ctx, startPageNum) {
-  const { assets, accessories } = ctx;
-  const summary = getHardwareSummary(assets, accessories);
+  const { assets, accessories, hardwareSummary } = ctx;
+  // 🆕 ใช้ตารางที่ผู้ใช้แก้ใน preview (ถ้ามี) มิฉะนั้นคำนวณจากระบบ
+  const summary = hardwareSummary ?? getHardwareSummary(assets, accessories);
 
   const hdr = [
     cellH('ลำดับ',          {}),
@@ -469,8 +476,9 @@ export function getSoftwareSummary(licenses = []) {
 }
 
 function slide5(pptx, ctx, startPageNum) {
-  const { licenses } = ctx;
-  const summary = getSoftwareSummary(licenses);
+  const { licenses, softwareSummary } = ctx;
+  // 🆕 ใช้ตารางที่ผู้ใช้แก้ใน preview (ถ้ามี) มิฉะนั้นคำนวณจากระบบ
+  const summary = softwareSummary ?? getSoftwareSummary(licenses);
 
   const hdr = [
     cellH('ลำดับ',     {}),
@@ -630,6 +638,8 @@ export async function generateITReport({
   employees = [], repairRequests = [],
   assets = [], accessories = [], licenses = [],
   bigIssues = [], rdProjects = [], followUps = [],
+  // 🆕 ค่าที่ผู้ใช้แก้ใน preview (override การคำนวณอัตโนมัติ) — ไม่ส่งมา = ใช้ค่าจากระบบ
+  supportStats = null, hardwareSummary = null, softwareSummary = null,
 }) {
   const pptx = new PptxGenJS();
   pptx.layout  = 'LAYOUT_WIDE';
@@ -644,6 +654,7 @@ export async function generateITReport({
     month, year, company: companyName, reportDate,
     employees, repairRequests, assets, accessories, licenses,
     bigIssues, rdProjects, followUps,
+    supportStats, hardwareSummary, softwareSummary,   // 🆕 override จาก preview
   };
 
   slide1(pptx, ctx);

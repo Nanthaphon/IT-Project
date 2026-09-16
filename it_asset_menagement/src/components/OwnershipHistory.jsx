@@ -110,7 +110,7 @@ export default function OwnershipHistory({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-1 h-4 rounded-full bg-clay-600" />
-          <h4 className="text-[13px] font-semibold text-stone-600">ประวัติการครอบครอง ({periods.length})</h4>
+          <h4 className="text-[13px] font-medium text-stone-600">ประวัติการครอบครอง ({periods.length})</h4>
         </div>
         <button
           onClick={() => setAddOpen(true)}
@@ -307,7 +307,7 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
 
         <div className="px-6 py-4 border-t border-stone-100 bg-white flex justify-end gap-2.5">
           <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-lg text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 disabled:opacity-50">ยกเลิก</button>
-          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
+          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
         </div>
       </div>
     </div>
@@ -785,7 +785,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
               {fileIcon(pendingFile.file.type)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-stone-800 truncate">{pendingFile.file.name}</p>
+              <p className="text-[13px] font-medium text-stone-800 truncate">{pendingFile.file.name}</p>
               <p className={`text-[11px] mt-0.5 ${pendingFile.file.size > FILE_WARN_BYTES ? 'text-clay-600 font-semibold' : 'text-stone-400'}`}>
                 {formatBytes(pendingFile.file.size)}{pendingFile.file.size > FILE_WARN_BYTES ? ' — ไฟล์ค่อนข้างใหญ่' : ''}
               </p>
@@ -886,7 +886,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
             return (
               <div
                 key={att.id}
-                className="group flex items-center gap-3 rounded-lg bg-white border border-stone-200 px-3 py-2.5 hover:border-clay-600/40 transition-colors"
+                className="group flex items-center gap-3 rounded-xl bg-white border border-stone-200 px-3 py-2.5 hover:border-clay-600/40 transition-colors"
               >
                 {/* Doc-type badge (left strip) */}
                 <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] border ${dt.badge}`}>
@@ -900,7 +900,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                 {/* File info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[13px] font-semibold text-stone-800 truncate leading-snug" title={att.fileName}>
+                    <p className="text-[13px] font-medium text-stone-800 truncate leading-snug" title={att.fileName}>
                       {att.docType === 'other' && att.docLabel
                         ? att.docLabel
                         : att.fileName}
@@ -1468,11 +1468,11 @@ function EditPeriodModal({ period, onClose }) {
 
         <div className="px-6 py-4 border-t border-stone-100 bg-white flex justify-end gap-2.5 shrink-0">
           <button onClick={onClose} disabled={saving}
-            className="px-5 py-2.5 text-[13.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition disabled:opacity-60">
+            className="px-5 py-2.5 text-[13.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition disabled:opacity-60">
             ยกเลิก
           </button>
           <button onClick={handleSave} disabled={saving || overHard}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-lg shadow-sm transition disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-xl shadow-sm transition disabled:opacity-60"
             style={{ background: '#A65F3C' }}>
             {saving ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
@@ -1543,11 +1543,11 @@ function DeletePeriodConfirm({ period, onClose }) {
         </div>
         <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/60 flex justify-end gap-2.5">
           <button onClick={onClose} disabled={deleting}
-            className="px-5 py-2.5 text-[13.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition disabled:opacity-60">
+            className="px-5 py-2.5 text-[13.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition disabled:opacity-60">
             ยกเลิก
           </button>
           <button onClick={handleDelete} disabled={deleting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-brick-600 hover:bg-brick-700 rounded-lg shadow-sm transition disabled:opacity-60">
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-brick-600 hover:bg-brick-700 rounded-xl shadow-sm transition disabled:opacity-60">
             {deleting ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังลบ...</>
             ) : (

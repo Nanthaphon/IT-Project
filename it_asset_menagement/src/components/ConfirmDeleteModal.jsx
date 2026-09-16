@@ -16,7 +16,7 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
           <Trash2 className="h-7 w-7" strokeWidth={1.8} />
         </div>
         <h3 className="text-[20px] font-medium text-stone-900 mb-2 tracking-tight">ยืนยันการลบข้อมูล?</h3>
-        <p className="text-[14.5px] text-stone-500 mb-7 leading-relaxed">
+        <p className="text-sm text-stone-500 mb-7 leading-relaxed">
           คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
           <br />
           <span className="text-rose-600 font-medium">การกระทำนี้ไม่สามารถย้อนกลับได้</span>
@@ -24,7 +24,7 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
         <div className="flex gap-2.5">
           <button
             onClick={close}
-            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
           >
             ยกเลิก
           </button>

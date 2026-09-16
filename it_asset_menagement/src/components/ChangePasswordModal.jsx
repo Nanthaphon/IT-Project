@@ -167,7 +167,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
             >
               ยกเลิก
             </button>
@@ -208,7 +208,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         placeholder={placeholder}
         autoFocus={autoFocus}
         required
-        className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-lg focus:bg-white focus:ring-2 outline-none transition-colors text-[14.5px] text-stone-800 placeholder:text-stone-400 ${
+        className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-xl focus:bg-white focus:ring-2 outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
             : 'border-stone-200 focus:ring-clay-600/15 focus:border-clay-600'

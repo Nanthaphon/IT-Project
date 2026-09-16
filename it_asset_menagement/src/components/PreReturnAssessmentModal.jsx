@@ -336,7 +336,7 @@ export default function PreReturnAssessmentModal({
                 <button
                   type="button"
                   onClick={addDamage}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่มรายการ
                 </button>
@@ -349,7 +349,7 @@ export default function PreReturnAssessmentModal({
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               placeholder="หมายเหตุ / เงื่อนไขพิเศษ (ถ้ามี)"
-              className="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
+              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -404,12 +404,12 @@ export default function PreReturnAssessmentModal({
             )}
           </div>
           <div className="flex gap-2.5">
-            <button onClick={onClose} className="px-5 py-2.5 text-[14px] font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition">
+            <button onClick={onClose} className="px-5 py-2.5 text-[14px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition">
               ยกเลิก
             </button>
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white rounded-lg shadow-sm transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white rounded-xl shadow-sm transition"
               style={{ background: '#A65F3C', boxShadow: '0 4px 14px rgba(166,95,60,0.30)' }}
             >
               <Printer className="h-4 w-4" strokeWidth={2.2} />

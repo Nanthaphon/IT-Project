@@ -400,7 +400,7 @@ export default function EmployeeDetailsModal({
               onClick={handlePrint}
               disabled={!hasNotebook}
               title={!hasNotebook ? 'พนักงานไม่มีโน๊ตบุ๊คในครอบครอง' : `${empNotebooks.length} เครื่อง`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบส่งมอบ
@@ -410,7 +410,7 @@ export default function EmployeeDetailsModal({
               onClick={handlePrintReturn}
               disabled={allHeld.length === 0}
               title={allHeld.length === 0 ? 'พนักงานไม่มีทรัพย์สิน' : `${allHeld.length} รายการ`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบรับคืน
@@ -428,7 +428,7 @@ export default function EmployeeDetailsModal({
                 });
               }}
               title="พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold rounded-lg transition-colors text-white bg-clay-600 hover:bg-clay-700"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-colors text-white bg-clay-600 hover:bg-clay-700"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               พิมพ์ PDF
@@ -449,7 +449,7 @@ export default function EmployeeDetailsModal({
             )}
             <button
               onClick={() => setSelectedEmployee(null)}
-              className="px-4 py-2 text-[13px] font-semibold text-white bg-stone-800 hover:bg-stone-900 rounded-lg transition"
+              className="px-4 py-2 text-[13px] font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-lg transition"
             >
               ปิด
             </button>
@@ -488,7 +488,7 @@ export default function EmployeeDetailsModal({
                 <button
                   key={asset.id}
                   onClick={() => { openReturnFormFor(asset); setReturnPickerOpen(false); }}
-                  className="w-full flex items-center justify-between gap-3 px-3 py-2.5 border border-stone-200 rounded-lg hover:border-olive-400 hover:bg-olive-50 transition text-left"
+                  className="w-full flex items-center justify-between gap-3 px-3 py-2.5 border border-stone-200 rounded-xl hover:border-olive-400 hover:bg-olive-50 transition text-left"
                 >
                   <div className="overflow-hidden">
                     <p className="text-sm font-semibold text-stone-800 truncate">{asset.name || '-'}</p>
@@ -966,7 +966,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
 function StatTile({ label, value, color, bg }) {
   return (
     <div
-      className="rounded-lg px-3.5 py-2.5 border transition-colors"
+      className="rounded-xl px-3.5 py-2.5 border transition-colors"
       style={{ background: bg, borderColor: 'transparent' }}
     >
       <p className="text-[12.5px] font-medium" style={{ color: `${color}AA` }}>{label}</p>

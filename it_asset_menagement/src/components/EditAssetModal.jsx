@@ -28,7 +28,7 @@ function Field({ label, required, hint, children, className = '' }) {
 }
 
 const inputCls =
-  'w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-sm text-stone-800 ' +
+  'w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 ' +
   'placeholder:text-stone-400 outline-none transition-colors ' +
   'hover:border-stone-300 focus:border-clay-600 focus:ring-2 focus:ring-clay-600/15';
 
@@ -144,7 +144,7 @@ export default function EditAssetModal({
                   </div>
                 )}
                 <div className="flex items-center gap-3 flex-wrap">
-                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border border-stone-200 bg-white text-[13.5px] font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-colors">
+                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-[13.5px] font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-colors">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
                     </svg>
@@ -255,7 +255,7 @@ export default function EditAssetModal({
                   {isAssets && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border text-sm font-medium ${
                           (editAssetModal.data.purchaseCondition || 'new') === 'new'
                             ? 'bg-olive-50 border border-olive-500 text-olive-700'
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
@@ -263,7 +263,7 @@ export default function EditAssetModal({
                           <input type="radio" name="purchaseCondition" value="new" checked={(editAssetModal.data.purchaseCondition || 'new') === 'new'} onChange={handleEditAssetChange} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border text-sm font-medium ${
                           editAssetModal.data.purchaseCondition === 'used'
                             ? 'bg-clay-100 border border-clay-500 text-clay-600'
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
@@ -510,13 +510,13 @@ export default function EditAssetModal({
               <button
                 type="button"
                 onClick={close}
-                className="px-5 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors"
               >
                 ยกเลิก
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-clay-600 hover:bg-clay-700 transition-colors focus:outline-none focus:ring-2 focus:ring-clay-600/30"
+                className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl bg-clay-600 hover:bg-clay-700 transition-colors focus:outline-none focus:ring-2 focus:ring-clay-600/30"
               >
                 บันทึกการแก้ไข
               </button>

@@ -41,7 +41,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
         <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           รีเซ็ตรหัสผ่าน
         </h3>
-        <p className="text-[14.5px] text-stone-500 mb-6 leading-relaxed">
+        <p className="text-sm text-stone-500 mb-6 leading-relaxed">
           กรุณาระบุอีเมลที่ใช้ในระบบ
           <br />
           เพื่อรับลิงก์สำหรับตั้งรหัสผ่านใหม่
@@ -59,7 +59,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
             >
               ยกเลิก
             </button>

@@ -15,11 +15,11 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, canc
           <AlertTriangle className="h-7 w-7" strokeWidth={1.8} />
         </div>
         <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>{title}</h3>
-        <p className="text-[14.5px] text-stone-500 mb-7 leading-relaxed">{message}</p>
+        <p className="text-sm text-stone-500 mb-7 leading-relaxed">{message}</p>
         <div className="flex gap-2.5">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
           >
             {cancelText || 'ยกเลิก'}
           </button>

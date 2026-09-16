@@ -365,7 +365,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
               <button
                 onClick={handleConfirmImport}
                 disabled={importing || !parsed.grouped?.length}
-                className="inline-flex items-center gap-2 px-5 py-2 text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-5 py-2 text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {importing ? (
                   <><Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.4} /> กำลัง Import...</>
@@ -574,7 +574,7 @@ function ResultSection({ result, onClose, onAnother }) {
         <button onClick={onAnother} className="px-5 py-2 text-[13px] font-medium text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50">
           Import อีก
         </button>
-        <button onClick={onClose} className="px-5 py-2 text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm">
+        <button onClick={onClose} className="px-5 py-2 text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm">
           เสร็จสิ้น
         </button>
       </div>

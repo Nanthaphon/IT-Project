@@ -117,7 +117,7 @@ export default function AccessoryRequestTable({
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200/60 p-12 text-center">
           <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
-          <p className="text-[14.5px] font-semibold text-stone-500">ไม่มีคำขอ</p>
+          <p className="text-sm font-semibold text-stone-500">ไม่มีคำขอ</p>
           <p className="text-[12.5px] text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
@@ -369,7 +369,7 @@ export default function AccessoryRequestTable({
               </button>
               <button
                 onClick={confirmReject}
-                className="px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-brick-600 hover:bg-brick-700"
+                className="px-4 py-2 rounded-lg text-[13px] font-medium text-white bg-brick-600 hover:bg-brick-700"
               >
                 ยืนยันปฏิเสธ
               </button>

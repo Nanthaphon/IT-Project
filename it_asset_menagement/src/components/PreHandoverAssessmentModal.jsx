@@ -230,7 +230,7 @@ export default function PreHandoverAssessmentModal({
               value={handoverDate}
               onChange={(v) => setHandoverDate(v)}
               className="w-full sm:w-72"
-              inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+              inputClassName="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
             />
             {selectedAsset && (
               <p className="mt-2 text-[12px] text-stone-500">
@@ -334,7 +334,7 @@ export default function PreHandoverAssessmentModal({
               onChange={(e) => setDefectsNote(e.target.value)}
               rows={3}
               placeholder='ระบุตำหนิ / รอย / Dead Pixel ที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")'
-              className="w-full bg-white border border-stone-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
+              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -478,7 +478,7 @@ export default function PreHandoverAssessmentModal({
                 <button
                   type="button"
                   onClick={() => setShowAddBundleForm(true)}
-                  className="w-full px-3 py-2 text-[13px] font-semibold text-clay-600 bg-white border border-dashed border-stone-300 rounded-lg hover:bg-stone-50 hover:border-clay-600 transition-colors"
+                  className="w-full px-3 py-2 text-[13px] font-medium text-clay-600 bg-white border border-dashed border-stone-300 rounded-lg hover:bg-stone-50 hover:border-clay-600 transition-colors"
                 >
                   + เพิ่มของแถมใหม่เข้า Catalog
                 </button>
@@ -517,7 +517,7 @@ export default function PreHandoverAssessmentModal({
           <div className="flex gap-2.5">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 text-[14px] font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 hover:border-stone-300 transition"
+              className="px-5 py-2.5 text-[14px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition"
             >
               ยกเลิก
             </button>
@@ -525,7 +525,7 @@ export default function PreHandoverAssessmentModal({
               onClick={handlePrint}
               disabled={!selectedAsset}
               title={!selectedAsset ? 'กรุณาเลือกเครื่องก่อน' : ''}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold rounded-lg shadow-sm transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold rounded-xl shadow-sm transition ${
                 selectedAsset
                   ? 'text-white bg-clay-600 hover:bg-clay-700'
                   : 'text-stone-400 bg-stone-200 cursor-not-allowed'

@@ -238,7 +238,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
           {index}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[14.5px] font-semibold text-stone-800 leading-snug">{label}</p>
+          <p className="text-sm font-semibold text-stone-800 leading-snug">{label}</p>
           <p className="text-[12.5px] text-stone-400 mt-0.5 leading-snug">{desc}</p>
         </div>
       </div>
@@ -270,7 +270,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
         </div>
 
         {/* label */}
-        <span className={`text-[13px] font-semibold transition-colors ${labelColor}`}>
+        <span className={`text-[13px] font-medium transition-colors ${labelColor}`}>
           {labelText}
         </span>
       </div>

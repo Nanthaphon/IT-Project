@@ -305,7 +305,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
         {canFullManage && (
           <button
             onClick={openAdd}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors"
             style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` }}
             onMouseEnter={e => (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={e => (e.currentTarget.style.background = BRAND.primary)}
@@ -330,7 +330,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500 text-center">จัดการ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 text-[14.5px] bg-white">
+            <tbody className="divide-y divide-stone-100 text-sm bg-white">
               {users.map(user => (
                 <tr key={user.id} className="hover:bg-stone-50/60 transition-colors group">
 
@@ -516,7 +516,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       onChange={() => setForm(prev => ({ ...prev, level: 'view' }))}
                       className="w-4 h-4 text-clay-600 border-stone-300 focus:ring-clay-600"
                     />
-                    <span className="text-[14.5px] text-stone-700 font-medium group-hover:text-stone-900 select-none">
+                    <span className="text-sm text-stone-700 font-medium group-hover:text-stone-900 select-none">
                       ดูอย่างเดียว
                     </span>
                   </label>
@@ -529,7 +529,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       onChange={() => setForm(prev => ({ ...prev, level: 'full' }))}
                       className="w-4 h-4 text-clay-600 border-stone-300 focus:ring-clay-600"
                     />
-                    <span className="text-[14.5px] text-stone-700 font-medium group-hover:text-stone-900 select-none">
+                    <span className="text-sm text-stone-700 font-medium group-hover:text-stone-900 select-none">
                       แก้ไขได้ทุกอย่าง
                     </span>
                   </label>

@@ -131,7 +131,7 @@ export default function AccessoryRequestTable({
             return (
               <div
                 key={req.id}
-                className={`${idx > 0 ? 'border-t border-stone-100' : ''} transition-colors ${isExpanded ? 'bg-stone-50/50' : 'hover:bg-stone-50/40'}`}
+                className={`${idx > 0 ? 'border-t border-stone-100' : ''} transition-colors ${isExpanded ? 'bg-sand-50' : 'hover:bg-stone-50/40'}`}
               >
                 {/* Compact row */}
                 <div className="flex items-center gap-3 px-4 py-3">
@@ -256,7 +256,7 @@ export default function AccessoryRequestTable({
                     {req.damagePhoto && (
                       <button
                         onClick={() => setPreviewPhoto(req.damagePhoto)}
-                        className="inline-flex items-center gap-1.5 text-[12px] text-stone-700 hover:text-[#A65F3C] bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-[12px] text-stone-700 hover:text-clay-600 bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
                       >
                         <ImageIcon className="h-3 w-3" strokeWidth={2.2} />
                         ดูรูปอุปกรณ์ที่ชำรุด
@@ -300,7 +300,7 @@ export default function AccessoryRequestTable({
                     onClick={() => setCurrentPage(p)}
                     className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
                       p === currentPage
-                        ? 'bg-[#A65F3C] text-white'
+                        ? 'bg-clay-600 text-white'
                         : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
                     }`}
                   >
@@ -354,7 +354,7 @@ export default function AccessoryRequestTable({
                 className="w-full border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 resize-none"
               />
             </div>
-            <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/50 flex justify-end gap-2.5">
+            <div className="px-6 py-4 border-t border-stone-100 bg-sand-50 flex justify-end gap-2.5">
               <button
                 onClick={() => setRejectModal({ open: false, req: null, reason: '' })}
                 className="px-4 py-2 rounded-lg text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50"
@@ -379,9 +379,9 @@ function SummaryChip({ label, value, color, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
+      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-colors ${
         active
-          ? 'bg-[#A65F3C] text-white shadow-sm'
+          ? 'bg-clay-600 text-white shadow-sm'
           : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
       }`}
     >

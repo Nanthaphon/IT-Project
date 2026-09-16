@@ -49,7 +49,7 @@ export default function ReplacementRequestTable({
       <div className="shrink-0">
         <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#A65F3C]/8 text-[#A65F3C] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
               <RefreshCw className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </div>
             <div>
@@ -64,9 +64,9 @@ export default function ReplacementRequestTable({
               <button
                 key={f.value}
                 onClick={() => setFilterStatus(f.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-colors ${
                   filterStatus === f.value
-                    ? 'bg-[#A65F3C] text-white'
+                    ? 'bg-clay-600 text-white'
                     : 'text-stone-500 hover:bg-stone-100 hover:text-stone-700'
                 }`}
               >
@@ -90,7 +90,7 @@ export default function ReplacementRequestTable({
       </div>
 
       {/* ══ Body ════════════════════════════════════════════ */}
-      <div className="flex-1 overflow-y-auto p-5 bg-stone-50/50">
+      <div className="flex-1 overflow-y-auto p-5 bg-sand-50">
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
@@ -134,7 +134,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
 
         {/* employee row */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#A65F3C] text-white flex items-center justify-center text-sm font-medium shrink-0 select-none">
+          <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-sm font-medium shrink-0 select-none">
             {initial}
           </div>
           <div className="min-w-0 flex-1">
@@ -178,7 +178,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
               {req.reason}
             </p>
             {req.reason.length > 80 && (
-              <p className="text-[11.5px] text-[#A65F3C] font-semibold mt-1 text-right">
+              <p className="text-[11.5px] text-clay-600 font-semibold mt-1 text-right">
                 {expanded ? 'ย่อ ▲' : 'อ่านเพิ่ม ▼'}
               </p>
             )}
@@ -198,7 +198,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
                   key={i}
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setViewPhoto(p.data); }}
-                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-[#A65F3C] transition-colors bg-white"
+                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors bg-white"
                   title="คลิกเพื่อขยาย"
                 >
                   <img src={p.data} alt={p.name || `รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
@@ -223,7 +223,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             {req.managerEmail ? (
               <a
                 href={`mailto:${req.managerEmail}`}
-                className="flex items-center gap-1 text-[12px] text-[#A65F3C] font-medium mt-0.5 hover:underline truncate"
+                className="flex items-center gap-1 text-[12px] text-clay-600 font-medium mt-0.5 hover:underline truncate"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Mail className="h-3 w-3 shrink-0" strokeWidth={2} />
@@ -249,7 +249,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             <>
               <button
                 onClick={() => onUpdateStatus(req.id, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-[#A65F3C] text-white hover:bg-[#8E4E30] transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-clay-600 text-white hover:bg-[#8E4E30] transition-colors"
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                 อนุมัติ

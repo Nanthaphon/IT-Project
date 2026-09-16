@@ -9,7 +9,7 @@ import { formatDateTimeShort } from '../utils/formatDate.js';
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
 const LABEL = 'text-[11px] font-semibold text-stone-400';
-const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition-colors';
+const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 
 /* ─── Status config ──────────────────────────────────────── */
 const STATUS = {
@@ -99,7 +99,7 @@ export default function RepairTable({
         {/* title + date filter */}
         <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#A65F3C]/8 text-[#A65F3C] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
               <Wrench className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </div>
             <div>
@@ -159,9 +159,9 @@ export default function RepairTable({
             <button
               key={f.value}
               onClick={() => setRepairFilterStatus(f.value)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-colors ${
                 repairFilterStatus === f.value
-                  ? 'bg-[#A65F3C] text-white'
+                  ? 'bg-clay-600 text-white'
                   : 'text-stone-500 hover:bg-stone-100 hover:text-stone-700'
               }`}
             >
@@ -177,7 +177,7 @@ export default function RepairTable({
       </div>
 
       {/* ══ Body — Compact horizontal rows ══════════════════ */}
-      <div className="flex-1 overflow-y-auto p-5 bg-stone-50/50">
+      <div className="flex-1 overflow-y-auto p-5 bg-sand-50">
         {currentRepairRequests.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
@@ -224,7 +224,7 @@ export default function RepairTable({
                           onClick={() => setCurrentPage(p)}
                           className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
                             p === currentPage
-                              ? 'bg-[#A65F3C] text-white'
+                              ? 'bg-clay-600 text-white'
                               : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
                           }`}
                         >
@@ -261,13 +261,13 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
   const hasDetails = (req.issue && req.issue.length > 60) || req.evaluation;
 
   return (
-    <div className={`${isFirst ? '' : 'border-t border-stone-100'} transition-colors ${expanded ? 'bg-stone-50/50' : 'hover:bg-stone-50/40'}`}>
+    <div className={`${isFirst ? '' : 'border-t border-stone-100'} transition-colors ${expanded ? 'bg-sand-50' : 'hover:bg-stone-50/40'}`}>
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Status bar */}
         <div className={`w-1 h-10 rounded-full ${cfg.bar} shrink-0`} />
 
         {/* Avatar */}
-        <div className="w-9 h-9 rounded-lg bg-[#A65F3C] text-white flex items-center justify-center text-[13px] font-semibold shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-[13px] font-semibold shrink-0">
           {initial}
         </div>
 
@@ -323,7 +323,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
           {canEdit && isPending && (
             <button
               onClick={() => onUpdateStatus(req.id, 'กำลังดำเนินการ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
               <Play className="h-3 w-3" strokeWidth={2.4} />
               <span className="hidden sm:inline">เริ่มซ่อม</span>

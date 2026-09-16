@@ -9,7 +9,7 @@ import { formatDateTimeShort, formatDateShort } from '../utils/formatDate.js';
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60/70 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
 const LABEL = 'text-[11px] font-semibold text-stone-400';
-const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-[#A65F3C]/20 focus:border-[#A65F3C] transition-colors';
+const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
@@ -265,7 +265,7 @@ export default function SupplyRequestTable({
         {/* title + date filter */}
         <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#A65F3C]/8 text-[#A65F3C] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
               <ClipboardList className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </div>
             <div>
@@ -328,7 +328,7 @@ export default function SupplyRequestTable({
               className="flex-1 flex items-center justify-between px-4 py-2.5 bg-white border border-stone-200 hover:border-stone-300 hover:bg-stone-50 rounded-lg transition-colors group"
             >
               <div className="flex items-center gap-2.5">
-                <BarChart3 className="h-4 w-4 text-[#A65F3C]" strokeWidth={2} />
+                <BarChart3 className="h-4 w-4 text-clay-600" strokeWidth={2} />
                 <span className="text-[13px] font-semibold text-stone-700">Dashboard วิเคราะห์คำขอ</span>
                 <span className="text-[11.5px] text-stone-400 hidden sm:inline">
                   อนุมัติแล้ว {insights.approvedCount} รายการ · {insights.totalApprovedQty.toLocaleString()} ชิ้น
@@ -342,7 +342,7 @@ export default function SupplyRequestTable({
             <button
               onClick={handleExportCSV}
               disabled={currentSupplyRequests.length === 0}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#A65F3C] hover:bg-[#8E4E30] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white rounded-lg text-[13px] font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-clay-600 hover:bg-clay-700 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white rounded-lg text-[13px] font-semibold transition-colors"
               title="ส่งออกรายงาน CSV สำหรับเสนอผู้บริหาร"
             >
               <Download className="h-4 w-4" strokeWidth={2.2} />
@@ -356,7 +356,7 @@ export default function SupplyRequestTable({
               {/* ── Donut chart: สัดส่วนอุปกรณ์ที่เบิก ── */}
               <div className="bg-white border border-stone-200 rounded-lg overflow-hidden p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <BarChart3 className="h-4 w-4 text-[#A65F3C]" strokeWidth={2} />
+                  <BarChart3 className="h-4 w-4 text-clay-600" strokeWidth={2} />
                   <span className="text-[13px] font-medium text-stone-700">สัดส่วนการเบิกอุปกรณ์</span>
                 </div>
                 {insights.topItems.length === 0 ? (
@@ -418,7 +418,7 @@ export default function SupplyRequestTable({
                 {/* Top items */}
                 <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
                   <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-100 flex items-center gap-2">
-                    <Package className="h-4 w-4 text-[#A65F3C]" strokeWidth={2} />
+                    <Package className="h-4 w-4 text-clay-600" strokeWidth={2} />
                     <span className="text-[13px] font-medium text-stone-700">อุปกรณ์ที่เบิกบ่อยสุด (Top 5)</span>
                   </div>
                   {insights.topItems.length === 0 ? (
@@ -446,11 +446,11 @@ export default function SupplyRequestTable({
                             <div className="flex-1 min-w-0">
                               <p className="text-[13px] font-semibold text-stone-700 truncate">{item.name}</p>
                               <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden mt-1">
-                                <div className="h-full bg-[#A65F3C] rounded-full" style={{ width: `${pct}%` }} />
+                                <div className="h-full bg-clay-600 rounded-full" style={{ width: `${pct}%` }} />
                               </div>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="text-[15px] font-medium text-[#A65F3C] tabular-nums leading-none">
+                              <p className="text-[15px] font-medium text-clay-600 tabular-nums leading-none">
                                 {item.qty.toLocaleString()}
                                 <span className="text-[10.5px] font-normal text-stone-400 ml-0.5">{item.unit || 'ชิ้น'}</span>
                               </p>
@@ -466,7 +466,7 @@ export default function SupplyRequestTable({
                 {/* Top employees */}
                 <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
                   <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-100 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-[#A65F3C]" strokeWidth={2} />
+                    <TrendingUp className="h-4 w-4 text-clay-600" strokeWidth={2} />
                     <span className="text-[13px] font-medium text-stone-700">พนักงานที่เบิกบ่อยสุด (Top 5)</span>
                   </div>
                   {insights.topEmployees.length === 0 ? (
@@ -484,7 +484,7 @@ export default function SupplyRequestTable({
                               i === 2 ? 'bg-ochre-200 text-ochre-700' :
                               'bg-stone-100 text-stone-500'
                             }`}>{i + 1}</div>
-                            <div className="w-8 h-8 rounded-full bg-[#A65F3C]/10 text-[#A65F3C] flex items-center justify-center font-medium text-[12px] shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-clay-600/10 text-clay-600 flex items-center justify-center font-medium text-[12px] shrink-0">
                               {(emp.name || '?').charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -522,9 +522,9 @@ export default function SupplyRequestTable({
             <button
               key={f.value}
               onClick={() => setSupplyFilterStatus(f.value)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-colors ${
                 supplyFilterStatus === f.value
-                  ? 'bg-[#A65F3C] text-white'
+                  ? 'bg-clay-600 text-white'
                   : 'text-stone-500 hover:bg-stone-100 hover:text-stone-700'
               }`}
             >
@@ -592,7 +592,7 @@ export default function SupplyRequestTable({
                           onClick={() => setCurrentPage(p)}
                           className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
                             p === currentPage
-                              ? 'bg-[#A65F3C] text-white'
+                              ? 'bg-clay-600 text-white'
                               : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
                           }`}
                         >
@@ -631,7 +631,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
       <div className={`w-1 h-10 rounded-full ${cfg.bar} shrink-0`} />
 
       {/* employee avatar */}
-      <div className="w-9 h-9 rounded-lg bg-[#A65F3C] text-white flex items-center justify-center text-[13px] font-medium shrink-0 select-none">
+      <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-[13px] font-medium shrink-0 select-none">
         {initial}
       </div>
 
@@ -653,9 +653,9 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
         </div>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-[12px] text-stone-700 truncate">{req.supplyName}</span>
-          <span className="text-[11px] font-semibold text-[#A65F3C] bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
+          <span className="text-[11px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
           {(req.supplyCompany || supply?.company) && (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#A65F3C] bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
               <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
               {req.supplyCompany || supply?.company}
             </span>
@@ -682,7 +682,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <>
             <button
               onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-[#A65F3C] hover:bg-[#8E4E30] transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
               <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">อนุมัติ</span>

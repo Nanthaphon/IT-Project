@@ -1207,7 +1207,7 @@ export default function StaffView({
                           <button
                             type="button"
                             onClick={() => handleRemoveDamagePhoto(i)}
-                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs hover:bg-rose-600 transition-colors flex items-center justify-center"
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs hover:bg-brick-600 transition-colors flex items-center justify-center"
                             title="ลบรูปนี้"
                           >
                             ✕

@@ -168,7 +168,7 @@ export default function PreReturnAssessmentModal({
               <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[18px] font-semibold text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
+              <h3 className="text-[18px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
               <p className="text-[13px] text-stone-500 mt-0.5 truncate">
                 ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-semibold text-stone-700">{employee?.fullName}</span>
               </p>

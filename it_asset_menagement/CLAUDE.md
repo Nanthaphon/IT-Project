@@ -39,7 +39,8 @@ sand   ครีม/เบจ — พื้นหลัง + เส้นคั�
 ochre  สถานะกำลังดำเนินการ                    ochre-50 / ochre-700
 olive  สถานะสำเร็จ / พร้อมใช้งาน              olive-50 / olive-700
 stone  โทนกลาง — ตัวอักษร/ขอบ
-rose   อันตราย/ลบ (เก็บไว้ ต้องอ่านว่าอันตราย)
+rose   ป้าย/ข้อความเตือน สีอ่อน (bg-rose-50 / text-rose-700)
+brick  ปุ่มอันตรายแบบพื้นทึบ           brick-600 #9A4231  hover brick-700
 ```
 
 `clay-600` เลือกมาให้ตัวอักษรขาวผ่าน WCAG AA (4.85:1) — terracotta ดิบ `#B06844` ได้แค่ 4.29 ใช้เป็นพื้นอ่อน/ไฮไลท์เท่านั้น
@@ -50,6 +51,8 @@ rose   อันตราย/ลบ (เก็บไว้ ต้องอ่า
 |---|---|---|
 | **การ์ด** | `rounded-2xl` + `border-stone-200/60` + `shadow-[0_2px_8px_rgba(0,0,0,0.04)]` | `rounded-xl`, ขอบทึบ, เงาหนัก, เงาโทนน้ำเงิน |
 | **ปุ่มหลัก** | `bg-clay-600 text-white rounded-xl font-medium hover:bg-clay-700` | `font-semibold/bold`, `rounded-lg`, gradient |
+| **ปุ่มลบ (ยืนยัน)** | `bg-brick-600 text-white rounded-xl` | `bg-rose-600` (แดงนีออน ตัดกับพื้นครีม) |
+| **Modal** | overlay `bg-stone-950/50` · กล่อง `rounded-2xl` · หัว/ท้าย `px-7 py-5` | overlay ความมืดอื่น, `rounded-xl`, `shadow-2xl` |
 | **ปุ่มรอง** | `bg-white border border-stone-200/60 rounded-xl text-stone-600` | ขอบทึบ |
 | **ป้ายกำกับฟอร์ม** | `text-[13px] font-medium text-stone-500` | **`uppercase`**, `tracking-wide`, `font-semibold` |
 | **Badge สถานะ** | `rounded-lg` + พื้นอ่อน **ไม่มีขอบ** + `font-medium` | pill กลม, `border`, `font-bold` |

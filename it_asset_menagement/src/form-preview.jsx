@@ -7,6 +7,8 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Package } from 'lucide-react';
 import CheckoutModal from './components/CheckoutModal.jsx';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal.jsx';
+import CustomAlert from './components/CustomAlert.jsx';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, Button, SectionHeader, Badge, Card } from './ui/primitives.jsx';
 import { cls } from './ui/theme.js';
 
@@ -27,7 +29,7 @@ function Harness() {
   return (
     <>
       <div className="flex gap-2 bg-[#4A2B29] p-3">
-        {[['primitives', 'primitives กลาง'], ['checkout', 'CheckoutModal ตัวจริง']].map(([k, label]) => (
+        {[['primitives', 'primitives กลาง'], ['checkout', 'CheckoutModal'], ['confirm', 'ยืนยันลบ'], ['alert', 'แจ้งเตือน']].map(([k, label]) => (
           <button
             key={k} onClick={() => { setWhich(k); setCheckout({ isOpen: true, assetId: 'a1', collectionName: 'assets' }); }}
             className={`rounded-lg px-3 py-1.5 text-sm ${which === k ? 'bg-white text-stone-900' : 'text-white/70'}`}
@@ -99,6 +101,21 @@ function Harness() {
           checkoutCondition={condition} setCheckoutCondition={setCondition}
         />
       )}
+      {which === 'confirm' && (
+        <ConfirmDeleteModal
+          confirmDeleteModal={{ isOpen: true, id: 'a1', collectionName: 'assets' }}
+          setConfirmDeleteModal={() => {}}
+          executeDelete={() => console.log('delete')}
+        />
+      )}
+
+      {which === 'alert' && (
+        <CustomAlert
+          customAlert={{ isOpen: true, type: 'error', title: 'เกิดข้อผิดพลาด', message: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง' }}
+          setCustomAlert={() => {}}
+        />
+      )}
+
     </>
   );
 }

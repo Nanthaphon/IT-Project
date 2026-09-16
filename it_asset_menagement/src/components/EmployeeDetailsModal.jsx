@@ -477,7 +477,7 @@ export default function EmployeeDetailsModal({
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-stone-950/50 p-4" onClick={() => setReturnPickerOpen(false)}>
           <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-semibold text-stone-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
+              <h3 className="text-[15px] font-medium text-stone-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
               <button onClick={() => setReturnPickerOpen(false)} className="text-stone-400 hover:text-stone-600 text-xl leading-none">×</button>
             </div>
             <p className="text-[12.5px] text-stone-500 mb-3">

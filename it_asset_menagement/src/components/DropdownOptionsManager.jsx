@@ -58,7 +58,7 @@ const COLOR_MAP = {
   violet:  { tint: '#F5F3FF', icon: 'text-clay-600',  chip: 'bg-ochre-50 text-ochre-700 border-ochre-200', btn: 'bg-clay-600 hover:bg-clay-600' },
   emerald: { tint: '#ECFDF5', icon: 'text-olive-600', chip: 'bg-olive-50 text-olive-700 border-olive-200', btn: 'bg-olive-600 hover:bg-olive-700' },
   amber:   { tint: '#FFFBEB', icon: 'text-clay-600',   chip: 'bg-ochre-50 text-ochre-700 border-ochre-200',    btn: 'bg-clay-600 hover:bg-clay-600' },
-  rose:    { tint: '#FFF1F2', icon: 'text-rose-600',    chip: 'bg-rose-50 text-rose-700 border-rose-200',       btn: 'bg-rose-600 hover:bg-rose-700' },
+  rose:    { tint: '#FFF1F2', icon: 'text-rose-600',    chip: 'bg-rose-50 text-rose-700 border-rose-200',       btn: 'bg-brick-600 hover:bg-brick-700' },
 };
 
 function CategoryCard({ category, values, onAdd, onRemove, saving }) {

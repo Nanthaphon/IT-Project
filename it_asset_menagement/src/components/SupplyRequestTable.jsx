@@ -310,7 +310,7 @@ export default function SupplyRequestTable({
         <div className={`${CARD} grid grid-cols-3 divide-x divide-stone-100`}>
           <StatCell label="รอดำเนินการ" count={counts.pending}  dot="bg-ochre-600" />
           <StatCell label="อนุมัติแล้ว"  count={counts.approved} dot="bg-olive-600" />
-          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-rose-500"  />
+          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-brick-500"  />
         </div>
 
         <div className="pb-8">

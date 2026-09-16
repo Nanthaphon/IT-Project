@@ -2833,7 +2833,7 @@ function AccessoryItemDetailModal({
     ? { label: 'พร้อมใช้งาน', cls: 'bg-olive-50 text-olive-700 border-olive-200', dot: 'bg-olive-500' }
     : item.type === 'assigned'
     ? { label: 'ถูกใช้งาน', cls: 'bg-stone-50 text-stone-700 border-stone-200', dot: 'bg-stone-500' }
-    : { label: 'ชำรุดเสียหาย', cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' };
+    : { label: 'ชำรุดเสียหาย', cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-brick-500' };
   const age = calcAccessoryAge(item.purchaseDate);
   const docs = item.documents || [];
 

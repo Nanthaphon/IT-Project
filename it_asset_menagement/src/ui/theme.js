@@ -62,7 +62,7 @@ export const cls = {
 
   btnDanger:
     'inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-xl ' +
-    'bg-rose-600 hover:bg-rose-700 transition-colors shadow-sm hover:shadow-md ' +
+    'bg-brick-600 hover:bg-brick-700 transition-colors shadow-sm hover:shadow-md ' +
     'focus:outline-none focus:ring-2 focus:ring-rose-200',
 
   // Cards / surfaces — ธีมฝั่งพนักงาน: ขอบบาง + เงานุ่มโทนน้ำเงิน

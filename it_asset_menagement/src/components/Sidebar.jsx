@@ -125,7 +125,7 @@ export default function Sidebar({
                 style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
-            <p className="text-[15.5px] font-semibold text-white tracking-tight">IT Admin</p>
+            <p className="text-[15.5px] font-medium text-white tracking-tight">IT Admin</p>
           </div>
         </div>
 

@@ -369,7 +369,7 @@ export default function AccessoryRequestTable({
               </button>
               <button
                 onClick={confirmReject}
-                className="px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-rose-600 hover:bg-rose-700"
+                className="px-4 py-2 rounded-lg text-[13px] font-semibold text-white bg-brick-600 hover:bg-brick-700"
               >
                 ยืนยันปฏิเสธ
               </button>

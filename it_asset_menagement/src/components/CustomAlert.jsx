@@ -20,14 +20,14 @@ export default function CustomAlert({ customAlert, setCustomAlert }) {
         >
           {isError ? <AlertCircle className="h-8 w-8" strokeWidth={1.8} /> : <CheckCircle2 className="h-8 w-8" strokeWidth={1.8} />}
         </div>
-        <h3 className="text-[20px] font-semibold mb-2 tracking-tight" style={{ color: BRAND.primary }}>
+        <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           {customAlert.title}
         </h3>
         <p className="text-[15px] text-stone-500 mb-7 whitespace-pre-line leading-relaxed">{customAlert.message}</p>
         <button
           onClick={close}
-          className={`w-full py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm ${
-            isError ? 'bg-rose-600 hover:bg-rose-700' : ''
+          className={`w-full py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm ${
+            isError ? 'bg-brick-600 hover:bg-brick-700' : ''
           }`}
           style={!isError ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` } : { boxShadow: '0 4px 12px rgba(225,29,72,0.30)' }}
           onMouseEnter={(e) => !isError && (e.currentTarget.style.background = BRAND.primaryDark)}

@@ -38,7 +38,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
         >
           <KeyRound className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-[20px] font-semibold mb-2 tracking-tight" style={{ color: BRAND.primary }}>
+        <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           รีเซ็ตรหัสผ่าน
         </h3>
         <p className="text-[14.5px] text-stone-500 mb-6 leading-relaxed">
@@ -66,7 +66,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
               onMouseEnter={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primaryDark)}
               onMouseLeave={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primary)}

@@ -78,14 +78,14 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── header ── */}
-        <div className="px-6 pt-6 pb-5 text-center border-b border-stone-100">
+        <div className="px-7 pt-7 pb-6 text-center border-b border-stone-100">
           <div
             className="mx-auto flex items-center justify-center h-14 w-14 rounded-xl mb-4 border"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
           >
             <KeyRound className="h-6 w-6" strokeWidth={1.8} />
           </div>
-          <h3 className="text-[19px] font-semibold tracking-tight" style={{ color: BRAND.primary }}>
+          <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
             เปลี่ยนรหัสผ่าน
           </h3>
           <p className="text-[13.5px] text-stone-500 mt-1">
@@ -174,7 +174,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <button
               type="submit"
               disabled={isLoading || !passedAll || !matchOk || !currentPassword}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
             >
               {isLoading ? 'กำลังเปลี่ยน...' : 'ยืนยันเปลี่ยนรหัสผ่าน'}

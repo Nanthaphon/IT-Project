@@ -41,6 +41,11 @@
   --color-olive-400: #8B9A76;
   --color-olive-500: #6E7C5A;
   --color-olive-800: #39412F;
+
+  /* brick — สีอันตราย/ลบ แบบพื้นทึบ (rose ยังใช้กับป้ายอ่อนตามเดิม) */
+  --color-brick-500: #B0503E;
+  --color-brick-600: #9A4231;
+  --color-brick-700: #813527;
 }
 
 

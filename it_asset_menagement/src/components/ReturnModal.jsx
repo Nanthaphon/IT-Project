@@ -21,7 +21,7 @@ export default function ReturnModal({
 
   const submitClass = isLicense || returnCondition === 'good'
     ? 'bg-olive-600 hover:bg-olive-700 text-white shadow-sm focus:ring-olive-200'
-    : 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm focus:ring-rose-200';
+    : 'bg-brick-600 hover:bg-brick-700 text-white shadow-sm focus:ring-rose-200';
 
   return (
     <Modal open={returnModal.isOpen} onClose={close} size="md">
@@ -141,7 +141,7 @@ function ConditionOption({ selected, onClick, Icon, color, title, description })
     rose: {
       selectedBg: 'bg-rose-50 border-rose-400',
       iconBg: 'bg-rose-100 text-rose-600',
-      dot: 'bg-rose-500',
+      dot: 'bg-brick-500',
     },
   }[color];
 

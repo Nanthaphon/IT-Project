@@ -161,7 +161,7 @@ export default function PreHandoverAssessmentModal({
               <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div>
-              <h3 className="text-[18px] font-semibold text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
+              <h3 className="text-[18px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
               <p className="text-[13px] text-stone-500 mt-0.5">
                 ติ๊กผลประเมินสภาพอุปกรณ์ + แนบรูปก่อนส่งมอบให้ <span className="font-semibold text-stone-700">{employee?.fullName}</span>
               </p>

@@ -46,7 +46,7 @@ export const button = {
 const TONE = {
   ok:      { badge: 'bg-olive-50 text-olive-700',     dot: 'bg-olive-600',  bar: 'bg-olive-600/70'  },
   busy:    { badge: 'bg-ochre-50 text-ochre-700',     dot: 'bg-ochre-600',  bar: 'bg-ochre-600/70'  },
-  bad:     { badge: 'bg-rose-50 text-rose-700',       dot: 'bg-rose-500',    bar: 'bg-rose-600/70'    },
+  bad:     { badge: 'bg-rose-50 text-rose-700',       dot: 'bg-brick-500',    bar: 'bg-brick-600/70'    },
   neutral: { badge: 'bg-sand-100 text-stone-600',     dot: 'bg-sand-300',   bar: 'bg-stone-500/60'   },
   off:     { badge: 'bg-sand-100 text-stone-400',     dot: 'bg-sand-300',   bar: 'bg-sand-300'      },
 };

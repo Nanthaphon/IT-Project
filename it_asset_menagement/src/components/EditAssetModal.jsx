@@ -94,7 +94,7 @@ export default function EditAssetModal({
                 </svg>
               </div>
               <div>
-                <h3 className="text-[18px] font-semibold text-stone-900 leading-tight">แก้ไข{title}</h3>
+                <h3 className="text-[18px] font-medium text-stone-900 leading-tight">แก้ไข{title}</h3>
                 <p className="text-[13.5px] text-stone-500 mt-0.5">{subtitle}</p>
               </div>
             </div>

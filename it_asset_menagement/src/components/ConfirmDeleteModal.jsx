@@ -15,7 +15,7 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-rose-50 text-rose-500 mb-5 border border-rose-100">
           <Trash2 className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-[20px] font-semibold text-stone-900 mb-2 tracking-tight">ยืนยันการลบข้อมูล?</h3>
+        <h3 className="text-[20px] font-medium text-stone-900 mb-2 tracking-tight">ยืนยันการลบข้อมูล?</h3>
         <p className="text-[14.5px] text-stone-500 mb-7 leading-relaxed">
           คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
           <br />
@@ -30,7 +30,7 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
           </button>
           <button
             onClick={executeDelete}
-            className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-brick-600 hover:bg-brick-700 transition-colors"
             style={{ boxShadow: '0 4px 12px rgba(225,29,72,0.25)' }}
           >
             ยืนยันลบ

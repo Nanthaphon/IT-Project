@@ -1072,7 +1072,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
   const sectionBar = {
     blue:    { bg: 'bg-stone-50/80',    border: 'border-l-blue-500',    text: 'text-stone-700',    iconBg: 'bg-stone-500' },
     emerald: { bg: 'bg-olive-50/80', border: 'border-l-emerald-500', text: 'text-olive-700', iconBg: 'bg-olive-500' },
-    rose:    { bg: 'bg-rose-50/80',    border: 'border-l-rose-500',    text: 'text-rose-700',    iconBg: 'bg-rose-500' },
+    rose:    { bg: 'bg-rose-50/80',    border: 'border-l-rose-500',    text: 'text-rose-700',    iconBg: 'bg-brick-500' },
   }[color] || { bg: 'bg-stone-50', border: 'border-l-slate-400', text: 'text-stone-700', iconBg: 'bg-stone-400' };
 
   // สรุปสถานะ
@@ -1357,7 +1357,7 @@ function EditPeriodModal({ period, onClose }) {
               <Pencil className="h-4 w-4" strokeWidth={2} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[16px] font-semibold text-stone-900">แก้ไขประวัติการครอบครอง</h3>
+              <h3 className="text-[16px] font-medium text-stone-900">แก้ไขประวัติการครอบครอง</h3>
               <p className="text-[12.5px] text-stone-500 truncate">{checkout.empName || '-'}</p>
             </div>
           </div>
@@ -1529,7 +1529,7 @@ function DeletePeriodConfirm({ period, onClose }) {
           <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="h-6 w-6" strokeWidth={2} />
           </div>
-          <h3 className="text-[17px] font-semibold text-stone-900 mb-1.5">ลบประวัติการครอบครอง</h3>
+          <h3 className="text-[17px] font-medium text-stone-900 mb-1.5">ลบประวัติการครอบครอง</h3>
           <p className="text-[13.5px] text-stone-500 leading-relaxed">
             ลบช่วงครอบครองของ <span className="font-semibold text-stone-700">{checkout.empName}</span>?<br/>
             {ret ? 'จะลบทั้งบันทึกการส่งมอบและการรับคืน' : 'จะลบบันทึกการส่งมอบ (ยังไม่มีการรับคืน)'}
@@ -1547,7 +1547,7 @@ function DeletePeriodConfirm({ period, onClose }) {
             ยกเลิก
           </button>
           <button onClick={handleDelete} disabled={deleting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition disabled:opacity-60">
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-brick-600 hover:bg-brick-700 rounded-lg shadow-sm transition disabled:opacity-60">
             {deleting ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังลบ...</>
             ) : (

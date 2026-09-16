@@ -408,7 +408,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
               <button
                 type="button"
                 onClick={() => removePhoto(i)}
-                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-brick-500 hover:bg-brick-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                 title="ลบรูป"
               >
                 <X className="h-2.5 w-2.5" strokeWidth={2.5} />

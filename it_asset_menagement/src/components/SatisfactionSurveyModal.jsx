@@ -94,7 +94,7 @@ export default function SatisfactionSurveyModal({
         <div
           className="relative px-6 pt-7 pb-5 text-white overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #A65F3C 0%, #2563EB 50%, #A65F3C 100%)',
+            background: 'linear-gradient(135deg, #A65F3C 0%, #C08761 50%, #A65F3C 100%)',
           }}
         >
           {/* decorative blobs */}

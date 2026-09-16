@@ -1,13 +1,13 @@
 // Unified design tokens — keep the whole app on one visual language.
-// น้ำเงิน-ขาว, minimal, สบายตา
+// Canyon (earth tone), minimal, สบายตา
 
 // ── Companies — ใช้กับ employee และ asset records ──
 export const COMPANIES = ['Globe Syndicate', 'Besthrm'];
 
 export const BRAND = {
-  primary:      '#A65F3C',  // main navy (action, accent, active state)
+  primary:      '#A65F3C',  // terracotta — สีหลัก (ปุ่ม/ไฮไลท์/สถานะ active)
   primaryDark:  '#8E4E30',  // hover / pressed
-  primaryDeep:  '#6E3B26',  // sidebar bottom
+  primaryDeep:  '#6E3B26',  // เข้มสุด (ฐาน sidebar)
   primarySoft:  '#F3E7DF',  // very light navy tint for backgrounds
   primaryRing:  'rgba(166,95,60,0.15)', // focus ring
 };

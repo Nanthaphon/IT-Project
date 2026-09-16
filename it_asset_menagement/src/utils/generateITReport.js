@@ -5,19 +5,19 @@ import { formatDateShort } from './formatDate.js';
    PALETTE
 ═══════════════════════════════════ */
 const C = {
-  blue:      '1E487A',
-  blueMid:   '2E5F9A',
-  blueLight: 'D6E4F0',
-  blueRow:   'EBF3FB',   // alternating row tint
+  blue:      'A65F3C',
+  blueMid:   'C08761',
+  blueLight: 'E6CDBD',
+  blueRow:   'FAF4F0',   // alternating row tint
   white:     'FFFFFF',
-  grayBg:    'F8FAFC',
-  grayBorder:'CBD5E1',
-  grayText:  '64748B',
-  green:     '16A34A',
-  greenBg:   'DCFCE7',
-  amber:     'D97706',
-  amberBg:   'FEF3C7',
-  red:       'DC2626',
+  grayBg:    'F7F2EF',
+  grayBorder:'D3C7BA',
+  grayText:  '78716C',
+  green:     '47513B',
+  greenBg:   'EEF1E9',
+  amber:     'A87A2C',
+  amberBg:   'FBF4E6',
+  red:       '9A4231',
   redBg:     'FEE2E2',
 };
 

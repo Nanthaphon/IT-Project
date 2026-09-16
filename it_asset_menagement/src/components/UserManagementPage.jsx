@@ -339,7 +339,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     <div className="flex items-center gap-3">
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center font-medium text-[15px] shrink-0 shadow-sm"
-                        style={{ background: user.isSuperAdmin ? `${BRAND.primary}20` : '#f1f5f9', color: user.isSuperAdmin ? BRAND.primary : '#64748b' }}
+                        style={{ background: user.isSuperAdmin ? `${BRAND.primary}20` : '#f5f5f4', color: user.isSuperAdmin ? BRAND.primary : '#78716c' }}
                       >
                         {(user.displayName || '?').charAt(0).toUpperCase()}
                       </div>

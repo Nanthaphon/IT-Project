@@ -68,20 +68,20 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
         const ws = warrantyStatus(item.warrantyDate);
         return `
         <tr>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;text-align:center">${i + 1}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000">${e(item.name) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000">${e(item.type) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap">${e(fmtThaiDate(item.purchaseDate))}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap;font-weight:600">${e(calcUsageAge(item.purchaseDate))}</td>
-          <td style="border:1px solid #cbd5e1;padding:6px 6px;font-size:11px;color:${ws.color};text-align:center;line-height:1.4;font-weight:600">
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;text-align:center">${i + 1}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000">${e(item.name) || '-'}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000">${e(item.type) || '-'}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap">${e(fmtThaiDate(item.purchaseDate))}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap;font-weight:600">${e(calcUsageAge(item.purchaseDate))}</td>
+          <td style="border:1px solid #d6d3d1;padding:6px 6px;font-size:11px;color:${ws.color};text-align:center;line-height:1.4;font-weight:600">
             <div>${e(ws.date)}</div>
             ${ws.badge ? `<div style="font-size:10px;font-weight:500;margin-top:1px">(${e(ws.badge)})</div>` : ''}
           </td>
         </tr>`;
       }).join('')
-    : `<tr><td colspan="8" style="border:1px solid #cbd5e1;padding:10px;text-align:center;color:#64748b;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
+    : `<tr><td colspan="8" style="border:1px solid #d6d3d1;padding:10px;text-align:center;color:#78716c;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
 
   const html = `<!DOCTYPE html>
 <html lang="th">
@@ -128,7 +128,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
     </svg>
     ข้อมูลผู้ยื่นคำขอ
   </div>
-  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
+  <div style="border:1px solid #d6d3d1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 18px">
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:;letter-spacing:0.04em;margin-bottom:2px">ชื่อ-นามสกุล</div>
@@ -183,7 +183,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
     </svg>
     เหตุผลและรายละเอียดการขอเปลี่ยน
   </div>
-  <div style="border:1px solid #cbd5e1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
+  <div style="border:1px solid #d6d3d1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
     <div style="margin-bottom:6px">
       <div style="font-size:11px;color:#475569;font-weight:600;text-transform:;letter-spacing:0.04em;margin-bottom:3px">สถานะเครื่องปัจจุบัน</div>
       <div style="font-size:13px;font-weight:700;color:#000">${e(currentStatus)}</div>
@@ -204,8 +204,8 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
     ${damagePhotos.map((p, i) => `
-      <div style="border:1px solid #cbd5e1;border-radius:4px;padding:4px;background:#fff;page-break-inside:avoid">
-        <div style="position:relative;width:100%;padding-top:75%;background:#f1f5f9;border-radius:3px;overflow:hidden">
+      <div style="border:1px solid #d6d3d1;border-radius:4px;padding:4px;background:#fff;page-break-inside:avoid">
+        <div style="position:relative;width:100%;padding-top:75%;background:#f5f5f4;border-radius:3px;overflow:hidden">
           <img src="${p.data}" alt="รูปที่ ${i + 1}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain" />
         </div>
         <div style="font-size:9.5px;color:#000;margin-top:3px;text-align:center;font-weight:600">รูปที่ ${i + 1}</div>
@@ -249,7 +249,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
       </div>
     </div>
 
-    <div style="text-align:center;font-size:9.5px;color:#64748b;margin-top:6px">
+    <div style="text-align:center;font-size:9.5px;color:#78716c;margin-top:6px">
       ออกโดยระบบ IT Asset Management · ${thDate}
     </div>
   </div>
@@ -603,7 +603,7 @@ export default function StaffView({
       'ซ่อมเสร็จสิ้น': 'bg-olive-50 text-olive-700 border-olive-200',
       'อนุมัติแล้ว':   'bg-olive-50 text-olive-700 border-olive-200',
     };
-    return `inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${map[status] || 'bg-red-50 text-red-700 border-red-200'}`;
+    return `inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${map[status] || 'bg-rose-50 text-rose-700 border-rose-200'}`;
   };
 
   /* ---------- shared input class ---------- */
@@ -1067,7 +1067,7 @@ export default function StaffView({
               <h3 className="text-sm font-semibold text-stone-800 border-b border-stone-100 pb-3">เปิดใบแจ้งปัญหาใหม่</h3>
               <form onSubmit={onRepairSubmit} className="space-y-4">
                 <div>
-                  <label className={labelCls}>อุปกรณ์ / ปัญหา <span className="text-red-500 normal-case">*</span></label>
+                  <label className={labelCls}>อุปกรณ์ / ปัญหา <span className="text-rose-500 normal-case">*</span></label>
                   <select
                     value={staffRepairForm.assetName}
                     onChange={e => setStaffRepairForm({ ...staffRepairForm, assetName: e.target.value })}
@@ -1081,7 +1081,7 @@ export default function StaffView({
                   </select>
                 </div>
                 <div>
-                  <label className={labelCls}>รายละเอียดอาการ <span className="text-red-500 normal-case">*</span></label>
+                  <label className={labelCls}>รายละเอียดอาการ <span className="text-rose-500 normal-case">*</span></label>
                   <textarea
                     value={staffRepairForm.issue}
                     onChange={e => setStaffRepairForm({ ...staffRepairForm, issue: e.target.value })}
@@ -1166,7 +1166,7 @@ export default function StaffView({
               <h3 className="text-sm font-semibold text-stone-800 border-b border-stone-100 pb-3">ฟอร์มขอเปลี่ยนเครื่อง</h3>
               <form onSubmit={onReplacementSubmit} className="space-y-4">
                 <div>
-                  <label className={labelCls}>สถานะเครื่องปัจจุบัน <span className="text-red-500 normal-case">*</span></label>
+                  <label className={labelCls}>สถานะเครื่องปัจจุบัน <span className="text-rose-500 normal-case">*</span></label>
                   <select value={replaceStatusForm} onChange={e => setReplaceStatusForm(e.target.value)} className={inputCls} required>
                     <option value="เครื่องช้า / ค้างบ่อย">เครื่องช้า / ค้างบ่อย</option>
                     <option value="เปิดไม่ติด / ชำรุดหนัก">เปิดไม่ติด / ชำรุดหนัก</option>
@@ -1176,7 +1176,7 @@ export default function StaffView({
                   </select>
                 </div>
                 <div>
-                  <label className={labelCls}>เหตุผลขอเปลี่ยน <span className="text-red-500 normal-case">*</span></label>
+                  <label className={labelCls}>เหตุผลขอเปลี่ยน <span className="text-rose-500 normal-case">*</span></label>
                   <textarea
                     value={replaceReasonForm} onChange={e => setReplaceReasonForm(e.target.value)}
                     className={inputCls} rows="4"
@@ -1933,7 +1933,7 @@ function LinksEditor({ links, setLinks }) {
             <input value={r.url ?? ''} onChange={e => update(i, 'url', e.target.value)}
               placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-stone-700`} />
             <button type="button" onClick={() => remove(i)} title="ลบลิงก์"
-              className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+              className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
               <X className="h-4 w-4" strokeWidth={2.2} />
             </button>
           </div>
@@ -1981,7 +1981,7 @@ function IconBtn({ children, onClick, label, danger }) {
       title={label}
       className={`w-7 h-7 flex items-center justify-center rounded-lg border transition ${
         danger
-          ? 'text-red-400 border-stone-200 hover:border-red-200 hover:bg-red-50 hover:text-red-500'
+          ? 'text-rose-400 border-stone-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500'
           : 'text-stone-400 border-stone-200 hover:border-clay-200 hover:bg-clay-100 hover:text-clay-500'
       }`}
     >

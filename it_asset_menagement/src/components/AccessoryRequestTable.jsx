@@ -16,13 +16,13 @@ const STATUS = {
 
 /* ─── Request type config ─── */
 const REQUEST_TYPE = {
-  pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#64748B', bg: '#F1F5F9' },
+  pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#78716C', bg: '#F5F5F4' },
   request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
   // legacy aliases
   new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
   add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
-  replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#B45309', bg: '#FFFBEB' },
-  borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#7C3AED', bg: '#F5F3FF' },
+  replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#B45309', bg: '#FBF4E6' },
+  borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#8E4E30', bg: '#F3E7DF' },
 };
 
 /* ─── Date helpers ───────────────────────────────────────── */
@@ -398,7 +398,7 @@ function SummaryChip({ label, value, color, active, onClick }) {
         style={
           active
             ? { background: 'rgba(255,255,255,0.18)' }
-            : color ? { background: `${color}15`, color } : { background: '#F1F5F9', color: '#64748B' }
+            : color ? { background: `${color}15`, color } : { background: '#F5F5F4', color: '#78716C' }
         }
       >
         {value}

@@ -449,9 +449,9 @@ function PreviewSection({ parsed }) {
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatBox label="แถวใน CSV" value={rows.length} color="#64748B" bg="#F1F5F9" />
+        <StatBox label="แถวใน CSV" value={rows.length} color="#78716C" bg="#F5F5F4" />
         <StatBox label="License (หลัง group)" value={grouped.length} color="#A65F3C" bg="#EFF6FF" />
-        <StatBox label="Seats รวม" value={totalSeats} color="#059669" bg="#ECFDF5" />
+        <StatBox label="Seats รวม" value={totalSeats} color="#47513B" bg="#EEF1E9" />
       </div>
 
       {/* Column mapping info */}

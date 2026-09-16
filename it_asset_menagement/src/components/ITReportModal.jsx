@@ -46,7 +46,7 @@ function BigIssuesEditor({ value, onChange }) {
         <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-stone-500">Issue #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 transition-colors">
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -96,7 +96,7 @@ function RDEditor({ value, onChange }) {
         <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-stone-500">โปรเจค #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 transition-colors">
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -152,7 +152,7 @@ function FollowupEditor({ value, onChange }) {
         <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-stone-500">วาระ #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 transition-colors">
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -505,7 +505,7 @@ export default function ITReportPage({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <StatInput label="พนักงานทั้งหมด" value={stats.employees}  onChange={v => editStat('employees', v)} />
               <StatInput label="เคสทั้งหมด"      value={stats.monthly}    onChange={v => editStat('monthly', v)} />
-              <StatInput label="ปิดสำเร็จ"       value={stats.closedWon}  onChange={v => editStat('closedWon', v)}  color="#16a34a" />
+              <StatInput label="ปิดสำเร็จ"       value={stats.closedWon}  onChange={v => editStat('closedWon', v)}  color="#47513b" />
               <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#dc2626" />
             </div>
           </PanelCard>
@@ -514,18 +514,18 @@ export default function ITReportPage({
             <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
           </PanelCard>
 
-          <PanelCard icon={FlaskConical} tint="#F5F3FF" color="#7C3AED" title="R&D Projects" desc="สไลด์ 6 — สถานะโปรเจค" right={<CountBadge n={rdProjects.length} />}>
+          <PanelCard icon={FlaskConical} tint="#F3E7DF" color="#8E4E30" title="R&D Projects" desc="สไลด์ 6 — สถานะโปรเจค" right={<CountBadge n={rdProjects.length} />}>
             <RDEditor value={rdProjects} onChange={setRdProjects} />
           </PanelCard>
 
-          <PanelCard icon={Pin} tint="#FFFBEB" color="#D97706" title="วาระติดตาม (Follow-up)" desc="สไลด์ 7 — รายการติดตามงาน" right={<CountBadge n={followUps.length} />}>
+          <PanelCard icon={Pin} tint="#FBF4E6" color="#A87A2C" title="วาระติดตาม (Follow-up)" desc="สไลด์ 7 — รายการติดตามงาน" right={<CountBadge n={followUps.length} />}>
             <FollowupEditor value={followUps} onChange={setFollowUps} />
           </PanelCard>
         </div>
 
         {/* RIGHT — hardware / software (แก้ไขได้) */}
         <div className="xl:col-span-2 space-y-5">
-          <PanelCard icon={Monitor} tint="#ECFDF5" color="#16A34A" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
+          <PanelCard icon={Monitor} tint="#EEF1E9" color="#47513B" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
             right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
             <DataRowsEditor
               rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
@@ -541,7 +541,7 @@ export default function ITReportPage({
             />
           </PanelCard>
 
-          <PanelCard icon={Package} tint="#F5F3FF" color="#7C3AED" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
+          <PanelCard icon={Package} tint="#F3E7DF" color="#8E4E30" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
             right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
             <DataRowsEditor
               rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"

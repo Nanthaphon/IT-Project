@@ -1748,7 +1748,7 @@ export default function AssetDetailsModal({
                                 <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
                                   <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
                                   <span className="text-stone-600 truncate max-w-[160px]">{d.name}</span>
-                                  <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-red-500 ml-0.5">✕</button>
+                                  <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                                 </div>
                               ))}
                             </div>
@@ -2037,7 +2037,7 @@ export default function AssetDetailsModal({
                                 <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
                                   <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
                                   <span className="text-stone-600 truncate max-w-[180px]">{d.name}</span>
-                                  <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-stone-300 hover:text-red-500 ml-0.5">✕</button>
+                                  <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                                 </div>
                               ))}
                             </div>
@@ -2065,7 +2065,7 @@ export default function AssetDetailsModal({
                         <div onClick={() => setAccItemDetailModal(item)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
                           <div className="flex items-center gap-3 overflow-hidden">
                             <input type="checkbox" checked={selectedItemsForDelete.includes(item.id)} onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-clay-600 rounded border-stone-300 shrink-0" />
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-olive-500' : item.type === 'assigned' ? 'bg-stone-500' : 'bg-red-500'}`}></span>
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-olive-500' : item.type === 'assigned' ? 'bg-stone-500' : 'bg-brick-500'}`}></span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-xs font-semibold text-stone-800 truncate">
@@ -2259,7 +2259,7 @@ export default function AssetDetailsModal({
                                   : <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />}
                                 <span className="truncate">{docItem.name}</span>
                               </button>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-stone-400 hover:text-red-500 bg-white border border-stone-200 w-6 h-6 rounded-lg flex items-center justify-center transition-colors">
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-6 h-6 rounded-lg flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
@@ -2275,7 +2275,7 @@ export default function AssetDetailsModal({
                               <span className="text-[13px] font-medium text-clay-600 truncate max-w-[180px]">
                                 🕐 {pd.name}
                               </span>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-red-500 bg-white border border-clay-200 w-6 h-6 rounded-lg flex items-center justify-center transition-colors">
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-rose-500 bg-white border border-clay-200 w-6 h-6 rounded-lg flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
@@ -2349,7 +2349,7 @@ export default function AssetDetailsModal({
                               )}
                               <span className="truncate">{docItem.name}</span>
                             </a>
-                            <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-red-500 bg-white border border-stone-200 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
+                            <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
@@ -2676,7 +2676,7 @@ function SeatDetailModal({
                         <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
                           <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
                           <span className="text-stone-600 truncate max-w-[160px]">{d.name}</span>
-                          <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-red-500 ml-0.5">✕</button>
+                          <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                         </div>
                       ))}
                     </div>
@@ -2909,7 +2909,7 @@ function AccessoryItemDetailModal({
                       {tempAccDocs.map((d, i) => (
                         <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
                           <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-stone-600 hover:text-clay-600 truncate max-w-[160px]">{d.name}</button>
-                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-red-500 ml-0.5">✕</button>
+                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                         </div>
                       ))}
                     </div>

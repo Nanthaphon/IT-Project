@@ -361,10 +361,10 @@ export default function SupplyRequestTable({
                     {/* Donut SVG */}
                     <div className="relative shrink-0 w-32 h-32">
                       <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="#f1f5f9" strokeWidth="5.5" />
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#f5f5f4" strokeWidth="5.5" />
                         {(() => {
                           const total = insights.totalApprovedQty || 1;
-                          const colors = ['#A65F3C', '#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#BE185D'];
+                          const colors = ['#A65F3C', '#C08761', '#47513B', '#A87A2C', '#9A4231', '#8E4E30', '#5A6749', '#D6AC91'];
                           let acc = 0;
                           return insights.topItems.map((item, i) => {
                             const pct = (item.qty / total) * 100;
@@ -393,7 +393,7 @@ export default function SupplyRequestTable({
                     {/* Legend */}
                     <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
                       {insights.topItems.map((item, i) => {
-                        const colors = ['#A65F3C', '#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#BE185D'];
+                        const colors = ['#A65F3C', '#C08761', '#47513B', '#A87A2C', '#9A4231', '#8E4E30', '#5A6749', '#D6AC91'];
                         const color = colors[i % colors.length];
                         const pct = insights.totalApprovedQty > 0 ? (item.qty / insights.totalApprovedQty) * 100 : 0;
                         return (

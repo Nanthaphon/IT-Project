@@ -8,16 +8,16 @@ import { X, ChevronLeft, ChevronRight, FileDown, Loader2, Eye, Pencil, Plus, Tra
    สไตล์/สีตรงกับ generateITReport.js — ข้อมูลที่แก้จะถูกส่งไปสร้างไฟล์จริง
 ══════════════════════════════════════════════════════════════ */
 
-const NAVY = '#A65F3C';
-const NAVY_BAND = '#163860';
-const BLUE_LIGHT = '#D6E4F0';
-const BLUE_ROW = '#EBF3FB';
-const CARD_BG = '#EEF4FB';
-const GRAY_BORDER = '#CBD5E1';
-const GRAY_TEXT = '#64748B';
-const GREEN = '#16A34A';
-const AMBER = '#D97706';
-const RED = '#DC2626';
+const CLAY = '#A65F3C';
+const CLAY_BAND = '#8E4E30';
+const TINT_LIGHT = '#E6CDBD';
+const TINT_ROW = '#FAF4F0';
+const CARD_BG = '#F7F2EF';
+const GRAY_BORDER = '#D3C7BA';
+const GRAY_TEXT = '#78716C';
+const GREEN = '#47513B';
+const AMBER = '#A87A2C';
+const RED = '#9A4231';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -72,8 +72,8 @@ function SlideCanvas({ children }) {
 function ContentSlide({ titleTh, titleEn, page, company, month, year, children }) {
   return (
     <>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 96, background: NAVY }} />
-      <div style={{ position: 'absolute', top: 96, left: 0, right: 0, height: 7, background: BLUE_LIGHT }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 96, background: CLAY }} />
+      <div style={{ position: 'absolute', top: 96, left: 0, right: 0, height: 7, background: TINT_LIGHT }} />
       <div style={{ position: 'absolute', top: 8, left: 43, right: 43 }}>
         <div style={{ fontSize: 34, fontWeight: 800, color: '#fff', lineHeight: 1.1 }}>{titleTh}</div>
         {titleEn && (
@@ -83,10 +83,10 @@ function ContentSlide({ titleTh, titleEn, page, company, month, year, children }
       <div style={{ position: 'absolute', top: 118, left: 38, right: 38, bottom: 46 }}>
         {children}
       </div>
-      <div style={{ position: 'absolute', bottom: 34, left: 0, right: 0, height: 6, background: NAVY }} />
+      <div style={{ position: 'absolute', bottom: 34, left: 0, right: 0, height: 6, background: CLAY }} />
       <div style={{ position: 'absolute', bottom: 8, right: 38, fontSize: 11, color: '#AAAAAA', textAlign: 'right' }}>
         {company}&nbsp;&nbsp;|&nbsp;&nbsp;รายงานผล IT – {TH_MONTHS[month]} {year + 543}
-        <span style={{ color: NAVY, fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;{page}</span>
+        <span style={{ color: CLAY, fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;{page}</span>
         <span style={{ color: '#CCCCCC' }}>&nbsp;&nbsp;(v2)</span>
       </div>
     </>
@@ -106,7 +106,7 @@ function SlideTable({ columns, rows, empty }) {
           <tr>
             {columns.map((c, i) => (
               <th key={i} style={{
-                background: NAVY, color: c.headColor || '#fff', fontSize: 14, fontWeight: 700,
+                background: CLAY, color: c.headColor || '#fff', fontSize: 14, fontWeight: 700,
                 textAlign: c.align || 'center', padding: '8px 10px', border: `1px solid #2E5F9A`,
                 whiteSpace: 'nowrap',
               }}>{c.label}</th>
@@ -122,7 +122,7 @@ function SlideTable({ columns, rows, empty }) {
               }}>{empty}</td>
             </tr>
           ) : rows.map((r, ri) => (
-            <tr key={ri} style={{ background: ri % 2 === 0 ? '#fff' : BLUE_ROW }}>
+            <tr key={ri} style={{ background: ri % 2 === 0 ? '#fff' : TINT_ROW }}>
               {r.map((cellNode, ci) => {
                 const col = columns[ci];
                 return (
@@ -146,17 +146,17 @@ function SlideTable({ columns, rows, empty }) {
 
 function CoverSlide({ company, month, year, reportDate }) {
   return (
-    <div style={{ position: 'absolute', inset: 0, background: NAVY }}>
-      <div style={{ position: 'absolute', top: 538, left: 0, right: 0, height: 11, background: BLUE_LIGHT }} />
-      <div style={{ position: 'absolute', top: 549, left: 0, right: 0, bottom: 0, background: NAVY_BAND }} />
+    <div style={{ position: 'absolute', inset: 0, background: CLAY }}>
+      <div style={{ position: 'absolute', top: 538, left: 0, right: 0, height: 11, background: TINT_LIGHT }} />
+      <div style={{ position: 'absolute', top: 549, left: 0, right: 0, bottom: 0, background: CLAY_BAND }} />
       <div style={{ position: 'absolute', top: 150, left: 80, right: 80, textAlign: 'center' }}>
-        <div style={{ fontSize: 30, fontWeight: 800, color: BLUE_LIGHT, letterSpacing: 0.5 }}>{company.toUpperCase()}</div>
-        <div style={{ width: 340, height: 4, background: BLUE_LIGHT, margin: '26px auto' }} />
+        <div style={{ fontSize: 30, fontWeight: 800, color: TINT_LIGHT, letterSpacing: 0.5 }}>{company.toUpperCase()}</div>
+        <div style={{ width: 340, height: 4, background: TINT_LIGHT, margin: '26px auto' }} />
         <div style={{ fontSize: 52, fontWeight: 800, color: '#fff', marginTop: 8 }}>รายงานผลการดำเนินงาน IT</div>
-        <div style={{ fontSize: 40, fontWeight: 800, color: BLUE_LIGHT, marginTop: 22 }}>เดือน{TH_MONTHS[month]} {year + 543}</div>
+        <div style={{ fontSize: 40, fontWeight: 800, color: TINT_LIGHT, marginTop: 22 }}>เดือน{TH_MONTHS[month]} {year + 543}</div>
         <div style={{ fontSize: 18, color: '#90B4CC', marginTop: 26 }}>{reportDate}</div>
       </div>
-      <div style={{ position: 'absolute', top: 600, left: 80, right: 80, textAlign: 'center', fontSize: 16, fontStyle: 'italic', color: BLUE_LIGHT }}>
+      <div style={{ position: 'absolute', top: 600, left: 80, right: 80, textAlign: 'center', fontSize: 16, fontStyle: 'italic', color: TINT_LIGHT }}>
         รายงานผลการดำเนินงานฝ่าย IT ประจำเดือน
       </div>
     </div>
@@ -174,10 +174,10 @@ function AgendaSlide(props) {
     <ContentSlide titleTh="สารบัญ" page={2} {...props}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, height: '100%', paddingTop: 6 }}>
         {items.map((it) => (
-          <div key={it.num} style={{ position: 'relative', background: CARD_BG, border: `2px solid ${BLUE_LIGHT}`, borderRadius: 12, padding: '20px 24px 20px 34px' }}>
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 12, background: NAVY, borderRadius: '12px 0 0 12px' }} />
-            <div style={{ fontSize: 52, fontWeight: 800, color: NAVY, lineHeight: 1 }}>{it.num}</div>
-            <div style={{ fontSize: 21, fontWeight: 700, color: NAVY, marginTop: 12 }}>{it.th}</div>
+          <div key={it.num} style={{ position: 'relative', background: CARD_BG, border: `2px solid ${TINT_LIGHT}`, borderRadius: 12, padding: '20px 24px 20px 34px' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 12, background: CLAY, borderRadius: '12px 0 0 12px' }} />
+            <div style={{ fontSize: 52, fontWeight: 800, color: CLAY, lineHeight: 1 }}>{it.num}</div>
+            <div style={{ fontSize: 21, fontWeight: 700, color: CLAY, marginTop: 12 }}>{it.th}</div>
             <div style={{ fontSize: 14, fontStyle: 'italic', color: GRAY_TEXT, marginTop: 6 }}>{it.en}</div>
           </div>
         ))}
@@ -188,8 +188,8 @@ function AgendaSlide(props) {
 
 function SupportSlide({ stats, bigIssues, ...props }) {
   const cards = [
-    { v: stats.employees, label: 'พนักงานทั้งหมด', sub: 'จำนวนพนักงาน', color: NAVY },
-    { v: stats.monthly, label: 'เคสทั้งหมด', sub: 'เดือนนี้', color: NAVY },
+    { v: stats.employees, label: 'พนักงานทั้งหมด', sub: 'จำนวนพนักงาน', color: CLAY },
+    { v: stats.monthly, label: 'เคสทั้งหมด', sub: 'เดือนนี้', color: CLAY },
     { v: stats.closedWon, label: 'ปิดสำเร็จ', sub: 'ปิดงานสำเร็จ', color: GREEN },
     { v: stats.closedLose, label: 'ไม่สำเร็จ', sub: 'ยกเลิก/ไม่สำเร็จ', color: RED },
   ];
@@ -204,9 +204,9 @@ function SupportSlide({ stats, bigIssues, ...props }) {
     <ContentSlide titleTh="สรุปผลการดำเนินงาน" titleEn="ฝ่ายสนับสนุน" page={3} {...props}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
         {cards.map((c, i) => (
-          <div key={i} style={{ background: CARD_BG, border: `2px solid ${BLUE_LIGHT}`, borderRadius: 12, padding: '14px 8px', textAlign: 'center' }}>
+          <div key={i} style={{ background: CARD_BG, border: `2px solid ${TINT_LIGHT}`, borderRadius: 12, padding: '14px 8px', textAlign: 'center' }}>
             <div style={{ fontSize: 48, fontWeight: 800, color: c.color, lineHeight: 1.1 }}>{c.v}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: NAVY, marginTop: 4 }}>{c.label}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: CLAY, marginTop: 4 }}>{c.label}</div>
             <div style={{ fontSize: 11, color: GRAY_TEXT }}>{c.sub}</div>
           </div>
         ))}
@@ -231,7 +231,7 @@ function HardwareSlide({ hwSummary, ...props }) {
   const rows = (hwSummary || []).map((g, i) => ([
     { text: i + 1 },
     { text: g.type, align: 'left', bold: true },
-    { text: g.total, bold: true, color: NAVY },
+    { text: g.total, bold: true, color: CLAY },
     { text: g.inUse },
     { text: g.avail > 0 ? g.avail : '–', color: g.avail > 0 ? GREEN : GRAY_TEXT },
     { text: g.broken > 0 ? g.broken : '–', color: g.broken > 0 ? RED : GRAY_TEXT, bold: g.broken > 0 },
@@ -255,7 +255,7 @@ function SoftwareSlide({ swSummary, ...props }) {
   const rows = (swSummary || []).map((s, i) => ([
     { text: i + 1 },
     { text: s.name, align: 'left', bold: true },
-    { text: s.stock, bold: true, color: NAVY },
+    { text: s.stock, bold: true, color: CLAY },
     { text: s.active, bold: true, color: GREEN },
     { text: s.inactive, color: s.inactive > 0 ? AMBER : GRAY_TEXT },
     { text: s.note, align: 'left', color: GRAY_TEXT, size: 12 },
@@ -320,14 +320,14 @@ function FollowupSlide({ followUps, ...props }) {
 
 function ThankYouSlide({ company, month, year }) {
   return (
-    <div style={{ position: 'absolute', inset: 0, background: NAVY }}>
-      <div style={{ position: 'absolute', top: 518, left: 0, right: 0, height: 11, background: BLUE_LIGHT }} />
-      <div style={{ position: 'absolute', top: 529, left: 0, right: 0, bottom: 0, background: NAVY_BAND }} />
+    <div style={{ position: 'absolute', inset: 0, background: CLAY }}>
+      <div style={{ position: 'absolute', top: 518, left: 0, right: 0, height: 11, background: TINT_LIGHT }} />
+      <div style={{ position: 'absolute', top: 529, left: 0, right: 0, bottom: 0, background: CLAY_BAND }} />
       <div style={{ position: 'absolute', top: 170, left: 80, right: 80, textAlign: 'center' }}>
         <div style={{ fontSize: 82, fontWeight: 800, color: '#fff' }}>ขอบคุณครับ</div>
       </div>
       <div style={{ position: 'absolute', top: 548, left: 80, right: 80, textAlign: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: BLUE_LIGHT }}>{company.toUpperCase()}</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: TINT_LIGHT }}>{company.toUpperCase()}</div>
         <div style={{ fontSize: 16, color: '#90B4CC', marginTop: 10 }}>รายงานผล IT – {TH_MONTHS[month]} {year + 543}</div>
       </div>
     </div>

@@ -947,7 +947,7 @@ export default function StaffView({
           </div>
         </div>
 
-        <main className="px-3 sm:px-4 md:px-6 py-4 sm:py-5 space-y-4 max-w-[1400px] mx-auto">
+        <main className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
 
         {/* ==================== TAB: ข้อมูลของฉัน ==================== */}
         {activeTab === 'profile' && (

@@ -165,17 +165,12 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
   /* ── Render ────────────────────────────────────────── */
   return (
-    <div className="space-y-5">
-      {/* ── Toolbar ── */}
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4 md:p-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15` }}>
-            <BarChart3 className="h-5 w-5" style={{ color: BRAND.primary }} strokeWidth={2.2} />
-          </div>
-          <div>
-            <h2 className="text-[17px] font-medium text-stone-800 tracking-tight">รายงาน KPI</h2>
-            <p className="text-[13px] text-stone-500">สรุปผลงานแจ้งซ่อม &amp; ความพึงพอใจ</p>
-          </div>
+    <div className="mx-auto max-w-[1360px] space-y-6">
+      {/* ── หัวหน้า + ตัวกรอง (หัวเรื่องอยู่นอกการ์ด ตามโครง v3) ── */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-medium tracking-tight text-stone-900">รายงาน KPI</h1>
+          <p className="mt-1 text-sm text-stone-500">สรุปผลงานแจ้งซ่อม &amp; ความพึงพอใจ</p>
         </div>
 
         <div className="flex items-center gap-2">

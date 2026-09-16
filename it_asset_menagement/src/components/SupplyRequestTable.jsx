@@ -257,23 +257,18 @@ export default function SupplyRequestTable({
   };
 
   return (
-    <div className={`h-full overflow-y-auto ${CARD}`}>
+    <div className="bg-sand-50 h-full overflow-y-auto">
 
-      {/* ══ Header ══════════════════════════════════════════ */}
-      <div>
+      {/* ══ หัวหน้า + สถิติ ══ */}
+      <div className="mx-auto max-w-[1360px] space-y-6 px-6 pt-6 lg:px-8 lg:pt-8">
 
-        {/* title + date filter */}
-        <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
-              <ClipboardList className="h-[18px] w-[18px]" strokeWidth={1.9} />
-            </div>
-            <div>
-              <p className="text-[15px] font-medium text-stone-800 tracking-tight">คำขอเบิกอุปกรณ์</p>
-              <p className="text-[12px] text-stone-400 mt-0.5">
-                {currentSupplyRequests.length} รายการในมุมมองนี้
-              </p>
-            </div>
+        {/* หัวหน้า + ตัวกรองวันที่ */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-[22px] font-medium tracking-tight text-stone-900">คำขอเบิกอุปกรณ์</h1>
+            <p className="mt-1 text-sm text-stone-500">
+              {currentSupplyRequests.length} รายการในมุมมองนี้
+            </p>
           </div>
 
           {/* date filters — ปี / เดือน / วัน */}
@@ -312,13 +307,13 @@ export default function SupplyRequestTable({
         </div>
 
         {/* stat strip — จุดสี + ตัวเลข (ธีมพนักงาน) */}
-        <div className="grid grid-cols-3 divide-x divide-stone-100 border-b border-stone-100">
-          <StatCell label="รอดำเนินการ" count={counts.pending}  dot="bg-clay-400"   />
-          <StatCell label="อนุมัติแล้ว"  count={counts.approved} dot="bg-olive-400" />
-          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-rose-400"    />
+        <div className={`${CARD} grid grid-cols-3 divide-x divide-stone-100`}>
+          <StatCell label="รอดำเนินการ" count={counts.pending}  dot="bg-ochre-600" />
+          <StatCell label="อนุมัติแล้ว"  count={counts.approved} dot="bg-olive-600" />
+          <StatCell label="ปฏิเสธคำขอ"  count={counts.rejected} dot="bg-rose-500"  />
         </div>
 
-        <div className="px-5 pt-4">
+        <div className="pb-8">
 
         {/* 🆕 Dashboard toggle + export bar */}
         <div className="mb-4">
@@ -723,11 +718,11 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
 /* ─── Stat cell (ธีมพนักงาน — จุดสี + ตัวเลข) ────────────── */
 function StatCell({ label, count, dot }) {
   return (
-    <div className="px-5 py-3 flex items-center gap-2.5">
+    <div className="px-6 py-5 flex items-center gap-3">
       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
         <p className={`${LABEL} truncate`}>{label}</p>
-        <p className="text-[19px] font-medium text-stone-800 tabular-nums leading-tight">{count}</p>
+        <p className="mt-0.5 text-[26px] font-medium text-stone-900 tabular-nums leading-none">{count}</p>
       </div>
     </div>
   );

@@ -82,21 +82,27 @@ export default function AccessoryRequestTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="bg-sand-50 h-full overflow-y-auto">
+      <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
 
-      {/* ── Header summary chips ── */}
+      <div>
+        <h1 className="text-[22px] font-medium tracking-tight text-stone-900">คำขออุปกรณ์เสริม</h1>
+        <p className="mt-1 text-sm text-stone-500">{counts.all} รายการในระบบ</p>
+      </div>
+
+      {/* ── ชิปสรุป + ตัวกรอง ── */}
       <div className="flex flex-wrap items-center gap-2">
         <SummaryChip label="ทั้งหมด" value={counts.all} active={statusFilter === 'ทั้งหมด'}    onClick={() => setStatusFilter('ทั้งหมด')} />
-        <SummaryChip label="รอดำเนินการ" value={counts.pending} color="#D97706" active={statusFilter === 'รอดำเนินการ'} onClick={() => setStatusFilter('รอดำเนินการ')} />
-        <SummaryChip label="อนุมัติแล้ว" value={counts.approved} color="#059669" active={statusFilter === 'อนุมัติแล้ว'} onClick={() => setStatusFilter('อนุมัติแล้ว')} />
-        <SummaryChip label="ปฏิเสธ" value={counts.rejected} color="#DC2626" active={statusFilter === 'ปฏิเสธคำขอ'} onClick={() => setStatusFilter('ปฏิเสธคำขอ')} />
+        <SummaryChip label="รอดำเนินการ" value={counts.pending} color="var(--color-ochre-600)" active={statusFilter === 'รอดำเนินการ'} onClick={() => setStatusFilter('รอดำเนินการ')} />
+        <SummaryChip label="อนุมัติแล้ว" value={counts.approved} color="var(--color-olive-600)" active={statusFilter === 'อนุมัติแล้ว'} onClick={() => setStatusFilter('อนุมัติแล้ว')} />
+        <SummaryChip label="ปฏิเสธ" value={counts.rejected} color="var(--color-rose-500)" active={statusFilter === 'ปฏิเสธคำขอ'} onClick={() => setStatusFilter('ปฏิเสธคำขอ')} />
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[12.5px] text-stone-500 font-medium">ประเภท:</span>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A65F3C]/30"
+            className="bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/25"
           >
             <option value="ทั้งหมด">ทุกประเภท</option>
             <option value="pending">รอ IT พิจารณา</option>
@@ -371,6 +377,7 @@ export default function AccessoryRequestTable({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

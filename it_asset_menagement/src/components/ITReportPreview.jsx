@@ -8,16 +8,16 @@ import { X, ChevronLeft, ChevronRight, FileDown, Loader2, Eye, Pencil, Plus, Tra
    สไตล์/สีตรงกับ generateITReport.js — ข้อมูลที่แก้จะถูกส่งไปสร้างไฟล์จริง
 ══════════════════════════════════════════════════════════════ */
 
-const CLAY = '#A65F3C';
-const CLAY_BAND = '#8E4E30';
-const TINT_LIGHT = '#E6CDBD';
-const TINT_ROW = '#FAF4F0';
-const CARD_BG = '#F7F2EF';
-const GRAY_BORDER = '#D3C7BA';
-const GRAY_TEXT = '#78716C';
-const GREEN = '#47513B';
+const CLAY = '#2B6777';
+const CLAY_BAND = '#225462';
+const TINT_LIGHT = '#C8D8E4';
+const TINT_ROW = '#F1F6F8';
+const CARD_BG = '#F7F9FA';
+const GRAY_BORDER = '#D3DADE';
+const GRAY_TEXT = '#64757D';
+const GREEN = '#2C5D53';
 const AMBER = '#A87A2C';
-const RED = '#9A4231';
+const RED = '#B0453C';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -68,7 +68,7 @@ function SlideCanvas({ children }) {
   );
 }
 
-/* ─── กรอบสไลด์เนื้อหา (header navy + footer) ─── */
+/* ─── กรอบสไลด์เนื้อหา (header teal + footer) ─── */
 function ContentSlide({ titleTh, titleEn, page, company, month, year, children }) {
   return (
     <>
@@ -128,7 +128,7 @@ function SlideTable({ columns, rows, empty }) {
                 return (
                   <td key={ci} style={{
                     fontSize: cellNode.size || 14, fontWeight: cellNode.bold ? 700 : 400,
-                    color: cellNode.color || '#4A2B29', textAlign: cellNode.align || col.align || 'center',
+                    color: cellNode.color || '#12303A', textAlign: cellNode.align || col.align || 'center',
                     padding: '7px 10px', border: `1px solid ${GRAY_BORDER}`,
                     verticalAlign: 'middle', wordBreak: 'break-word',
                   }}>{cellNode.text}</td>
@@ -265,8 +265,8 @@ function SoftwareSlide({ swSummary, ...props }) {
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.6 }, { label: 'ซอฟต์แวร์', w: 3.4, align: 'left' },
-          { label: 'จำนวน', w: 0.9 }, { label: 'ใช้งาน', w: 0.9, headColor: '#EEF1E9' },
-          { label: 'คงเหลือ', w: 1.0, headColor: '#F9E9E4' }, { label: 'หมายเหตุ', w: 4.73, align: 'left' },
+          { label: 'จำนวน', w: 0.9 }, { label: 'ใช้งาน', w: 0.9, headColor: '#EAF5F2' },
+          { label: 'คงเหลือ', w: 1.0, headColor: '#FBEAE8' }, { label: 'หมายเหตุ', w: 4.73, align: 'left' },
         ]}
         rows={rows} empty="ไม่มีข้อมูล"
       />
@@ -546,7 +546,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
           className="shrink-0 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors disabled:opacity-25 disabled:cursor-not-allowed" aria-label="ก่อนหน้า">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <div className="w-full max-w-5xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] rounded-lg overflow-hidden ring-1 ring-white/10">
+        <div className="w-full max-w-5xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] rounded-lg overflow-hidden ring-1 ring-white/10">
           <SlideCanvas>{slides[idx]()}</SlideCanvas>
         </div>
         <button onClick={() => go(1)} disabled={idx === total - 1}

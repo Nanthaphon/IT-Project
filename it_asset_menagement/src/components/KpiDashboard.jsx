@@ -235,7 +235,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 unit="เคส"
                 sub={`รอ ${k.pending} · กำลังซ่อม ${k.inProgress}`}
                 accent={BRAND.primary}
-                tint="#F3E7DF"
+                tint="#DFEAEF"
               />
               <KpiCard
                 icon={CheckCircle2}
@@ -243,8 +243,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 value={k.done}
                 unit="เคส"
                 sub={`อัตราการปิด ${k.closureRate.toFixed(1)}%`}
-                accent="#47513B"
-                tint="#EEF1E9"
+                accent="#2C5D53"
+                tint="#EAF5F2"
               />
               <KpiCard
                 icon={Clock}
@@ -261,8 +261,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 value={k.avgRepair > 0 ? k.avgRepair.toFixed(1) : '-'}
                 unit="ชั่วโมง"
                 sub="เริ่ม → เสร็จ"
-                accent="#A65F3C"
-                tint="#F3E7DF"
+                accent="#2B6777"
+                tint="#DFEAEF"
               />
             </div>
           </div>
@@ -303,8 +303,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
               <div className="lg:col-span-2 bg-white border border-stone-200/60 rounded-2xl p-5">
                 <p className="text-[13px] font-medium text-stone-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
                 <div className="space-y-3">
-                  <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#A65F3C" />
-                  <RatingBar label="คุณภาพการแก้ปัญหา" value={k.avgQuality} color="#47513B" />
+                  <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#2B6777" />
+                  <RatingBar label="คุณภาพการแก้ปัญหา" value={k.avgQuality} color="#2C5D53" />
                   <RatingBar label="การบริการ &amp; มารยาท" value={k.avgService} color="#A87A2C" />
                 </div>
                 <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
@@ -539,9 +539,9 @@ function MonthlyTrend({ data }) {
 }
 
 function starColor(star) {
-  if (star >= 5) return '#47513B'; // olive
-  if (star >= 4) return '#5A6749'; // olive อ่อน
+  if (star >= 5) return '#2C5D53'; // olive
+  if (star >= 4) return '#3D8072'; // olive อ่อน
   if (star >= 3) return '#A87A2C'; // ochre
-  if (star >= 2) return '#B06844'; // terracotta
-  return '#9A4231';                // brick
+  if (star >= 2) return '#427C91'; // teal กลาง
+  return '#B0453C';                // brick
 }

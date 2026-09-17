@@ -17,7 +17,7 @@ const licenses = [
 const employees = Array.from({length:61},(_,i)=>({ id:i, fullName:'พนักงาน '+i }));
 const repairRequests = [];
 createRoot(document.getElementById('root')).render(
-  <div style={{ background:'#FAFAF9', minHeight:'100vh', padding:'24px' }}>
+  <div style={{ background:'#F7F9FA', minHeight:'100vh', padding:'24px' }}>
     <ITReportPage employees={employees} repairRequests={repairRequests} assets={assets} accessories={accessories} licenses={licenses} />
   </div>
 );

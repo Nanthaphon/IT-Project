@@ -7,7 +7,7 @@ import {
 import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens (ให้ตรงกับฝั่ง user) ─────────────── */
-const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
+const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)]';
 const LABEL = 'text-[11px] font-medium text-stone-400';
 
 /* ─── Status config ──────────────────────────────────────── */

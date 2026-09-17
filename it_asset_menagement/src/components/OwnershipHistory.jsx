@@ -263,7 +263,7 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[100] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-lg flex flex-col overflow-hidden max-h-[92vh]">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-lg flex flex-col overflow-hidden max-h-[92vh]">
         <div className="px-6 py-5 border-b border-stone-100 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5">
             <div className="w-11 h-11 rounded-xl bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
@@ -1349,7 +1349,7 @@ function EditPeriodModal({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col">
         <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg bg-clay-100 text-clay-600 flex items-center justify-center shrink-0">
@@ -1522,7 +1522,7 @@ function DeletePeriodConfirm({ period, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-md overflow-hidden">
         <div className="px-6 py-5 text-center">
           <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="h-6 w-6" strokeWidth={2} />

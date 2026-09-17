@@ -1298,12 +1298,12 @@ export default function AssetDetailsModal({
       : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[80]'}>
       <div className={asPage
         ? 'bg-white w-full h-full flex flex-col overflow-hidden'
-        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_3px_rgba(74,43,41,0.03),0_20px_50px_-24px_rgba(74,43,41,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
+        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_3px_rgba(22,32,36,0.03),0_20px_50px_-24px_rgba(22,32,36,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
 
         {/* Header */}
         <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center" style={{ background: '#A65F3C0F', color: '#A65F3C' }}>
+            <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center" style={{ background: '#2B67770F', color: '#2B6777' }}>
               <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
               </svg>
@@ -1475,7 +1475,7 @@ export default function AssetDetailsModal({
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
+              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
                 <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
                   <h4 className="text-[13px] font-medium text-stone-600">ข้อมูลจำเพาะ</h4>
@@ -1573,7 +1573,7 @@ export default function AssetDetailsModal({
               {selectedAssetCategory === 'assets' && (() => {
                 const gallery = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
                 return (
-                  <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04)]">
+                  <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(22,32,36,0.04)]">
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 rounded-full bg-clay-600" />
@@ -1628,7 +1628,7 @@ export default function AssetDetailsModal({
 
               {/* รายการสิทธิ์ผู้ถือครอง (เฉพาะ licenses) */}
               {selectedAssetCategory === 'licenses' && (
-                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
+                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
@@ -1941,7 +1941,7 @@ export default function AssetDetailsModal({
 
               {/* ส่วนจัดการชิ้นย่อย (เฉพาะอุปกรณ์เสริม) */}
               {selectedAssetCategory === 'accessories' && (
-                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
+                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
@@ -2226,7 +2226,7 @@ export default function AssetDetailsModal({
                   )}
                 </>
               ) : (
-                <div className="bg-white border border-stone-200/70 p-6 rounded-xl shadow-[0_1px_2px_rgba(74,43,41,0.04)]">
+                <div className="bg-white border border-stone-200/70 p-6 rounded-xl shadow-[0_1px_2px_rgba(22,32,36,0.04)]">
                   <div className="flex items-center gap-2 mb-5 pb-4 border-b border-stone-100">
                     <div className="w-1 h-5 rounded-full bg-clay-600" />
                     <h4 className="text-sm font-medium text-stone-700">
@@ -2346,7 +2346,7 @@ export default function AssetDetailsModal({
           {/* TAB: เอกสารแนบ */}
           {activeTab === 'docs' && (
             <div className="space-y-3 animate-in fade-in duration-200">
-              <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04)]">
+              <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(22,32,36,0.04)]">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
                   <h4 className="text-[13px] font-medium text-stone-600">จัดการเอกสารแนบ</h4>
@@ -2604,7 +2604,7 @@ export function SeatDetailModal({
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header — ขาวสะอาด ธีมเดียวกับฝั่ง user */}
         <div className="px-7 py-5 border-b border-stone-100">
@@ -2870,7 +2870,7 @@ export function AccessoryItemDetailModal({
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header */}
         <div className="px-7 py-5 border-b border-stone-100">

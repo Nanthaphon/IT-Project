@@ -4,7 +4,7 @@ import DateField from './DateField.jsx';
 import { COMPANIES } from '../ui/theme.js';
 import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
-const BRAND = '#A65F3C';
+const BRAND = '#2B6777';
 
 function SectionHeader({ children }) {
   return (
@@ -80,7 +80,7 @@ export default function EditAssetModal({
     <div className={asPage ? 'h-full' : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[70]'}>
       <div className={asPage
         ? 'bg-white w-full h-full overflow-hidden flex flex-col'
-        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
+        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
         <div className="px-7 py-5 border-b border-stone-100">
           <div className={`flex items-start justify-between ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>

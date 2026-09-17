@@ -7,7 +7,7 @@ import {
 import { formatDateTimeShort, formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
-const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
+const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)]';
 const LABEL = 'text-[11px] font-medium text-stone-400';
 const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-xl text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 
@@ -361,10 +361,10 @@ export default function SupplyRequestTable({
                     {/* Donut SVG */}
                     <div className="relative shrink-0 w-32 h-32">
                       <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="#f5f5f4" strokeWidth="5.5" />
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#f2f2f2" strokeWidth="5.5" />
                         {(() => {
                           const total = insights.totalApprovedQty || 1;
-                          const colors = ['#A65F3C', '#C08761', '#47513B', '#A87A2C', '#9A4231', '#8E4E30', '#5A6749', '#D6AC91'];
+                          const colors = ['#2B6777', '#6E97A9', '#2C5D53', '#A87A2C', '#B0453C', '#225462', '#3D8072', '#9FBDCB'];
                           let acc = 0;
                           return insights.topItems.map((item, i) => {
                             const pct = (item.qty / total) * 100;
@@ -393,7 +393,7 @@ export default function SupplyRequestTable({
                     {/* Legend */}
                     <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
                       {insights.topItems.map((item, i) => {
-                        const colors = ['#A65F3C', '#C08761', '#47513B', '#A87A2C', '#9A4231', '#8E4E30', '#5A6749', '#D6AC91'];
+                        const colors = ['#2B6777', '#6E97A9', '#2C5D53', '#A87A2C', '#B0453C', '#225462', '#3D8072', '#9FBDCB'];
                         const color = colors[i % colors.length];
                         const pct = insights.totalApprovedQty > 0 ? (item.qty / insights.totalApprovedQty) * 100 : 0;
                         return (

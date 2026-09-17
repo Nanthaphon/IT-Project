@@ -89,7 +89,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-md w-full overflow-hidden border border-stone-200/60 max-h-[92vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-md w-full overflow-hidden border border-stone-200/60 max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
 

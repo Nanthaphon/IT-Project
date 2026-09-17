@@ -170,7 +170,7 @@ export default function EmployeeDetailsModal({
       data-modal="employee-detail"
       className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[60]"
     >
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
@@ -475,7 +475,7 @@ export default function EmployeeDetailsModal({
       {/* ── Picker เลือกเครื่องที่จะพิมพ์ใบรับคืน (เมื่อพนักงานถือหลายเครื่อง) ── */}
       {returnPickerOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-stone-950/50 p-4" onClick={() => setReturnPickerOpen(false)}>
-          <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-medium text-stone-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
               <button onClick={() => setReturnPickerOpen(false)} className="text-stone-400 hover:text-stone-600 text-xl leading-none">×</button>
@@ -808,7 +808,7 @@ function PasswordReveal({ label, value }) {
             aria-label="คัดลอก"
           >
             {copied
-              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#47513B" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2C5D53" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
           </button>
         </div>

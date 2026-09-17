@@ -28,7 +28,7 @@ function Harness() {
 
   return (
     <>
-      <div className="flex gap-2 bg-[#4A2B29] p-3">
+      <div className="flex gap-2 bg-[#12303A] p-3">
         {[['primitives', 'primitives กลาง'], ['checkout', 'CheckoutModal'], ['confirm', 'ยืนยันลบ'], ['alert', 'แจ้งเตือน']].map(([k, label]) => (
           <button
             key={k} onClick={() => { setWhich(k); setCheckout({ isOpen: true, assetId: 'a1', collectionName: 'assets' }); }}

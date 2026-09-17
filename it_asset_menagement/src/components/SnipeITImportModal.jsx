@@ -305,11 +305,11 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-stone-200/60">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-stone-200/60">
 
         {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F3E7DF', color: '#A65F3C' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#DFEAEF', color: '#2B6777' }}>
             <FileSpreadsheet className="h-5 w-5" strokeWidth={2} />
           </div>
           <div className="flex-1">
@@ -449,9 +449,9 @@ function PreviewSection({ parsed }) {
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatBox label="แถวใน CSV" value={rows.length} color="#78716C" bg="#F5F5F4" />
-        <StatBox label="License (หลัง group)" value={grouped.length} color="#A65F3C" bg="#F3E7DF" />
-        <StatBox label="Seats รวม" value={totalSeats} color="#47513B" bg="#EEF1E9" />
+        <StatBox label="แถวใน CSV" value={rows.length} color="#64757D" bg="#F2F2F2" />
+        <StatBox label="License (หลัง group)" value={grouped.length} color="#2B6777" bg="#DFEAEF" />
+        <StatBox label="Seats รวม" value={totalSeats} color="#2C5D53" bg="#EAF5F2" />
       </div>
 
       {/* Column mapping info */}

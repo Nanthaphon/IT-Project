@@ -58,8 +58,8 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
     const diffMs = w.getTime() - today.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     const dateText = fmtThaiDate(warrantyStr);
-    if (diffDays < 0) return { date: dateText, badge: 'หมดแล้ว', color: '#9A4231' };
-    if (diffDays <= 30) return { date: dateText, badge: `เหลือ ${diffDays} วัน`, color: '#b45309' };
+    if (diffDays < 0) return { date: dateText, badge: 'หมดแล้ว', color: '#B0453C' };
+    if (diffDays <= 30) return { date: dateText, badge: `เหลือ ${diffDays} วัน`, color: '#a87a2c' };
     return { date: dateText, badge: '', color: '#000' };
   };
 
@@ -68,20 +68,20 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
         const ws = warrantyStatus(item.warrantyDate);
         return `
         <tr>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;text-align:center">${i + 1}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000">${e(item.name) || '-'}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000">${e(item.type) || '-'}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap">${e(fmtThaiDate(item.purchaseDate))}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap;font-weight:600">${e(calcUsageAge(item.purchaseDate))}</td>
-          <td style="border:1px solid #d6d3d1;padding:6px 6px;font-size:11px;color:${ws.color};text-align:center;line-height:1.4;font-weight:600">
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000;text-align:center">${i + 1}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000">${e(item.name) || '-'}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000">${e(item.type) || '-'}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.sn || item.serialNumber) || '-'}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000;font-family:monospace">${e(item.assetTag) || '-'}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap">${e(fmtThaiDate(item.purchaseDate))}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 8px;font-size:11px;color:#000;text-align:center;white-space:nowrap;font-weight:600">${e(calcUsageAge(item.purchaseDate))}</td>
+          <td style="border:1px solid #cbd6db;padding:6px 6px;font-size:11px;color:${ws.color};text-align:center;line-height:1.4;font-weight:600">
             <div>${e(ws.date)}</div>
             ${ws.badge ? `<div style="font-size:10px;font-weight:500;margin-top:1px">(${e(ws.badge)})</div>` : ''}
           </td>
         </tr>`;
       }).join('')
-    : `<tr><td colspan="8" style="border:1px solid #d6d3d1;padding:10px;text-align:center;color:#78716c;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
+    : `<tr><td colspan="8" style="border:1px solid #cbd6db;padding:10px;text-align:center;color:#64757d;font-size:12px">ไม่มีทรัพย์สินหลักในชื่อพนักงาน</td></tr>`;
 
   const html = `<!DOCTYPE html>
 <html lang="th">
@@ -102,7 +102,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
 <body>
 
   <button class="no-print" onclick="window.print()"
-    style="display:block;margin:0 auto 20px;padding:8px 32px;background:#A65F3C;color:#fff;
+    style="display:block;margin:0 auto 20px;padding:8px 32px;background:#2B6777;color:#fff;
     border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
     🖨️ พิมพ์ / บันทึก PDF
   </button>
@@ -111,7 +111,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
     <img src="${safeUrl(logoUrl)}" alt="logo" style="height:54px;width:auto;object-fit:contain;flex-shrink:0" />
     <div style="flex:1;text-align:center">
-      <div style="font-size:18px;font-weight:700;color:#A65F3C;line-height:1.1">ฟอร์มขอเปลี่ยนเครื่องคอมพิวเตอร์</div>
+      <div style="font-size:18px;font-weight:700;color:#2B6777;line-height:1.1">ฟอร์มขอเปลี่ยนเครื่องคอมพิวเตอร์</div>
       <div style="font-size:11px;color:#000;margin-top:2px">Computer Replacement Request Form</div>
     </div>
     <div style="text-align:right;flex-shrink:0">
@@ -119,16 +119,16 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
       <div style="font-size:11px;font-weight:700;color:#000">${thDate}</div>
     </div>
   </div>
-  <div style="border-top:2px solid #A65F3C;margin-bottom:10px"></div>
+  <div style="border-top:2px solid #2B6777;margin-bottom:10px"></div>
 
   <!-- ข้อมูลพนักงาน -->
-  <div style="font-size:12px;font-weight:700;color:#A65F3C;margin-bottom:5px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
     </svg>
     ข้อมูลผู้ยื่นคำขอ
   </div>
-  <div style="border:1px solid #d6d3d1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
+  <div style="border:1px solid #cbd6db;border-radius:5px;padding:8px 12px;margin-bottom:10px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 18px">
       <div>
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:;letter-spacing:0.04em;margin-bottom:2px">ชื่อ-นามสกุล</div>
@@ -154,7 +154,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   </div>
 
   <!-- เครื่องที่ถือครองปัจจุบัน -->
-  <div style="font-size:12px;font-weight:700;color:#A65F3C;margin-bottom:5px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
     </svg>
@@ -177,13 +177,13 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   </table>
 
   <!-- เหตุผลขอเปลี่ยน -->
-  <div style="font-size:12px;font-weight:700;color:#A65F3C;margin-bottom:5px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
     </svg>
     เหตุผลและรายละเอียดการขอเปลี่ยน
   </div>
-  <div style="border:1px solid #d6d3d1;border-radius:5px;padding:8px 12px;margin-bottom:10px">
+  <div style="border:1px solid #cbd6db;border-radius:5px;padding:8px 12px;margin-bottom:10px">
     <div style="margin-bottom:6px">
       <div style="font-size:11px;color:#475569;font-weight:600;text-transform:;letter-spacing:0.04em;margin-bottom:3px">สถานะเครื่องปัจจุบัน</div>
       <div style="font-size:13px;font-weight:700;color:#000">${e(currentStatus)}</div>
@@ -196,7 +196,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
 
   ${damagePhotos.length > 0 ? `
   <!-- รูปสภาพเครื่องชำรุด -->
-  <div style="font-size:12px;font-weight:700;color:#A65F3C;margin-bottom:5px;display:flex;align-items:center;gap:5px">
+  <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
     </svg>
@@ -204,8 +204,8 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
     ${damagePhotos.map((p, i) => `
-      <div style="border:1px solid #d6d3d1;border-radius:4px;padding:4px;background:#fff;page-break-inside:avoid">
-        <div style="position:relative;width:100%;padding-top:75%;background:#f5f5f4;border-radius:3px;overflow:hidden">
+      <div style="border:1px solid #cbd6db;border-radius:4px;padding:4px;background:#fff;page-break-inside:avoid">
+        <div style="position:relative;width:100%;padding-top:75%;background:#f2f2f2;border-radius:3px;overflow:hidden">
           <img src="${p.data}" alt="รูปที่ ${i + 1}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain" />
         </div>
         <div style="font-size:9.5px;color:#000;margin-top:3px;text-align:center;font-weight:600">รูปที่ ${i + 1}</div>
@@ -249,7 +249,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
       </div>
     </div>
 
-    <div style="text-align:center;font-size:9.5px;color:#78716c;margin-top:6px">
+    <div style="text-align:center;font-size:9.5px;color:#64757d;margin-top:6px">
       ออกโดยระบบ IT Asset Management · ${thDate}
     </div>
   </div>
@@ -621,7 +621,7 @@ export default function StaffView({
   ======================================== */
   if (!currentStaff) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-white to-[#F3E7DF] relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-white to-[#DFEAEF] relative overflow-hidden">
         {/* decorative glow */}
         <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-clay-600/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-clay-600/[0.07] blur-3xl" />
@@ -635,7 +635,7 @@ export default function StaffView({
             <p className="text-sm text-stone-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] p-7">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] p-7">
             <h2 className="text-[15px] font-medium text-stone-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
             <p className="text-xs text-stone-500 mb-5 leading-relaxed">
               💡 รหัสผ่านเริ่มต้น = <span className="font-medium text-clay-600">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
@@ -682,7 +682,7 @@ export default function StaffView({
                 type="submit"
                 disabled={isLoggingIn}
                 className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
-                style={{ boxShadow: '0 4px 14px rgba(166,95,60,0.25)' }}
+                style={{ boxShadow: '0 4px 14px rgba(43,103,119,0.25)' }}
               >
                 {isLoggingIn ? (
                   <>
@@ -711,7 +711,7 @@ export default function StaffView({
   ======================================== */
   if (staffMustChangePassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-white to-[#F3E7DF] relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 via-white to-[#DFEAEF] relative overflow-hidden">
         <div className="pointer-events-none absolute -top-32 -right-24 w-96 h-96 rounded-full bg-clay-400/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-clay-600/[0.06] blur-3xl" />
         <div className="w-full max-w-md relative z-10">
@@ -728,7 +728,7 @@ export default function StaffView({
             </p>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] p-7">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] p-7">
             <form onSubmit={handleForceChangePassword} className="space-y-4">
               <div>
                 <label className={labelCls}>รหัสผ่านเดิม</label>
@@ -755,7 +755,7 @@ export default function StaffView({
               )}
               <button type="submit" disabled={changeSubmitting}
                 className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-sm font-medium rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
-                style={{ boxShadow: '0 4px 14px rgba(166,95,60,0.25)' }}>
+                style={{ boxShadow: '0 4px 14px rgba(43,103,119,0.25)' }}>
                 {changeSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -953,7 +953,7 @@ export default function StaffView({
         {activeTab === 'profile' && (
           <>
           {/* ── Hero card ── */}
-          <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-clay-600 via-[#1A3F6D] to-clay-800 shadow-lg shadow-clay-600/25 ring-1 ring-white/10">
+          <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-clay-600 via-[#2B6777] to-clay-800 shadow-lg shadow-clay-600/25 ring-1 ring-white/10">
             {/* decorative glow */}
             <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/[0.07] blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-10 w-56 h-56 rounded-full bg-white/[0.04] blur-3xl" />
@@ -1781,7 +1781,7 @@ function PasswordRevealItem({ label, value, show, setShow }) {
             className="text-stone-400 hover:text-clay-600 transition-colors"
             title="คัดลอก" aria-label="คัดลอก">
             {copied
-              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#52ab98" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
           </button>
         </div>
@@ -1834,7 +1834,7 @@ function CompactPassword({ label, value, show, setShow }) {
           <button type="button" onClick={handleCopy}
             className="text-stone-400 hover:text-clay-600 transition-colors" title="คัดลอก">
             {copied
-              ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#52ab98" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               : <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
           </button>
         </div>
@@ -1940,7 +1940,7 @@ function LinksEditor({ links, setLinks }) {
         ))}
       </div>
       <button type="button" onClick={add}
-        className="mt-2.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:text-[#153a63] transition-colors">
+        className="mt-2.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:text-[#225462] transition-colors">
         <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
       </button>
     </div>

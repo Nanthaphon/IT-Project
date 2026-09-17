@@ -16,13 +16,13 @@ const STATUS = {
 
 /* ─── Request type config ─── */
 const REQUEST_TYPE = {
-  pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#78716C', bg: '#F5F5F4' },
-  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#F3E7DF' },
+  pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#64757D', bg: '#F2F2F2' },
+  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
   // legacy aliases
-  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#F3E7DF' },
-  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#F3E7DF' },
+  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
+  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
   replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#A87A2C', bg: '#FBF4E6' },
-  borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#8E4E30', bg: '#F3E7DF' },
+  borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#225462', bg: '#DFEAEF' },
 };
 
 /* ─── Date helpers ───────────────────────────────────────── */
@@ -121,7 +121,7 @@ export default function AccessoryRequestTable({
           <p className="text-xs text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)] overflow-hidden">
           {pagedRequests.map((req, idx) => {
             const status = STATUS[req.status] || STATUS['รอดำเนินการ'];
             const reqType = REQUEST_TYPE[req.requestType] || REQUEST_TYPE.new;
@@ -345,7 +345,7 @@ export default function AccessoryRequestTable({
       {/* ── Reject reason modal ── */}
       {rejectModal.open && (
         <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-md w-full overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-md w-full overflow-hidden">
             <div className="px-6 py-5 border-b border-stone-100">
               <h3 className="text-[15px] font-medium text-stone-800">เหตุผลในการปฏิเสธคำขอ</h3>
               <p className="text-xs text-stone-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
@@ -398,7 +398,7 @@ function SummaryChip({ label, value, color, active, onClick }) {
         style={
           active
             ? { background: 'rgba(255,255,255,0.18)' }
-            : color ? { background: `${color}15`, color } : { background: '#F5F5F4', color: '#78716C' }
+            : color ? { background: `${color}15`, color } : { background: '#F2F2F2', color: '#64757D' }
         }
       >
         {value}

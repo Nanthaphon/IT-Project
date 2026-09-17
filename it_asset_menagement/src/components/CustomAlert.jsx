@@ -10,7 +10,7 @@ export default function CustomAlert({ customAlert, setCustomAlert }) {
   return (
     <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]" onClick={close}>
       <div
-        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-sm w-full overflow-hidden border border-stone-200/60 text-center p-7"
+        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-sm w-full overflow-hidden border border-stone-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div

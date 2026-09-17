@@ -8,14 +8,14 @@ import { formatDateShort, formatDateTimeShort, formatDateMedium } from './format
 const formatDateTime = formatDateTimeShort;
 const formatDate = formatDateMedium;
 
-/* ── สไตล์ Excel (xlsx-js-style) — โทนเดียวกับระบบ (navy #A65F3C) ── */
+/* ── สไตล์ Excel (xlsx-js-style) — โทนเดียวกับระบบ (navy #2B6777) ── */
 const FONT = 'Tahoma';
-const NAVY = 'A65F3C', NAVY2 = 'C08761', TINT = 'F3E7DF', GREY = '78716C', LINE = 'D3C7BA', ZEBRA = 'FAF4F0';
+const NAVY = '2B6777', NAVY2 = '6E97A9', TINT = 'DFEAEF', GREY = '64757D', LINE = 'D3DADE', ZEBRA = 'F1F6F8';
 const thin = { style: 'thin', color: { rgb: LINE } };
 const BORDER = { top: thin, bottom: thin, left: thin, right: thin };
 const ST = {
   title:     { font: { name: FONT, sz: 15, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: NAVY } }, alignment: { horizontal: 'left', vertical: 'center' } },
-  sub:       { font: { name: FONT, sz: 10, color: { rgb: 'DCE6F5' } }, fill: { fgColor: { rgb: NAVY } }, alignment: { horizontal: 'left', vertical: 'center' } },
+  sub:       { font: { name: FONT, sz: 10, color: { rgb: 'DFEAEF' } }, fill: { fgColor: { rgb: NAVY } }, alignment: { horizontal: 'left', vertical: 'center' } },
   section:   { font: { name: FONT, sz: 12, bold: true, color: { rgb: NAVY } }, fill: { fgColor: { rgb: TINT } }, alignment: { horizontal: 'left', vertical: 'center' } },
   thead:     { font: { name: FONT, sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: NAVY2 } }, alignment: { horizontal: 'left', vertical: 'center', wrapText: true }, border: BORDER },
   theadR:    { font: { name: FONT, sz: 10.5, bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: NAVY2 } }, alignment: { horizontal: 'right', vertical: 'center', wrapText: true }, border: BORDER },

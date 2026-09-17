@@ -21,7 +21,7 @@ export default function LoginView({
       className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{
         background:
-          'radial-gradient(60% 50% at 50% 0%, rgba(166,95,60,0.10) 0%, rgba(166,95,60,0) 60%), linear-gradient(180deg, #F7F2EF 0%, #F3E7DF 100%)',
+          'radial-gradient(60% 50% at 50% 0%, rgba(43,103,119,0.10) 0%, rgba(43,103,119,0) 60%), linear-gradient(180deg, #F7F9FA 0%, #DFEAEF 100%)',
       }}
     >
       {/* Subtle decoration */}
@@ -185,7 +185,7 @@ function Logo() {
   return (
     <div
       className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-clay-600/25 border border-white/50"
-      style={{ background: 'linear-gradient(135deg, #A65F3C 0%, #8E4E30 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #2B6777 0%, #225462 100%)' }}
     >
       <img
         src="/gb_icon.svg"

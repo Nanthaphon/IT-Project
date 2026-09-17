@@ -56,7 +56,7 @@ const repairRequests = [
    ที่ตอนนี้ไม่ใส่ padding ให้หน้า dashboard แล้ว — ใช้ตรวจว่า integration ไม่เพี้ยน */
 createRoot(document.getElementById('root')).render(
   <div className="flex h-screen bg-stone-50 text-stone-900 font-sans">
-    <div className="w-[280px] shrink-0 bg-[#4A2B29]" />{/* แทน Sidebar */}
+    <div className="w-[280px] shrink-0 bg-[#12303A]" />{/* แทน Sidebar */}
     <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
       <div id="main-scroll-container" className="flex-1 overflow-auto">
         <DashboardPage

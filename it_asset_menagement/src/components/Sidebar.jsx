@@ -110,7 +110,7 @@ export default function Sidebar({
           fixed md:static inset-y-0 left-0 z-50
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         style={{
-          background: 'linear-gradient(180deg, #6E3B26 0%, #4A2B29 100%)',
+          background: 'linear-gradient(180deg, #1A414C 0%, #12303A 100%)',
         }}
       >
 

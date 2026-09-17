@@ -145,7 +145,7 @@ export default function AddModal({
                     autoComplete="off"
                   />
                   {isManagerDropdownOpen && (
-                    <div className="absolute z-20 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(74,43,41,0.12)] max-h-56 overflow-y-auto">
+                    <div className="absolute z-20 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(22,32,36,0.12)] max-h-56 overflow-y-auto">
                       {employees.filter(emp =>
                         emp.fullName?.toLowerCase().includes((empForm.manager || '').toLowerCase()) ||
                         emp.empId?.toLowerCase().includes((empForm.manager || '').toLowerCase())

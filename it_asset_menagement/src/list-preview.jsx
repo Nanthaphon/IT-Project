@@ -128,7 +128,7 @@ function Harness() {
 
   return (
     <>
-      <div className="flex gap-2 bg-[#4A2B29] p-3">
+      <div className="flex gap-2 bg-[#12303A] p-3">
         {tabs.map(([k, label]) => (
           <button
             key={k} onClick={() => setMenu(k)}

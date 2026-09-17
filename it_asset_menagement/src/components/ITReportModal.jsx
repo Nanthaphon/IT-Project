@@ -202,7 +202,7 @@ function Section({ id, activeSection, setActiveSection, title, children }) {
 }
 
 /* ── Data Preview Card ── */
-function PreviewCard({ title, value, sub, color = '#A65F3C' }) {
+function PreviewCard({ title, value, sub, color = '#2B6777' }) {
   return (
     <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-center">
       <div className="text-3xl font-medium tabular-nums" style={{ color }}>{value}</div>
@@ -213,7 +213,7 @@ function PreviewCard({ title, value, sub, color = '#A65F3C' }) {
 }
 
 /* ── ช่องกรอกตัวเลขสถิติ (แก้ไขได้) ── */
-function StatInput({ label, value, onChange, color = '#A65F3C' }) {
+function StatInput({ label, value, onChange, color = '#2B6777' }) {
   const num = (v) => (v === '' || isNaN(Number(v)) ? 0 : Number(v));
   return (
     <div className="bg-stone-50 border border-stone-200 rounded-xl px-2 py-2.5 text-center focus-within:border-clay-600 focus-within:ring-2 focus-within:ring-clay-600/15 transition-colors">
@@ -284,9 +284,9 @@ function CountBadge({ n }) {
 }
 
 /* ── Panel card (v2 minimal) ── */
-function PanelCard({ icon: Icon, tint = '#F3E7DF', color = '#A65F3C', title, desc, right, children }) {
+function PanelCard({ icon: Icon, tint = '#DFEAEF', color = '#2B6777', title, desc, right, children }) {
   return (
-    <section className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
+    <section className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-stone-100">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: tint, color }}>
           <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
@@ -505,16 +505,16 @@ export default function ITReportPage({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <StatInput label="พนักงานทั้งหมด" value={stats.employees}  onChange={v => editStat('employees', v)} />
               <StatInput label="เคสทั้งหมด"      value={stats.monthly}    onChange={v => editStat('monthly', v)} />
-              <StatInput label="ปิดสำเร็จ"       value={stats.closedWon}  onChange={v => editStat('closedWon', v)}  color="#47513b" />
-              <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#9A4231" />
+              <StatInput label="ปิดสำเร็จ"       value={stats.closedWon}  onChange={v => editStat('closedWon', v)}  color="#2c5d53" />
+              <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#B0453C" />
             </div>
           </PanelCard>
 
-          <PanelCard icon={AlertCircle} tint="#F9E9E4" color="#9A4231" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
+          <PanelCard icon={AlertCircle} tint="#FBEAE8" color="#B0453C" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
             <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
           </PanelCard>
 
-          <PanelCard icon={FlaskConical} tint="#F3E7DF" color="#8E4E30" title="R&D Projects" desc="สไลด์ 6 — สถานะโปรเจค" right={<CountBadge n={rdProjects.length} />}>
+          <PanelCard icon={FlaskConical} tint="#DFEAEF" color="#225462" title="R&D Projects" desc="สไลด์ 6 — สถานะโปรเจค" right={<CountBadge n={rdProjects.length} />}>
             <RDEditor value={rdProjects} onChange={setRdProjects} />
           </PanelCard>
 
@@ -525,7 +525,7 @@ export default function ITReportPage({
 
         {/* RIGHT — hardware / software (แก้ไขได้) */}
         <div className="xl:col-span-2 space-y-5">
-          <PanelCard icon={Monitor} tint="#EEF1E9" color="#47513B" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
+          <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
             right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
             <DataRowsEditor
               rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
@@ -541,7 +541,7 @@ export default function ITReportPage({
             />
           </PanelCard>
 
-          <PanelCard icon={Package} tint="#F3E7DF" color="#8E4E30" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
+          <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
             right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
             <DataRowsEditor
               rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"

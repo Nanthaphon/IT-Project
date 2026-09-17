@@ -35,5 +35,5 @@ if (import.meta.env.VITE_USE_EMULATOR === '1') {
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
   connectStorageEmulator(storage, '127.0.0.1', 9199);
   console.info('%c[emulator] ต่อ Firestore/Auth/Storage ในเครื่อง — ไม่แตะข้อมูลจริง',
-    'background:#A65F3C;color:#fff;padding:2px 6px;border-radius:4px');
+    'background:#2B6777;color:#fff;padding:2px 6px;border-radius:4px');
 }

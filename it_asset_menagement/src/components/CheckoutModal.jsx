@@ -216,7 +216,7 @@ export default function CheckoutModal({
               />
 
               {isDropdownOpen && (
-                <div className="absolute z-10 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(74,43,41,0.12)] max-h-[320px] overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(22,32,36,0.12)] max-h-[320px] overflow-y-auto">
                   {filteredEmployees.length > 0 ? (
                     filteredEmployees.map(emp => (
                       <div

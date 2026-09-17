@@ -1,24 +1,24 @@
 // Unified design tokens — keep the whole app on one visual language.
-// Canyon (earth tone), minimal, สบายตา
+// Harbor (teal) — minimal, สบายตา
 
 // ── Companies — ใช้กับ employee และ asset records ──
 export const COMPANIES = ['Globe Syndicate', 'Besthrm'];
 
 export const BRAND = {
-  primary:      '#A65F3C',  // terracotta — สีหลัก (ปุ่ม/ไฮไลท์/สถานะ active)
-  primaryDark:  '#8E4E30',  // hover / pressed
-  primaryDeep:  '#6E3B26',  // เข้มสุด (ฐาน sidebar)
-  primarySoft:  '#F3E7DF',  // very light navy tint for backgrounds
-  primaryRing:  'rgba(166,95,60,0.15)', // focus ring
+  primary:      '#2B6777',  // teal — สีหลัก (ปุ่ม/ไฮไลท์/สถานะ active)
+  primaryDark:  '#225462',  // hover / pressed
+  primaryDeep:  '#1A414C',  // เข้มสุด (ฐาน sidebar)
+  primarySoft:  '#DFEAEF',  // teal อ่อนมาก — พื้นหลังไฮไลท์
+  primaryRing:  'rgba(43,103,119,0.15)', // focus ring
 };
 
 // Status colors — used sparingly for badges/indicators
 export const STATUS = {
-  success: { bg: '#EEF1E9', text: '#47513B', ring: '#C3CBB4' },  // emerald
+  success: { bg: '#EAF5F2', text: '#2C5D53', ring: '#B3DCD2' },  // emerald
   warning: { bg: '#FBF4E6', text: '#A87A2C', ring: '#E3CB9A' },  // amber
-  danger:  { bg: '#F9E9E4', text: '#9A4231', ring: '#E0B3A4' },  // rose
-  info:    { bg: '#F5F5F4', text: '#57534E', ring: '#D6D3D1' },  // blue
-  neutral: { bg: '#F5F5F4', text: '#57534E', ring: '#D6D3D1' },  // slate
+  danger:  { bg: '#FBEAE8', text: '#B0453C', ring: '#EBB0A9' },  // rose
+  info:    { bg: '#F2F2F2', text: '#4A5A61', ring: '#CBD6DB' },  // blue
+  neutral: { bg: '#F2F2F2', text: '#4A5A61', ring: '#CBD6DB' },  // slate
 };
 
 // Reusable input/select/textarea base styles (Tailwind classes)
@@ -67,10 +67,10 @@ export const cls = {
 
   // Cards / surfaces — ธีมฝั่งพนักงาน: ขอบบาง + เงานุ่มโทนน้ำเงิน
   card:
-    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)]',
+    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)]',
 
   cardHover:
-    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] ' +
+    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] ' +
     'hover:border-stone-300 transition-colors',
 
   // Modal pieces
@@ -78,7 +78,7 @@ export const cls = {
     'fixed inset-0 bg-stone-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85]',
 
   modalShell:
-    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] ' +
+    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] ' +
     'w-full overflow-hidden flex flex-col max-h-[92vh]',
 
   // Table

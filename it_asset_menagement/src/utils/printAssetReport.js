@@ -211,7 +211,7 @@ export function printAssetReport({
       print-color-adjust: exact;
     }
     .page-header {
-      border-bottom: 2px solid #A65F3C;
+      border-bottom: 2px solid #2B6777;
       padding-bottom: 7px;
       margin-bottom: 10px;
     }
@@ -219,7 +219,7 @@ export function printAssetReport({
       margin: 0;
       font-size: 17px;
       font-weight: 700;
-      color: #A65F3C;
+      color: #2B6777;
     }
     .page-header .sub {
       font-size: 10.5px;
@@ -241,7 +241,7 @@ export function printAssetReport({
     .stats .box .num {
       font-size: 16px;
       font-weight: 700;
-      color: #A65F3C;
+      color: #2B6777;
       line-height: 1.1;
     }
     .stats .box .lbl {
@@ -258,12 +258,12 @@ export function printAssetReport({
       display: table-header-group;
     }
     table.report th {
-      background: #A65F3C;
+      background: #2B6777;
       color: #fff;
       font-size: ${headerFontSize}px;
       font-weight: 600;
       padding: 6px 7px;
-      border: 1px solid #8E4E30;
+      border: 1px solid #225462;
       overflow: hidden;
       overflow-wrap: anywhere;
     }

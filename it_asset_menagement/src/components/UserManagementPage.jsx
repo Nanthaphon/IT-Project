@@ -316,12 +316,12 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
           <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
             <thead className="bg-stone-50/80 border-b border-stone-200">
               <tr>
-                <th className="px-5 py-3 text-xs font-medium text-stone-500">ชื่อ</th>
-                <th className="px-5 py-3 text-xs font-medium text-stone-500">Email</th>
-                <th className="px-5 py-3 text-xs font-medium text-stone-500 text-center">สิทธิ์</th>
-                <th className="px-5 py-3 text-xs font-medium text-stone-500 text-center">เมนูที่เข้าถึงได้</th>
-                <th className="px-5 py-3 text-xs font-medium text-stone-500">วันที่สร้าง</th>
-                <th className="px-5 py-3 text-xs font-medium text-stone-500 text-center">จัดการ</th>
+                <th className="whitespace-nowrap px-5 py-3 text-xs font-medium text-stone-500">ชื่อ</th>
+                <th className="whitespace-nowrap px-5 py-3 text-xs font-medium text-stone-500">Email</th>
+                <th className="whitespace-nowrap px-5 py-3 text-xs font-medium text-stone-500 text-center">สิทธิ์</th>
+                <th className="whitespace-nowrap px-5 py-3 text-xs font-medium text-stone-500 text-center">เมนูที่เข้าถึงได้</th>
+                <th className="whitespace-nowrap px-5 py-3 text-xs font-medium text-stone-500">วันที่สร้าง</th>
+                <th className="whitespace-nowrap px-5 py-3 text-xs font-medium text-stone-500 text-center">จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 text-sm bg-white">

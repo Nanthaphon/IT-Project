@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Download, Upload, Trash2, Undo2 } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { CellTitle } from '../../ui/earthUI.jsx';
+import { CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 
 /* ════════════════════════════════════════════════════════════════
@@ -21,8 +21,8 @@ const COLUMNS = [
       />
     ),
   },
-  { key: 'position', label: 'ตำแหน่ง', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => e.position || '—' },
-  { key: 'department', label: 'แผนก', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => e.department || '—' },
+  { key: 'position', label: 'ตำแหน่ง', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => <Clamp width={200}>{e.position || '—'}</Clamp> },
+  { key: 'department', label: 'แผนก', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => <Clamp width={200}>{e.department || '—'}</Clamp> },
   {
     key: 'company', label: 'บริษัท', width: 'w-44',
     render: e => (e.company ? <span className="text-sm text-stone-600">{e.company}</span> : <span className={text.faint}>—</span>),

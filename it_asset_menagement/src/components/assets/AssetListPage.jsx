@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Download, FileText } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { StatusBadge, CellTitle } from '../../ui/earthUI.jsx';
+import { StatusBadge, CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
 
@@ -36,14 +36,14 @@ function assetAge(purchaseDate) {
 const OPTIONAL_COLUMNS = [
   { key: 'cost', label: 'ราคา', align: 'right', render: a => money(a.cost) },
   { key: 'scrapValue', label: 'ราคาปัจจุบัน', align: 'right', render: a => money(a.scrapValue) },
-  { key: 'sn', label: 'Serial Number', render: a => a.sn },
-  { key: 'company', label: 'บริษัท', render: a => a.company },
-  { key: 'vendor', label: 'ผู้จัดจำหน่าย', render: a => a.vendor },
+  { key: 'sn', label: 'Serial Number', render: a => <Clamp width={180}>{a.sn}</Clamp> },
+  { key: 'company', label: 'บริษัท', render: a => <Clamp width={160}>{a.company}</Clamp> },
+  { key: 'vendor', label: 'ผู้จัดจำหน่าย', render: a => <Clamp width={180}>{a.vendor}</Clamp> },
   { key: 'purchaseDate', label: 'วันที่ซื้อ', render: a => formatDateShort(a.purchaseDate) },
   { key: 'warrantyDate', label: 'วันหมด Warranty', render: a => formatDateShort(a.warrantyDate) },
   { key: 'age', label: 'อายุการใช้งาน', render: a => assetAge(a.purchaseDate) },
-  { key: 'note', label: 'หมายเหตุ', render: a => a.note },
-  { key: 'remark', label: 'Remark', render: a => a.remark },
+  { key: 'note', label: 'หมายเหตุ', render: a => <Clamp>{a.note}</Clamp> },
+  { key: 'remark', label: 'Remark', render: a => <Clamp>{a.remark}</Clamp> },
 ];
 
 const COLUMNS = [

@@ -172,17 +172,25 @@ export function SearchInput({ value, onChange, placeholder }) {
   );
 }
 
-/* ── เปลือกตาราง — หัวตารางไม่มีพื้นสี ใช้เส้นบางเส้นเดียวคั่น ── */
+/* ── เปลือกตาราง — หัวตารางไม่มีพื้นสี ใช้เส้นบางเส้นเดียวคั่น ──
+
+   ความกว้างขั้นต่ำโตตามจำนวนคอลัมน์ที่เปิดอยู่
+   ของเดิมตรึงไว้ที่ 720px พอผู้ใช้เปิดคอลัมน์เสริมหลายอัน ตารางไม่ยอมกว้างขึ้น
+   เบราว์เซอร์เลยบีบแต่ละคอลัมน์จนข้อความตกบรรทัด
+   ให้มันกว้างขึ้นแล้วเลื่อนแนวนอนแทน อ่านง่ายกว่าโดนบีบ */
 export function DataTable({ columns, children }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] border-collapse text-left">
+      <table
+        className="w-full border-collapse text-left"
+        style={{ minWidth: Math.max(720, columns.length * 132) }}
+      >
         <thead>
           <tr className="border-b border-stone-200/60">
             {columns.map(c => (
               <th
                 key={c.key}
-                className={`px-5 pb-3 text-xs font-medium text-stone-400 ${c.align === 'right' ? 'text-right' : ''} ${c.width || ''}`}
+                className={`whitespace-nowrap px-5 pb-3 text-xs font-medium text-stone-400 ${c.align === 'right' ? 'text-right' : ''} ${c.width || ''}`}
               >
                 {c.label}
               </th>
@@ -209,18 +217,36 @@ export function Row({ onClick, selected, children }) {
   );
 }
 
+/* ภาษาไทยไม่มีเว้นวรรคระหว่างคำ เบราว์เซอร์จึงตัดบรรทัดกลางคำได้
+   ("โน้ตบุ๊ค" -> "โน้ต" / "บุ๊ค") ในช่องตารางจึงบังคับไม่ให้ตัดบรรทัดเลย
+   ค่าที่ยาวเกินให้ใช้ <Clamp> ครอบเพื่อตัดท้ายด้วย … แทน */
 export function Cell({ align, children, className = '' }) {
   return (
-    <td className={`px-5 py-4 align-middle ${align === 'right' ? 'text-right' : ''} ${className}`}>
+    <td className={`whitespace-nowrap px-5 py-4 align-middle ${align === 'right' ? 'text-right' : ''} ${className}`}>
       {children}
     </td>
   );
 }
 
-/* ── ชื่อ + บรรทัดรอง — ลดคอลัมน์โดยซ้อนข้อมูลรองไว้ใต้ชื่อ ── */
-export function CellTitle({ title, sub }) {
+/* จำกัดความกว้างของข้อความยาว (หมายเหตุ / Serial / ชื่อผู้จัดจำหน่าย)
+   ไม่ให้ดันคอลัมน์อื่นจนแคบ — เกินแล้วตัดท้ายเป็น … และโชว์เต็มตอน hover
+   ต้องเป็น block ถึงจะ truncate ได้ เพราะ max-width บน <td> ใน table-layout:auto
+   เบราว์เซอร์ไม่ได้บังคับใช้ */
+export function Clamp({ children, width = 220 }) {
+  const t = typeof children === 'string' ? children : undefined;
   return (
-    <div className="min-w-0">
+    <span className="block truncate" style={{ maxWidth: width }} title={t}>
+      {children}
+    </span>
+  );
+}
+
+/* ── ชื่อ + บรรทัดรอง — ลดคอลัมน์โดยซ้อนข้อมูลรองไว้ใต้ชื่อ ── */
+export function CellTitle({ title, sub, width = 280 }) {
+  return (
+    /* ต้องมี max-width ไม่งั้น truncate ไม่ทำงาน (คอลัมน์ขยายตามชื่อยาวแทน)
+       แล้วไปแย่งพื้นที่คอลัมน์อื่นจนข้อความตกบรรทัด */
+    <div className="min-w-0" style={{ maxWidth: width }}>
       <p className="truncate text-sm font-medium text-stone-900">{title || '—'}</p>
       {sub && <p className={`mt-0.5 truncate ${text.faint}`}>{sub}</p>}
     </div>

@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import AssetListPage from './components/assets/AssetListPage.jsx';
 
 const TYPES = ['โน้ตบุ๊ค', 'คอมพิวเตอร์ตั้งโต๊ะ', 'จอมอนิเตอร์', 'เครื่องพิมพ์', 'โทรศัพท์มือถือ', 'แท็บเล็ต'];
-const MODELS = ['Dell Latitude 5440', 'Lenovo ThinkPad E14', 'HP ProBook 450', 'Dell OptiPlex 7010', 'Dell P2422H', 'HP LaserJet M404'];
+const MODELS = ['Victus by HP Laptop 16-d0268TX', 'IdeaPad Slim 5 16IAH8 - Type 83BG', 'Lenovo IdeaPad3 15IAU7 i3-1215U', 'Dell OptiPlex 7010', 'Dell P2422H', 'HP LaserJet M404'];
 const STATUSES = ['ถูกใช้งาน', 'ถูกใช้งาน', 'ถูกใช้งาน', 'พร้อมใช้งาน', 'สำรอง', 'ชำรุดเสียหาย', 'ตัดจำหน่าย'];
 const NAMES = ['สมชาย ใจดี', 'วิภา สุขสันต์', 'ธนกร พงษ์ทอง', 'ปรียา วงศ์ดี', 'อนุชา แสงเพชร', 'กมล ทองสุข'];
 const DEPTS = ['Design Experience', 'Recruitment & Field Force', 'Business Development', 'Operation Team 1'];
@@ -18,10 +18,10 @@ const ALL_ASSETS = Array.from({ length: 128 }, (_, i) => {
   const assigned = status === 'ถูกใช้งาน';
   return {
     id: `a${i + 1}`,
-    assetTag: `GS-${String(1000 + i)}`,
+    assetTag: `CO-BD-${String(2307001 + i)}`,
     name: MODELS[i % MODELS.length],
     model: MODELS[i % MODELS.length],
-    sn: `SN${String(70000 + i * 7)}`,
+    sn: `${String(83000 + i)}G000CTA`,
     type: TYPES[i % TYPES.length],
     status,
     company: i % 3 === 0 ? 'Best HRM' : 'Globe Syndicate',
@@ -50,7 +50,7 @@ function Harness() {
   const [filterDepartment, setFilterDepartment] = useState([]);
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [visibleColumns, setVisibleColumns] = useState({ cost: true });
+  const [visibleColumns, setVisibleColumns] = useState({ cost: true, age: true });
 
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();

@@ -95,7 +95,7 @@ export default function SeatTable({
               {COLS.map((c) => (
                 <th
                   key={c.key}
-                  className={`py-2.5 pr-4 text-left text-xs font-medium text-stone-400 ${c.w}`}
+                  className={`whitespace-nowrap py-2.5 pr-4 text-left text-xs font-medium text-stone-400 ${c.w}`}
                 >
                   {c.label}
                 </th>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Download } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { StatusBadge, CellTitle } from '../../ui/earthUI.jsx';
+import { StatusBadge, CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
 
@@ -19,8 +19,8 @@ const total = (l) => Number(l.quantity) || 0;
 const available = (l) => Math.max(0, total(l) - used(l));
 
 const OPTIONAL_COLUMNS = [
-  { key: 'productKey', label: 'Product Key', render: l => l.productKey || l.keyCode },
-  { key: 'supplier', label: 'Supplier', render: l => l.supplier },
+  { key: 'productKey', label: 'Product Key', render: l => <Clamp width={220}>{l.productKey || l.keyCode}</Clamp> },
+  { key: 'supplier', label: 'Supplier', render: l => <Clamp width={160}>{l.supplier}</Clamp> },
   { key: 'cost', label: 'ราคา', align: 'right', render: l => money(l.cost) },
   { key: 'purchaseDate', label: 'วันที่ซื้อ', render: l => formatDateShort(l.purchaseDate) },
 ];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Download, Upload } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { StatusBadge, CellTitle } from '../../ui/earthUI.jsx';
+import { StatusBadge, CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
 
@@ -23,9 +23,9 @@ function stockStatus(item) {
 
 const OPTIONAL_COLUMNS = [
   { key: 'cost', label: 'ราคา/หน่วย', align: 'right', render: i => money(i.cost) },
-  { key: 'vendor', label: 'ผู้จัดจำหน่าย', render: i => i.vendor },
+  { key: 'vendor', label: 'ผู้จัดจำหน่าย', render: i => <Clamp width={180}>{i.vendor}</Clamp> },
   { key: 'purchaseDate', label: 'วันที่ซื้อ', render: i => formatDateShort(i.purchaseDate) },
-  { key: 'note', label: 'หมายเหตุ', render: i => i.note },
+  { key: 'note', label: 'หมายเหตุ', render: i => <Clamp>{i.note}</Clamp> },
 ];
 
 const COLUMNS = [

@@ -254,6 +254,96 @@ export function buildLicenseTimeline(license, transactions = []) {
   return out.sort((a, b) => b.ms - a.ms);
 }
 
+/* ── ไทม์ไลน์ของพนักงาน 1 คน ────────────────────────────────
+   ตอบคำถาม "คนนี้เคยถือของอะไร ได้สิทธิ์อะไร คืนเมื่อไหร่"
+   ใช้แทนแท็บ "ประวัติเบิก-คืน" เดิม ซึ่งเป็นรายการแบน ๆ ไม่เห็นช่วงเวลา
+
+   แต่ละเหตุการณ์ติด cat ไว้ให้ UI กรองตามหมวดได้
+   และติด tx (เอกสารต้นทาง) ไว้ให้ปุ่มพิมพ์ใบรับคืนใช้ต่อ
+
+   @param {object} employee     เอกสารพนักงาน
+   @param {array}  transactions transactions ทั้งหมด
+   @param {array}  assets       ใช้ lookup SN / Asset Tag (transaction เก่าไม่ได้เก็บไว้)
+   @param {array}  repairs      repair_requests ทั้งหมด
+   @returns {array} เหตุการณ์ เรียงใหม่ -> เก่า                     */
+export function buildEmployeeTimeline(employee, transactions = [], assets = [], repairs = []) {
+  if (!employee?.id) return [];
+  const assetById = new Map(assets.map((a) => [a.id, a]));
+  const out = [];
+
+  const catOf = (c) => {
+    if (c === 'assets' || c === 'asset') return 'assets';
+    if (c === 'licenses' || c === 'license') return 'licenses';
+    return 'accessories';
+  };
+
+  transactions
+    .filter((t) => t.empId === employee.id)
+    .forEach((t) => {
+      const ms = toMillis(t.timestamp);
+      if (ms == null) return;
+      const cat = catOf(t.category);
+      const isOut = t.action === 'เบิกจ่าย';
+      const note = t.remarks && t.remarks !== '-' ? t.remarks : '';
+
+      if (cat === 'licenses') {
+        const name = t.licenseName || t.assetName || 'License';
+        /* สิทธิ์ที่ผูกกับ "เครื่อง" ไม่ใช่ตัวคน — แยกชนิดไว้ให้เห็นต่างกัน */
+        const bound = !!t.isAssetBound;
+        out.push({
+          kind: bound ? (isOut ? 'licOn' : 'licOff') : (isOut ? 'seatOn' : 'seatOff'),
+          ms, cat, tx: t,
+          title: bound
+            ? (isOut ? 'ผูก License กับเครื่องที่ถือ' : 'ถอด License จากเครื่องที่ถือ')
+            : (isOut ? 'รับสิทธิ์ License' : 'คืนสิทธิ์ License'),
+          by: name,
+          detail: bound && t.assetName ? 'เครื่อง: ' + t.assetName : '',
+          productKey: t.productKey || '', keyCode: t.keyCode || '',
+          keyMissing: !t.productKey && !hasKeyField(t),
+          note,
+        });
+        return;
+      }
+
+      /* ทรัพย์สิน / อุปกรณ์เสริม — ดึง Tag + SN จากของจริงมาช่วยระบุตัว
+         (transaction รุ่นเก่าไม่ได้เก็บ sn/assetTag ไว้ในตัวมันเอง) */
+      const a = cat === 'assets' ? assetById.get(t.assetId) : null;
+      const snText = t.sn || a?.sn || '';
+      const detail = [
+        a?.assetTag || '',
+        snText ? 'SN: ' + snText : '',
+        t.condition ? 'สภาพ: ' + t.condition : '',
+      ].filter(Boolean).join(' · ');
+      const what = cat === 'assets' ? 'ทรัพย์สิน' : 'อุปกรณ์เสริม';
+      out.push({
+        kind: isOut ? 'checkout' : 'checkin',
+        ms, cat, tx: t,
+        title: (isOut ? 'เบิก' : 'คืน') + what,
+        by: t.assetName || '—',
+        detail,
+        note,
+        broken: t.condition === 'ชำรุด',
+      });
+    });
+
+  /* งานแจ้งซ่อมที่พนักงานคนนี้เป็นคนแจ้ง */
+  repairs
+    .filter((r) => r.empId === employee.id)
+    .forEach((r) => {
+      const ms = toMillis(r.timestamp ?? r.createdAt);
+      if (ms == null) return;
+      out.push({
+        kind: 'repair', ms, cat: 'repair', tx: r,
+        title: 'แจ้งซ่อม',
+        by: r.assetName || '—',
+        detail: r.status || '',
+        note: r.issue || r.problem || '',
+      });
+    });
+
+  return out.sort((a, b) => b.ms - a.ms);
+}
+
 /* ── สรุปหัวการ์ด ────────────────────────────────────────────
    holderKinds ต่างกันตามบริบท:
      ทรัพย์สิน -> ['checkout']            = คนที่เคยถือเครื่อง

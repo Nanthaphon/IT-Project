@@ -25,13 +25,13 @@ const ICON = {
 };
 
 /* ── การ์ดสรุปด้านบน ─────────────────────────────────────── */
-function Summary({ events, holderLabel, holderKinds, assignLabel }) {
+function Summary({ events, holderLabel, holderKinds, assignLabel, ageLabel }) {
   const s = summarize(events, holderKinds);
   const cells = [
     { label: 'เหตุการณ์ทั้งหมด', value: s.total },
     { label: holderLabel, value: s.holders },
     { label: assignLabel, value: `${s.assigns} ครั้ง` },
-    { label: 'อยู่ในระบบมาแล้ว', value: s.ageLabel || '—' },
+    { label: ageLabel, value: s.ageLabel || '—' },
   ];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -93,7 +93,7 @@ function KeyChip({ value, keyCode, fromCurrent }) {
 }
 
 /* ── หนึ่งเหตุการณ์ ──────────────────────────────────────── */
-function Row({ event, nextMs, isLast }) {
+function Row({ event, nextMs, isLast, action }) {
   const meta = EVENT_KIND[event.kind] || EVENT_KIND.checkout;
   const tone = TONE[meta.tone] || TONE.neutral;
   const Icon = ICON[event.kind] || Info;
@@ -128,6 +128,7 @@ function Row({ event, nextMs, isLast }) {
               จับคู่จากชื่อ
             </span>
           )}
+          {action && <span className="ml-auto shrink-0">{action}</span>}
         </div>
 
         {(event.by || event.detail) && (
@@ -177,6 +178,8 @@ export default function Timeline({
   holderLabel = 'ผู้เคยถือครอง',
   holderKinds = ['checkout'],
   assignLabel = 'เบิกจ่ายไปแล้ว',
+  ageLabel = 'อยู่ในระบบมาแล้ว',
+  renderAction = null,      // (event) => ReactNode — ปุ่มเสริมมุมขวาของแถว
 }) {
   if (!events.length) {
     return (
@@ -194,7 +197,7 @@ export default function Timeline({
 
   return (
     <div>
-      <Summary events={events} holderLabel={holderLabel} holderKinds={holderKinds} assignLabel={assignLabel} />
+      <Summary events={events} holderLabel={holderLabel} holderKinds={holderKinds} assignLabel={assignLabel} ageLabel={ageLabel} />
       <ol className="relative">
         {events.map((e, i) => (
           <Row
@@ -202,6 +205,7 @@ export default function Timeline({
             event={e}
             nextMs={events[i + 1]?.ms}
             isLast={i === events.length - 1}
+            action={renderAction ? renderAction(e) : null}
           />
         ))}
       </ol>

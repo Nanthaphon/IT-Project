@@ -7,7 +7,7 @@ import './index.css';
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Timeline from './components/timeline/Timeline.jsx';
-import { buildAssetTimeline, buildLicenseTimeline } from './components/timeline/buildTimeline.js';
+import { buildAssetTimeline, buildLicenseTimeline, buildEmployeeTimeline } from './components/timeline/buildTimeline.js';
 
 const day = 86400000;
 const ago = (d, h = 10) => new Date(Date.now() - d * day).setHours(h, 24, 0, 0);
@@ -94,6 +94,40 @@ const LIC_BOUND = [
       productKey: 'CRNA-SOLO-2024-88431', keyCode: 'CR-11' }] },
 ];
 
+/* ── เคสพนักงาน: ของที่คนนี้เคยถือ + สิทธิ์ + งานแจ้งซ่อมที่ตัวเองแจ้ง ── */
+const EMP = { id: 'emp1', fullName: 'ณัฐพงศ์ พงศ์ปฐมกุล' };
+
+const EMP_ASSETS = [
+  { id: 'asset1', assetTag: 'GCO-BD-6802001', sn: 'PF54VZJ2' },
+  { id: 'asset9', assetTag: 'GCO-BD-6802099', sn: 'XZ99AA10' },
+];
+
+const EMP_TX = [
+  { empId: 'emp1', category: 'assets', assetId: 'asset1', assetName: 'Lenovo IdeaPad3 15IAU7 i3-1215U',
+    action: 'เบิกจ่าย', condition: 'ปกติ', remarks: 'เครื่องใหม่', timestamp: ago(400) },
+  { empId: 'emp1', category: 'licenses', licenseName: 'Microsoft 365 Business Basic (Globe)',
+    action: 'เบิกจ่าย', timestamp: ago(398), productKey: 'admin@globesyndicate.co.th' },
+  { empId: 'emp1', category: 'accessories', assetName: 'Logitech Mouse M171',
+    action: 'เบิกจ่าย', sn: 'MS-77120', remarks: '-', timestamp: ago(330) },
+  { empId: 'emp1', category: 'assets', assetId: 'asset1', assetName: 'Lenovo IdeaPad3 15IAU7 i3-1215U',
+    action: 'รับคืน', condition: 'ชำรุด', remarks: 'จอมีรอย', timestamp: ago(120) },
+  { empId: 'emp1', category: 'licenses', licenseName: 'Microsoft Office 2021 Professional Plus (Globe)',
+    action: 'เบิกจ่าย', timestamp: ago(60) },
+  { empId: 'emp1', category: 'assets', assetId: 'asset9', assetName: 'Dell Latitude 3540',
+    action: 'เบิกจ่าย', condition: 'ปกติ', remarks: '-', timestamp: ago(58) },
+  /* รายการรุ่นเก่า: ไม่มีฟิลด์ productKey เลย -> ต้องขึ้น "ไม่ได้บันทึก Product Key ไว้" */
+  { empId: 'emp1', category: 'licenses', licenseName: 'Adobe Acrobat Pro', action: 'รับคืน',
+    timestamp: ago(500) },
+  /* คนอื่น — ต้องไม่โผล่ */
+  { empId: 'emp2', category: 'assets', assetName: 'ของคนอื่น', action: 'เบิกจ่าย', timestamp: ago(10) },
+];
+
+const EMP_REPAIRS = [
+  { empId: 'emp1', assetName: 'Lenovo IdeaPad3 15IAU7 i3-1215U', issue: 'คีย์บอร์ดปุ่ม F5 หลุด',
+    status: 'ซ่อมเสร็จสิ้น', timestamp: ago(125) },
+  { empId: 'emp2', assetName: 'ของคนอื่น', issue: 'x', status: 'รอดำเนินการ', timestamp: ago(5) },
+];
+
 const TABS = {
   'ทรัพย์สิน — มีประวัติครบ': () => (
     <Timeline events={buildAssetTimeline(ASSET, TRANSACTIONS, REPAIRS)} />
@@ -109,6 +143,21 @@ const TABS = {
   ),
   'รายการเก่า — ดึง key จากสิทธิ์ที่ผูกอยู่': () => (
     <Timeline events={buildAssetTimeline(ASSET, OLD_TX, [], LIC_BOUND)} />
+  ),
+  'พนักงาน — เคยถืออะไรบ้าง': () => (
+    <Timeline
+      events={buildEmployeeTimeline(EMP, EMP_TX, EMP_ASSETS, EMP_REPAIRS)}
+      holderLabel="รายการที่เกี่ยวข้อง"
+      holderKinds={['checkout', 'seatOn', 'licOn']}
+      assignLabel="เบิก / รับสิทธิ์"
+      ageLabel="ประวัติย้อนหลัง"
+      emptyHint="ยังไม่มีประวัติของพนักงานคนนี้"
+      renderAction={(e) => (e.kind === 'checkin' && e.cat === 'assets' ? (
+        <button className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-clay-600 transition-colors hover:bg-stone-100">
+          ใบรับคืน
+        </button>
+      ) : null)}
+    />
   ),
   'ยังไม่มีประวัติ': () => (
     <Timeline events={buildAssetTimeline({ id: 'x' }, [], [])} />

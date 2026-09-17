@@ -8,6 +8,8 @@ import { resolveName } from '../utils/nameUtils.js';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
+import Timeline from './timeline/Timeline.jsx';
+import { buildEmployeeTimeline } from './timeline/buildTimeline.js';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -26,6 +28,7 @@ function getCompanyLogo(company) {
 export default function EmployeeDetailsModal({
   selectedEmployee, setSelectedEmployee, empModalTab, setEmpModalTab,
   assets, licenses, accessories, transactions, openEditEmpModal, handleCheckin, setReturnModal,
+  repairRequests = [],   // 🆕 ใช้ประกอบไทม์ไลน์ (งานแจ้งซ่อมที่พนักงานคนนี้แจ้ง)
   setSelectedAssetDetail, setSelectedAssetCategory,
   bundledItems = [], handleAddBundledItem, handleDeleteBundledItem,
 }) {
@@ -90,30 +93,25 @@ export default function EmployeeDetailsModal({
   }, []);
   const allHeld = [...empAssets, ...empLicenses, ...empAccessories];
 
-  // 🆕 lookup ทรัพย์สินปัจจุบันด้วย assetId → ดึง SN/Tag มาแสดง
-  //    (transaction เก่าไม่ได้ store sn/assetTag — ต้อง lookup จาก assets ปัจจุบัน)
-  const assetById = new Map(assets.map(a => [a.id, a]));
-  let empHistory = transactions
-    .filter(t => t.empId === selectedEmployee.id)
-    .filter(t => {
-      if (historyFilter === 'all') return true;
-      if (historyFilter === 'licenses') return t.category === 'licenses' || t.category === 'license';
-      if (historyFilter === 'assets') return t.category === 'assets' || t.category === 'asset';
-      if (historyFilter === 'accessories') return t.category === 'accessories' || t.category === 'accessory';
-      return false;
-    })
-    .map(t => {
-      const isAssetCat = t.category === 'assets' || t.category === 'asset';
-      if (!isAssetCat) return t;
-      const a = assetById.get(t.assetId);
-      return { ...t, _sn: a?.sn || '', _assetTag: a?.assetTag || '' };
-    })
-    .sort((a, b) => b.timestamp - a.timestamp);
+  /* 🆕 ไทม์ไลน์ของพนักงาน — แทนรายการ "เบิก-คืน" แบบแบนเดิม
+     นับแบบยังไม่กรองไว้ใช้กับป้ายบนแท็บ (ของเดิมใช้ค่าหลังกรอง
+     เลขบนแท็บเลยเปลี่ยนไปมาตามตัวกรอง ซึ่งอ่านแล้วสับสน) */
+  const empTimeline = buildEmployeeTimeline(selectedEmployee, transactions || [], assets || [], repairRequests || []);
+  const timelineCounts = {
+    all: empTimeline.length,
+    assets: empTimeline.filter(e => e.cat === 'assets').length,
+    licenses: empTimeline.filter(e => e.cat === 'licenses').length,
+    accessories: empTimeline.filter(e => e.cat === 'accessories').length,
+    repair: empTimeline.filter(e => e.cat === 'repair').length,
+  };
+  const shownTimeline = historyFilter === 'all'
+    ? empTimeline
+    : empTimeline.filter(e => e.cat === historyFilter);
 
   const tabs = [
     { id: 'info',    label: 'ข้อมูลทั่วไป' },
     { id: 'assets',  label: 'ครอบครองปัจจุบัน', count: allHeld.length },
-    { id: 'history', label: 'ประวัติเบิก-คืน',   count: empHistory.length },
+    { id: 'history', label: 'ไทม์ไลน์',          count: empTimeline.length },
     { id: 'docs',    label: 'เอกสารที่พิมพ์' },
   ];
 
@@ -369,12 +367,13 @@ export default function EmployeeDetailsModal({
               )
           )}
 
-          {/* ======= TAB: ประวัติเบิก-คืน ======= */}
+          {/* ======= TAB: ไทม์ไลน์ ======= */}
           {empModalTab === 'history' && (
-            <HistoryTimeline
-              empHistory={empHistory}
-              historyFilter={historyFilter}
-              setHistoryFilter={setHistoryFilter}
+            <EmployeeTimelineTab
+              events={shownTimeline}
+              counts={timelineCounts}
+              filter={historyFilter}
+              setFilter={setHistoryFilter}
               openPrintReturn={openPrintReturn}
             />
           )}
@@ -825,125 +824,61 @@ function EmptyState({ label }) {
 }
 
 /* ════════════════════════════════════════════════
-   🆕 HistoryTimeline — ดีไซน์ใหม่: timeline + stats + filter
+   🆕 EmployeeTimelineTab — ไทม์ไลน์ของพนักงาน
+
+   ของเดิมเป็นรายการเบิก-คืนแบน ๆ เรียงตามเวลา แต่ไม่เห็นว่าแต่ละครั้ง
+   ห่างกันแค่ไหน ถือไว้นานเท่าไหร่ และไม่รวมงานแจ้งซ่อมที่คนนี้แจ้งเอง
+   จึงย้ายมาใช้ Timeline ตัวเดียวกับหน้าทรัพย์สิน / License
+   ปุ่มพิมพ์ใบรับคืนยังอยู่ครบ — ย้ายไปอยู่มุมขวาของแถวที่เป็นการคืนทรัพย์สิน
 ════════════════════════════════════════════════ */
-function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrintReturn }) {
-  const TH_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const fmtDate = (ts) => formatDateShort(ts);
-  const fmtTime = (ts) => {
-    const d = new Date(ts);
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  };
-  const catLabel = (cat) => {
-    if (cat === 'assets' || cat === 'asset') return 'ทรัพย์สิน';
-    if (cat === 'licenses' || cat === 'license') return 'License';
-    return 'อุปกรณ์';
-  };
+function EmployeeTimelineTab({ events, counts, filter, setFilter, openPrintReturn }) {
+  const FILTERS = [
+    { id: 'all',         label: 'ทั้งหมด' },
+    { id: 'assets',      label: 'ทรัพย์สิน' },
+    { id: 'licenses',    label: 'License' },
+    { id: 'accessories', label: 'อุปกรณ์เสริม' },
+    { id: 'repair',      label: 'แจ้งซ่อม' },
+  ];
 
   return (
-    <div className="space-y-3">
-
-      {/* ── Filter — เรียบง่าย ── */}
-      <div className="flex flex-wrap gap-1.5">
-        {[
-          { id: 'all',         label: 'ทั้งหมด' },
-          { id: 'assets',      label: 'ทรัพย์สิน' },
-          { id: 'licenses',    label: 'License' },
-          { id: 'accessories', label: 'อุปกรณ์' },
-        ].map(f => (
+    <div className="space-y-4">
+      {/* ตัวกรองหมวด — ซ่อนหมวดที่ไม่มีข้อมูลเลย */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {FILTERS.filter(f => f.id === 'all' || counts[f.id] > 0).map(f => (
           <button
             key={f.id}
-            onClick={() => setHistoryFilter(f.id)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-xl transition-colors ${
-              historyFilter === f.id
-                ? 'bg-stone-900 text-white'
-                : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 hover:border-stone-300'
+            onClick={() => setFilter(f.id)}
+            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+              filter === f.id
+                ? 'bg-clay-600 text-white'
+                : 'bg-sand-100 text-stone-600 hover:bg-sand-200'
             }`}
           >
-            {f.label}
+            {f.label} <span className="tabular-nums opacity-70">{counts[f.id]}</span>
           </button>
         ))}
-        <span className="ml-auto text-xs text-stone-400 self-center">{empHistory.length} รายการ</span>
       </div>
 
-      {/* ── List — clean & simple ── */}
-      {empHistory.length === 0 ? (
-        <EmptyState label="ไม่มีประวัติ" />
-      ) : (
-        <div className="bg-white border border-stone-200 rounded-xl divide-y divide-stone-100 overflow-hidden">
-          {empHistory.map(rec => {
-            const isCheckout = rec.action?.includes('เบิกจ่าย');
-            const isBroken = rec.condition === 'ชำรุด';
-            const canPrint = !isCheckout && (rec.category === 'assets' || rec.category === 'asset');
-            return (
-              <div key={rec.id} className="px-4 py-3 flex items-center gap-3 hover:bg-stone-50/60 transition-colors">
-
-                {/* Action dot */}
-                <div className={`w-2 h-2 rounded-full shrink-0 ${isCheckout ? 'bg-stone-500' : 'bg-olive-500'}`} />
-
-                {/* Main info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    {/* 🆕 License category — แสดงชื่อ License แทนชื่อทรัพย์สินที่ผูก */}
-                    <span className="text-[13px] font-medium text-stone-800 truncate">
-                      {(rec.category === 'licenses' || rec.category === 'license')
-                        ? (rec.licenseName || rec.assetName)
-                        : rec.assetName}
-                    </span>
-                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                      isCheckout ? 'bg-stone-50 text-stone-700' : 'bg-olive-50 text-olive-700'
-                    }`}>
-                      {isCheckout ? 'เบิก' : 'คืน'}
-                    </span>
-                    <span className="text-[10px] font-medium text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
-                      {catLabel(rec.category)}
-                    </span>
-                    {isBroken && (
-                      <span className="text-[10px] font-medium text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">ชำรุด</span>
-                    )}
-                  </div>
-                  {/* 🆕 SN / Asset Tag — เฉพาะหมวดทรัพย์สิน */}
-                  {(rec._sn || rec._assetTag) && (
-                    <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                      {rec._assetTag && (
-                        <span className="text-[11px] font-medium text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded font-mono">
-                          {rec._assetTag}
-                        </span>
-                      )}
-                      {rec._sn && (
-                        <span className="text-[11px] font-medium text-stone-600 bg-stone-50 border border-stone-200 px-1.5 py-0.5 rounded-lg font-mono">
-                          SN: {rec._sn}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 text-[11px] text-stone-400">
-                    <span>{fmtDate(rec.timestamp)} · {fmtTime(rec.timestamp)}</span>
-                    {rec.remarks && (
-                      <>
-                        <span>·</span>
-                        <span className="truncate">{rec.remarks}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Print button */}
-                {canPrint && (
-                  <button
-                    onClick={() => openPrintReturn(rec)}
-                    className="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition-colors"
-                    title="พิมพ์ใบรับคืน"
-                  >
-                    <Printer className="h-3 w-3" strokeWidth={2} />
-                    ใบรับคืน
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <Timeline
+        events={events}
+        holderLabel="รายการที่เกี่ยวข้อง"
+        holderKinds={['checkout', 'seatOn', 'licOn']}
+        assignLabel="เบิก / รับสิทธิ์"
+        ageLabel="ประวัติย้อนหลัง"
+        emptyHint={filter === 'all'
+          ? 'ยังไม่มีประวัติของพนักงานคนนี้'
+          : 'ไม่มีประวัติในหมวดนี้'}
+        renderAction={(e) => (e.kind === 'checkin' && e.cat === 'assets' ? (
+          <button
+            onClick={() => openPrintReturn(e.tx)}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-clay-600 transition-colors hover:bg-stone-100"
+            title="พิมพ์ใบรับคืน"
+          >
+            <Printer className="size-3" strokeWidth={2} />
+            ใบรับคืน
+          </button>
+        ) : null)}
+      />
     </div>
   );
 }

@@ -67,6 +67,9 @@ export function spanLabel(fromMs, toMs) {
   return parts.join(' ') || `${days} วัน`;
 }
 
+/** เอกสารรุ่นเก่าไม่มีฟิลด์ productKey เลย — ใช้แยกจากรุ่นใหม่ที่มีแต่ค่าว่าง */
+const hasKeyField = (t) => Object.prototype.hasOwnProperty.call(t, 'productKey');
+
 /* ── ไทม์ไลน์ของทรัพย์สิน 1 ชิ้น ─────────────────────────────
    @param {object}  asset         เอกสาร asset (ใช้ purchaseHistoryLog + วันที่ซื้อ)
    @param {array}   transactions  transactions ทั้งหมดที่โหลดมา
@@ -151,11 +154,13 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
           productKey: t.productKey || fb?.productKey || '',
           keyCode: t.keyCode || fb?.keyCode || '',
           keyFromCurrent: !t.productKey && !!fb?.productKey,
+          keyMissing: !t.productKey && !fb?.productKey && !hasKeyField(t),
         });
       } else {
         push('licOff', ms, {
           title: 'ถอด License ออกจากเครื่อง', by: name, detail: '',
           productKey: t.productKey || '', keyCode: t.keyCode || '',
+          keyMissing: !t.productKey && !hasKeyField(t),
         });
       }
     });
@@ -218,6 +223,7 @@ export function buildLicenseTimeline(license, transactions = []) {
         by: t.assetName || '—',
         detail: t.empName ? `ผู้ถือเครื่อง: ${t.empName}` : '',
         productKey: t.productKey || '', keyCode: t.keyCode || '',
+        keyMissing: !t.productKey && !hasKeyField(t),
         note: t.remarks && t.remarks !== '-' ? t.remarks : '',
       });
     } else {
@@ -228,6 +234,7 @@ export function buildLicenseTimeline(license, transactions = []) {
         by: t.empName || t.empId || '—',
         detail: '',
         productKey: t.productKey || '', keyCode: t.keyCode || '',
+        keyMissing: !t.productKey && !hasKeyField(t),
         note: t.remarks && t.remarks !== '-' ? t.remarks : '',
       });
     }

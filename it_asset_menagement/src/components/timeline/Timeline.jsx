@@ -138,9 +138,17 @@ function Row({ event, nextMs, isLast }) {
           </p>
         )}
 
-        {event.productKey && (
+        {event.productKey ? (
           <KeyChip value={event.productKey} keyCode={event.keyCode} fromCurrent={event.keyFromCurrent} />
-        )}
+        ) : event.keyMissing ? (
+          <p
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-sand-100 px-2 py-1 text-[11px] text-stone-400"
+            title="รายการนี้เกิดก่อนที่ระบบจะเริ่มเก็บ Product Key ลงประวัติ — รายการตั้งแต่นี้ไปจะมีให้ครบ"
+          >
+            <KeyRound className="size-3 shrink-0" strokeWidth={2} />
+            ไม่ได้บันทึก Product Key ไว้
+          </p>
+        ) : null}
 
         {event.note && <p className="mt-1 text-[13px] text-stone-500">{event.note}</p>}
 

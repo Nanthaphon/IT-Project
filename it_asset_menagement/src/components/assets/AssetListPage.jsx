@@ -107,8 +107,8 @@ export default function AssetListPage({
         canEdit && onBulkDelete && { key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete },
       ].filter(Boolean)}
       toolbar={[
-        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={1.75} />, onSelect: onExportCsv },
-        onExportPdf && { key: 'pdf', label: 'PDF', icon: <FileText className="size-5" strokeWidth={1.75} />, onSelect: onExportPdf },
+        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
+        onExportPdf && { key: 'pdf', label: 'PDF', icon: <FileText className="size-5" strokeWidth={2} />, onSelect: onExportPdf },
         canEdit && onAdd && { key: 'add', label: 'เพิ่มทรัพย์สิน', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
       ].filter(Boolean)}
       onOpen={onOpen}

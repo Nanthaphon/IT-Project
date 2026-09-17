@@ -176,7 +176,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
         <div className="flex items-center gap-2">
           {/* Range filter */}
           <div className="relative">
-            <Calendar className="h-4 w-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.9} />
+            <Calendar className="h-4 w-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={2} />
             <select
               value={rangeValue}
               onChange={(e) => setRangeValue(e.target.value)}
@@ -203,7 +203,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" strokeWidth={2.2} />
+                <Download className="h-4 w-4" strokeWidth={2} />
                 Export Excel
               </>
             )}
@@ -215,7 +215,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
       {k.total === 0 && (
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-12 text-center">
           <div className="w-16 h-16 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center mx-auto mb-3">
-            <BarChart3 className="h-7 w-7 text-stone-300" strokeWidth={1.5} />
+            <BarChart3 className="h-7 w-7 text-stone-300" strokeWidth={2} />
           </div>
           <p className="font-medium text-[15px] text-stone-500">ไม่มีข้อมูลในช่วงเวลาที่เลือก</p>
           <p className="text-[13px] text-stone-400 mt-1">ลองเลือกช่วงเวลาอื่น</p>
@@ -276,7 +276,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 <div className="flex items-center justify-between">
                   <p className="text-[13px] font-medium text-clay-600/80 tracking-wide">คะแนนเฉลี่ยรวม</p>
                   <div className="w-9 h-9 rounded-lg bg-white/70 flex items-center justify-center">
-                    <Award className="h-4.5 w-4.5 text-clay-500" strokeWidth={2.2} />
+                    <Award className="h-4.5 w-4.5 text-clay-500" strokeWidth={2} />
                   </div>
                 </div>
                 <div className="my-2">
@@ -289,7 +289,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                       <Star
                         key={n}
                         className={`h-5 w-5 ${n <= Math.round(k.avgOverall) ? 'fill-clay-400 text-clay-400' : 'text-clay-200 fill-clay-100'}`}
-                        strokeWidth={1.6}
+                        strokeWidth={2}
                       />
                     ))}
                   </div>
@@ -309,7 +309,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 </div>
                 <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.9} />
+                    <Users className="h-3.5 w-3.5 text-stone-400" strokeWidth={2} />
                     <span className="text-xs text-stone-500">อัตราการประเมิน</span>
                   </div>
                   <span className="text-[13px] font-medium text-stone-700 tabular-nums">
@@ -330,7 +330,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                   <p className="text-sm font-medium text-stone-800">แนวโน้มรายเดือน</p>
                   <p className="text-xs text-stone-400">เคสซ่อม &amp; คะแนนเฉลี่ย — 6 เดือนล่าสุด</p>
                 </div>
-                <TrendingUp className="h-4 w-4 text-stone-400" strokeWidth={1.9} />
+                <TrendingUp className="h-4 w-4 text-stone-400" strokeWidth={2} />
               </div>
               <MonthlyTrend data={k.monthly} />
             </div>
@@ -347,7 +347,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                     <div key={star} className="flex items-center gap-2">
                       <div className="flex items-center gap-0.5 w-12">
                         <span className="text-[13px] font-medium text-stone-700 tabular-nums">{star}</span>
-                        <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={1.6} />
+                        <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={2} />
                       </div>
                       <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
                         <div
@@ -406,7 +406,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 className="w-full flex items-center justify-between mb-3"
               >
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-stone-400" strokeWidth={1.9} />
+                  <MessageSquare className="h-4 w-4 text-stone-400" strokeWidth={2} />
                   <p className="text-sm font-medium text-stone-800">ความเห็นล่าสุด</p>
                 </div>
                 <ChevronDown
@@ -430,7 +430,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                             <Star
                               key={n}
                               className={`h-3 w-3 ${n <= Math.round(r.evaluation.overallRating) ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`}
-                              strokeWidth={1.6}
+                              strokeWidth={2}
                             />
                           ))}
                         </div>
@@ -455,7 +455,7 @@ function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-stone-500 tracking-wide">{label}</p>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: tint }}>
-          <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2.2} />
+          <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2} />
         </div>
       </div>
       <div>
@@ -525,7 +525,7 @@ function MonthlyTrend({ data }) {
           {data.map((d, idx) => (
             <div key={idx} className="flex-1 text-center">
               <div className="flex items-center justify-center gap-0.5">
-                <Star className={`h-3 w-3 ${d.rating > 0 ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`} strokeWidth={1.6} />
+                <Star className={`h-3 w-3 ${d.rating > 0 ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`} strokeWidth={2} />
                 <span className="text-xs font-medium text-stone-600 tabular-nums">
                   {d.rating > 0 ? d.rating.toFixed(1) : '-'}
                 </span>

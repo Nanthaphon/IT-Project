@@ -89,7 +89,7 @@ export default function ReplacementRequestTable({
       <div className="mx-auto max-w-[1360px] px-6 py-6 lg:px-8 lg:pb-8">
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
-            <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
+            <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={2} />
             <p className="font-medium text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
             <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
@@ -143,7 +143,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
           </div>
           {/* status badge — สไตล์เดียวกับฝั่ง user */}
           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 ${cfg.badge}`}>
-            <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
+            <StatusIcon className="h-3 w-3" strokeWidth={2} />
             {req.status}
           </span>
         </div>
@@ -153,7 +153,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
         {/* machine status */}
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
-            <Monitor className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.7} />
+            <Monitor className="h-3.5 w-3.5 text-stone-500" strokeWidth={2} />
           </div>
           <div className="flex-1 min-w-0">
             <p className={LABEL}>สถานะเครื่องปัจจุบัน</p>
@@ -209,7 +209,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
         {/* manager info */}
         <div className="flex items-start gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 mt-0.5">
-            <User className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.7} />
+            <User className="h-3.5 w-3.5 text-stone-500" strokeWidth={2} />
           </div>
           <div className="min-w-0 flex-1">
             <p className={LABEL}>หัวหน้างาน</p>
@@ -233,7 +233,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
 
         {/* date */}
         <div className="flex items-center gap-1.5 text-xs text-stone-400">
-          <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+          <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
           {dateStr}
         </div>
       </div>
@@ -247,14 +247,14 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
                 onClick={() => onUpdateStatus(req.id, 'อนุมัติแล้ว')}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-clay-600 text-white hover:bg-clay-700 transition-colors"
               >
-                <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Check className="h-3.5 w-3.5" strokeWidth={2} />
                 อนุมัติ
               </button>
               <button
                 onClick={() => onUpdateStatus(req.id, 'ปฏิเสธคำขอ')}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-rose-600 border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
               >
-                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
                 ปฏิเสธ
               </button>
             </>

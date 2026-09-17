@@ -36,7 +36,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
           className="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5 border"
           style={{ background: `${BRAND.primary}10`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
         >
-          <KeyRound className="h-7 w-7" strokeWidth={1.8} />
+          <KeyRound className="h-7 w-7" strokeWidth={2} />
         </div>
         <h3 className="text-[19px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           รีเซ็ตรหัสผ่าน

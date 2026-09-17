@@ -164,7 +164,7 @@ function ConditionOption({ selected, onClick, Icon, color, title, description })
       </div>
       {selected && (
         <div className={`w-5 h-5 rounded-full ${colorMap.iconBg} flex items-center justify-center shrink-0`}>
-          <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+          <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
         </div>
       )}
     </button>

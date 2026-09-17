@@ -103,7 +103,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
             onClick={() => setIsAdding(true)}
             className="inline-flex items-center gap-2 text-sm font-medium bg-clay-600 text-white px-4 py-2.5 rounded-xl hover:bg-clay-700 transition-colors"
           >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+            <Plus className="h-3.5 w-3.5" strokeWidth={2} />
             เพิ่ม License
           </button>
         )}
@@ -142,7 +142,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
           <div className="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
             {availableLicenses.length === 0 ? (
               <div className="py-8 text-center">
-                <Package className="h-8 w-8 mx-auto text-stone-300 mb-2" strokeWidth={1.5} />
+                <Package className="h-8 w-8 mx-auto text-stone-300 mb-2" strokeWidth={2} />
                 <p className="text-[13px] text-stone-400">ไม่มี License ที่มีสิทธิ์ว่าง</p>
               </div>
             ) : (
@@ -166,7 +166,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                       <img src={lic.image} alt={lic.name} className="w-9 h-9 object-contain rounded-lg shrink-0 bg-white p-1 border border-stone-200" />
                     ) : (
                       <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center shrink-0 border border-clay-200">
-                        <Package className="h-4 w-4 text-clay-500" strokeWidth={1.8} />
+                        <Package className="h-4 w-4 text-clay-500" strokeWidth={2} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -244,7 +244,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
               {saving ? (
                 <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
               ) : (
-                <><Monitor className="h-3.5 w-3.5" strokeWidth={2.2} /> ผูก License กับเครื่องนี้</>
+                <><Monitor className="h-3.5 w-3.5" strokeWidth={2} /> ผูก License กับเครื่องนี้</>
               )}
             </button>
           </div>
@@ -255,7 +255,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
       {boundSeats.length === 0 && !isAdding ? (
         <div className="py-14 text-center bg-white rounded-xl border border-dashed border-stone-200">
           <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-stone-100 flex items-center justify-center text-stone-300">
-            <Package className="h-6 w-6" strokeWidth={1.5} />
+            <Package className="h-6 w-6" strokeWidth={2} />
           </div>
           <p className="text-sm font-medium text-stone-500">ยังไม่มี License ที่ผูกกับเครื่องนี้</p>
           <p className="text-xs text-stone-400 mt-1">
@@ -273,14 +273,14 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                   <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center shrink-0 border border-clay-200">
                     {seat.licenseImage
                       ? <img src={seat.licenseImage} alt="" className="w-7 h-7 object-contain" />
-                      : <Package className="h-4 w-4 text-clay-500" strokeWidth={1.8} />
+                      : <Package className="h-4 w-4 text-clay-500" strokeWidth={2} />
                     }
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-medium text-stone-800 truncate">{seat.licenseName}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 bg-clay-100 px-1.5 py-0.5 rounded-lg border border-clay-200">
-                        <Monitor className="h-2.5 w-2.5" strokeWidth={2.5} />
+                        <Monitor className="h-2.5 w-2.5" strokeWidth={2} />
                         ติดตั้งบนเครื่องนี้
                       </span>
                       {seat.checkoutDate && (

@@ -13,7 +13,7 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-rose-50 text-rose-500 mb-5 border border-rose-100">
-          <Trash2 className="h-7 w-7" strokeWidth={1.8} />
+          <Trash2 className="h-7 w-7" strokeWidth={2} />
         </div>
         <h3 className="text-[19px] font-medium text-stone-900 mb-2 tracking-tight">ยืนยันการลบข้อมูล?</h3>
         <p className="text-sm text-stone-500 mb-7 leading-relaxed">

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Star, Sparkles, User, Wrench, RefreshCw, Package, Laptop, ArrowRight, Pencil, Save, X, KeyRound, PlusCircle, Repeat, RotateCcw, ImageIcon, Check, Menu, LogOut, Building2, ExternalLink } from 'lucide-react';
+import { ArrowRight, Building2, Check, Copy, Download, ExternalLink, Eye, EyeOff, FilePlus, FileText, ImageIcon, KeyRound, Laptop, LogOut, Menu, Monitor, Package, Pencil, PlusCircle, Printer, RefreshCw, Repeat, RotateCcw, Save, Search, Sparkles, SquarePen, Star, Trash2, User, Wrench, X } from 'lucide-react';
 import { useActiveTab } from '../hooks/useActiveTab.js';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
@@ -123,9 +123,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
 
   <!-- ข้อมูลพนักงาน -->
   <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
-    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-    </svg>
+    <User className="h-4 w-4" strokeWidth={2} />
     ข้อมูลผู้ยื่นคำขอ
   </div>
   <div style="border:1px solid #cbd6db;border-radius:5px;padding:8px 12px;margin-bottom:10px">
@@ -155,9 +153,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
 
   <!-- เครื่องที่ถือครองปัจจุบัน -->
   <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
-    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-    </svg>
+    <Monitor className="h-4 w-4" strokeWidth={2} />
     ทรัพย์สินที่ถือครองปัจจุบัน
   </div>
   <table style="width:100%;border-collapse:collapse;margin-bottom:10px;table-layout:fixed">
@@ -178,9 +174,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
 
   <!-- เหตุผลขอเปลี่ยน -->
   <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
-    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-    </svg>
+    <FileText className="h-4 w-4" strokeWidth={2} />
     เหตุผลและรายละเอียดการขอเปลี่ยน
   </div>
   <div style="border:1px solid #cbd6db;border-radius:5px;padding:8px 12px;margin-bottom:10px">
@@ -197,9 +191,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   ${damagePhotos.length > 0 ? `
   <!-- รูปสภาพเครื่องชำรุด -->
   <div style="font-size:12px;font-weight:700;color:#2B6777;margin-bottom:5px;display:flex;align-items:center;gap:5px">
-    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-    </svg>
+    <Download className="h-4 w-4" strokeWidth={2} />
     หลักฐานสภาพเครื่องชำรุด / เสียหาย (${damagePhotos.length} รูป)
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
@@ -668,8 +660,8 @@ export default function StaffView({
                     aria-label={showLoginPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                   >
                     {showLoginPassword
-                      ? <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
-                      : <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+                      ? <EyeOff className="h-4 w-4" strokeWidth={2} />
+                      : <Eye className="h-4 w-4" strokeWidth={2} />}
                   </button>
                 </div>
               </div>
@@ -717,9 +709,7 @@ export default function StaffView({
         <div className="w-full max-w-md relative z-10">
           <div className="flex flex-col items-center mb-6">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-clay-400 to-clay-600 shadow-lg shadow-amber-500/30 ring-1 ring-white/20">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-              </svg>
+              <KeyRound className="w-8 h-8 text-white" strokeWidth={2} />
             </div>
             <h1 className="text-[21px] font-medium text-stone-800 tracking-tight">ตั้งรหัสผ่านใหม่</h1>
             <p className="text-[13px] text-stone-500 mt-1.5 text-center px-4 leading-relaxed">
@@ -856,7 +846,7 @@ export default function StaffView({
                   onClick={() => setIsSidebarOpen(false)}
                   className="group w-full flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-xl transition-colors text-stone-600 hover:bg-stone-50 hover:text-stone-900 font-medium"
                 >
-                  <Icon className="h-[18px] w-[18px] shrink-0 text-stone-400 group-hover:text-stone-500 transition-colors" strokeWidth={1.8} />
+                  <Icon className="h-[18px] w-[18px] shrink-0 text-stone-400 group-hover:text-stone-500 transition-colors" strokeWidth={2} />
                   <span className="flex-1 text-left truncate">{tab.label}</span>
                   <ArrowRight className="h-3.5 w-3.5 shrink-0 text-stone-300 group-hover:text-stone-400 -rotate-45 transition-colors" strokeWidth={2} />
                 </a>
@@ -904,14 +894,14 @@ export default function StaffView({
             onClick={() => setShowSetPasswordModal(true)}
             className="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium text-stone-600 hover:bg-stone-50 rounded-lg transition-colors"
           >
-            <KeyRound className="h-[16px] w-[16px] shrink-0 text-stone-400" strokeWidth={1.8} />
+            <KeyRound className="h-[16px] w-[16px] shrink-0 text-stone-400" strokeWidth={2} />
             จัดการรหัสผ่าน
           </button>
           <button
             onClick={() => { (handleLogout || (() => { setAuthRole(null); setCurrentStaff(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }))(); }}
             className="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
           >
-            <LogOut className="h-[16px] w-[16px] shrink-0" strokeWidth={1.8} />
+            <LogOut className="h-[16px] w-[16px] shrink-0" strokeWidth={2} />
             ออกจากระบบ
           </button>
         </div>
@@ -983,7 +973,7 @@ export default function StaffView({
                     onClick={startEditProfile}
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium text-white bg-white/15 hover:bg-white/25 ring-1 ring-white/20 backdrop-blur-sm transition-colors"
                   >
-                    <Pencil className="h-3.5 w-3.5" strokeWidth={2.2} />
+                    <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
                     แก้ไขข้อมูล
                   </button>
                 ) : (
@@ -993,7 +983,7 @@ export default function StaffView({
                       disabled={isSavingProfile}
                       className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-white bg-white/15 hover:bg-white/25 ring-1 ring-white/20 disabled:opacity-50"
                     >
-                      <X className="h-3.5 w-3.5" strokeWidth={2.2} /> ยกเลิก
+                      <X className="h-3.5 w-3.5" strokeWidth={2} /> ยกเลิก
                     </button>
                     <button
                       onClick={saveProfile}
@@ -1002,7 +992,7 @@ export default function StaffView({
                     >
                       {isSavingProfile
                         ? <><div className="w-3.5 h-3.5 border-2 border-clay-600/30 border-t-clay-600 rounded-full animate-spin" /> กำลังบันทึก...</>
-                        : <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึก</>
+                        : <><Save className="h-3.5 w-3.5" strokeWidth={2} /> บันทึก</>
                       }
                     </button>
                   </div>
@@ -1135,12 +1125,8 @@ export default function StaffView({
                           <td className="px-4 py-3 text-center">
                             {req.status === 'รอดำเนินการ' ? (
                               <div className="flex items-center justify-center gap-1.5">
-                                <IconBtn onClick={() => setEditStaffRepairModal({ isOpen: true, data: req })} label="แก้ไข">
-                                  <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </IconBtn>
-                                <IconBtn onClick={() => handleStaffDeleteRepair(req.id)} label="ลบ" danger>
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </IconBtn>
+                                <IconBtn icon={SquarePen} onClick={() => setEditStaffRepairModal({ isOpen: true, data: req })} label="แก้ไข" />
+                                <IconBtn icon={Trash2} onClick={() => handleStaffDeleteRepair(req.id)} label="ลบ" danger />
                               </div>
                             ) : (
                               <span className="text-[11px] text-stone-400 bg-stone-50 px-2 py-1 rounded-lg border border-stone-100">ล็อคแล้ว</span>
@@ -1231,9 +1217,7 @@ export default function StaffView({
                         </>
                       ) : (
                         <>
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                          </svg>
+                          <Download className="h-4 w-4" strokeWidth={2} />
                           เพิ่มรูปสภาพเครื่อง
                         </>
                       )}
@@ -1254,18 +1238,14 @@ export default function StaffView({
                 </div>
 
                 <div className="text-xs text-stone-700 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2.5 leading-relaxed flex items-start gap-2">
-                  <svg className="h-3.5 w-3.5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
+                  <Printer className="h-3.5 w-3.5 mt-0.5 shrink-0" strokeWidth={2} />
                   <span>ระบบจะบันทึกคำขอและ<span className="font-medium"> เปิดหน้าพิมพ์ฟอร์มให้อัตโนมัติ</span> — นำฟอร์มให้หัวหน้าแผนกเซ็นต์แล้วส่งให้ IT</span>
                 </div>
                 <button type="submit" disabled={isSubmittingReplace} className={primaryBtn(isSubmittingReplace)}>
                   {isSubmittingReplace
                     ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังบันทึก...</>
                     : <>
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
+                        <Printer className="h-4 w-4" strokeWidth={2} />
                         บันทึก + พิมพ์ฟอร์ม
                       </>
                   }
@@ -1308,9 +1288,7 @@ export default function StaffView({
                               title="พิมพ์ฟอร์มซ้ำ"
                               className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600 hover:text-white bg-stone-50 hover:bg-stone-600 border border-stone-100 hover:border-stone-600 px-2.5 py-1.5 rounded-lg transition-colors"
                             >
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                              </svg>
+                              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
                               พิมพ์
                             </button>
                           </td>
@@ -1333,9 +1311,7 @@ export default function StaffView({
               {/* Search bar + Company filter */}
               <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-3 space-y-2.5">
                 <div className="relative">
-                  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" strokeWidth={2} />
                   <input
                     type="text"
                     placeholder="ค้นหาอุปกรณ์..."
@@ -1348,7 +1324,7 @@ export default function StaffView({
                 {/* 🆕 บอกบริษัทที่พนักงานสังกัด (fixed — ไม่ให้เลือกเปลี่ยน) */}
                 {staffCompany && (
                   <div className="pt-2 border-t border-stone-100 flex items-center gap-1.5 text-[11px] text-stone-500">
-                    <Building2 className="h-3 w-3 text-clay-600 shrink-0" strokeWidth={2.4} />
+                    <Building2 className="h-3 w-3 text-clay-600 shrink-0" strokeWidth={2} />
                     <span>อุปกรณ์ของ</span>
                     <span className="inline-flex items-center gap-1 font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded-full ring-1 ring-stone-100">
                       {staffCompany}
@@ -1361,7 +1337,7 @@ export default function StaffView({
               {/* Grid catalog */}
               {filteredSupplies.length === 0 ? (
                 <div className="bg-white border border-dashed border-stone-200/70 rounded-2xl p-12 text-center">
-                  <Package className="h-10 w-10 mx-auto text-stone-300 mb-3" strokeWidth={1.5} />
+                  <Package className="h-10 w-10 mx-auto text-stone-300 mb-3" strokeWidth={2} />
                   <p className="text-[13px] text-stone-500">
                     {supplySearchTerm ? 'ไม่พบอุปกรณ์ที่ค้นหา' : 'ยังไม่มีอุปกรณ์ในระบบ'}
                   </p>
@@ -1394,11 +1370,11 @@ export default function StaffView({
                         <div className="relative aspect-square bg-stone-50 flex items-center justify-center">
                           {item.image
                             ? <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" loading="lazy" />
-                            : <Package className="h-10 w-10 text-stone-300" strokeWidth={1.5} />
+                            : <Package className="h-10 w-10 text-stone-300" strokeWidth={2} />
                           }
                           {inCart && (
                             <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-clay-600 text-white flex items-center justify-center shadow-sm">
-                              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                              <Check className="h-3.5 w-3.5" strokeWidth={2} />
                             </span>
                           )}
                           <span className={`absolute top-2 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded ${
@@ -1415,7 +1391,7 @@ export default function StaffView({
                           <p className="text-[13px] font-medium text-stone-800 truncate leading-tight">{item.name}</p>
                           {item.company ? (
                             <p className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded mt-1 max-w-full">
-                              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
+                              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2} />
                               <span className="truncate">{item.company}</span>
                             </p>
                           ) : (
@@ -1458,7 +1434,7 @@ export default function StaffView({
                               title="ยกเลิกคำขอ"
                               className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-white border border-stone-200 text-stone-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 transition-colors"
                             >
-                              <X className="h-3.5 w-3.5" strokeWidth={2.2} />
+                              <X className="h-3.5 w-3.5" strokeWidth={2} />
                             </button>
                           )}
                         </div>
@@ -1486,7 +1462,7 @@ export default function StaffView({
 
                 {supplyCart.length === 0 ? (
                   <div className="px-5 py-12 text-center">
-                    <Package className="h-9 w-9 mx-auto text-stone-300 mb-2" strokeWidth={1.5} />
+                    <Package className="h-9 w-9 mx-auto text-stone-300 mb-2" strokeWidth={2} />
                     <p className="text-xs text-stone-400">ยังไม่มีรายการที่เลือก</p>
                     <p className="text-[11px] text-stone-400 mt-1">คลิกที่อุปกรณ์เพื่อเพิ่ม</p>
                   </div>
@@ -1503,7 +1479,7 @@ export default function StaffView({
                             <p className="text-[13px] font-medium text-stone-800 truncate leading-tight">{cartItem.name}</p>
                             {cartItem.company && (
                               <p className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-stone-50 px-1 py-0.5 rounded mt-0.5 max-w-full">
-                                <Building2 className="h-2 w-2 shrink-0" strokeWidth={2.4} />
+                                <Building2 className="h-2 w-2 shrink-0" strokeWidth={2} />
                                 <span className="truncate">{cartItem.company}</span>
                               </p>
                             )}
@@ -1514,7 +1490,7 @@ export default function StaffView({
                             onClick={() => setSupplyCart(supplyCart.filter(c => c.supplyId !== cartItem.supplyId))}
                             className="w-7 h-7 flex items-center justify-center text-stone-300 hover:text-rose-600 hover:bg-rose-50 rounded transition shrink-0"
                           >
-                            <X className="h-3.5 w-3.5" strokeWidth={2.2} />
+                            <X className="h-3.5 w-3.5" strokeWidth={2} />
                           </button>
                         </div>
                         <div className="flex items-center gap-1.5 pl-11">
@@ -1634,9 +1610,7 @@ export default function StaffView({
                 onClick={() => setEditStaffRepairModal({ isOpen: false, data: null })}
                 className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="h-4 w-4" strokeWidth={2} />
               </button>
             </div>
             <form onSubmit={handleStaffUpdateRepair} className="p-6 space-y-4">
@@ -1702,7 +1676,7 @@ function EvaluationCell({ req, onOpen }) {
         title="ดูแบบประเมิน"
         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-clay-100 ring-1 ring-clay-200 hover:bg-clay-100 transition cursor-pointer"
       >
-        <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={1.6} />
+        <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={2} />
         <span className="text-xs font-medium text-clay-600 tabular-nums">{score.toFixed(2)}</span>
         <span className="text-[11px] text-clay-500/70 font-medium">/{`5`}</span>
       </button>
@@ -1715,7 +1689,7 @@ function EvaluationCell({ req, onOpen }) {
       onClick={onOpen}
       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-clay-600 hover:bg-clay-700 text-white text-[11px] font-medium transition-colors"
     >
-      <Sparkles className="h-3 w-3" strokeWidth={2.2} />
+      <Sparkles className="h-3 w-3" strokeWidth={2} />
       ทำแบบประเมิน
     </button>
   );
@@ -1774,15 +1748,15 @@ function PasswordRevealItem({ label, value, show, setShow }) {
             title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
             aria-label={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}>
             {show
-              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
-              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+              ? <EyeOff className="h-4 w-4" strokeWidth={2} />
+              : <Eye className="h-4 w-4" strokeWidth={2} />}
           </button>
           <button type="button" onClick={handleCopy}
             className="text-stone-400 hover:text-clay-600 transition-colors"
             title="คัดลอก" aria-label="คัดลอก">
             {copied
-              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#52ab98" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
+              ? <Check className="h-4 w-4" strokeWidth={2} />
+              : <Copy className="h-4 w-4" strokeWidth={2} />}
           </button>
         </div>
       )}
@@ -1828,14 +1802,14 @@ function CompactPassword({ label, value, show, setShow }) {
             className="text-stone-400 hover:text-clay-600 transition-colors"
             title={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}>
             {show
-              ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
-              : <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+              ? <EyeOff className="h-4 w-4" strokeWidth={2} />
+              : <Eye className="h-4 w-4" strokeWidth={2} />}
           </button>
           <button type="button" onClick={handleCopy}
             className="text-stone-400 hover:text-clay-600 transition-colors" title="คัดลอก">
             {copied
-              ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#52ab98" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              : <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
+              ? <Check className="h-4 w-4" strokeWidth={2} />
+              : <Copy className="h-4 w-4" strokeWidth={2} />}
           </button>
         </div>
       )}
@@ -1934,7 +1908,7 @@ function LinksEditor({ links, setLinks }) {
               placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-stone-700`} />
             <button type="button" onClick={() => remove(i)} title="ลบลิงก์"
               className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
-              <X className="h-4 w-4" strokeWidth={2.2} />
+              <X className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
         ))}
@@ -1950,9 +1924,7 @@ function LinksEditor({ links, setLinks }) {
 function EmptyState({ label }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center py-16 text-stone-400 bg-stone-50 rounded-xl border border-dashed border-stone-200">
-      <svg className="h-10 w-10 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
+      <FilePlus className="h-10 w-10 mb-3 opacity-40" strokeWidth={2} />
       <p className="text-sm font-medium text-stone-500">{label}</p>
     </div>
   );
@@ -1974,7 +1946,7 @@ function Td({ children, bold, muted, truncate, center }) {
   );
 }
 
-function IconBtn({ children, onClick, label, danger }) {
+function IconBtn({ icon: Icon, onClick, label, danger }) {
   return (
     <button
       onClick={onClick}
@@ -1985,9 +1957,7 @@ function IconBtn({ children, onClick, label, danger }) {
           : 'text-stone-400 border-stone-200 hover:border-clay-200 hover:bg-clay-100 hover:text-clay-500'
       }`}
     >
-      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        {children}
-      </svg>
+      <Icon className="h-3.5 w-3.5" strokeWidth={2} />
     </button>
   );
 }
@@ -2085,9 +2055,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
         {/* Search bar */}
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-3">
           <div className="relative">
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" strokeWidth={2} />
             <input
               type="text"
               value={searchTerm}
@@ -2101,7 +2069,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
         {/* Grid catalog */}
         {filteredAccessories.length === 0 ? (
           <div className="bg-white border border-dashed border-stone-200/70 rounded-2xl p-12 text-center">
-            <Package className="h-10 w-10 mx-auto text-stone-300 mb-3" strokeWidth={1.5} />
+            <Package className="h-10 w-10 mx-auto text-stone-300 mb-3" strokeWidth={2} />
             <p className="text-[13px] text-stone-500">
               {searchTerm ? 'ไม่พบอุปกรณ์ที่ค้นหา' : 'ยังไม่มีอุปกรณ์เสริมในระบบ'}
             </p>
@@ -2129,11 +2097,11 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                   <div className="relative aspect-square bg-stone-50 flex items-center justify-center">
                     {acc.image
                       ? <img src={acc.image} alt={acc.name} className="w-full h-full object-contain p-2" loading="lazy" />
-                      : <Package className="h-10 w-10 text-stone-300" strokeWidth={1.5} />
+                      : <Package className="h-10 w-10 text-stone-300" strokeWidth={2} />
                     }
                     {isSelected && (
                       <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-clay-600 text-white flex items-center justify-center shadow-sm">
-                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                        <Check className="h-3.5 w-3.5" strokeWidth={2} />
                       </span>
                     )}
                     <span className={`absolute top-2 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded ${
@@ -2201,7 +2169,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
 
           {!selectedAcc ? (
             <div className="px-5 py-12 text-center">
-              <Package className="h-9 w-9 mx-auto text-stone-300 mb-2" strokeWidth={1.5} />
+              <Package className="h-9 w-9 mx-auto text-stone-300 mb-2" strokeWidth={2} />
               <p className="text-xs text-stone-400">ยังไม่ได้เลือกอุปกรณ์</p>
               <p className="text-[11px] text-stone-400 mt-1">คลิกที่อุปกรณ์ในรายการ</p>
             </div>
@@ -2212,7 +2180,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                 {selectedAcc.image
                   ? <img src={selectedAcc.image} alt={selectedAcc.name} className="w-12 h-12 rounded-lg object-contain bg-white p-0.5 border border-stone-200 shrink-0" />
                   : <div className="w-12 h-12 rounded-lg bg-white border border-stone-200 flex items-center justify-center shrink-0">
-                      <Package className="h-5 w-5 text-stone-400" strokeWidth={1.8} />
+                      <Package className="h-5 w-5 text-stone-400" strokeWidth={2} />
                     </div>
                 }
                 <div className="flex-1 min-w-0">

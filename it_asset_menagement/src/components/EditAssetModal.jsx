@@ -1,3 +1,4 @@
+import { Image, SquarePen, X } from 'lucide-react';
 import React from 'react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import DateField from './DateField.jsx';
@@ -35,7 +36,7 @@ const inputCls =
 const monoCls = inputCls + ' font-mono tracking-tight';
 
 const selectCls = inputCls + ' cursor-pointer pr-9 appearance-none bg-no-repeat bg-[right_0.75rem_center] ' +
-  "bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='2'><path d='M5 7l5 5 5-5'/></svg>\")]";
+  "bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none' stroke='%2382959E' stroke-width='2'><path d='M5 7l5 5 5-5'/></svg>\")]";
 
 export default function EditAssetModal({
   editAssetModal,
@@ -89,9 +90,7 @@ export default function EditAssetModal({
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: `${BRAND}0F`, color: BRAND }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM19.5 13.5V19a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h5.5" />
-                </svg>
+                <SquarePen className="h-5 w-5" strokeWidth={2} />
               </div>
               <div>
                 <h3 className="text-[19px] font-medium text-stone-900 leading-tight">แก้ไข{title}</h3>
@@ -103,9 +102,7 @@ export default function EditAssetModal({
               className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-lg transition-colors focus:outline-none"
               aria-label="ปิด"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="h-5 w-5" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -131,23 +128,17 @@ export default function EditAssetModal({
                       className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 border border-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none"
                       title="ลบรูปภาพ"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="h-3.5 w-3.5" strokeWidth={2} />
                     </button>
                   </div>
                 ) : (
                   <div className="w-20 h-20 rounded-lg bg-stone-50 flex items-center justify-center text-stone-300 border border-dashed border-stone-300 shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                    </svg>
+                    <Image className="h-7 w-7" strokeWidth={2} />
                   </div>
                 )}
                 <div className="flex items-center gap-3 flex-wrap">
                   <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-[13px] font-medium text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-colors">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
-                    </svg>
+                    <Image className="h-4 w-4" strokeWidth={2} />
                     {editAssetModal.data.image ? 'เปลี่ยนรูป' : 'เลือกรูปภาพ'}
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   </label>

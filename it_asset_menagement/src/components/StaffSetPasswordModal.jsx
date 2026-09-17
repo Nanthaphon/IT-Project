@@ -107,7 +107,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 border"
               style={{ background: `${BRAND.primary}15`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
             >
-              <KeyRound className="h-5 w-5" strokeWidth={1.8} />
+              <KeyRound className="h-5 w-5" strokeWidth={2} />
             </div>
             <div>
               <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
@@ -205,7 +205,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
                     <div key={i} className="flex items-center gap-2 text-xs">
                       <CheckCircle2
                         className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-olive-500' : 'text-stone-300'}`}
-                        strokeWidth={2.2}
+                        strokeWidth={2}
                       />
                       <span className={r.ok ? 'text-stone-700 font-medium' : 'text-stone-400'}>{r.label}</span>
                     </div>
@@ -227,7 +227,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
                 )}
                 {confirmPassword.length > 0 && matchOk && (
                   <p className="text-xs text-olive-600 mt-1.5 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" strokeWidth={2.5} /> ตรงกันแล้ว
+                    <CheckCircle2 className="h-3 w-3" strokeWidth={2} /> ตรงกันแล้ว
                   </p>
                 )}
               </Field>
@@ -300,7 +300,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         tabIndex={-1}
         className="absolute right-0 top-0 h-full px-3 flex items-center text-stone-400 hover:text-stone-600 transition-colors"
       >
-        {show ? <EyeOff className="h-4 w-4" strokeWidth={1.8} /> : <Eye className="h-4 w-4" strokeWidth={1.8} />}
+        {show ? <EyeOff className="h-4 w-4" strokeWidth={2} /> : <Eye className="h-4 w-4" strokeWidth={2} />}
       </button>
     </div>
   );

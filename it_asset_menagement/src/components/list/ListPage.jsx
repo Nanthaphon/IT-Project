@@ -82,8 +82,8 @@ export default function ListPage({
                 className={button.ghost} aria-expanded={showFilter}
               >
                 {showFilter
-                  ? <X className="size-5" strokeWidth={1.75} />
-                  : <SlidersHorizontal className="size-5" strokeWidth={1.75} />}
+                  ? <X className="size-5" strokeWidth={2} />
+                  : <SlidersHorizontal className="size-5" strokeWidth={2} />}
                 ตัวกรอง
                 {activeFilters > 0 && <Count n={activeFilters} />}
               </button>
@@ -98,7 +98,7 @@ export default function ListPage({
                     type="button" onClick={() => setShowColumns(v => !v)}
                     className={button.ghost} aria-expanded={showColumns}
                   >
-                    <Columns3 className="size-5" strokeWidth={1.75} /> คอลัมน์
+                    <Columns3 className="size-5" strokeWidth={2} /> คอลัมน์
                   </button>
                 }
               >

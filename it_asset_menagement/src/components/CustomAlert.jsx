@@ -18,7 +18,7 @@ export default function CustomAlert({ customAlert, setCustomAlert }) {
             isError ? 'bg-rose-50 text-rose-500 border-rose-100' : 'bg-olive-50 text-olive-500 border-olive-100'
           }`}
         >
-          {isError ? <AlertCircle className="h-8 w-8" strokeWidth={1.8} /> : <CheckCircle2 className="h-8 w-8" strokeWidth={1.8} />}
+          {isError ? <AlertCircle className="h-8 w-8" strokeWidth={2} /> : <CheckCircle2 className="h-8 w-8" strokeWidth={2} />}
         </div>
         <h3 className="text-[19px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           {customAlert.title}

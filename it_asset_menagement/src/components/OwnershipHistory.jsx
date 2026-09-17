@@ -54,9 +54,9 @@ const txCollectionOf = (category) =>
 
 /* ── file helper ── */
 const fileIcon = (type) => {
-  if (type?.startsWith('image/')) return <Image className="h-4 w-4 text-clay-600" strokeWidth={1.8} />;
-  if (type === 'application/pdf')  return <FileText className="h-4 w-4 text-rose-500" strokeWidth={1.8} />;
-  return <File className="h-4 w-4 text-stone-400" strokeWidth={1.8} />;
+  if (type?.startsWith('image/')) return <Image className="h-4 w-4 text-clay-600" strokeWidth={2} />;
+  if (type === 'application/pdf')  return <FileText className="h-4 w-4 text-rose-500" strokeWidth={2} />;
+  return <File className="h-4 w-4 text-stone-400" strokeWidth={2} />;
 };
 const formatBytes = (bytes) => {
   if (!bytes) return '';
@@ -117,7 +117,7 @@ export default function OwnershipHistory({
           onClick={() => setAddOpen(true)}
           className="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors"
         >
-          <Plus className="h-3.5 w-3.5" strokeWidth={2.4} /> เพิ่มประวัติ
+          <Plus className="h-3.5 w-3.5" strokeWidth={2} /> เพิ่มประวัติ
         </button>
       </div>
 
@@ -262,7 +262,7 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
             </div>
           </div>
           <button onClick={onClose} className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors">
-            <X className="h-4 w-4" strokeWidth={2.4} />
+            <X className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -395,18 +395,18 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               {duration && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-lg border bg-stone-50 text-stone-600 border-stone-200">
-                  <Clock className="h-2.5 w-2.5" strokeWidth={2.6} />
+                  <Clock className="h-2.5 w-2.5" strokeWidth={2} />
                   {isCurrent ? 'ครอบครองมาแล้ว' : 'ใช้งาน'} {duration}
                 </span>
               )}
               {damages.length > 0 && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
-                  <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} /> เสียหาย {damages.length} จุด
+                  <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2} /> เสียหาย {damages.length} จุด
                 </span>
               )}
               {!damages.length && ret && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-olive-50 text-olive-700 border border-olive-200">
-                  <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} /> คืนปกติ
+                  <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2} /> คืนปกติ
                 </span>
               )}
               {attachmentCount > 0 && (
@@ -415,7 +415,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
                   title="ดูเอกสารแนบ"
                   className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition"
                 >
-                  <Paperclip className="h-2.5 w-2.5" strokeWidth={2.6} />
+                  <Paperclip className="h-2.5 w-2.5" strokeWidth={2} />
                   {attachmentCount} ไฟล์
                 </button>
               )}
@@ -431,7 +431,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
               title="พิมพ์ใบรับคืน"
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-clay-600 border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-200 transition"
             >
-              <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
+              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               <span className="hidden sm:inline">ใบรับคืน</span>
             </button>
           )}
@@ -457,8 +457,8 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             }`}
           >
             {expanded
-              ? <ChevronUp   className="h-4 w-4" strokeWidth={2.4} />
-              : <ChevronDown className="h-4 w-4" strokeWidth={2.4} />
+              ? <ChevronUp   className="h-4 w-4" strokeWidth={2} />
+              : <ChevronDown className="h-4 w-4" strokeWidth={2} />
             }
           </button>
         </div>
@@ -737,7 +737,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
       {/* ── Section header ── */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-medium text-stone-700 flex items-center gap-1.5">
-          <Paperclip className="h-3.5 w-3.5 text-stone-500" strokeWidth={2.2} />
+          <Paperclip className="h-3.5 w-3.5 text-stone-500" strokeWidth={2} />
           เอกสารแนบ (ฉบับลงนามแล้ว)
           {attachments?.length > 0 && (
             <span className="text-[11px] font-medium bg-stone-50 border border-stone-200 text-clay-600 px-1.5 py-0.5 rounded-lg ml-0.5">
@@ -750,7 +750,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:bg-clay-600/8 px-2.5 py-1 rounded-lg border border-stone-200 hover:border-stone-200 transition-colors"
           >
-            <Upload className="h-3.5 w-3.5" strokeWidth={2.2} />
+            <Upload className="h-3.5 w-3.5" strokeWidth={2} />
             แนบไฟล์
           </button>
         )}
@@ -839,7 +839,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
               disabled={docType === 'other' && !otherLabel.trim()}
               className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-clay-600 hover:bg-clay-700 text-white rounded-xl transition-colors disabled:opacity-50"
             >
-              <Upload className="h-3.5 w-3.5" strokeWidth={2.2} />
+              <Upload className="h-3.5 w-3.5" strokeWidth={2} />
               บันทึก
             </button>
           </div>
@@ -859,7 +859,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
         <p className="text-xs text-stone-400 italic py-1">กำลังโหลดเอกสาร...</p>
       ) : attachments.length === 0 && !pendingFile && !saving ? (
         <div className="flex flex-col items-center justify-center py-5 rounded-lg bg-white border border-dashed border-stone-200">
-          <Paperclip className="h-6 w-6 mb-1.5 text-stone-300" strokeWidth={1.5} />
+          <Paperclip className="h-6 w-6 mb-1.5 text-stone-300" strokeWidth={2} />
           <p className="text-xs font-medium text-stone-400">ยังไม่มีเอกสารแนบ</p>
           <p className="text-[11px] text-stone-300 mt-0.5">
             กด "แนบไฟล์" เพื่อแนบใบส่งมอบ / ใบรับคืน ฉบับลงนามแล้ว
@@ -876,7 +876,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
               >
                 {/* Doc-type badge (left strip) */}
                 <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] border ${dt.badge}`}>
-                  <FileText className="h-4 w-4 mb-0.5" strokeWidth={1.8} />
+                  <FileText className="h-4 w-4 mb-0.5" strokeWidth={2} />
                   <span className="text-[10px] font-medium leading-tight text-center">{dt.label}</span>
                   {dt.formNo && (
                     <span className="text-[10px] font-medium opacity-70 leading-tight">{dt.formNo}</span>
@@ -893,7 +893,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                     </p>
                     {/* "signed" chip */}
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-olive-50 text-olive-700 border border-olive-200 px-1.5 py-0.5 rounded-lg shrink-0">
-                      <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.5} />
+                      <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2} />
                       ลงนามแล้ว
                     </span>
                   </div>
@@ -967,7 +967,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
     return (
       <div>
         <p className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border mb-2 ${colorCls}`}>
-          <Icon className="h-3 w-3" strokeWidth={2.4} />
+          <Icon className="h-3 w-3" strokeWidth={2} />
           {label}
         </p>
 
@@ -1075,14 +1075,14 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
       {/* Section header bar — เด่นชัด, บอกสรุปสถานะเลย */}
       <div className={`flex items-center gap-2.5 rounded-r-lg border-l-4 ${sectionBar.border} ${sectionBar.bg} pl-3 pr-3 py-2 mb-3 flex-wrap`}>
         <div className={`w-6 h-6 rounded-lg ${sectionBar.iconBg} text-white flex items-center justify-center shrink-0 shadow-sm`}>
-          <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
+          <Icon className="h-3.5 w-3.5" strokeWidth={2} />
         </div>
         <span className={`text-[13px] font-medium ${sectionBar.text}`}>{label}</span>
         {hasFields && (
           <div className="flex items-center gap-1 ml-auto flex-wrap">
             {stateCount.normal > 0 && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium text-olive-700 bg-olive-50 border border-olive-200 px-1.5 py-0.5 rounded-lg">
-                <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />
+                <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2} />
                 ปกติ {stateCount.normal}
               </span>
             )}
@@ -1093,13 +1093,13 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             )}
             {stateCount.broken > 0 && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-lg">
-                <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />
+                <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2} />
                 ชำรุด {stateCount.broken}
               </span>
             )}
             {totalFieldPhotos > 0 && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-600 bg-white border border-stone-200 px-1.5 py-0.5 rounded-lg">
-                <Camera className="h-2.5 w-2.5" strokeWidth={2.4} />
+                <Camera className="h-2.5 w-2.5" strokeWidth={2} />
                 {totalFieldPhotos} รูป
               </span>
             )}
@@ -1125,7 +1125,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                       onClick={onAddPhotos}
                       className="inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 bg-clay-600/8 hover:bg-clay-600/15 px-2.5 py-1 rounded-lg transition-colors"
                     >
-                      <Upload className="h-3 w-3" strokeWidth={2.2} />
+                      <Upload className="h-3 w-3" strokeWidth={2} />
                       เพิ่มรูปย้อนหลัง
                     </button>
                   )}
@@ -1158,8 +1158,8 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <p className="text-xs font-medium text-stone-800 leading-snug line-clamp-2 flex-1" title={f.label}>{f.label}</p>
                           <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${STATUS_COLOR[v]}`}>
-                            {v === 'normal' && <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />}
-                            {v === 'broken' && <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />}
+                            {v === 'normal' && <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2} />}
+                            {v === 'broken' && <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2} />}
                             {labelOf(f.key, v)}
                           </span>
                         </div>
@@ -1384,7 +1384,7 @@ function EditPeriodModal({ period, onClose }) {
             <>
               <div className="bg-white border border-stone-200 rounded-lg p-4 space-y-3">
                 <p className="text-xs font-medium text-stone-700 flex items-center gap-1.5">
-                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการส่งมอบ
+                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} /> ข้อมูลการส่งมอบ
                 </p>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">วันและเวลา</label>
@@ -1410,7 +1410,7 @@ function EditPeriodModal({ period, onClose }) {
             <>
               <div className="bg-white border border-olive-200 rounded-lg p-4 space-y-3">
                 <p className="text-xs font-medium text-olive-700 flex items-center gap-1.5">
-                  <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการรับคืน
+                  <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} /> ข้อมูลการรับคืน
                 </p>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">วันและเวลา</label>
@@ -1462,7 +1462,7 @@ function EditPeriodModal({ period, onClose }) {
             {saving ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
             ) : (
-              <><Save className="h-3.5 w-3.5" strokeWidth={2.2} /> บันทึกทุกการเปลี่ยนแปลง</>
+              <><Save className="h-3.5 w-3.5" strokeWidth={2} /> บันทึกทุกการเปลี่ยนแปลง</>
             )}
           </button>
         </div>
@@ -1480,7 +1480,7 @@ function TabBtn({ active, onClick, color, Icon, children }) {
   return (
     <button onClick={onClick}
       className={`flex items-center gap-2 py-3 px-1 mr-6 text-[13px] font-medium border-b-2 transition-colors whitespace-nowrap ${colorCls}`}>
-      <Icon className="h-3.5 w-3.5" strokeWidth={2.2} />
+      <Icon className="h-3.5 w-3.5" strokeWidth={2} />
       {children}
     </button>
   );
@@ -1536,7 +1536,7 @@ function DeletePeriodConfirm({ period, onClose }) {
             {deleting ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังลบ...</>
             ) : (
-              <><Trash2 className="h-3.5 w-3.5" strokeWidth={2.2} /> ยืนยันลบ</>
+              <><Trash2 className="h-3.5 w-3.5" strokeWidth={2} /> ยืนยันลบ</>
             )}
           </button>
         </div>

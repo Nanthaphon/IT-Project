@@ -84,7 +84,7 @@ export default function ImportModal({
         {/* ── Field preview — ให้ผู้ใช้รู้ว่าจะ import field อะไรบ้าง ── */}
         <div className="bg-stone-50/60 border border-stone-200 p-4 rounded-xl">
           <div className="flex items-start gap-2.5">
-            <Info className="h-4 w-4 text-clay-600 mt-0.5 shrink-0" strokeWidth={2.2} />
+            <Info className="h-4 w-4 text-clay-600 mt-0.5 shrink-0" strokeWidth={2} />
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-medium text-clay-600 mb-1.5">
                 คอลัมน์ที่ระบบจะนำเข้า ({meta.fields.length} คอลัมน์):
@@ -154,7 +154,7 @@ export default function ImportModal({
             <div
               className="w-full inline-flex items-center justify-center gap-2 py-3 bg-clay-600 hover:bg-clay-700 text-white rounded-xl font-medium text-sm transition-colors cursor-pointer"
             >
-              <Upload className="h-4 w-4" strokeWidth={2.2} />
+              <Upload className="h-4 w-4" strokeWidth={2} />
               เลือกไฟล์เพื่อนำเข้า
             </div>
           </div>

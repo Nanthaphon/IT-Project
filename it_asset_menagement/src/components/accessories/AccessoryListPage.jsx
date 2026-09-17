@@ -83,7 +83,7 @@ export default function AccessoryListPage({
         ? [{ key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete }]
         : []}
       toolbar={[
-        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={1.75} />, onSelect: onExportCsv },
+        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
         canEdit && onAdd && { key: 'add', label: 'เพิ่มอุปกรณ์เสริม', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
       ].filter(Boolean)}
       onOpen={onOpen}

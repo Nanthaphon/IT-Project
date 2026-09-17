@@ -105,7 +105,7 @@ export default function LoginView({
               ) : (
                 <>
                   เข้าสู่ระบบ
-                  <ArrowRight className="size-4" strokeWidth={2.2} />
+                  <ArrowRight className="size-4" strokeWidth={2} />
                 </>
               )}
             </button>
@@ -116,7 +116,7 @@ export default function LoginView({
                 onClick={() => setForgotOpen(true)}
                 className="inline-flex items-center gap-1.5 text-[13px] font-medium text-stone-500 transition-colors hover:text-clay-600"
               >
-                <KeyRound className="size-3.5" strokeWidth={1.8} />
+                <KeyRound className="size-3.5" strokeWidth={2} />
                 ลืมรหัสผ่าน?
               </button>
             </div>
@@ -173,7 +173,7 @@ function FormField({ label, icon: Icon, children }) {
       <label className="mb-1.5 block text-sm font-medium text-stone-600">{label}</label>
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-          <Icon className="size-4 text-stone-400" strokeWidth={1.8} />
+          <Icon className="size-4 text-stone-400" strokeWidth={2} />
         </div>
         {children}
       </div>

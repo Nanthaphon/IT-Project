@@ -68,12 +68,12 @@ export default function EmployeeListPage({
           key: 'trash',
           label: showDeleted ? 'กลับหน้ารายชื่อ' : 'ถังขยะ',
           icon: showDeleted
-            ? <Undo2 className="size-5" strokeWidth={1.75} />
-            : <Trash2 className="size-5" strokeWidth={1.75} />,
+            ? <Undo2 className="size-5" strokeWidth={2} />
+            : <Trash2 className="size-5" strokeWidth={2} />,
           onSelect: () => onToggleDeleted(!showDeleted),
         },
-        !showDeleted && onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={1.75} />, onSelect: onExportCsv },
-        !showDeleted && canEdit && onImport && { key: 'imp', label: 'นำเข้า', icon: <Upload className="size-5" strokeWidth={1.75} />, onSelect: onImport },
+        !showDeleted && onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
+        !showDeleted && canEdit && onImport && { key: 'imp', label: 'นำเข้า', icon: <Upload className="size-5" strokeWidth={2} />, onSelect: onImport },
         !showDeleted && canEdit && onAdd && { key: 'add', label: 'เพิ่มพนักงาน', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
       ].filter(Boolean)}
       onOpen={onOpen}

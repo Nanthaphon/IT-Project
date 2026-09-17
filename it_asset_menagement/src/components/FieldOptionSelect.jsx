@@ -149,7 +149,7 @@ export default function FieldOptionSelect({
         {Icon && (
           <Icon
             className={`h-4 w-4 shrink-0 ${open ? 'text-clay-600' : 'text-stone-400'}`}
-            strokeWidth={1.9}
+            strokeWidth={2}
           />
         )}
 
@@ -242,7 +242,7 @@ export default function FieldOptionSelect({
                 >
                   <span className="truncate">{opt}</span>
                   {isSelected && (
-                    <Check className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2.5} />
+                    <Check className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
                   )}
                 </button>
               );
@@ -257,7 +257,7 @@ export default function FieldOptionSelect({
                 className="w-full px-3 py-2 text-sm text-left flex items-center gap-2 text-olive-700 hover:bg-olive-50/60 border-t border-stone-100 mt-1 pt-2.5"
               >
                 <div className="w-5 h-5 rounded-lg bg-olive-100 flex items-center justify-center shrink-0">
-                  <Plus className="h-3 w-3 text-olive-600" strokeWidth={2.5} />
+                  <Plus className="h-3 w-3 text-olive-600" strokeWidth={2} />
                 </div>
                 <span className="truncate">
                   สร้างใหม่: <span className="font-medium">"{query.trim()}"</span>

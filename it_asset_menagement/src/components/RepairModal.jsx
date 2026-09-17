@@ -72,7 +72,7 @@ export default function RepairModal({
         <ModalFooter>
           <Button variant="secondary" onClick={close}>ยกเลิก</Button>
           <Button type="submit">
-            <Check className="h-4 w-4" strokeWidth={2.4} />
+            <Check className="h-4 w-4" strokeWidth={2} />
             ยืนยันนำกลับเข้าคลัง
           </Button>
         </ModalFooter>

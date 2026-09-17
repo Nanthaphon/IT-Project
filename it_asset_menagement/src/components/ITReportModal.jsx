@@ -455,7 +455,7 @@ export default function ITReportPage({
             onClick={handleSave}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
           >
-            {saved ? <><Check className="h-4 w-4" strokeWidth={2.5} /> บันทึกแล้ว</> : <><Save className="h-4 w-4" strokeWidth={2} /> บันทึก</>}
+            {saved ? <><Check className="h-4 w-4" strokeWidth={2} /> บันทึกแล้ว</> : <><Save className="h-4 w-4" strokeWidth={2} /> บันทึก</>}
           </button>
           <button
             onClick={() => setShowPreview(true)}

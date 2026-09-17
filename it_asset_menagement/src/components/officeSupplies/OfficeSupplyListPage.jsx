@@ -90,8 +90,8 @@ export default function OfficeSupplyListPage({
         ? [{ key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete }]
         : []}
       toolbar={[
-        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={1.75} />, onSelect: onExportCsv },
-        canEdit && onImport && { key: 'imp', label: 'นำเข้า', icon: <Upload className="size-5" strokeWidth={1.75} />, onSelect: onImport },
+        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
+        canEdit && onImport && { key: 'imp', label: 'นำเข้า', icon: <Upload className="size-5" strokeWidth={2} />, onSelect: onImport },
         canEdit && onAdd && { key: 'add', label: 'เพิ่มอุปกรณ์', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
       ].filter(Boolean)}
       rowActions={(item) => (!canEdit ? [] : [

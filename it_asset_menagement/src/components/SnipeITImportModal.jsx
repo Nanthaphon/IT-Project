@@ -368,9 +368,9 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
                 className="inline-flex items-center gap-2 px-5 py-2 text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {importing ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.4} /> กำลัง Import...</>
+                  <><Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} /> กำลัง Import...</>
                 ) : (
-                  <><CheckCircle2 className="h-4 w-4" strokeWidth={2.4} /> ยืนยัน Import {parsed.grouped.length} license</>
+                  <><CheckCircle2 className="h-4 w-4" strokeWidth={2} /> ยืนยัน Import {parsed.grouped.length} license</>
                 )}
               </button>
             </div>
@@ -421,7 +421,7 @@ function UploadArea({ onFile }) {
       {/* Info */}
       <div className="bg-stone-50/50 border border-stone-200 rounded-xl p-4 space-y-2">
         <p className="text-xs font-medium text-stone-900 flex items-center gap-1.5">
-          <Layers className="h-3.5 w-3.5" strokeWidth={2.2} />
+          <Layers className="h-3.5 w-3.5" strokeWidth={2} />
           ระบบจะทำอะไรให้:
         </p>
         <ul className="text-xs text-stone-900/85 space-y-1 pl-5 list-disc">
@@ -457,13 +457,13 @@ function PreviewSection({ parsed }) {
       {/* Column mapping info */}
       <div className="bg-white border border-stone-200 rounded-xl p-4">
         <p className="text-xs font-medium text-stone-700 mb-2 flex items-center gap-1.5">
-          <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
+          <Eye className="h-3.5 w-3.5" strokeWidth={2} />
           จับคู่ Columns สำเร็จ ({mapped.length} ฟิลด์)
         </p>
         <div className="flex flex-wrap gap-1.5">
           {mapped.map(m => (
             <span key={m.field} className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200">
-              <CheckCircle2 className="h-3 w-3" strokeWidth={2.4} />
+              <CheckCircle2 className="h-3 w-3" strokeWidth={2} />
               {m.csv} → <span className="font-medium">{m.field}</span>
             </span>
           ))}

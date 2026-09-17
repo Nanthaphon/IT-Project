@@ -237,7 +237,7 @@ export default function CheckoutModal({
                           </div>
                           <div className="text-[13px] text-stone-500 truncate">{emp.empId} • {emp.department || '-'}</div>
                         </div>
-                        {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-clay-600 shrink-0" strokeWidth={2.4} />}
+                        {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-clay-600 shrink-0" strokeWidth={2} />}
                       </div>
                     ))
                   ) : (

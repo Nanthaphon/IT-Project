@@ -304,7 +304,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
             onMouseEnter={e => (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={e => (e.currentTarget.style.background = BRAND.primary)}
           >
-            <Plus className="h-4 w-4" strokeWidth={2.4} />
+            <Plus className="h-4 w-4" strokeWidth={2} />
             เพิ่มผู้ใช้
           </button>
         )}
@@ -341,7 +341,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                         <p className="font-medium text-stone-800">{user.displayName || '-'}</p>
                         {user.isSuperAdmin && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-stone-50 border border-stone-200 text-clay-600 mt-0.5">
-                            <Shield className="h-2.5 w-2.5" strokeWidth={2.2} />
+                            <Shield className="h-2.5 w-2.5" strokeWidth={2} />
                             SuperAdmin
                           </span>
                         )}
@@ -437,7 +437,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}>
-                  <Users className="h-4 w-4" strokeWidth={1.8} />
+                  <Users className="h-4 w-4" strokeWidth={2} />
                 </div>
                 <h2 className="text-[15px] font-medium text-stone-800">
                   {editingUser ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
@@ -671,7 +671,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}>
-                  <KeyRound className="h-4 w-4" strokeWidth={1.8} />
+                  <KeyRound className="h-4 w-4" strokeWidth={2} />
                 </div>
                 <h2 className="text-[15px] font-medium text-stone-800">รีเซ็ตรหัสผ่าน</h2>
               </div>

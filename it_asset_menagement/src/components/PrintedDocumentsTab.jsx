@@ -136,7 +136,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
     return (
       <div className="py-14 text-center bg-white rounded-xl border border-dashed border-stone-200">
         <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-stone-100 flex items-center justify-center text-stone-300">
-          <FileText className="h-6 w-6" strokeWidth={1.5} />
+          <FileText className="h-6 w-6" strokeWidth={2} />
         </div>
         <p className="text-sm font-medium text-stone-600">ยังไม่มีเอกสารที่พิมพ์</p>
         <p className="text-xs text-stone-400 mt-1">เอกสารใบส่งมอบ / ใบรับคืน ที่พิมพ์ผ่านระบบจะถูกบันทึกที่นี่อัตโนมัติ</p>
@@ -175,7 +175,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
             <div key={d.id} className="p-3.5 hover:bg-stone-50/60 transition-colors">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg ${typeCls} border flex items-center justify-center shrink-0`}>
-                  <Icon className="h-4 w-4" strokeWidth={1.8} />
+                  <Icon className="h-4 w-4" strokeWidth={2} />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -188,7 +188,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                     </span>
                     {hasSigned && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-olive-50 text-olive-700 border border-olive-200 px-1.5 py-0.5 rounded-lg">
-                        <FileCheck2 className="h-3 w-3" strokeWidth={2.4} />
+                        <FileCheck2 className="h-3 w-3" strokeWidth={2} />
                         เซ็นแล้ว
                       </span>
                     )}
@@ -248,7 +248,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                       {downloadingFor === d.id ? (
                         <div className="w-3 h-3 border-2 border-olive-300 border-t-emerald-700 rounded-full animate-spin" />
                       ) : (
-                        <Download className="h-3 w-3" strokeWidth={2.2} />
+                        <Download className="h-3 w-3" strokeWidth={2} />
                       )}
                       ดาวน์โหลด
                     </button>
@@ -258,7 +258,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                       className="inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 hover:text-white hover:bg-clay-600 px-2 py-1 rounded-lg disabled:opacity-50"
                       title="อัปโหลดใหม่ทับ"
                     >
-                      <Upload className="h-3 w-3" strokeWidth={2.2} />
+                      <Upload className="h-3 w-3" strokeWidth={2} />
                       เปลี่ยน
                     </button>
                     <button
@@ -266,7 +266,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                       className="inline-flex items-center justify-center w-6 h-6 rounded-lg text-rose-500 hover:bg-rose-100 transition-colors"
                       title="ลบไฟล์เซ็น"
                     >
-                      <X className="h-3 w-3" strokeWidth={2.4} />
+                      <X className="h-3 w-3" strokeWidth={2} />
                     </button>
                   </div>
                 ) : (
@@ -282,7 +282,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                       </>
                     ) : (
                       <>
-                        <Upload className="h-3 w-3" strokeWidth={2.4} />
+                        <Upload className="h-3 w-3" strokeWidth={2} />
                         อัปโหลดไฟล์ที่เซ็นแล้ว (สแกน / ถ่ายรูป — PDF / JPG / PNG)
                       </>
                     )}

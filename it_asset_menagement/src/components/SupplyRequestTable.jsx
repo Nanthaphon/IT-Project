@@ -340,7 +340,7 @@ export default function SupplyRequestTable({
               className="flex items-center gap-1.5 px-3.5 py-2.5 bg-clay-600 hover:bg-clay-700 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
               title="ส่งออกรายงาน CSV สำหรับเสนอผู้บริหาร"
             >
-              <Download className="h-4 w-4" strokeWidth={2.2} />
+              <Download className="h-4 w-4" strokeWidth={2} />
               <span className="hidden sm:inline">ส่งออก CSV</span>
             </button>
           </div>
@@ -435,7 +435,7 @@ export default function SupplyRequestTable({
                               <img src={item.image} alt={item.name} className="w-8 h-8 rounded-xl object-cover border border-stone-200 shrink-0" />
                             ) : (
                               <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center shrink-0">
-                                <Package className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.8} />
+                                <Package className="h-3.5 w-3.5 text-stone-400" strokeWidth={2} />
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
@@ -541,7 +541,7 @@ export default function SupplyRequestTable({
         {currentSupplyRequests.length === 0 ? (
           /* empty state */
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
-            <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
+            <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={2} />
             <p className="font-medium text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
             <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
@@ -635,7 +635,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
         <img src={supply.image} alt={req.supplyName} className="w-11 h-11 rounded-lg object-contain bg-stone-50 border border-stone-200 shrink-0 p-0.5" />
       ) : (
         <div className="w-11 h-11 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0">
-          <Package className="h-5 w-5 text-stone-400" strokeWidth={1.8} />
+          <Package className="h-5 w-5 text-stone-400" strokeWidth={2} />
         </div>
       )}
 
@@ -651,7 +651,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <span className="text-[11px] font-medium text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
           {(req.supplyCompany || supply?.company) && (
             <span className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
-              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
+              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2} />
               {req.supplyCompany || supply?.company}
             </span>
           )}
@@ -667,7 +667,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
 
       {/* status */}
       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cfg.badge} shrink-0`}>
-        <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
+        <StatusIcon className="h-3 w-3" strokeWidth={2} />
         <span className="hidden sm:inline">{req.status}</span>
       </span>
 
@@ -679,14 +679,14 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
               onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
-              <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
+              <Check className="h-3.5 w-3.5" strokeWidth={2} />
               <span className="hidden sm:inline">อนุมัติ</span>
             </button>
             <button
               onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 bg-white border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={2.4} />
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
               <span className="hidden sm:inline">ปฏิเสธ</span>
             </button>
           </>

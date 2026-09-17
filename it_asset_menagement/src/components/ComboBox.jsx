@@ -88,7 +88,7 @@ export default function ComboBox({
       >
         <ChevronDown
           size={15}
-          strokeWidth={2.2}
+          strokeWidth={2}
           className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
@@ -115,7 +115,7 @@ export default function ComboBox({
                   {/* checkmark column — fixed width so text stays aligned */}
                   <span className="w-3.5 shrink-0 flex items-center justify-center">
                     {opt === value && (
-                      <Check size={13} strokeWidth={2.5} className="text-clay-600" />
+                      <Check size={13} strokeWidth={2} className="text-clay-600" />
                     )}
                   </span>
                   {opt}

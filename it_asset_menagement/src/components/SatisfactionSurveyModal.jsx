@@ -106,7 +106,7 @@ export default function SatisfactionSurveyModal({
             className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-colors"
             title="ข้ามไปก่อน"
           >
-            <X className="h-4 w-4" strokeWidth={2.2} />
+            <X className="h-4 w-4" strokeWidth={2} />
           </button>
 
           <div className="relative flex items-start gap-3">
@@ -127,7 +127,7 @@ export default function SatisfactionSurveyModal({
           <Wrench className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
           <span className="font-medium text-stone-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
           <span className="text-stone-300">·</span>
-          <CalendarDays className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.8} />
+          <CalendarDays className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
           <span className="text-stone-500 shrink-0">{dateStr}</span>
         </div>
 
@@ -153,7 +153,7 @@ export default function SatisfactionSurveyModal({
           <div className="border-t border-stone-100 pt-5">
             <label className="block">
               <span className="flex items-center gap-1.5 text-sm font-medium text-stone-700 mb-2">
-                <MessageSquare className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.9} />
+                <MessageSquare className="h-3.5 w-3.5 text-stone-400" strokeWidth={2} />
                 ความคิดเห็นเพิ่มเติม
                 <span className="text-[11px] text-stone-400 font-normal"></span>
               </span>
@@ -183,7 +183,7 @@ export default function SatisfactionSurveyModal({
                   <Star
                     key={n}
                     className={`h-5 w-5 ${n <= Math.round(overall) ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`}
-                    strokeWidth={1.6}
+                    strokeWidth={2}
                   />
                 ))}
               </div>
@@ -214,7 +214,7 @@ export default function SatisfactionSurveyModal({
               </>
             ) : (
               <>
-                <CheckCircle2 className="h-4 w-4" strokeWidth={2.2} />
+                <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
                 ส่งแบบประเมิน
               </>
             )}
@@ -262,7 +262,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
                       ? 'fill-clay-400 text-clay-400 drop-shadow-sm'
                       : 'text-stone-200 fill-stone-50 hover:fill-clay-100'
                   }`}
-                  strokeWidth={1.6}
+                  strokeWidth={2}
                 />
               </button>
             );

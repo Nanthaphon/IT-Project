@@ -254,7 +254,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
               <div className="w-4 h-4 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <ImagePlus className="h-5 w-5" strokeWidth={1.8} />
+                <ImagePlus className="h-5 w-5" strokeWidth={2} />
                 <span className="text-[10px] font-medium">แนบรูป</span>
               </>
             )}

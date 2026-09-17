@@ -65,8 +65,8 @@ export default function DashboardPage({
             className={button.ghost} aria-expanded={showFilter}
           >
             {showFilter
-              ? <X className="size-5" strokeWidth={1.75} />
-              : <SlidersHorizontal className="size-5" strokeWidth={1.75} />}
+              ? <X className="size-5" strokeWidth={2} />
+              : <SlidersHorizontal className="size-5" strokeWidth={2} />}
             ตัวกรอง
             {company !== ALL && (
               <span className="rounded-lg bg-clay-100 px-1.5 py-0.5 text-xs font-medium text-clay-600">1</span>

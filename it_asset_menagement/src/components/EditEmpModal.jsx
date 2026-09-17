@@ -198,7 +198,7 @@ function EmpLinksEditor({ links, setLinks }) {
             placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-stone-700`} />
           <button type="button" onClick={() => remove(i)} title="ลบลิงก์"
             className="shrink-0 self-end sm:self-auto inline-flex items-center justify-center w-9 h-9 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
-            <X className="h-4 w-4" strokeWidth={2.2} />
+            <X className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
       ))}

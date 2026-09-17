@@ -1,8 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Trash2, ClipboardList, CheckCircle2, XCircle, Clock,
-  Package, Check, X, CalendarDays, RotateCcw, PlusCircle, Repeat, ImageIcon,
-} from 'lucide-react';
+import { CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock, ImageIcon, Package, PlusCircle, Repeat, RotateCcw, Trash2, X, XCircle } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import { formatDateShort } from '../utils/formatDate.js';
 
@@ -116,7 +113,7 @@ export default function AccessoryRequestTable({
       {/* ── List — Compact row layout ── */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200/60 p-12 text-center">
-          <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
+          <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={2} />
           <p className="text-sm font-medium text-stone-500">ไม่มีคำขอ</p>
           <p className="text-xs text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
@@ -179,13 +176,13 @@ export default function AccessoryRequestTable({
                     className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium shrink-0"
                     style={{ background: reqType.bg, color: reqType.color }}
                   >
-                    <TypeIcon className="h-3 w-3" strokeWidth={2.4} />
+                    <TypeIcon className="h-3 w-3" strokeWidth={2} />
                     {reqType.label}
                   </span>
 
                   {/* Status badge */}
                   <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${status.badge} shrink-0`}>
-                    <StatusIcon className="h-3 w-3" strokeWidth={2.4} />
+                    <StatusIcon className="h-3 w-3" strokeWidth={2} />
                     <span className="hidden sm:inline">{req.status}</span>
                   </span>
 
@@ -196,7 +193,7 @@ export default function AccessoryRequestTable({
                       className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-xl transition shrink-0"
                       title={isExpanded ? 'ย่อ' : 'ดูรายละเอียด'}
                     >
-                      <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      <ChevronDown className="h-4 w-4" strokeWidth={2} />
                     </button>
                   )}
 
@@ -208,14 +205,14 @@ export default function AccessoryRequestTable({
                           onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '', { requestType: 'request' })}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-olive-600 hover:bg-olive-700 transition-colors"
                         >
-                          <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
+                          <Check className="h-3.5 w-3.5" strokeWidth={2} />
                           <span className="hidden sm:inline">อนุมัติ</span>
                         </button>
                         <button
                           onClick={() => openRejectModal(req)}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
                         >
-                          <X className="h-3.5 w-3.5" strokeWidth={2.4} />
+                          <X className="h-3.5 w-3.5" strokeWidth={2} />
                           <span className="hidden sm:inline">ปฏิเสธ</span>
                         </button>
                       </>
@@ -255,7 +252,7 @@ export default function AccessoryRequestTable({
                     )}
                     {req.requestType === 'borrow' && req.returnDate && (
                       <div className="inline-flex items-center gap-1.5 text-xs text-stone-700 bg-white px-2 py-1 rounded-lg border border-stone-200">
-                        <CalendarDays className="h-3 w-3" strokeWidth={2.2} />
+                        <CalendarDays className="h-3 w-3" strokeWidth={2} />
                         กำหนดคืน: <span className="font-medium">{req.returnDate}</span>
                       </div>
                     )}
@@ -264,7 +261,7 @@ export default function AccessoryRequestTable({
                         onClick={() => setPreviewPhoto(req.damagePhoto)}
                         className="inline-flex items-center gap-1.5 text-xs text-stone-700 hover:text-clay-600 bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
                       >
-                        <ImageIcon className="h-3 w-3" strokeWidth={2.2} />
+                        <ImageIcon className="h-3 w-3" strokeWidth={2} />
                         ดูรูปอุปกรณ์ที่ชำรุด
                       </button>
                     )}
@@ -336,7 +333,7 @@ export default function AccessoryRequestTable({
             onClick={() => setPreviewPhoto(null)}
             className="fixed top-6 right-6 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"
           >
-            <X className="h-5 w-5" strokeWidth={2.4} />
+            <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>
       )}

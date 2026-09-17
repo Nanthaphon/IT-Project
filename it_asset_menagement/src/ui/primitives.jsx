@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import React from 'react';
 import { cls, BRAND } from './theme.js';
 
@@ -102,7 +103,7 @@ export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
           >
-            <Icon className="h-5 w-5" strokeWidth={1.8} />
+            <Icon className="h-5 w-5" strokeWidth={2} />
           </div>
         )}
         <div>
@@ -116,9 +117,7 @@ export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
           className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-xl transition-colors focus:outline-none"
           aria-label="ปิด"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X className="h-5 w-5" strokeWidth={2} />
         </button>
       )}
     </div>
@@ -169,7 +168,7 @@ export function PageHeader({ icon: Icon, title, subtitle, action }) {
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
           >
-            <Icon className="h-5 w-5" strokeWidth={1.8} />
+            <Icon className="h-5 w-5" strokeWidth={2} />
           </div>
         )}
         <div>

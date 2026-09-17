@@ -178,7 +178,7 @@ export default function ConditionCapture({
         <p className="text-xs text-stone-700 leading-snug">
           เลือกสถานะแต่ละจุด แล้วกดปุ่ม
           <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-lg bg-white border border-stone-300 text-stone-600">
-            <ImagePlus className="h-3 w-3" strokeWidth={2.2} />
+            <ImagePlus className="h-3 w-3" strokeWidth={2} />
           </span>
           ที่ท้ายแถวเพื่อแนบรูป <span className="font-medium">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
         </p>
@@ -313,7 +313,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       {isDragging && (
         <div className="absolute inset-0 rounded-lg bg-clay-600/5 border-2 border-dashed border-clay-600 pointer-events-none flex items-center justify-center z-10">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-clay-600/20">
-            <ImagePlus className="h-4 w-4 text-clay-600" strokeWidth={2.4} />
+            <ImagePlus className="h-4 w-4 text-clay-600" strokeWidth={2} />
             <span className="text-xs font-medium text-clay-600">
               วางรูปเพื่อแนบใน "{field.label}"
             </span>
@@ -398,7 +398,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                 className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-brick-500 hover:bg-brick-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                 title="ลบรูป"
               >
-                <X className="h-2.5 w-2.5" strokeWidth={2.5} />
+                <X className="h-2.5 w-2.5" strokeWidth={2} />
               </button>
             </div>
           ))}

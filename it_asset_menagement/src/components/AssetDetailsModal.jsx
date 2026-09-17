@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
-import { LogIn, Calendar, DollarSign, Tag, FileText, Pencil, Sparkles, Paperclip, Loader2, KeyRound, ShieldCheck, User, Laptop, Building2, Copy, Check, Hash } from 'lucide-react';
+import { Banknote, Briefcase, Building2, Calendar, Check, ChevronRight, CircleCheck, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, User, X } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
@@ -1267,7 +1267,7 @@ export default function AssetDetailsModal({
           <div className="bg-stone-50 border-b border-stone-200 px-5 py-4 flex justify-between items-center print:hidden">
             <h3 className="font-medium text-stone-800">ตัวอย่างป้าย (Label Preview)</h3>
             <button onClick={() => setShowLabelPreview(false)} className="text-stone-400 hover:text-stone-600 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              <X className="h-5 w-5" strokeWidth={2} />
             </button>
           </div>
           
@@ -1354,18 +1354,14 @@ export default function AssetDetailsModal({
         <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center" style={{ background: '#2B67770F', color: '#2B6777' }}>
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-              </svg>
+              <Briefcase className="w-[18px] h-[18px]" strokeWidth={2} />
             </div>
             <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">
               รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม / License'}
             </h3>
           </div>
           <button onClick={closeAll} className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -1377,9 +1373,7 @@ export default function AssetDetailsModal({
             </div>
           ) : (
             <div className="w-11 h-11 rounded-lg shrink-0 border border-dashed border-stone-300 bg-white flex items-center justify-center text-stone-300">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
-              </svg>
+              <Image className="w-5 h-5" strokeWidth={2} />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -1496,28 +1490,28 @@ export default function AssetDetailsModal({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
-                      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <CircleCheck className="w-[18px] h-[18px]" strokeWidth={2} />
                     </div>
                     <p className="text-xs font-medium text-stone-400">สถานะ</p>
                     <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
-                      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <Banknote className="w-[18px] h-[18px]" strokeWidth={2} />
                     </div>
                     <p className="text-xs font-medium text-stone-400">ราคาจัดซื้อ</p>
                     <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5 tabular-nums">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
-                      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <Clock className="w-[18px] h-[18px]" strokeWidth={2} />
                     </div>
                     <p className="text-xs font-medium text-stone-400">อายุใช้งาน</p>
                     <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5">{calculateAge(currentAssetDetail.purchaseDate)}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
-                      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                      <ShieldCheck className="w-[18px] h-[18px]" strokeWidth={2} />
                     </div>
                     <p className="text-xs font-medium text-stone-400">หมดประกัน</p>
                     <p className={`text-sm font-medium leading-[1.4] mt-0.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-rose-600' : 'text-stone-800'}`}>{currentAssetDetail.warrantyDate ? formatDateShort(currentAssetDetail.warrantyDate) : 'ไม่ระบุ'}</p>
@@ -1643,7 +1637,7 @@ export default function AssetDetailsModal({
                         {isSavingItem ? (
                           <><div className="w-3 h-3 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                         ) : (
-                          <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>เพิ่มรูป</>
+                          <><Plus className="w-3.5 h-3.5" strokeWidth={2} />เพิ่มรูป</>
                         )}
                         <input type="file" multiple accept="image/*" onChange={handlePhotoGalleryUpload} disabled={isSavingItem} className="hidden" />
                       </label>
@@ -1653,9 +1647,7 @@ export default function AssetDetailsModal({
                     </p>
                     {gallery.length === 0 ? (
                       <div className="py-8 text-center bg-white border border-dashed border-stone-200 rounded-xl">
-                        <svg className="w-8 h-8 mx-auto mb-2 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                        </svg>
+                        <Image className="w-8 h-8 mx-auto mb-2 text-stone-300" strokeWidth={2} />
                         <p className="text-[13px] font-medium text-stone-500">ยังไม่มีรูปในคลัง</p>
                         <p className="text-[11px] text-stone-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
                       </div>
@@ -1678,7 +1670,7 @@ export default function AssetDetailsModal({
                               className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white text-stone-400 hover:text-rose-500 hover:bg-rose-50 border border-stone-200 hover:border-rose-300 flex items-center justify-center shadow-sm transition-colors"
                               title="ลบรูปนี้"
                             >
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              <X className="w-3 h-3" strokeWidth={2} />
                             </button>
                           </div>
                         ))}
@@ -1742,9 +1734,7 @@ export default function AssetDetailsModal({
                         ))}
                       </div>
                       <div className="relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
-                        </svg>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" strokeWidth={2} />
                         <input
                           type="text"
                           value={seatSearch}
@@ -1759,9 +1749,7 @@ export default function AssetDetailsModal({
                             title="ล้างคำค้นหา"
                             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors"
                           >
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X className="h-3.5 w-3.5" strokeWidth={2} />
                           </button>
                         )}
                       </div>
@@ -1933,9 +1921,7 @@ export default function AssetDetailsModal({
                   {individualItems.length > 0 && (
                     <div className="px-5 py-2.5 border-b border-stone-100">
                       <div className="relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
-                        </svg>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" strokeWidth={2} />
                         <input
                           type="text"
                           value={accItemSearch}
@@ -1945,9 +1931,7 @@ export default function AssetDetailsModal({
                         />
                         {accItemSearch && (
                           <button type="button" onClick={() => setAccItemSearch('')} title="ล้างคำค้นหา" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors">
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X className="h-3.5 w-3.5" strokeWidth={2} />
                           </button>
                         )}
                       </div>
@@ -2074,7 +2058,7 @@ export default function AssetDetailsModal({
                               ) : (
                                 <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-medium bg-white border border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50 px-2.5 py-1 rounded-xl transition-colors">เข้าคลัง</button>
                               )}
-                            <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            <ChevronRight className="h-4 w-4 text-stone-400" strokeWidth={2} />
                           </div>
                         </div>
                       </div>
@@ -2123,7 +2107,7 @@ export default function AssetDetailsModal({
                       }}
                       className="inline-flex items-center gap-2 text-sm font-medium bg-clay-600 text-white px-4 py-2.5 rounded-xl hover:bg-clay-700 transition-colors"
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                      <Plus className="w-3.5 h-3.5" strokeWidth={2} />
                       เพิ่มประวัติจัดซื้อ
                     </button>
                   </div>
@@ -2131,7 +2115,7 @@ export default function AssetDetailsModal({
                   {purchaseHistory.length === 0 ? (
                     <div className="py-14 text-center bg-white rounded-xl border border-dashed border-stone-200">
                       <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-stone-100 flex items-center justify-center text-stone-300">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        <ClipboardList className="w-6 h-6" strokeWidth={2} />
                       </div>
                       <p className="text-sm font-medium text-stone-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
                       <p className="text-xs text-stone-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
@@ -2158,10 +2142,10 @@ export default function AssetDetailsModal({
                             </div>
                             <div className="flex gap-1.5 shrink-0">
                               <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-white border border-stone-200 text-stone-500 hover:bg-stone-50 hover:border-stone-300 rounded-xl transition-colors">
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                <SquarePen className="w-3.5 h-3.5" strokeWidth={2} />
                               </button>
                               <button onClick={() => handleDeleteHistory(hist.id)} className="p-1.5 bg-white border border-stone-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-xl transition-colors">
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                               </button>
                             </div>
                           </div>
@@ -2177,8 +2161,8 @@ export default function AssetDetailsModal({
                                   className="flex items-center gap-1 text-xs bg-white text-stone-500 border border-stone-200 py-1 px-2.5 rounded-lg hover:bg-stone-50 hover:text-clay-600 hover:border-stone-200 transition-colors max-w-[160px] truncate disabled:opacity-60"
                                 >
                                   {openingPhDocId === docItem.id
-                                    ? <svg className="w-3 h-3 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth={2} strokeDasharray="40 20"/></svg>
-                                    : <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                    ? <Loader2 className="w-3 h-3 shrink-0 animate-spin" strokeWidth={2} />
+                                    : <Paperclip className="w-3 h-3 shrink-0" strokeWidth={2} />
                                   }
                                   <span className="truncate">{docItem.name}</span>
                                 </button>
@@ -2243,7 +2227,7 @@ export default function AssetDetailsModal({
                                 <span className="truncate">{docItem.name}</span>
                               </button>
                               <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <X className="w-3 h-3" strokeWidth={2} />
                               </button>
                             </div>
                           ))}
@@ -2259,7 +2243,7 @@ export default function AssetDetailsModal({
                                 🕐 {pd.name}
                               </span>
                               <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-rose-500 bg-white border border-clay-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <X className="w-3 h-3" strokeWidth={2} />
                               </button>
                             </div>
                           ))}
@@ -2268,7 +2252,7 @@ export default function AssetDetailsModal({
 
                       <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-medium py-2 px-3.5 rounded-lg border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
                         {isSavingItem ? 'กำลังอัปโหลด...' : (
-                          <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>แนบไฟล์</>
+                          <><Plus className="w-3.5 h-3.5" strokeWidth={2} />แนบไฟล์</>
                         )}
                         <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleHistoryDocUpload} disabled={isSavingItem} className="hidden" />
                       </label>
@@ -2340,13 +2324,13 @@ export default function AssetDetailsModal({
                                 />
                               ) : (
                                 <div className="w-12 h-12 rounded-lg bg-stone-50 border border-stone-200 flex items-center justify-center shrink-0">
-                                  <svg className="w-5 h-5 text-clay-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                  <FileText className="w-5 h-5 text-clay-600" strokeWidth={2} />
                                 </div>
                               )}
                               <span className="truncate">{docItem.name}</span>
                             </a>
                             <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-7 h-7 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                             </button>
                           </div>
                           );
@@ -2355,7 +2339,7 @@ export default function AssetDetailsModal({
                     ) : (
                       <div className="py-12 text-center bg-white border border-dashed border-stone-200 rounded-xl">
                         <div className="w-11 h-11 mx-auto mb-3 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-stone-300">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
+                          <Paperclip className="w-5 h-5" strokeWidth={2} />
                         </div>
                         <p className="text-sm font-medium text-stone-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
                         <p className="text-xs text-stone-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
@@ -2368,7 +2352,7 @@ export default function AssetDetailsModal({
                       {isSavingItem ? (
                         <><div className="w-3.5 h-3.5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                       ) : (
-                        <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>อัปโหลดไฟล์</>
+                        <><Download className="w-3.5 h-3.5" strokeWidth={2} />อัปโหลดไฟล์</>
                       )}
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleDocumentUpload} disabled={isSavingItem} className="hidden" />
                     </label>
@@ -2398,7 +2382,7 @@ export default function AssetDetailsModal({
                 onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); closeAll(); }}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto"
               >
-                <LogIn className="h-4 w-4" strokeWidth={2.4} />
+                <LogIn className="h-4 w-4" strokeWidth={2} />
                 เบิกจ่าย
                 <span className="text-[11px] font-medium bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
               </button>
@@ -2413,7 +2397,7 @@ export default function AssetDetailsModal({
                 onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'accessories' }); closeAll(); }}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto"
               >
-                <LogIn className="h-4 w-4" strokeWidth={2.4} />
+                <LogIn className="h-4 w-4" strokeWidth={2} />
                 เบิกจ่าย
                 <span className="text-[11px] font-medium bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
               </button>
@@ -2605,7 +2589,7 @@ export function SeatDetailModal({
                   </span>
                   {seat.type === 'assigned' && seat.assignee?.empName && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sand-100 text-stone-600 text-xs font-medium">
-                      <User className="h-3 w-3" strokeWidth={2.2} /> {seat.assignee.empName}
+                      <User className="h-3 w-3" strokeWidth={2} /> {seat.assignee.empName}
                     </span>
                   )}
                   {expCheck?.isExpiring && (
@@ -2620,9 +2604,7 @@ export function SeatDetailModal({
               onClick={onClose}
               className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -2812,7 +2794,7 @@ export function SeatDetailModal({
                 onClick={onEdit}
                 className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white bg-clay-600 transition-colors hover:bg-clay-700"
               >
-                <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} />
+                <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
                 แก้ไขข้อมูล
               </button>
             </>
@@ -2871,14 +2853,14 @@ export function AccessoryItemDetailModal({
                   </span>
                   {item.type === 'assigned' && item.assignee?.empName && item.sn && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sand-100 text-stone-600 text-xs font-medium">
-                      <User className="h-3 w-3" strokeWidth={2.2} /> {item.assignee.empName}
+                      <User className="h-3 w-3" strokeWidth={2} /> {item.assignee.empName}
                     </span>
                   )}
                 </div>
               </div>
             </div>
             <button onClick={onClose} className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <X className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -2994,7 +2976,7 @@ export function AccessoryItemDetailModal({
             <>
               <button onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 transition-colors hover:border-stone-300 hover:text-stone-900">ปิด</button>
               <button onClick={onEdit} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white bg-clay-600 transition-colors hover:bg-clay-700">
-                <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} /> แก้ไขข้อมูล
+                <Pencil className="h-3.5 w-3.5" strokeWidth={2} /> แก้ไขข้อมูล
               </button>
             </>
           )}
@@ -3011,7 +2993,7 @@ function Section({ icon: Icon, title, children }) {
   return (
     <section className="py-6 first:pt-1 last:pb-2">
       <div className="flex items-center gap-2 mb-4">
-        {Icon && <Icon className="h-4 w-4 text-stone-400" strokeWidth={1.75} />}
+        {Icon && <Icon className="h-4 w-4 text-stone-400" strokeWidth={2} />}
         <h4 className="text-[13px] font-medium text-stone-500">{title}</h4>
       </div>
       {children}
@@ -3044,7 +3026,7 @@ function KeyRow({ label, value }) {
         <>
           <span className="flex-1 font-mono text-[13px] font-medium text-stone-800 break-all select-all">{value}</span>
           <button type="button" onClick={copy} title="คัดลอก" className="shrink-0 text-stone-400 hover:text-clay-600 transition-colors">
-            {copied ? <Check className="h-4 w-4 text-olive-500" strokeWidth={2.4} /> : <Copy className="h-4 w-4" strokeWidth={2} />}
+            {copied ? <Check className="h-4 w-4 text-olive-500" strokeWidth={2} /> : <Copy className="h-4 w-4" strokeWidth={2} />}
           </button>
         </>
       ) : (

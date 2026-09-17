@@ -201,13 +201,13 @@ export default function SeatTable({
                 <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
                   {seat.productKey && (
                     <span className="inline-flex items-center gap-1 truncate font-mono">
-                      <KeyRound className="size-2.5 shrink-0" strokeWidth={2.2} />
+                      <KeyRound className="size-2.5 shrink-0" strokeWidth={2} />
                       {seat.productKey}
                     </span>
                   )}
                   {seat.seatExpirationDate && (
                     <span className="inline-flex shrink-0 items-center gap-1">
-                      <Calendar className="size-2.5 shrink-0" strokeWidth={2.2} />
+                      <Calendar className="size-2.5 shrink-0" strokeWidth={2} />
                       {formatDate(seat.seatExpirationDate)}
                     </span>
                   )}

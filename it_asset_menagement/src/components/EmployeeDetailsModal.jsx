@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Printer, Key, Eye, EyeOff, Copy, CheckCircle2, RotateCcw, Shield } from 'lucide-react';
+import { Check, CheckCircle2, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Key, Printer, RotateCcw, Shield, SquarePen, X } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
@@ -199,9 +199,7 @@ export default function EmployeeDetailsModal({
             onClick={() => setSelectedEmployee(null)}
             className="w-8 h-8 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition shrink-0"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -335,9 +333,7 @@ export default function EmployeeDetailsModal({
 
                         <div className="flex items-center gap-2 shrink-0">
                           {/* hint icon (เห็นชัดตอน hover) */}
-                          <svg className="h-3.5 w-3.5 text-stone-300 group-hover:text-clay-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M9 5l7 7-7 7" />
-                          </svg>
+                          <ChevronRight className="h-3.5 w-3.5 text-stone-300 group-hover:text-clay-600 transition-colors" strokeWidth={2} />
 
                           <button
                             onClick={(e) => {
@@ -362,9 +358,7 @@ export default function EmployeeDetailsModal({
                             }}
                             className="text-xs font-medium px-3 py-1.5 rounded-xl border border-olive-200 text-olive-700 bg-olive-50 hover:bg-olive-500 hover:text-white hover:border-olive-500 transition-colors flex items-center gap-1.5"
                           >
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                            </svg>
+                            <CornerUpLeft className="h-3.5 w-3.5" strokeWidth={2} />
                             รับคืน
                           </button>
                         </div>
@@ -441,9 +435,7 @@ export default function EmployeeDetailsModal({
                 onClick={() => openEditEmpModal(selectedEmployee)}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors"
               >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
+                <SquarePen className="h-3.5 w-3.5" strokeWidth={2} />
                 แก้ไขข้อมูล
               </button>
             )}
@@ -496,9 +488,7 @@ export default function EmployeeDetailsModal({
                       {asset.model || '-'} · {asset.sn || asset.assetTag || '-'}
                     </p>
                   </div>
-                  <svg className="h-4 w-4 text-stone-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRight className="h-4 w-4 text-stone-400 shrink-0" strokeWidth={2} />
                 </button>
               ))}
             </div>
@@ -658,7 +648,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
 
       {/* Info banner */}
       <div className="bg-stone-50/40 border border-stone-200 rounded-lg px-3 py-2 flex items-start gap-2">
-        <Shield className="h-3.5 w-3.5 text-clay-600 shrink-0 mt-0.5" strokeWidth={2.2} />
+        <Shield className="h-3.5 w-3.5 text-clay-600 shrink-0 mt-0.5" strokeWidth={2} />
         <p className="text-[11px] text-stone-900/85 leading-relaxed">
           ระบบเก็บทั้ง <span className="font-medium text-stone-700">hash + salt</span> (สำหรับ login) และ <span className="font-medium text-stone-700">plaintext</span> (visibility สำหรับ admin) —
           Firestore rules จำกัดให้เฉพาะ admin เท่านั้นที่อ่านได้
@@ -707,7 +697,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
               className="px-2 py-1 text-stone-400 hover:text-stone-600 transition-colors"
               title={show ? 'ซ่อน' : 'แสดง'}
             >
-              {show ? <EyeOff className="h-3.5 w-3.5" strokeWidth={1.8} /> : <Eye className="h-3.5 w-3.5" strokeWidth={1.8} />}
+              {show ? <EyeOff className="h-3.5 w-3.5" strokeWidth={2} /> : <Eye className="h-3.5 w-3.5" strokeWidth={2} />}
             </button>
             <button
               type="button"
@@ -717,8 +707,8 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
               title="คัดลอกรหัสผ่านปัจจุบัน"
             >
               {copied
-                ? <CheckCircle2 className="h-3.5 w-3.5 text-olive-500" strokeWidth={2.2} />
-                : <Copy className="h-3.5 w-3.5" strokeWidth={1.8} />}
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-olive-500" strokeWidth={2} />
+                : <Copy className="h-3.5 w-3.5" strokeWidth={2} />}
             </button>
           </div>
         </div>
@@ -738,7 +728,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-clay-600 bg-white border border-stone-200/60 hover:bg-clay-100 hover:border-clay-300 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
         >
-          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.2} />
+          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
           {resetting ? 'กำลังรีเซ็ต...' : 'ใช้รหัสพนักงาน'}
         </button>
         <button
@@ -747,7 +737,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           disabled={saving || resetting || !isDirty}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
+          <Key className="h-3.5 w-3.5" strokeWidth={2} />
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
         </button>
       </div>
@@ -797,8 +787,8 @@ function PasswordReveal({ label, value }) {
             aria-label={show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
           >
             {show
-              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.7 10.7a2.5 2.5 0 003.6 3.6M9.9 5.1A9.7 9.7 0 0112 5c4.4 0 8 3.5 9.4 7-.3.7-.8 1.7-1.5 2.7M6.4 6.4C4.4 7.9 2.9 10.2 2.6 12c1.4 3.5 5 7 9.4 7 1.4 0 2.8-.4 4-1"/></svg>
-              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>}
+              ? <EyeOff className="h-4 w-4" strokeWidth={2} />
+              : <Eye className="h-4 w-4" strokeWidth={2} />}
           </button>
           <button
             type="button"
@@ -808,8 +798,8 @@ function PasswordReveal({ label, value }) {
             aria-label="คัดลอก"
           >
             {copied
-              ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2C5D53" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
+              ? <Check className="h-4 w-4" strokeWidth={2} />
+              : <Copy className="h-4 w-4" strokeWidth={2} />}
           </button>
         </div>
       )}
@@ -828,9 +818,7 @@ function Th({ children, center }) {
 function EmptyState({ label }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-stone-400 bg-stone-50 rounded-xl border border-dashed border-stone-200">
-      <svg className="h-9 w-9 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
+      <FilePlus className="h-9 w-9 mb-3 opacity-40" strokeWidth={2} />
       <p className="text-sm font-medium text-stone-500">{label}</p>
     </div>
   );
@@ -947,7 +935,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                     className="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition-colors"
                     title="พิมพ์ใบรับคืน"
                   >
-                    <Printer className="h-3 w-3" strokeWidth={2.2} />
+                    <Printer className="h-3 w-3" strokeWidth={2} />
                     ใบรับคืน
                   </button>
                 )}

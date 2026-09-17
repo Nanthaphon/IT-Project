@@ -85,7 +85,7 @@ function KeyChip({ value, keyCode, fromCurrent }) {
         title="คัดลอก Product Key"
       >
         {copied
-          ? <><Check className="size-3" strokeWidth={2.4} /> คัดลอกแล้ว</>
+          ? <><Check className="size-3" strokeWidth={2} /> คัดลอกแล้ว</>
           : <><Copy className="size-3" strokeWidth={2} /> คัดลอก</>}
       </button>
     </div>
@@ -182,7 +182,7 @@ export default function Timeline({
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-white/60 py-16 text-center">
         <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-sand-100 text-stone-400">
-          <Info className="size-5" strokeWidth={1.8} />
+          <Info className="size-5" strokeWidth={2} />
         </div>
         <p className="text-sm font-medium text-stone-500">{emptyHint}</p>
         <p className="mt-1 text-[13px] text-stone-400">

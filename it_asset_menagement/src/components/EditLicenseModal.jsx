@@ -51,12 +51,12 @@ export default function EditLicenseModal({
                     onClick={() => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: null } }))}
                     className="absolute -top-1.5 -right-1.5 bg-white text-rose-500 border border-rose-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-rose-50 transition-colors focus:outline-none"
                   >
-                    <XIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    <XIcon className="h-3.5 w-3.5" strokeWidth={2} />
                   </button>
                 </div>
               ) : (
                 <div className="w-20 h-20 rounded-lg bg-stone-50 flex items-center justify-center text-stone-300 border border-dashed border-stone-300 shrink-0">
-                  <ImageIcon className="h-7 w-7" strokeWidth={1.5} />
+                  <ImageIcon className="h-7 w-7" strokeWidth={2} />
                 </div>
               )}
               <input

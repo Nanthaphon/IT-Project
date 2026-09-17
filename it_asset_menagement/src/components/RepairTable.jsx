@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Trash2, Wrench, CheckCircle2, Clock, Loader2,
-  XCircle, CalendarDays, Play, Check,
-  Star, MessageSquare, User,
-} from 'lucide-react';
+import { CalendarDays, Check, CheckCircle2, ChevronDown, Clock, Loader2, MessageSquare, Play, Star, Trash2, User, Wrench, XCircle } from 'lucide-react';
 import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
@@ -175,7 +171,7 @@ export default function RepairTable({
       <div className="mx-auto max-w-[1360px] px-6 py-6 lg:px-8 lg:pb-8">
         {currentRepairRequests.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
-            <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
+            <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={2} />
             <p className="font-medium text-stone-500 text-sm">ไม่มีคิวงานในสถานะนี้</p>
             <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
@@ -290,14 +286,14 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
 
         {/* Status badge */}
         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cfg.badge} shrink-0`}>
-          <StatusIcon className={`h-3 w-3 ${isInProgress ? 'animate-spin' : ''}`} strokeWidth={2.2} />
+          <StatusIcon className={`h-3 w-3 ${isInProgress ? 'animate-spin' : ''}`} strokeWidth={2} />
           <span className="hidden sm:inline">{req.status}</span>
         </span>
 
         {/* Evaluation star */}
         {req.evaluation && (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-clay-100 text-clay-600 border border-clay-200 shrink-0">
-            <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={1.6} />
+            <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={2} />
             {Number(req.evaluation.overallRating || 0).toFixed(1)}
           </span>
         )}
@@ -309,7 +305,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
             className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-xl transition-colors shrink-0"
             title={expanded ? 'ย่อ' : 'ดูรายละเอียด'}
           >
-            <svg className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <ChevronDown className="h-4 w-4" strokeWidth={2} />
           </button>
         )}
 
@@ -320,7 +316,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
               onClick={() => onUpdateStatus(req.id, 'กำลังดำเนินการ')}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
-              <Play className="h-3 w-3" strokeWidth={2.4} />
+              <Play className="h-3 w-3" strokeWidth={2} />
               <span className="hidden sm:inline">เริ่มซ่อม</span>
             </button>
           )}
@@ -329,7 +325,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
               onClick={() => onUpdateStatus(req.id, 'ซ่อมเสร็จสิ้น')}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-olive-600 bg-white border border-stone-200 hover:border-olive-300 hover:bg-olive-50 transition-colors"
             >
-              <Check className="h-3 w-3" strokeWidth={2.4} />
+              <Check className="h-3 w-3" strokeWidth={2} />
               <span className="hidden sm:inline">ซ่อมเสร็จ</span>
             </button>
           )}
@@ -393,7 +389,7 @@ function EvaluationDetail({ evaluation }) {
                 <Star
                   key={n}
                   className={`h-2.5 w-2.5 ${n <= Number(it.value || 0) ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`}
-                  strokeWidth={1.6}
+                  strokeWidth={2}
                 />
               ))}
             </div>

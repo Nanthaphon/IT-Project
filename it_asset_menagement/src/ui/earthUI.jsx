@@ -17,7 +17,7 @@ export function MetricCard({ icon: Icon, label, value, hint, tone = 'default' })
         <span className={text.label}>{label}</span>
         <Icon
           className={`size-5 shrink-0 ${accent ? 'text-clay-600' : 'text-stone-300'}`}
-          strokeWidth={1.75}
+          strokeWidth={2}
         />
       </div>
       <div className={`mt-4 ${text.metric} ${accent ? 'text-clay-600' : 'text-stone-900'}`}>{value}</div>
@@ -97,7 +97,7 @@ export function ActionMenu({ items = [], label = 'ตัวเลือกเพ
           type="button" onClick={() => setOpen(v => !v)} className={button.icon}
           aria-label={label} aria-haspopup="menu" aria-expanded={open}
         >
-          <MoreHorizontal className="size-5" strokeWidth={1.75} />
+          <MoreHorizontal className="size-5" strokeWidth={2} />
         </button>
       }
     >
@@ -128,7 +128,7 @@ export function CheckMark({ checked }) {
         checked ? 'border-clay-600 bg-clay-600 text-white' : 'border-stone-300 bg-white'
       }`}
     >
-      {checked && <Check className="size-3" strokeWidth={3} />}
+      {checked && <Check className="size-3" strokeWidth={2} />}
     </span>
   );
 }
@@ -145,7 +145,7 @@ export function Checkbox({ checked, onChange, label }) {
           : 'border-stone-300 bg-white hover:border-stone-400'
       }`}
     >
-      {checked && <Check className="size-3" strokeWidth={3} />}
+      {checked && <Check className="size-3" strokeWidth={2} />}
     </button>
   );
 }
@@ -163,7 +163,7 @@ export function EmptyState({ children }) {
 export function SearchInput({ value, onChange, placeholder }) {
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-400" strokeWidth={1.75} />
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-400" strokeWidth={2} />
       <input
         type="search" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full rounded-xl border border-stone-200/60 bg-white py-2.5 pl-10 pr-3 text-sm text-stone-700 outline-none transition-colors placeholder:text-stone-400 focus:border-clay-600/40 focus:ring-2 focus:ring-clay-600/10 sm:w-72"
@@ -241,11 +241,11 @@ export function Pagination({ page, pageSize, total, onChange }) {
       </p>
       <div className="flex items-center gap-2">
         <button type="button" className={btn} onClick={() => onChange(page - 1)} disabled={page <= 1} aria-label="หน้าก่อนหน้า">
-          <ChevronLeft className="size-5" strokeWidth={1.75} />
+          <ChevronLeft className="size-5" strokeWidth={2} />
         </button>
         <span className="min-w-[72px] text-center text-sm tabular-nums text-stone-500">{page} / {pages}</span>
         <button type="button" className={btn} onClick={() => onChange(page + 1)} disabled={page >= pages} aria-label="หน้าถัดไป">
-          <ChevronRight className="size-5" strokeWidth={1.75} />
+          <ChevronRight className="size-5" strokeWidth={2} />
         </button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Printer, X, Camera, ImagePlus, ClipboardCheck, AlertCircle, Trash2 } from 'lucide-react';
+import { AlertCircle, Camera, Check, ClipboardCheck, ImagePlus, Printer, Trash2, X } from 'lucide-react';
 import {
   ASSESSMENT_SECTIONS,
   PHOTO_SLOTS,
@@ -158,7 +158,7 @@ export default function PreHandoverAssessmentModal({
         <div className="flex items-center justify-between px-7 py-5 border-b border-stone-100 shrink-0">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-clay-600/10 text-clay-600 flex items-center justify-center shrink-0">
-              <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
+              <ClipboardCheck className="h-5 w-5" strokeWidth={2} />
             </div>
             <div>
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
@@ -202,9 +202,7 @@ export default function PreHandoverAssessmentModal({
                       <div className="flex items-center gap-2">
                         <div className={`w-4 h-4 rounded-full border ${isSelected ? 'border-clay-600 bg-clay-600' : 'border-stone-300 bg-white'} shrink-0`}>
                           {isSelected && (
-                            <svg viewBox="0 0 20 20" className="w-full h-full text-white p-0.5" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clipRule="evenodd" />
-                            </svg>
+                            <Check className="w-full h-full text-white p-0.5" strokeWidth={2} />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -531,7 +529,7 @@ export default function PreHandoverAssessmentModal({
                   : 'text-stone-400 bg-stone-200 cursor-not-allowed'
               }`}
             >
-              <Printer className="h-4 w-4" strokeWidth={2.2} />
+              <Printer className="h-4 w-4" strokeWidth={2} />
               พิมพ์เอกสาร / บันทึก PDF
             </button>
           </div>
@@ -620,7 +618,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
               <div className="w-5 h-5 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <ImagePlus className="h-6 w-6" strokeWidth={1.8} />
+                <ImagePlus className="h-6 w-6" strokeWidth={2} />
                 <span className="text-[11px] font-medium">แนบรูป</span>
               </>
             )}

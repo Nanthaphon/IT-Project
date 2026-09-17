@@ -86,7 +86,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: c.tint }}
         >
-          <Icon className={`h-5 w-5 ${c.icon}`} strokeWidth={1.8} />
+          <Icon className={`h-5 w-5 ${c.icon}`} strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-stone-900 text-[15px] leading-tight tracking-tight">{category.label}</h3>
@@ -114,7 +114,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
               className="hover:text-rose-600 transition-colors focus:outline-none"
               title="ลบ"
             >
-              <X className="h-3 w-3" strokeWidth={2.5} />
+              <X className="h-3 w-3" strokeWidth={2} />
             </button>
           </span>
         ))}
@@ -136,7 +136,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           disabled={!input.trim()}
           className={`inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-stone-200 cursor-not-allowed text-stone-400'}`}
         >
-          <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่ม
+          <Plus className="h-4 w-4" strokeWidth={2} /> เพิ่ม
         </button>
       </div>
     </div>

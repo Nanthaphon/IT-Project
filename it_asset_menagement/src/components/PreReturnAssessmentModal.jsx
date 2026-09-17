@@ -165,7 +165,7 @@ export default function PreReturnAssessmentModal({
         <div className="flex items-center justify-between px-7 py-5 border-b border-stone-100 shrink-0">
           <div className="flex items-start gap-3.5 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-olive-50 text-olive-600 flex items-center justify-center shrink-0">
-              <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
+              <ClipboardCheck className="h-5 w-5" strokeWidth={2} />
             </div>
             <div className="min-w-0">
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
@@ -338,7 +338,7 @@ export default function PreReturnAssessmentModal({
                   onClick={addDamage}
                   className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition"
                 >
-                  <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่มรายการ
+                  <Plus className="h-4 w-4" strokeWidth={2} /> เพิ่มรายการ
                 </button>
               </div>
             </div>
@@ -411,7 +411,7 @@ export default function PreReturnAssessmentModal({
               onClick={handlePrint}
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-clay-600 hover:bg-clay-700 text-white rounded-xl transition-colors"
             >
-              <Printer className="h-4 w-4" strokeWidth={2.2} />
+              <Printer className="h-4 w-4" strokeWidth={2} />
               พิมพ์เอกสาร / บันทึก PDF
             </button>
           </div>
@@ -558,7 +558,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
               <div className="w-5 h-5 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <ImagePlus className="h-6 w-6" strokeWidth={1.8} />
+                <ImagePlus className="h-6 w-6" strokeWidth={2} />
                 <span className="text-[11px] font-medium">แนบรูป</span>
               </>
             )}

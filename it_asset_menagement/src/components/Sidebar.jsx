@@ -184,7 +184,7 @@ export default function Sidebar({
 
                       {/* Arrow ตอน hover (เฉพาะไม่ active และไม่มี badge) */}
                       {!active && hovered && count === 0 && (
-                        <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2.4} />
+                        <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2} />
                       )}
 
                       {/* Active dot indicator */}
@@ -221,7 +221,7 @@ export default function Sidebar({
               </span>
               <span className="truncate flex-1 text-left">เปลี่ยนรหัสผ่าน</span>
               {hoveredId === '__changepwd__' && (
-                <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2.4} />
+                <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2} />
               )}
             </button>
           </div>

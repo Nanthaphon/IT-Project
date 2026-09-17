@@ -1263,8 +1263,8 @@ export default function AssetDetailsModal({
           </div>
           
           <div className="p-4 bg-white border-t border-stone-200 flex justify-end gap-3 print:hidden">
-            <button onClick={() => setShowLabelPreview(false)} className="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors">ปิด</button>
-            <button onClick={() => window.print()} className="px-4 py-2 bg-clay-600 text-white rounded-lg font-medium hover:bg-clay-800 transition-colors">สั่งพิมพ์ (Print)</button>
+            <button onClick={() => setShowLabelPreview(false)} className="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-xl font-medium hover:bg-stone-50 transition-colors">ปิด</button>
+            <button onClick={() => window.print()} className="px-4 py-2 bg-clay-600 text-white rounded-xl font-medium hover:bg-clay-800 transition-colors">สั่งพิมพ์ (Print)</button>
           </div>
         </div>
       </div>
@@ -1300,7 +1300,7 @@ export default function AssetDetailsModal({
               รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม / License'}
             </h3>
           </div>
-          <button onClick={closeAll} className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors shrink-0">
+          <button onClick={closeAll} className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors shrink-0">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -1624,14 +1624,14 @@ export default function AssetDetailsModal({
                         </label>
                       )}
                       {selectedLicenseSeatsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
+                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
                           ลบ ({selectedLicenseSeatsForDelete.length})
                         </button>
                       )}
-                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-xl transition-colors">
                         นำเข้า CSV
                       </button>
-                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors">
                         + เพิ่มสิทธิ์
                       </button>
                     </div>
@@ -1673,7 +1673,7 @@ export default function AssetDetailsModal({
                       <div className="flex flex-col sm:flex-row gap-4 mb-3">
                         <div className="flex-1">
                           <p className="text-xs font-medium text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
-                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors">ดาวน์โหลด .csv</button>
+                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors">ดาวน์โหลด .csv</button>
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-medium text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
@@ -1903,7 +1903,7 @@ export default function AssetDetailsModal({
                                 <span className="text-[10px] font-medium bg-clay-100 text-clay-600 border border-clay-200 px-2 py-1 rounded-lg">ติดตั้งบนเครื่อง</span>
                               )
                             ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
+                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-xl transition-colors">รับคืน</button>
                             )}
                             <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
@@ -1937,14 +1937,14 @@ export default function AssetDetailsModal({
                         </label>
                       )}
                       {selectedItemsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
+                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
                           ลบ ({selectedItemsForDelete.length})
                         </button>
                       )}
-                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-xl transition-colors">
                         นำเข้า CSV
                       </button>
-                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors">
                         + เพิ่มชิ้นใหม่
                       </button>
                     </div>
@@ -1981,7 +1981,7 @@ export default function AssetDetailsModal({
                       <div className="flex flex-col sm:flex-row gap-4 mb-3">
                         <div className="flex-1">
                           <p className="text-xs font-medium text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
-                          <button onClick={handleDownloadPieceTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors">
+                          <button onClick={handleDownloadPieceTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors">
                             ดาวน์โหลด .csv
                           </button>
                         </div>
@@ -2087,9 +2087,9 @@ export default function AssetDetailsModal({
                           <div className="flex items-center gap-2 shrink-0">
                             {item.type === 'available' ? null
                               : item.type === 'assigned' ? (
-                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
+                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-xl transition-colors">รับคืน</button>
                               ) : (
-                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-medium bg-white border border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50 px-2.5 py-1 rounded-lg transition-colors">เข้าคลัง</button>
+                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-medium bg-white border border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50 px-2.5 py-1 rounded-xl transition-colors">เข้าคลัง</button>
                               )}
                             <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
@@ -2174,10 +2174,10 @@ export default function AssetDetailsModal({
                               <p className="text-[13px] text-stone-600 truncate"><span className="text-stone-400">Model:</span> {hist.model || '-'}</p>
                             </div>
                             <div className="flex gap-1.5 shrink-0">
-                              <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-white border border-stone-200 text-stone-500 hover:bg-stone-50 hover:border-stone-300 rounded-lg transition-colors">
+                              <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-white border border-stone-200 text-stone-500 hover:bg-stone-50 hover:border-stone-300 rounded-xl transition-colors">
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
-                              <button onClick={() => handleDeleteHistory(hist.id)} className="p-1.5 bg-white border border-stone-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-lg transition-colors">
+                              <button onClick={() => handleDeleteHistory(hist.id)} className="p-1.5 bg-white border border-stone-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-xl transition-colors">
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             </div>
@@ -2259,7 +2259,7 @@ export default function AssetDetailsModal({
                                   : <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />}
                                 <span className="truncate">{docItem.name}</span>
                               </button>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-6 h-6 rounded-lg flex items-center justify-center transition-colors">
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
@@ -2275,7 +2275,7 @@ export default function AssetDetailsModal({
                               <span className="text-[13px] font-medium text-clay-600 truncate max-w-[180px]">
                                 🕐 {pd.name}
                               </span>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-rose-500 bg-white border border-clay-200 w-6 h-6 rounded-lg flex items-center justify-center transition-colors">
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-rose-500 bg-white border border-clay-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
@@ -2349,7 +2349,7 @@ export default function AssetDetailsModal({
                               )}
                               <span className="truncate">{docItem.name}</span>
                             </a>
-                            <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
+                            <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-7 h-7 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>

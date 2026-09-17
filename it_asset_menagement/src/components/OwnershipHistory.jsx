@@ -274,7 +274,7 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
               <p className="text-[13px] text-stone-500 mt-0.5">บันทึกช่วงการถือครองย้อนหลัง</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-9 h-9 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors">
+          <button onClick={onClose} className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors">
             <X className="h-4 w-4" strokeWidth={2.4} />
           </button>
         </div>
@@ -306,8 +306,8 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
         </div>
 
         <div className="px-6 py-4 border-t border-stone-100 bg-white flex justify-end gap-2.5">
-          <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-lg text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 disabled:opacity-50">ยกเลิก</button>
-          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-xl text-[13px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 disabled:opacity-50">ยกเลิก</button>
+          <button onClick={save} disabled={saving} className="px-5 py-2 rounded-xl text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 shadow-sm disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'บันทึกประวัติ'}</button>
         </div>
       </div>
     </div>
@@ -790,7 +790,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                 {formatBytes(pendingFile.file.size)}{pendingFile.file.size > FILE_WARN_BYTES ? ' — ไฟล์ค่อนข้างใหญ่' : ''}
               </p>
             </div>
-            <button onClick={cancelPending} className="text-stone-400 hover:text-stone-600 p-1 rounded-lg hover:bg-white transition">
+            <button onClick={cancelPending} className="text-stone-400 hover:text-stone-600 p-1 rounded-xl hover:bg-white transition">
               <X className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
@@ -1360,7 +1360,7 @@ function EditPeriodModal({ period, onClose }) {
               <p className="text-xs text-stone-500 truncate">{checkout.empName || '-'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-lg transition shrink-0">
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-xl transition shrink-0">
             <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>

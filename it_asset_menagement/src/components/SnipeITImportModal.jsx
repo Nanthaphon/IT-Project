@@ -316,7 +316,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
             <h2 className="text-[19px] font-medium text-stone-800">Smart Import จาก Snipe-IT</h2>
             <p className="text-xs text-stone-500 mt-0.5">อัปโหลด CSV → ระบบ auto-group เป็น license พร้อม preview ก่อน import</p>
           </div>
-          <button onClick={close} className="w-9 h-9 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-700">
+          <button onClick={close} className="w-9 h-9 rounded-xl hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-700">
             <X className="h-4.5 w-4.5" strokeWidth={2} />
           </button>
         </div>
@@ -359,7 +359,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
               ← เลือกไฟล์ใหม่
             </button>
             <div className="flex gap-2.5">
-              <button onClick={close} className="px-4 py-2 text-[13px] font-medium text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50">
+              <button onClick={close} className="px-4 py-2 text-[13px] font-medium text-stone-700 bg-white border border-stone-200 rounded-xl hover:bg-stone-50">
                 ยกเลิก
               </button>
               <button
@@ -571,10 +571,10 @@ function ResultSection({ result, onClose, onAnother }) {
         {result.failed > 0 && <> · ล้มเหลว <span className="font-medium text-rose-600">{result.failed}</span></>}
       </p>
       <div className="flex justify-center gap-2.5">
-        <button onClick={onAnother} className="px-5 py-2 text-[13px] font-medium text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50">
+        <button onClick={onAnother} className="px-5 py-2 text-[13px] font-medium text-stone-700 bg-white border border-stone-200 rounded-xl hover:bg-stone-50">
           Import อีก
         </button>
-        <button onClick={onClose} className="px-5 py-2 text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm">
+        <button onClick={onClose} className="px-5 py-2 text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl shadow-sm">
           เสร็จสิ้น
         </button>
       </div>

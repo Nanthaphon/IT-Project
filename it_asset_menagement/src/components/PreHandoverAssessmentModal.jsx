@@ -167,7 +167,7 @@ export default function PreHandoverAssessmentModal({
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-lg transition">
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-xl transition">
             <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>

@@ -1662,7 +1662,7 @@ export default function StaffView({
                   className={inputCls} rows="4" required
                 />
               </div>
-              <button type="submit" className="w-full py-2.5 bg-clay-600 hover:bg-clay-800 text-white text-sm font-medium rounded-lg transition">
+              <button type="submit" className="w-full py-2.5 bg-clay-600 hover:bg-clay-800 text-white text-sm font-medium rounded-xl transition">
                 บันทึกการแก้ไข
               </button>
             </form>

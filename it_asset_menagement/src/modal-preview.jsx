@@ -53,9 +53,45 @@ const TIMELINE_REPAIRS = [
 
 const EMPLOYEES = [{ id: 'e1', empId: 'EMP101', fullName: 'สมชาย ใจดี', department: 'Design Experience' }];
 
+
+/* 🆕 เคส License สำหรับตรวจ "รายการผู้ถือสิทธิ์"
+   12 สิทธิ์: ว่าง 3 · พนักงานถือ 7 · ผูกกับเครื่อง 2
+   หนึ่งสิทธิ์ตั้งวันหมดอายุเองต่างจากระดับ License เพื่อดูว่าขึ้นเฉพาะตัวนั้น */
+const HOLDERS = ['นางสาวอลิสา แดงวิเชียร (Jan)', 'Mr.Amorn Puttagotirat (Art)',
+  'Mr.Boonchai Putakotirat (Man)', 'นายวัฒนา มีเย็น (มอส)', 'ณัฐธิดา เพชรแก้ว',
+  'ธณกร น้อยหมอ', 'พรชนก แก้วเข้ม'];
+
+const LICENSE_DEMO = {
+  id: 'lic-demo',
+  name: 'Microsoft 365 Business Basic (Globe)',
+  supplier: 'Mail Master',
+  productKey: 'Admin@globesyndicate.co.th',
+  quantity: 12,
+  purchaseDate: '2026-08-10',
+  expirationDate: '2027-08-10',
+  status: 'มีสิทธิ์ว่าง',
+  availableKeys: ['msolicq2708@outlook.com', '', 'msolicq2710@outlook.com'],
+  availableSeatExpirationDates: ['', '2026-12-31', ''],
+  assignees: [
+    ...HOLDERS.map((empName, i) => ({
+      checkoutId: 'co' + i, empId: 'e' + i, empName,
+      checkoutDate: '18/06/2569',
+      productKey: 'msolicq' + (2720 + i) + '@outlook.com',
+    })),
+    { checkoutId: 'cb1', isAssetBound: true, assignedAssetId: 'a1',
+      assignedAssetName: 'Dell Latitude 5440', empName: 'สมชาย ใจดี',
+      productKey: 'msolicq2799@outlook.com' },
+    { checkoutId: 'cb2', isAssetBound: true, assignedAssetId: 'a2',
+      assignedAssetName: 'HP ProBook 450', empId: null,
+      productKey: 'msolicq2800@outlook.com' },
+  ],
+};
+
 function Harness() {
   const [detail, setDetail] = useState(ASSET);
   const [cat, setCat] = useState('assets');
+  const showLicense = () => { setDetail(LICENSE_DEMO); setCat('licenses'); };
+  const showAsset = () => { setDetail(ASSET); setCat('assets'); };
   if (!detail) {
     return (
       <div className="p-10">
@@ -66,6 +102,11 @@ function Harness() {
     );
   }
   return (
+    <>
+    <div className="fixed left-4 top-4 z-[200] flex gap-2 rounded-xl border border-stone-200/60 bg-white p-2 shadow-sm">
+      <button onClick={showAsset} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${cat === 'assets' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ทรัพย์สิน</button>
+      <button onClick={showLicense} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${cat === 'licenses' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>License</button>
+    </div>
     <AssetDetailsModal
       selectedAssetDetail={detail}
       setSelectedAssetDetail={setDetail}
@@ -90,6 +131,7 @@ function Harness() {
       handleAssignLicenseToAsset={noop}
       handleRevokeLicenseFromAsset={noop}
     />
+    </>
   );
 }
 

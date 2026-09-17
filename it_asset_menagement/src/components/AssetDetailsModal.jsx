@@ -99,6 +99,8 @@ export default function AssetDetailsModal({
   const [seatDetailModal, setSeatDetailModal] = useState(null);
   // 🆕 ค้นหาในรายการย่อย (seats) ของ License
   const [seatSearch, setSeatSearch] = useState('');
+  // 🆕 กรองรายการสิทธิ์ตามสถานะ — เดิมเป็นลิสต์ยาวรวดเดียว ต้องเลื่อนหาเอง
+  const [seatFilter, setSeatFilter] = useState('all');
   const [tempLicensePurchaseDate, setTempLicensePurchaseDate] = useState('');
   const [tempLicenseExpirationDate, setTempLicenseExpirationDate] = useState('');
   const [tempLicenseProductKey, setTempLicenseProductKey] = useState('');
@@ -791,9 +793,21 @@ export default function AssetDetailsModal({
   const totalLicenseCost = licenseSeats.reduce((sum, s) => sum + (Number(s.seatCost) || 0), 0);
 
   // 🆕 กรองรายการย่อยตามคำค้นหา (ชื่อ, ผู้ถือ, key, supplier, สถานะ, หมายเหตุ)
+  /* 🆕 จำนวนแต่ละสถานะ — ใช้บนปุ่มกรอง และซ่อนปุ่มที่ไม่มีของ */
+  const seatCounts = {
+    all: licenseSeats.length,
+    available: licenseSeats.filter(s => s.type === 'available').length,
+    assigned: licenseSeats.filter(s => s.type === 'assigned' && !s.assignee?.isAssetBound).length,
+    bound: licenseSeats.filter(s => s.type === 'assigned' && s.assignee?.isAssetBound).length,
+  };
+  const seatsByFilter = seatFilter === 'available' ? licenseSeats.filter(s => s.type === 'available')
+    : seatFilter === 'assigned' ? licenseSeats.filter(s => s.type === 'assigned' && !s.assignee?.isAssetBound)
+    : seatFilter === 'bound'    ? licenseSeats.filter(s => s.type === 'assigned' && s.assignee?.isAssetBound)
+    : licenseSeats;
+
   const seatSearchQ = seatSearch.trim().toLowerCase();
   const visibleLicenseSeats = seatSearchQ
-    ? licenseSeats.filter(s => {
+    ? seatsByFilter.filter(s => {
         const statusText = s.type === 'available'
           ? 'พร้อมใช้งาน ว่าง available'
           : s.assignee?.isAssetBound ? 'ติดตั้งบนเครื่อง ผูกกับทรัพย์สิน' : 'ถูกใช้งาน';
@@ -803,7 +817,7 @@ export default function AssetDetailsModal({
           statusText,
         ].filter(Boolean).join(' ').toLowerCase().includes(seatSearchQ);
       })
-    : licenseSeats;
+    : seatsByFilter;
 
   const handleSelectItem = (itemId) => {
     setSelectedItemsForDelete(prev => 
@@ -1702,9 +1716,30 @@ export default function AssetDetailsModal({
                     </div>
                   </div>
 
-                  {/* 🆕 ช่องค้นหาในรายการย่อย */}
+                  {/* 🆕 กรองตามสถานะ + ช่องค้นหา */}
                   {licenseSeats.length > 0 && (
-                    <div className="px-5 py-2.5 border-b border-stone-100">
+                    <div className="space-y-2.5 border-b border-stone-100 px-5 py-2.5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { k: 'all',       label: 'ทั้งหมด' },
+                          { k: 'available', label: 'ว่าง' },
+                          { k: 'assigned',  label: 'พนักงานถือ' },
+                          { k: 'bound',     label: 'ผูกกับเครื่อง' },
+                        ].filter(o => o.k === 'all' || seatCounts[o.k] > 0).map(o => (
+                          <button
+                            key={o.k}
+                            type="button"
+                            onClick={() => setSeatFilter(o.k)}
+                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                              seatFilter === o.k
+                                ? 'bg-clay-600 text-white'
+                                : 'bg-sand-100 text-stone-600 hover:bg-sand-200'
+                            }`}
+                          >
+                            {o.label} <span className="tabular-nums opacity-70">{seatCounts[o.k]}</span>
+                          </button>
+                        ))}
+                      </div>
                       <div className="relative">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
@@ -1856,10 +1891,10 @@ export default function AssetDetailsModal({
                                         {seat.productKey}
                                       </span>
                                     )}
-                                    {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                    {seat.seatExpirationDate && (
                                       <span className="inline-flex shrink-0 items-center gap-1">
                                         <Calendar className="size-2.5 shrink-0" strokeWidth={2.2} />
-                                        หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
+                                        หมดอายุ {formatDateShort(seat.seatExpirationDate)}
                                       </span>
                                     )}
                                   </p>
@@ -1900,10 +1935,10 @@ export default function AssetDetailsModal({
                                       {seat.productKey}
                                     </p>
                                   )}
-                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                  {seat.seatExpirationDate && (
                                     <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
                                       <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
+                                      หมดอายุ {formatDateShort(seat.seatExpirationDate)}
                                     </p>
                                   )}
                                 </div>
@@ -1939,10 +1974,10 @@ export default function AssetDetailsModal({
                                       {seat.productKey}
                                     </p>
                                   )}
-                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                  {seat.seatExpirationDate && (
                                     <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
                                       <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
+                                      หมดอายุ {formatDateShort(seat.seatExpirationDate)}
                                     </p>
                                   )}
                                 </div>

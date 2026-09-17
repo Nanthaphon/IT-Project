@@ -8,6 +8,8 @@ import { formatDateShort } from '../utils/formatDate.js';
 import DateField from './DateField.jsx';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeader } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import Timeline from './timeline/Timeline.jsx';
+import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
 
 /* ── Purchase-history document storage helpers ── */
 const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
@@ -41,6 +43,7 @@ export default function AssetDetailsModal({
   setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert,
   transactions = [],
   employees = [],
+  repairRequests = [],   // 🆕 ใช้ประกอบไทม์ไลน์
   handleAssignLicenseToAsset,
   handleRevokeLicenseFromAsset,
   asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม (ไม่ใช่ modal ป๊อปอัพ)
@@ -160,6 +163,15 @@ export default function AssetDetailsModal({
       return dateB - dateA; // ใหม่สุดขึ้นก่อน
     });
   }
+
+  /* 🆕 ไทม์ไลน์ — รวมทุกเหตุการณ์ของรายการนี้เรียงตามเวลา
+     licenses ใช้มุมมองอีกแบบ (สิทธิ์เคยอยู่กับใคร/เครื่องไหน) */
+  const isLicense = selectedAssetCategory === 'licenses';
+  const timelineEvents = currentAssetDetail
+    ? (isLicense
+        ? buildLicenseTimeline(currentAssetDetail, transactions)
+        : buildAssetTimeline(currentAssetDetail, transactions, repairRequests))
+    : [];
 
   // 🟢 ฟังก์ชันบันทึก ประวัติการจัดซื้อ (สร้างใหม่ / แก้ไข)
   const handleSaveHistory = async (e) => {
@@ -1387,6 +1399,12 @@ export default function AssetDetailsModal({
             </button>
           )}
           <button
+            onClick={() => { setActiveTab('timeline'); setIsAddingHistory(false); setEditingHistoryId(null); }}
+            className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'timeline' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+          >
+            ไทม์ไลน์ ({timelineEvents.length})
+          </button>
+          <button
             onClick={() => { setActiveTab('docs'); setIsAddingHistory(false); setEditingHistoryId(null); }}
             className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'docs' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
           >
@@ -2309,6 +2327,19 @@ export default function AssetDetailsModal({
               onAssign={handleAssignLicenseToAsset}
               onRevoke={handleRevokeLicenseFromAsset}
               setCustomAlert={setCustomAlert}
+            />
+          )}
+
+          {/* TAB: ไทม์ไลน์ — ประวัติทั้งหมดของรายการนี้เรียงตามเวลา */}
+          {activeTab === "timeline" && (
+            <Timeline
+              events={timelineEvents}
+              holderLabel={isLicense ? "ผู้/เครื่องที่เคยใช้สิทธิ์" : "ผู้เคยถือครอง"}
+              holderKinds={isLicense ? ["seatOn", "licOn"] : ["checkout"]}
+              assignLabel={isLicense ? "จ่ายสิทธิ์ไปแล้ว" : "เบิกจ่ายไปแล้ว"}
+              emptyHint={isLicense
+                ? "ยังไม่มีประวัติการใช้สิทธิ์ของ License นี้"
+                : "ยังไม่มีประวัติการใช้งานของรายการนี้"}
             />
           )}
 

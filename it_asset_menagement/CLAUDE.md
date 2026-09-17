@@ -145,6 +145,7 @@ localhost:5173/modal-preview.html       AssetDetailsModal
 localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุปกรณ์เสริม (sub-modal)
 localhost:5173/form-preview.html        primitives กลาง + CheckoutModal
 localhost:5173/preview-test.html        IT Report
+localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 

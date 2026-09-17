@@ -32,6 +32,24 @@ const ASSET = {
   items: [],
 };
 
+
+/* 🆕 ข้อมูลสมมติให้แท็บ "ไทม์ไลน์" มีอะไรแสดง */
+const ago = (d) => new Date(Date.now() - d * 86400000).setHours(10, 24, 0, 0);
+const TIMELINE_TX = [
+  { assetId: "a1", action: "เบิกจ่าย", empName: "สมชาย ใจดี", condition: "ปกติ",
+    remarks: "เครื่องใหม่ ส่งมอบพร้อมอุปกรณ์ครบ", timestamp: ago(700), checkoutId: "co1" },
+  { assetId: "a1", action: "รับคืน", empName: "สมชาย ใจดี", condition: "ปกติ",
+    remarks: "-", timestamp: ago(400), checkoutId: "co1" },
+  { assetId: "a1", action: "เบิกจ่าย", empName: "ณัฐธิดา เพชรแก้ว", condition: "ปกติ",
+    remarks: "-", timestamp: ago(380), checkoutId: "co2" },
+  { assetId: "a1", isAssetBound: true, category: "licenses", action: "เบิกจ่าย",
+    licenseName: "Microsoft 365 Business", empName: "ณัฐธิดา เพชรแก้ว", timestamp: ago(370) },
+];
+const TIMELINE_REPAIRS = [
+  { assetId: "a1", empName: "ณัฐธิดา เพชรแก้ว", issue: "พัดลมเสียงดัง",
+    status: "กำลังดำเนินการ", timestamp: ago(12) },
+];
+
 const EMPLOYEES = [{ id: 'e1', empId: 'EMP101', fullName: 'สมชาย ใจดี', department: 'Design Experience' }];
 
 function Harness() {
@@ -55,8 +73,9 @@ function Harness() {
       assets={[ASSET]}
       accessories={[]}
       licenses={[]}
-      transactions={[]}
+      transactions={TIMELINE_TX}
       employees={EMPLOYEES}
+      repairRequests={TIMELINE_REPAIRS}
       setCheckoutModal={noop}
       setReturnModal={noop}
       handleCheckin={noop}

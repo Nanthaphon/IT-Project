@@ -2193,7 +2193,9 @@ function App() {
           availableSeatDocs: newDocMap,
         });
         await addDoc(collection(db, 'licenses_transactions'), {
-          empId: emp.id, assetName: item.name, category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
+          empId: emp.id, assetName: item.name,
+          licenseId: item.id, licenseName: item.name,
+          category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       } else {
         const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
@@ -2313,7 +2315,7 @@ function App() {
       await addDoc(collection(db, 'licenses_transactions'), {
         // 🆕 ใส่ empId ของผู้ถือเครื่อง ณ ตอนผูก เพื่อให้ขึ้นใน history พนักงาน
         empId: currentEmpId, empName: currentEmpName,
-        assetId, assetName, licenseName: item.name,
+        assetId, assetName, licenseId: item.id, licenseName: item.name,
         category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ',
         remarks: remarks.trim() || '-', timestamp: Date.now(), isAssetBound: true,
       });
@@ -2357,7 +2359,7 @@ function App() {
       });
       await addDoc(collection(db, 'licenses_transactions'), {
         empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName,
-        licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
+        licenseId: item.id, licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
         remarks: '-', timestamp: Date.now(), isAssetBound: true,
       });
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: `ยกเลิกการผูก ${item.name} เรียบร้อยแล้ว`, type: 'success' });
@@ -2413,6 +2415,7 @@ function App() {
 
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
+              licenseId: item.id, licenseName: item.name,
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
             });
@@ -2421,6 +2424,7 @@ function App() {
           for (const a of assetBoundToClear) {
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
+              licenseId: item.id, licenseName: item.name,
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
               isAssetBound: true,
@@ -3175,6 +3179,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3223,6 +3228,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3271,6 +3277,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3319,6 +3326,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}

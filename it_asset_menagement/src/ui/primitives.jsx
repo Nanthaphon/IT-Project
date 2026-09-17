@@ -12,20 +12,20 @@ export function Field({ label, required, hint, error, children, className = '' }
         </label>
       )}
       {children}
-      {hint && !error && <p className="text-[12px] text-slate-400 mt-1.5 leading-snug">{hint}</p>}
-      {error && <p className="text-[12px] text-rose-500 mt-1.5 leading-snug">{error}</p>}
+      {hint && !error && <p className="text-xs text-stone-400 mt-1.5 leading-snug">{hint}</p>}
+      {error && <p className="text-xs text-rose-500 mt-1.5 leading-snug">{error}</p>}
     </div>
   );
 }
 
-/* SectionHeader — uppercase subtle dividers inside forms / cards */
+/* SectionHeader — หัวข้อย่อยบางๆ คั่นส่วนในฟอร์ม/การ์ด */
 export function SectionHeader({ children, action }) {
   return (
     <div className="flex items-center gap-3 first:pt-0">
-      <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase shrink-0">
+      <span className="text-[13px] font-medium text-stone-500 shrink-0">
         {children}
       </span>
-      <span className="flex-1 h-px bg-slate-200/80" />
+      <span className="flex-1 h-px bg-stone-200/80" />
       {action && <span className="shrink-0">{action}</span>}
     </div>
   );
@@ -47,8 +47,8 @@ export function Button({
     cls.btnPrimary;
 
   const sizeCls =
-    size === 'sm' ? 'px-3 py-1.5 text-[14px]' :
-    size === 'lg' ? 'px-5 py-3 text-[16px]' : '';
+    size === 'sm' ? 'px-3 py-1.5 text-sm' :
+    size === 'lg' ? 'px-5 py-3 text-[15px]' : '';
 
   return (
     <button type={type} className={`${variantCls} ${sizeCls} ${className}`} {...rest}>
@@ -62,8 +62,8 @@ export function Card({ children, className = '', hoverable = false, padding = 'm
   const padCls =
     padding === 'none' ? '' :
     padding === 'sm'   ? 'p-4' :
-    padding === 'lg'   ? 'p-7' :
-    'p-5';
+    padding === 'lg'   ? 'p-8' :
+    'p-6';
   return (
     <div className={`${hoverable ? cls.cardHover : cls.card} ${padCls} ${className}`}>
       {children}
@@ -95,25 +95,25 @@ export function Modal({ open, onClose, size = 'lg', closeOnBackdrop = false, chi
 /* ModalHeader — title + subtitle + close button + optional icon */
 export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
   return (
-    <div className="px-7 py-5 flex items-start justify-between border-b border-slate-100 shrink-0">
+    <div className="px-7 py-5 flex items-start justify-between border-b border-stone-100 shrink-0">
       <div className="flex items-start gap-3.5">
         {Icon && (
           <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
           >
             <Icon className="h-5 w-5" strokeWidth={1.8} />
           </div>
         )}
         <div>
-          <h3 className="text-[19px] font-bold text-slate-900 leading-tight">{title}</h3>
-          {subtitle && <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>}
+          <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">{title}</h3>
+          {subtitle && <p className="text-[13px] text-stone-500 mt-0.5">{subtitle}</p>}
         </div>
       </div>
       {onClose && (
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors focus:outline-none"
+          className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-xl transition-colors focus:outline-none"
           aria-label="ปิด"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -133,20 +133,22 @@ export function ModalBody({ children, className = '' }) {
 /* ModalFooter — actions row */
 export function ModalFooter({ children, className = '' }) {
   return (
-    <div className={`px-7 py-4 border-t border-slate-100 bg-slate-50/60 flex justify-end gap-2.5 shrink-0 ${className}`}>
+    <div className={`px-7 py-5 border-t border-stone-100 bg-stone-50 flex justify-end gap-2.5 shrink-0 ${className}`}>
       {children}
     </div>
   );
 }
 
 /* Badge — colored pill (kind: success/warning/danger/info/neutral) */
+/* โทนเดียวกับ TONE ใน src/ui/earth.js — v3 ไม่มีขอบ
+   (border-* เดิมเป็นคลาสตาย เพราะไม่มี utility `border` คู่กัน) */
 const BADGE_CLS = {
-  success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  warning: 'bg-amber-50 text-amber-700 border-amber-200',
-  danger:  'bg-rose-50 text-rose-700 border-rose-200',
-  info:    'bg-blue-50 text-blue-700 border-blue-200',
-  neutral: 'bg-slate-50 text-slate-600 border-slate-200',
-  brand:   'bg-[#E8EFF8] text-[#1E487A] border-[#1E487A]/20',
+  success: 'bg-olive-50 text-olive-700',
+  warning: 'bg-ochre-50 text-ochre-700',
+  danger:  'bg-rose-50 text-rose-700',
+  info:    'bg-sand-100 text-stone-600',
+  neutral: 'bg-sand-100 text-stone-600',
+  brand:   'bg-clay-100 text-clay-600',
 };
 export function Badge({ kind = 'neutral', dot = false, children, className = '' }) {
   return (
@@ -171,8 +173,8 @@ export function PageHeader({ icon: Icon, title, subtitle, action }) {
           </div>
         )}
         <div>
-          <h1 className="text-[24px] font-bold text-slate-900 leading-tight tracking-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+          <h1 className="text-[24px] font-medium text-stone-900 leading-tight tracking-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-stone-500 mt-1">{subtitle}</p>}
         </div>
       </div>
       {action && <div className="shrink-0">{action}</div>}

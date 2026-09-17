@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, X, Plus, AlertCircle, ImagePlus } from 'lucide-react';
+import ImageViewer from '../ui/ImageViewer.jsx';
 import { compressAndUploadPhotos } from '../utils/uploadPhoto.js';
 
 /* ════════════════════════════════════════════════════════════════
@@ -91,14 +92,14 @@ const STATUS_COLOR_BY_VALUE = {
 };
 
 const STATUS_COLOR_CLS = {
-  emerald: 'bg-emerald-50 border-emerald-400 text-emerald-700',
-  amber:   'bg-amber-50 border-amber-400 text-amber-700',
+  emerald: 'bg-olive-50 border-olive-400 text-olive-700',
+  amber:   'bg-clay-100 border-clay-400 text-clay-600',
   rose:    'bg-rose-50 border-rose-400 text-rose-700',
 };
 
 const ROW_TINT_BY_STATUS = {
   normal:  'bg-white',
-  scratch: 'bg-amber-50/40',
+  scratch: 'bg-clay-100/40',
   broken:  'bg-rose-50/40',
 };
 
@@ -158,28 +159,28 @@ export default function ConditionCapture({
   );
 
   return (
-    <div className="space-y-3 border border-slate-200 rounded-xl p-3.5 bg-slate-50/40">
-      <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
+    <div className="space-y-3 border border-stone-200 rounded-xl p-3.5 bg-stone-50/40">
+      <div className="flex items-center justify-between gap-2 pb-2 border-b border-stone-200">
         <div className="flex items-center gap-2">
-          <Camera className="h-4 w-4 text-[#1E487A]" strokeWidth={2} />
-          <p className="text-[14.5px] font-semibold text-slate-700">
+          <Camera className="h-4 w-4 text-clay-600" strokeWidth={2} />
+          <p className="text-sm font-medium text-stone-700">
             {isCheckout ? 'ตรวจสภาพอุปกรณ์ตอนส่งมอบ' : 'ตรวจสภาพอุปกรณ์ตอนรับคืน'}
           </p>
         </div>
-        <span className="text-[11.5px] text-slate-500 font-medium">
-          แนบรูปแล้ว <span className="font-bold text-[#1E487A]">{totalPhotos}</span> รูป
+        <span className="text-[11px] text-stone-500 font-medium">
+          แนบรูปแล้ว <span className="font-medium text-clay-600">{totalPhotos}</span> รูป
         </span>
       </div>
 
       {/* Hint — compact */}
-      <div className="flex items-start gap-2 px-3 py-1.5 bg-blue-50/60 border border-blue-200 rounded-lg">
-        <AlertCircle className="h-3.5 w-3.5 text-blue-600 mt-0.5 shrink-0" strokeWidth={2} />
-        <p className="text-[12px] text-blue-700 leading-snug">
+      <div className="flex items-start gap-2 px-3 py-1.5 bg-stone-50/60 border border-stone-200 rounded-lg">
+        <AlertCircle className="h-3.5 w-3.5 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
+        <p className="text-xs text-stone-700 leading-snug">
           เลือกสถานะแต่ละจุด แล้วกดปุ่ม
-          <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-md bg-white border border-blue-300 text-blue-600">
+          <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-lg bg-white border border-stone-300 text-stone-600">
             <ImagePlus className="h-3 w-3" strokeWidth={2.2} />
           </span>
-          ที่ท้ายแถวเพื่อแนบรูป <span className="font-semibold">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
+          ที่ท้ายแถวเพื่อแนบรูป <span className="font-medium">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
         </p>
       </div>
 
@@ -203,38 +204,24 @@ export default function ConditionCapture({
 
       {/* ── Notes ── */}
       <div>
-        <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">
           📝 หมายเหตุเพิ่มเติม
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
+          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
           placeholder={isCheckout ? 'เช่น มีรอยขีดเล็กที่ฝาหลัง...' : 'เช่น พบรอยใหม่บริเวณบอดี้...'}
           rows="2"
         />
       </div>
 
       {/* Fullscreen image viewer */}
-      {viewerImage && (
-        <div
-          onClick={() => setViewerImage(null)}
-          className="fixed inset-0 bg-black/85 z-[120] flex items-center justify-center p-4"
-        >
-          <button
-            onClick={() => setViewerImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-          >
-            <X className="h-5 w-5" strokeWidth={2} />
-          </button>
-          <img
-            src={viewerImage}
-            alt="preview"
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-full max-h-full object-contain rounded-lg"
-          />
-        </div>
-      )}
+      <ImageViewer
+        src={viewerImage}
+        onClose={() => setViewerImage(null)}
+        z={120}
+      />
     </div>
   );
 }
@@ -318,16 +305,16 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       onDrop={handleDrop}
       className={`relative rounded-lg border px-3 py-2 transition-colors ${
         isDragging
-          ? 'border border-[#1E487A] bg-blue-50/70 shadow-inner'
-          : `border-slate-200 ${tint}`
+          ? 'border border-clay-600 bg-stone-50/70 shadow-inner'
+          : `border-stone-200 ${tint}`
       }`}
     >
       {/* Drop overlay hint */}
       {isDragging && (
-        <div className="absolute inset-0 rounded-lg bg-[#1E487A]/5 border-2 border-dashed border-[#1E487A] pointer-events-none flex items-center justify-center z-10">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-[#1E487A]/20">
-            <ImagePlus className="h-4 w-4 text-[#1E487A]" strokeWidth={2.4} />
-            <span className="text-[12px] font-bold text-[#1E487A]">
+        <div className="absolute inset-0 rounded-lg bg-clay-600/5 border-2 border-dashed border-clay-600 pointer-events-none flex items-center justify-center z-10">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-clay-600/20">
+            <ImagePlus className="h-4 w-4 text-clay-600" strokeWidth={2.4} />
+            <span className="text-xs font-medium text-clay-600">
               วางรูปเพื่อแนบใน "{field.label}"
             </span>
           </div>
@@ -335,7 +322,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       )}
       {/* Single row: label + status pills + photo button */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[13.5px] font-semibold text-slate-700 flex-1 min-w-[120px] truncate">
+        <span className="text-[13px] font-medium text-stone-700 flex-1 min-w-[120px] truncate">
           {field.label}
         </span>
 
@@ -349,10 +336,10 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                 key={value}
                 type="button"
                 onClick={() => onStatusChange(value)}
-                className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-md border transition-colors whitespace-nowrap ${
+                className={`text-[11px] font-medium px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
                   selected
                     ? STATUS_COLOR_CLS[color] + ' border shadow-sm'
-                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                    : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
                 }`}
               >
                 {fieldLabels[value]}
@@ -366,15 +353,15 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className={`ml-1 w-7 h-7 rounded-md transition flex items-center justify-center shrink-0 ${
+              className={`ml-1 w-7 h-7 rounded-lg transition flex items-center justify-center shrink-0 ${
                 hasPhotos
-                  ? 'border border-slate-200 text-slate-500 hover:border-[#1E487A] hover:text-[#1E487A] bg-white'
-                  : 'border border-dashed border-slate-300 text-slate-400 hover:border-[#1E487A] hover:text-[#1E487A] hover:bg-blue-50/60 bg-white/50'
+                  ? 'border border-stone-200 text-stone-500 hover:border-clay-600 hover:text-clay-600 bg-white'
+                  : 'border border-dashed border-stone-300 text-stone-400 hover:border-clay-600 hover:text-clay-600 hover:bg-stone-50/60 bg-white/50'
               }`}
               title={hasPhotos ? `เพิ่มรูป (เหลือ ${slotsLeft} รูป) · ลากไฟล์มาวางได้` : `แนบรูปของ "${field.label}" · คลิกเลือกไฟล์ หรือลากรูปมาวางในแถวนี้`}
             >
               {uploading ? (
-                <div className="w-3 h-3 border-2 border-[#1E487A] border-t-transparent rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ImagePlus className="h-3.5 w-3.5" strokeWidth={2} />
               )}
@@ -383,7 +370,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
 
           {/* Photo count badge — only when has photos */}
           {hasPhotos && (
-            <span className="text-[10.5px] font-bold text-[#1E487A] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md shrink-0 ml-0.5">
+            <span className="text-[10px] font-medium text-clay-600 bg-stone-50 border border-stone-200 px-1.5 py-0.5 rounded-lg shrink-0 ml-0.5">
               {photos.length}/{MAX_PHOTOS_PER_FIELD}
             </span>
           )}
@@ -396,7 +383,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
           {photos.map((src, i) => (
             <div
               key={i}
-              className="relative w-14 h-14 rounded-md overflow-hidden border border-slate-200 bg-white shrink-0 group"
+              className="relative w-14 h-14 rounded-lg overflow-hidden border border-stone-200 bg-white shrink-0 group"
             >
               <button
                 type="button"
@@ -408,7 +395,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
               <button
                 type="button"
                 onClick={() => removePhoto(i)}
-                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-brick-500 hover:bg-brick-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                 title="ลบรูป"
               >
                 <X className="h-2.5 w-2.5" strokeWidth={2.5} />

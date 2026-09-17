@@ -13,102 +13,163 @@
 
 ---
 
-## Design System — "ธีมฝั่งพนักงาน"
+## Design System — ธีม v4 "Harbor" (มาตรฐานปัจจุบัน)
 
-ทั้งระบบยึดธีมของฝั่งพนักงาน (`src/components/StaffView.jsx`) เป็นมาตรฐาน
-เมื่อผู้ใช้บอกว่า *"ทำเมนู X ให้เป็นธีมพนักงาน"* ให้ใช้กฎด้านล่างนี้ทันที **ไม่ต้องไปอ่าน StaffView ใหม่**
+⚠️ **ธีม Canyon (terracotta) และ navy `#1E487A` ถูกยกเลิกแล้วทั้งคู่**
+ถ้าเจอ `#A65F3C`, `#1E487A`, `emerald-*`, สีอุ่นโทนส้ม/น้ำตาล = ของค้าง ให้แก้ตาม palette ด้านล่าง
 
-### สีหลัก
+### แหล่งเดียวของความจริง
+
+| ไฟล์ | หน้าที่ |
+|---|---|
+| `src/index.css` (`@theme`) | **นิยามสีทั้งหมด** — เปลี่ยนธีมทั้งระบบได้จากบล็อกนี้บล็อกเดียว |
+| `src/ui/earth.js` | token สี/ตัวอักษร/ปุ่ม + `statusTone()` map สถานะไทย |
+| `src/ui/earthUI.jsx` | component กลาง (การ์ด ตาราง badge ปุ่ม popover) |
+| `src/components/list/ListPage.jsx` | โครงหน้ารายการ — ทุกเมนูที่เป็นตารางใช้ตัวนี้ |
+| `src/ui/theme.js` + `ui/primitives.jsx` | token ของ modal (9 ตัวใช้ร่วม) |
+
+**ห้าม hardcode สีในคอมโพเนนต์** — ใช้คลาส `clay-*`/`sand-*`/`ochre-*`/`olive-*`/`stone-*`
+
+> **ชื่อ token กับสีไม่ตรงกันแล้ว** — `clay` เคยเป็น terracotta ตอนนี้เป็น teal,
+> `olive` เคยเป็นเขียวมะกอกตอนนี้เป็นเขียวน้ำทะเล การเปลี่ยนธีมเลือกแก้แค่ "ค่า"
+> เพื่อไม่ต้องแตะคลาสในคอมโพเนนต์นับพันจุด ถ้าจะ rename ให้เป็นชื่อเชิงบทบาท
+> (`brand-*`/`success-*`/`danger-*`) ควรทำเป็นงานแยกต่างหาก
+
+### Palette — ฐานจาก 5 สีที่กำหนด
+
 ```
-navy (primary)  #1E487A     hover  #163963
-พื้นหลังหน้าจอ   #F1F5FA
+#2b6777  teal เข้ม   สีแบรนด์      #c8d8e4  ฟ้าอ่อน
+#ffffff  ขาว         การ์ด         #f2f2f2  เทาอ่อน  พื้นผิว
+#52ab98  เขียวน้ำทะเล  สถานะสำเร็จ
 ```
 
-### Token ที่ใช้บ่อย (copy ได้เลย)
+| token | บทบาท | ค่าหลัก |
+|---|---|---|
+| `clay-*` | **แบรนด์** ปุ่ม/ไฮไลท์/sidebar | `clay-600 #2B6777` · hover `clay-700 #225462` · sidebar `clay-900 #12303A` · `clay-200 #C8D8E4` |
+| `sand-*` | พื้นผิว | `sand-50 #F7F9FA` (พื้นหน้าจอ) · `sand-100 #F2F2F2` |
+| `olive-*` | สถานะสำเร็จ/พร้อมใช้งาน | `olive-500 #52AB98` · `olive-600 #3D8072` (พื้นปุ่ม) · `olive-700 #2C5D53` (ตัวอักษร) |
+| `ochre-*` | สถานะกำลังดำเนินการ | `ochre-50` / `ochre-700` — อำพันหม่น ตัดกับ teal ชัด |
+| `brick-*` | ปุ่มลบ/อันตรายพื้นทึบ | `brick-600 #B0453C` |
+| `rose-*` | ป้ายเตือนพื้นอ่อน | `bg-rose-50` / `text-rose-700` |
+| `stone-*` | โทนกลาง ตัวอักษร/ขอบ | **ทับค่า Tailwind เดิมด้วยเทาโทนเย็น** `stone-900 #162024` |
 
-```jsx
-// การ์ด — เงานุ่มโทนน้ำเงิน ไม่ใช้ ring
-const CARD = 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)]';
+### ข้อควรระวังเรื่องคอนทราสต์ (วัดจริงแล้ว)
 
-// label เล็กเหนือค่า
-const LABEL = 'text-[11px] font-semibold text-slate-400 uppercase tracking-wide';
+| คู่สี | อัตราส่วน | |
+|---|---|---|
+| ตัวอักษรขาวบน `clay-600 #2B6777` | 6.35:1 | ✓ AA |
+| ตัวอักษรขาวบน **`#52ab98` ดิบ** | **2.75:1** | ✗ **ห้ามใช้เป็นพื้นปุ่ม** — ใช้ `olive-600 #3D8072` (4.64:1) แทน |
+| ตัวอักษรขาวบน `brick-600` | 5.58:1 | ✓ AA |
+| `stone-500` บนพื้นขาว | 4.79:1 | ✓ AA |
+| `stone-400` บนพื้นขาว | 3.15:1 | △ ใช้ได้เฉพาะป้ายรอง/หัวตาราง |
+
+`#52ab98` เหมาะเป็น **พื้นอ่อน/จุดสถานะ/เส้นกราฟ** ไม่ใช่พื้นปุ่มที่มีตัวอักษรขาว
+
+## การรันเพื่อทดสอบ — ใช้ emulator เสมอ
+
+`npm run dev` ต่อ **Firestore ตัวจริง** และ `useFirebaseData` ผูก listener 15
+collection ทันทีที่ login → เปิดแอป 1 ครั้ง = อ่านหลายร้อย docs
+การแก้ UI แล้ว hot-reload ซ้ำ ๆ จึงกินโควตาจนระบบใช้งานไม่ได้
+(เคยเกิดมาแล้ว: `8 RESOURCE_EXHAUSTED: Quota exceeded` — login ไม่ได้ทั้งระบบ)
+
+```bash
+npm run emu        # หน้าต่าง 1 — เปิด emulator (ต้องมี Java)
+npm run emu:seed   # หน้าต่าง 2 — เติมข้อมูลตัวอย่างครั้งแรก
+npm run dev:emu    # หน้าต่าง 3 — เปิดแอปชี้ไป emulator
 ```
+
+| | `npm run dev` | `npm run dev:emu` |
+|---|---|---|
+| ฐานข้อมูล | **ของจริง** | ในเครื่อง (`.emulator-data`) |
+| กินโควตา | ใช่ | **ไม่** |
+| บัญชีเข้าระบบ | ของจริง | `admin@local.test` / `admin1234` |
+
+**ใช้ `npm run dev` เฉพาะตอนต้องยืนยันกับข้อมูลจริงจริง ๆ เท่านั้น**
+และอย่าปล่อยให้ hot-reload วนหลายสิบรอบ
 
 ### กฎการออกแบบ
 
 | องค์ประกอบ | ใช้ | ห้ามใช้ |
 |---|---|---|
-| **การ์ด** | `rounded-xl` + `border border-slate-200/70` + เงานุ่มด้านบน | `ring-1`, `rounded-2xl`, `shadow-md/lg` |
-| **ปุ่มหลัก** | `bg-[#1E487A] text-white rounded-lg hover:bg-[#163963]` แบบทึบ | ปุ่ม outline, gradient, เงาสี |
-| **ปุ่มรอง** | `bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300` | ring, สีเข้ม |
-| **ปุ่มลบ/ปฏิเสธ** | ปุ่มขาว + `text-rose-600` + `hover:border-rose-300 hover:bg-rose-50` | พื้นแดงทึบ |
-| **ปุ่มรับคืน** | ปุ่มขาว + `text-emerald-600` + `hover:border-emerald-300` | teal, พื้นเขียวทึบ |
-| **Badge สถานะ** | `rounded-md` + `border` สีอ่อน + `text-xs font-semibold` | pill กลม (`rounded-full`), `ring-1 ring-inset`, จุด `animate-pulse` |
-| **ช่องกรอก** | `border border-slate-200 rounded-lg` + `focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A]` | `border-slate-300`, `focus:ring-1` |
-| **ปุ่ม icon** | `w-7 h-7 bg-white border border-slate-200 rounded-lg` + hover เปลี่ยนสีขอบ | `ring-1 ring-inset` |
-| **รูป/ไอคอน** | `rounded-lg` + `border border-slate-200` | `rounded-xl` + `ring` + `shadow-sm` |
-| **สถิติด้านบน** | จุดสีเล็ก + ตัวเลข + LABEL คั่นด้วย `divide-x divide-slate-100` | กล่องสีเต็ม (เหลือง/เขียว/แดง) |
-| **Filter pill** | `rounded-lg` · active = พื้นกรมทึบ · inactive = `text-slate-500 hover:bg-slate-100` | pill กลม + เงา |
+| **การ์ด** | `rounded-2xl` + `border-stone-200/60` + `shadow-[0_2px_8px_rgba(0,0,0,0.04)]` | `rounded-xl`, ขอบทึบ, เงาหนัก, เงาโทนน้ำเงิน |
+| **ปุ่มหลัก** | `bg-clay-600 text-white rounded-xl font-medium hover:bg-clay-700` | `font-semibold/bold`, `rounded-lg`, gradient |
+| **ปุ่มลบ (ยืนยัน)** | `bg-brick-600 text-white rounded-xl` | `bg-rose-600` (แดงนีออน ตัดกับพื้นครีม) |
+| **Modal** | overlay `bg-stone-950/50` · กล่อง `rounded-2xl` · หัว/ท้าย `px-7 py-5` | overlay ความมืดอื่น, `rounded-xl`, `shadow-2xl` |
+| **ปุ่มรอง** | `bg-white border border-stone-200/60 rounded-xl text-stone-600` | ขอบทึบ |
+| **ป้ายกำกับฟอร์ม** | `text-[13px] font-medium text-stone-500` | **`uppercase`**, `tracking-wide`, `font-semibold` |
+| **Badge สถานะ** | `rounded-lg` + พื้นอ่อน **ไม่มีขอบ** + `font-medium` | pill กลม, `border`, `font-bold` |
+| **ช่องกรอก** | `border-stone-200/60 rounded-xl` + `focus:ring-2 focus:ring-clay-600/15` | `rounded-lg`, `border-stone-300` |
+| **ตัวเลขเด่น** | `text-3xl font-medium tabular-nums` | `font-bold`, `font-black` |
+| **แถวตาราง** | `py-4` + `border-stone-100` บางๆ + hover | เส้นคั่นหนา, แถวแน่น |
+| **หัวตาราง** | `text-[12px] font-medium text-stone-400` ไม่มีพื้น | พื้นเทา, `uppercase` |
+| **หน้า** | `max-w-[1360px]` + `p-6 lg:p-8` + `space-y-6` | เต็มจอ, padding แน่น |
 
-**หลักคิด:** เรียบ บาง สะอาด — ตัดเงาหนัก ตัด ring ตัด animation ตัด emoji ในป้ายสถานะ
+### ขนาดตัวอักษร — ใช้ได้เฉพาะ 9 ค่านี้
 
----
-
-### 🆕 สไตล์ v2 — "clean / airy / modern" (มาตรฐานใหม่ ใช้กับหน้าที่ redesign ใหม่)
-
-อ้างอิงหน้า Email Signature generator ที่ user ชอบ · **นำร่องแล้วที่ `DashboardStats.jsx`**
-v2 คือ v1 + โปร่งขึ้น + มุมนุ่มขึ้น + สีน้อยลง (ไม่ขัดกับกฎด้านบน แค่ยกระดับ)
-
-```jsx
-// การ์ด v2 — มุมนุ่ม เงาฟุ้ง airy
-const CARD = 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_14px_36px_-20px_rgba(16,47,87,0.14)]';
-```
-
-| องค์ประกอบ | v1 (ตาราง/หนาแน่น) | v2 (redesign ใหม่) |
+| คลาส | px | ใช้กับ |
 |---|---|---|
-| **มุมการ์ด** | `rounded-xl` (12px) | **`rounded-2xl`** (16px) |
-| **ขอบการ์ด** | `border-slate-200/70` | `border-slate-200/60` (จางลง) |
-| **เงา** | นุ่ม | ฟุ้งกว่า airy |
-| **padding การ์ด** | `p-5` | **`p-6`** |
-| **gap ระหว่างการ์ด** | `gap-4` | **`gap-5`/`gap-6`** |
-| **หัวหน้า (page header)** | ไม่มี | **มี** `<h1>` 22px + subtitle สีจาง |
-| **หัวการ์ด** | ไอคอนเล็ก | **IconBadge** `w-9 h-9 rounded-xl` พื้นสีอ่อน (tint) |
-| **ตัวเลขเด่น** | 18-20px | **26-30px** bold |
-| **ความกว้างหน้า** | เต็มจอ | `max-w-[1400px] mx-auto` |
-| **สีในกราฟ/badge** | หลายเฉด + gradient bar | **สีเดียวเรียบ** ลด noise |
+| `text-[10px]` | 10 | ป้ายจิ๋วในตาราง/ชิป |
+| `text-[11px]` | 11 | คำอธิบายย่อย, หน่วย |
+| `text-xs` | 12 | หัวตาราง, badge, meta |
+| `text-[13px]` | 13 | ป้ายกำกับฟอร์ม, ข้อความรอง |
+| `text-sm` | 14 | เนื้อความหลัก, ปุ่ม |
+| `text-[15px]` | 15 | หัวข้อย่อย (h2) |
+| `text-[19px]` | 19 | หัวข้อ modal (h3) — ตรงกับ `ModalHeader` |
+| `text-[22px]` | 22 | หัวข้อหน้า (h1) — ตรงกับ `text.h1` |
+| `text-3xl` | 30 | ตัวเลขเด่นในการ์ดสถิติ |
 
-**IconBadge pattern (หัวการ์ด v2):**
-```jsx
-<div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: tint, color }}>
-  <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
-</div>
-// tint สีอ่อน: navy #EFF6FF · violet #F5F3FF · emerald #ECFDF5 · amber #FFFBEB · green #F0FDF4
+**ห้าม** ค่าครึ่งพิกเซล (`text-[12.5px]`, `text-[13.5px]`, …) และค่าอื่นนอกตาราง
+เดิมระบบมี 30 ค่า ทำให้ทุกหน้าดูไม่เป็นชุดเดียวกันแม้สีจะตรงธีมแล้ว
+
+### ความหนา — มีแค่ `font-normal` กับ `font-medium`
+
+`font-semibold` / `font-bold` / `font-black` **ห้ามใช้ทั้งระบบ** — ใน theme v3
+`font-medium` คือน้ำหนักสำหรับเน้น ส่วนความคมชัดมาจากสี (`text-stone-900`)
+ถ้าเห็นหน้าไหน "หนา" กว่าหน้าอื่น แปลว่ามี `font-semibold` หลุดมา
+**หลักคิด:** โปร่ง เรียบ อ่านง่าย — ตัดตัวพิมพ์ใหญ่ ตัดตัวหนา ตัดเงาหนัก ใช้พื้นที่ว่างแบ่งสัดส่วนแทนเส้น
+
+### สถานะ — ใช้ `statusTone()` จาก `earth.js` เสมอ
+
 ```
-
-**Segmented toggle (v2 — แทน dropdown/pill กลม เมื่อเลือก 2-3 ตัว):**
-```jsx
-// container: bg-slate-100 p-1 rounded-xl · ปุ่ม active: bg-white shadow-sm text-slate-800 · inactive: text-slate-500
+พร้อมใช้งาน / เสร็จสิ้น / อนุมัติ   olive   (ok)
+กำลังดำเนินการ / รอดำเนินการ        ochre   (busy)
+ชำรุด / ปฏิเสธ / ผิดพลาด            rose    (bad)
+ถูกใช้งาน / สำรอง                   stone   (neutral)
+ตัดจำหน่าย                          sand    (off)
 ```
+เพิ่มสถานะใหม่ = เพิ่มใน `STATUS_TONE` ของ `earth.js` ไม่ใช่ไปเขียนสีที่คอมโพเนนต์
 
-**หน้าที่ทำ v2 แล้ว:** ✅ Dashboard (`DashboardStats.jsx`)
+### หน้าที่ทำแล้ว
 
-### Badge สีตามสถานะ (ตรงกับ `statusBadge()` ใน StaffView)
+✅ ครบทั้งแอป — แดชบอร์ด · 6 เมนูรายการ · modal ทั้งหมด · 4 หน้า workflow · ฝั่งพนักงาน
+**ไม่เหลือสีนอก palette และไม่เหลือ `uppercase`/`rounded-md`/`font-bold` แม้แต่จุดเดียว**
+
+⬜ ยังเป็นโครงเดิม (สีถูกแล้ว แต่ information architecture ยังไม่ได้ออกแบบใหม่):
+`StaffView` · 4 หน้า workflow · `KpiDashboard`
+
+### หน้าใหม่ที่เป็นตาราง — ประกอบจาก `ListPage`
+
+ส่งเข้าไปแค่ `columns` + `rowActions` + `toolbar` ไม่ต้องเขียนหน้าใหม่ทั้งหน้า
+ดูตัวอย่างที่ `components/licenses/LicenseListPage.jsx` (~110 บรรทัด)
+
+**ทุกหน้าเป็น controlled component** — ค้นหา/กรอง/แบ่งหน้า/การเลือก เป็น state ของ `App.jsx`
+ห้ามสร้าง state ซ้ำในคอมโพเนนต์ (จะเกิด "ความจริงสองชุด" ดีบักยากมาก)
+
+### ดูหน้าโดยไม่ต้องล็อกอิน
+
 ```
-รอดำเนินการ    bg-amber-50   text-amber-700   border-amber-200
-กำลังดำเนินการ  bg-blue-50    text-blue-700    border-blue-200
-เสร็จสิ้น/อนุมัติ bg-emerald-50 text-emerald-700 border-emerald-200
-ปฏิเสธ/ผิดพลาด  bg-rose-50    text-rose-700    border-rose-200
+localhost:5173/dashboard-preview.html   แดชบอร์ด
+localhost:5173/list-preview.html        License / อุปกรณ์เสริม / พนักงาน / อุปกรณ์สำนักงาน
+localhost:5173/assets-preview.html      ทรัพย์สิน (128 รายการ)
+localhost:5173/modal-preview.html       AssetDetailsModal
+localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุปกรณ์เสริม (sub-modal)
+localhost:5173/form-preview.html        primitives กลาง + CheckoutModal
+localhost:5173/preview-test.html        IT Report
+localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
+localhost:5173/login-preview.html       หน้าเข้าสู่ระบบ (ไม่ต้อง logout ของจริง)
 ```
+ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 
-### สถานะการทำธีม (อัปเดตเมื่อทำเพิ่ม)
-- ✅ ขอเปลี่ยนเครื่อง — `ReplacementRequestTable.jsx`
-- ✅ โปรแกรม / License — `LicenseTable.jsx` + ส่วน license ใน `AssetDetailsModal.jsx` (รวม SeatDetailModal)
-- ✅ อุปกรณ์เสริม — `AccessoryTable.jsx` + ส่วน accessories ใน `AssetDetailsModal.jsx` + footer ของ modal
-- ✅ อุปกรณ์สำนักงาน — `OfficeSupplyTable.jsx` + `EditAssetModal.jsx` + `AddModal.jsx`
-- ✅ **Token กลาง** — `ui/theme.js` (`cls.card`, `cls.modalShell`, `cls.badge`, `cls.btnPrimary`) + `ui/primitives.jsx` (`BADGE_CLS`) เข้าธีมแล้ว → modal/badge ที่ใช้ primitives ได้ธีมอัตโนมัติ
-- ⬜ ทรัพย์สิน · แจ้งซ่อม · คำขอเบิก · พนักงาน
-
----
 
 ## โครงสร้างที่ควรรู้
 
@@ -116,12 +177,14 @@ const CARD = 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_
 src/
   App.jsx                    ศูนย์กลาง state + handlers ทั้งหมด (ไฟล์ใหญ่)
   components/
-    StaffView.jsx            ฝั่งพนักงาน — ต้นแบบธีม
-    Sidebar.jsx              เมนู admin (ธีม navy gradient)
+    StaffView.jsx            ฝั่งพนักงาน (ยังไม่ได้ออกแบบโครงใหม่)
+    Sidebar.jsx              เมนู admin (พื้น maroon clay-900)
     AssetDetailsModal.jsx    modal รายละเอียด — ใช้ร่วม assets/accessories/licenses
-    *Table.jsx               ตารางแต่ละเมนู
+    *RequestTable.jsx        หน้า workflow อนุมัติ (ไม่ใช่ตารางธรรมดา)
+    list/ListPage.jsx        โครงหน้ารายการกลาง — เมนูที่เป็นตารางใช้ตัวนี้
   ui/
-    theme.js                 BRAND, cls.*, COMPANIES
+    earth.js / earthUI.jsx   ⭐ token + component กลางของธีม v3
+    theme.js / primitives.jsx  token ของ modal (BRAND, cls.*, COMPANIES)
     primitives.jsx           Modal, ModalHeader/Body/Footer, Field, Button
   utils/
     printAssetReport.js      PDF รายงานทรัพย์สิน (dynamic columns)

@@ -39,8 +39,8 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_COLOR_CLS = {
-  emerald: 'bg-emerald-50 border-emerald-400 text-emerald-700',
-  amber:   'bg-amber-50 border-amber-400 text-amber-700',
+  emerald: 'bg-olive-50 border-olive-400 text-olive-700',
+  amber:   'bg-clay-100 border-clay-400 text-clay-600',
   rose:    'bg-rose-50 border-rose-400 text-rose-700',
 };
 
@@ -128,7 +128,7 @@ export default function PreReturnAssessmentModal({
     (sum, cell) => sum + (cell?.score != null ? Number(cell.score) : 0), 0
   );
   const grade = grandTotal >= 90 ? 'A' : grandTotal >= 75 ? 'B' : grandTotal >= 60 ? 'C' : 'D';
-  const gradeColor = { A: 'text-emerald-600', B: 'text-blue-600', C: 'text-amber-600', D: 'text-rose-600' }[grade];
+  const gradeColor = { A: 'text-olive-600', B: 'text-stone-600', C: 'text-clay-600', D: 'text-rose-600' }[grade];
 
   /* ── Damages with fee calculation per Tier ── */
   const addDamage = () => setDamages(prev => [...prev, { name: '', fee: 0 }]);
@@ -158,48 +158,48 @@ export default function PreReturnAssessmentModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[80]">
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-slate-200/60 overflow-hidden">
+    <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[80]">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-5xl max-h-[92vh] flex flex-col border border-stone-200/60 overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100 shrink-0">
+        <div className="flex items-center justify-between px-7 py-5 border-b border-stone-100 shrink-0">
           <div className="flex items-start gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-olive-50 text-olive-600 flex items-center justify-center shrink-0">
               <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
-              <p className="text-[13px] text-slate-500 mt-0.5 truncate">
-                ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-semibold text-slate-700">{employee?.fullName}</span>
+              <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
+              <p className="text-[13px] text-stone-500 mt-0.5 truncate">
+                ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-medium text-stone-700">{employee?.fullName}</span>
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition shrink-0">
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-xl transition shrink-0">
             <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-7 py-6 space-y-6 bg-slate-50/40">
+        <div className="overflow-y-auto flex-1 px-7 py-6 space-y-6 bg-stone-50/40">
 
           {/* Dates + Tier */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white border border-stone-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[13px] font-medium text-slate-600 mb-1.5">วันที่รับมอบ (ขา 1)</label>
+              <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่รับมอบ (ขา 1)</label>
               <DateField value={editableHandoverDate}
                 onChange={(v) => setEditableHandoverDate(v)}
-                inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"/>
+                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-slate-600 mb-1.5">วันที่คืน (ขา 2)</label>
+              <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่คืน (ขา 2)</label>
               <DateField value={editableReturnDate}
                 onChange={(v) => setEditableReturnDate(v)}
-                inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"/>
+                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
             </div>
             <div>
-              <label className="block text-[13px] font-medium text-slate-600 mb-1.5">Tier (อัตราค่าปรับ)</label>
+              <label className="block text-[13px] font-medium text-stone-600 mb-1.5">Tier (อัตราค่าปรับ)</label>
               <select value={tier} onChange={(e) => setTier(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]">
+                className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600">
                 <option value="General">General (~25K)</option>
                 <option value="Data">Data (~35K)</option>
                 <option value="Graphic/DX">Graphic/DX (~55K)</option>
@@ -208,13 +208,13 @@ export default function PreReturnAssessmentModal({
           </div>
 
           {/* Score banner */}
-          <div className="bg-[#1E487A] text-white rounded-lg p-4 flex items-center justify-between">
+          <div className="bg-clay-600 text-white rounded-lg p-4 flex items-center justify-between">
             <div>
-              <div className="text-[12px] opacity-80 font-medium">คะแนนรับคืน (ขา 2) /100</div>
-              <div className="text-[34px] font-bold leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
+              <div className="text-xs opacity-80 font-medium">คะแนนรับคืน (ขา 2) /100</div>
+              <div className="text-3xl font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
             </div>
             <div className="flex flex-col items-center gap-1.5 shrink-0">
-              <div className="text-[10.5px] opacity-80 font-semibold tracking-[0.14em] uppercase">เกรด</div>
+              <div className="text-[10px] opacity-80 font-medium">เกรด</div>
               <div className={`w-14 h-14 rounded-xl bg-white shadow-sm border border-white/40 flex items-center justify-center text-[30px] font-extrabold leading-none ${gradeColor}`}>
                 {grade}
               </div>
@@ -234,20 +234,20 @@ export default function PreReturnAssessmentModal({
           </Section>
 
           {/* Optional: ขา 1 fill (collapsible) */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
             <button
               type="button"
               onClick={() => setShowHandover(!showHandover)}
-              className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition text-left"
+              className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-stone-50 transition text-left"
             >
               <div>
-                <p className="text-[13.5px] font-semibold text-slate-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
-                <p className="text-[11.5px] text-slate-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
+                <p className="text-[13px] font-medium text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
+                <p className="text-[11px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
               </div>
-              <span className="text-[12px] font-semibold text-[#1E487A]">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
+              <span className="text-xs font-medium text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
             </button>
             {showHandover && (
-              <div className="px-4 pb-4 border-t border-slate-100">
+              <div className="px-4 pb-4 border-t border-stone-100">
                 <AssessmentEditor
                   assessment={assessmentHandover}
                   setItemStatus={(no, status, si) => setItemStatus(setAssessmentHandover, no, status, si)}
@@ -259,37 +259,37 @@ export default function PreReturnAssessmentModal({
 
           {/* Damages — รายการ + คำนวณค่าปรับตาม Tier */}
           <Section title="รายการความเสียหายและค่าปรับ">
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="px-3 py-2 bg-blue-50/60 border-b border-blue-200">
-                <p className="text-[12.5px] text-blue-700 flex items-center gap-1.5">
+            <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+              <div className="px-3 py-2 bg-stone-50/60 border-b border-stone-200">
+                <p className="text-xs text-stone-700 flex items-center gap-1.5">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                   เลือกจากตารางอ้างอิง <b>ค่าปรับจะ auto-fill ตาม Tier "{tier}"</b> — แก้ตัวเลขในช่องได้ถ้าจริงต่างจากตาราง
                 </p>
               </div>
               {damages.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-[13px]">
+                <div className="py-8 text-center text-stone-400 text-[13px]">
                   — ยังไม่มีรายการ — กดปุ่มด้านล่างเพื่อเพิ่ม
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="bg-stone-50 border-b border-stone-200">
                     <tr>
-                      <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2 w-12">ลำดับ</th>
-                      <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2">รายละเอียดความเสียหาย</th>
-                      <th className="text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wide px-3 py-2 w-36">ค่าปรับ (THB)</th>
+                      <th className="text-left text-xs font-medium text-stone-500 px-3 py-2 w-12">ลำดับ</th>
+                      <th className="text-left text-xs font-medium text-stone-500 px-3 py-2">รายละเอียดความเสียหาย</th>
+                      <th className="text-left text-xs font-medium text-stone-500 px-3 py-2 w-36">ค่าปรับ (THB)</th>
                       <th className="w-10"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-stone-100">
                     {damages.map((d, i) => (
                       <tr key={i}>
-                        <td className="px-3 py-2 text-[13px] font-mono text-slate-500 text-center">{i + 1}</td>
+                        <td className="px-3 py-2 text-[13px] font-mono text-stone-500 text-center">{i + 1}</td>
                         <td className="px-3 py-2">
                           <div className="flex flex-col gap-1">
                             <select
                               value=""
                               onChange={(e) => pickDamageTemplate(i, e.target.value)}
-                              className="text-[12px] bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+                              className="text-xs bg-stone-50 border border-stone-200 rounded px-2 py-1 outline-none hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                             >
                               <option value="">เลือกจากตารางอ้างอิง...</option>
                               {DAMAGE_ITEMS.map(row => (
@@ -301,7 +301,7 @@ export default function PreReturnAssessmentModal({
                               value={d.name}
                               onChange={(e) => updateDamage(i, { name: e.target.value })}
                               placeholder="หรือพิมพ์รายละเอียดเอง"
-                              className="w-full text-[14px] bg-white border border-slate-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]"
+                              className="w-full text-sm bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                             />
                           </div>
                         </td>
@@ -310,7 +310,7 @@ export default function PreReturnAssessmentModal({
                             type="number" min="0" step="any"
                             value={d.fee}
                             onChange={(e) => updateDamage(i, { fee: e.target.value })}
-                            className="w-full text-[14px] bg-white border border-slate-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] tabular-nums text-right"
+                            className="w-full text-sm bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 tabular-nums text-right"
                           />
                         </td>
                         <td className="px-3 py-2 text-center">
@@ -324,19 +324,19 @@ export default function PreReturnAssessmentModal({
                         </td>
                       </tr>
                     ))}
-                    <tr className="bg-amber-50">
-                      <td colSpan={2} className="px-3 py-2.5 text-right text-[13.5px] font-bold text-slate-700">รวมค่าปรับทั้งหมด</td>
-                      <td className="px-3 py-2.5 text-right text-[15px] font-bold text-rose-600 tabular-nums">{Number(totalFee).toLocaleString('th-TH')} ฿</td>
+                    <tr className="bg-clay-100">
+                      <td colSpan={2} className="px-3 py-2.5 text-right text-[13px] font-medium text-stone-700">รวมค่าปรับทั้งหมด</td>
+                      <td className="px-3 py-2.5 text-right text-[15px] font-medium text-rose-600 tabular-nums">{Number(totalFee).toLocaleString('th-TH')} ฿</td>
                       <td></td>
                     </tr>
                   </tbody>
                 </table>
               )}
-              <div className="px-3 py-2.5 border-t border-slate-100 bg-slate-50/50">
+              <div className="px-3 py-2.5 border-t border-stone-100 bg-stone-50/50">
                 <button
                   type="button"
                   onClick={addDamage}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1E487A] hover:bg-blue-50 px-2.5 py-1 rounded transition"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่มรายการ
                 </button>
@@ -349,7 +349,7 @@ export default function PreReturnAssessmentModal({
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               placeholder="หมายเหตุ / เงื่อนไขพิเศษ (ถ้ามี)"
-              className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] resize-none"
+              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -373,9 +373,9 @@ export default function PreReturnAssessmentModal({
                   onRemove={() => setPhotosDamage(prev => { const n = { ...prev }; delete n[slot.key]; return n; })}/>
               ))}
             </div>
-            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-blue-50/60 border border-blue-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" strokeWidth={2} />
-              <p className="text-[12.5px] text-blue-700 leading-relaxed">
+            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-stone-50/60 border border-stone-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
+              <p className="text-xs text-stone-700 leading-relaxed">
                 แนบรูปได้ถึง 4 รูป — ใช้ถ่ายความเสียหายเป็นหลักฐาน ภาพจะถูกฝังลง PDF ที่พิมพ์ออก
               </p>
             </div>
@@ -383,34 +383,33 @@ export default function PreReturnAssessmentModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0 gap-3 flex-wrap">
+        <div className="flex items-center justify-between px-7 py-4 border-t border-stone-100 bg-white shrink-0 gap-3 flex-wrap">
           <div className="flex flex-col gap-1.5">
-            <div className="text-[12.5px] text-slate-500">
+            <div className="text-xs text-stone-500">
               แนบรูปทั่วไป <b>{Object.keys(photosReturn).length}/6</b> · ความเสียหาย <b>{Object.keys(photosDamage).length}/4</b>
               &nbsp;·&nbsp; ค่าปรับรวม <b className="text-rose-600">{Number(totalFee).toLocaleString('th-TH')} ฿</b>
             </div>
             {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
             {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
-              <label className="flex items-center gap-1.5 text-[12px] text-slate-600 cursor-pointer select-none">
+              <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={includeHoldings}
                   onChange={(e) => setIncludeHoldings(e.target.checked)}
-                  className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 focus:ring-[#1E487A]/30"
+                  className="w-3.5 h-3.5 text-clay-600 rounded border-stone-300 focus:ring-clay-600/30"
                 />
                 รวม License/อุปกรณ์เสริมในใบนี้
-                <span className="text-slate-400">({(empLicenses?.length || 0) + (empAccessories?.length || 0)} รายการ)</span>
+                <span className="text-stone-400">({(empLicenses?.length || 0) + (empAccessories?.length || 0)} รายการ)</span>
               </label>
             )}
           </div>
           <div className="flex gap-2.5">
-            <button onClick={onClose} className="px-5 py-2.5 text-[14px] font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+            <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition">
               ยกเลิก
             </button>
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white rounded-lg shadow-sm transition"
-              style={{ background: '#1E487A', boxShadow: '0 4px 14px rgba(30,72,122,0.30)' }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-clay-600 hover:bg-clay-700 text-white rounded-xl transition-colors"
             >
               <Printer className="h-4 w-4" strokeWidth={2.2} />
               พิมพ์เอกสาร / บันทึก PDF
@@ -427,7 +426,7 @@ export default function PreReturnAssessmentModal({
 function Section({ title, children }) {
   return (
     <div>
-      <h4 className="text-[13px] font-semibold tracking-[0.08em] text-slate-500 uppercase mb-2.5">{title}</h4>
+      <h4 className="text-[13px] font-medium text-stone-500 mb-2.5">{title}</h4>
       {children}
     </div>
   );
@@ -435,13 +434,13 @@ function Section({ title, children }) {
 
 function QuickFillBtn({ onClick, color, children }) {
   const cls = {
-    emerald: 'text-emerald-700 border-emerald-200 hover:bg-emerald-50',
-    amber:   'text-amber-700 border-amber-200 hover:bg-amber-50',
+    emerald: 'text-olive-700 border-olive-200 hover:bg-olive-50',
+    amber:   'text-clay-600 border-clay-200 hover:bg-clay-100',
     rose:    'text-rose-700 border-rose-200 hover:bg-rose-50',
   }[color];
   return (
     <button type="button" onClick={onClick}
-      className={`text-[11px] font-semibold px-2 py-1 rounded-md border bg-white transition whitespace-nowrap ${cls}`}
+      className={`text-[11px] font-medium px-2 py-1 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
     >
       {children}
     </button>
@@ -455,11 +454,11 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
         const itemMax = itemMaxScore(si);
         const sectionScore = sec.items.reduce((s, [no]) => s + (assessment[no]?.score || 0), 0);
         return (
-          <div key={sec.title} className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-            <div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-2.5 border-b border-slate-200">
+          <div key={sec.title} className="border border-stone-200 rounded-xl overflow-hidden bg-white">
+            <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-[14px] font-semibold text-[#1E487A] truncate">{sec.title}</span>
-                <span className="text-[12px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
+                <span className="text-sm font-medium text-clay-600 truncate">{sec.title}</span>
+                <span className="text-xs font-medium text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                   {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                 </span>
               </div>
@@ -469,15 +468,15 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                 <QuickFillBtn onClick={() => setSectionStatus(si, 'broken')}  color="rose">ทั้งหมดชำรุด</QuickFillBtn>
               </div>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-stone-100">
               {sec.items.map(([no, name, criteria]) => {
                 const cell = assessment[no] || {};
                 return (
-                  <div key={no} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/60">
-                    <span className="text-[12px] font-mono text-slate-400 shrink-0 w-8">{no}</span>
+                  <div key={no} className="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-50/60">
+                    <span className="text-xs font-mono text-stone-400 shrink-0 w-8">{no}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-semibold text-slate-700 truncate">{name}</div>
-                      <div className="text-[11.5px] text-slate-500 truncate">{criteria}</div>
+                      <div className="text-[13px] font-medium text-stone-700 truncate">{name}</div>
+                      <div className="text-[11px] text-stone-500 truncate">{criteria}</div>
                     </div>
                     <div className="flex gap-1 shrink-0">
                       {STATUS_OPTIONS.map(opt => {
@@ -487,10 +486,10 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                             key={opt.value}
                             type="button"
                             onClick={() => setItemStatus(no, opt.value, si)}
-                            className={`text-[12px] font-semibold px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap ${
+                            className={`text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
                               selected
                                 ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
-                                : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                                : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
                             }`}
                           >
                             {opt.label}
@@ -499,10 +498,10 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                       })}
                     </div>
                     <div className="w-14 shrink-0 text-right">
-                      <span className="text-[13px] font-bold text-[#1E487A] tabular-nums">
+                      <span className="text-[13px] font-medium text-clay-600 tabular-nums">
                         {cell.score != null ? (cell.score % 1 === 0 ? cell.score : cell.score.toFixed(2)) : '-'}
                       </span>
-                      <span className="text-[10px] text-slate-400">/{itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</span>
+                      <span className="text-[10px] text-stone-400">/{itemMax % 1 === 0 ? itemMax : itemMax.toFixed(2)}</span>
                     </div>
                   </div>
                 );
@@ -537,9 +536,9 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
 
   const h = large ? 'h-44' : 'h-32';
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-      <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
-        <span className="text-[12.5px] font-semibold text-slate-700 truncate">{label}</span>
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      <div className="px-3 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-stone-700 truncate">{label}</span>
         {src && (
           <button type="button" onClick={onRemove}
             className="text-rose-500 hover:text-rose-600 p-1 rounded transition" title="ลบรูป">
@@ -549,18 +548,18 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
       </div>
       <div className="p-2">
         {src ? (
-          <div className={`relative ${h} rounded-lg overflow-hidden bg-slate-50 border border-slate-200`}>
+          <div className={`relative ${h} rounded-lg overflow-hidden bg-stone-50 border border-stone-200`}>
             <img src={src} alt={label} className="w-full h-full object-cover" />
           </div>
         ) : (
           <button type="button" onClick={() => ref.current?.click()} disabled={uploading}
-            className={`w-full ${h} rounded-lg border border-dashed border-slate-300 hover:border-[#1E487A] hover:bg-blue-50/60 transition flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-[#1E487A]`}>
+            className={`w-full ${h} rounded-lg border border-dashed border-stone-300 hover:border-clay-600 hover:bg-stone-50/60 transition flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-clay-600`}>
             {uploading ? (
-              <div className="w-5 h-5 border-2 border-[#1E487A] border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-clay-600 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <ImagePlus className="h-6 w-6" strokeWidth={1.8} />
-                <span className="text-[11.5px] font-medium">แนบรูป</span>
+                <span className="text-[11px] font-medium">แนบรูป</span>
               </>
             )}
           </button>

@@ -45,7 +45,7 @@ export default function EditLicenseModal({
             <div className="flex items-center gap-4">
               {editLicenseModal.data.image ? (
                 <div className="relative shrink-0">
-                  <img src={editLicenseModal.data.image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-slate-200" />
+                  <img src={editLicenseModal.data.image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
                   <button
                     type="button"
                     onClick={() => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: null } }))}
@@ -55,16 +55,16 @@ export default function EditLicenseModal({
                   </button>
                 </div>
               ) : (
-                <div className="w-20 h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 border border-dashed border-slate-300 shrink-0">
+                <div className="w-20 h-20 rounded-lg bg-stone-50 flex items-center justify-center text-stone-300 border border-dashed border-stone-300 shrink-0">
                   <ImageIcon className="h-7 w-7" strokeWidth={1.5} />
                 </div>
               )}
               <input
                 type="file" accept="image/*" onChange={handleImageChange}
-                className="flex-1 min-w-0 text-sm text-slate-500
-                  file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-                  file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700
-                  hover:file:bg-slate-200 file:cursor-pointer file:transition-colors"
+                className="flex-1 min-w-0 text-sm text-stone-500
+ file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
+                  file:text-sm file:font-medium file:bg-stone-100 file:text-stone-700
+                  hover:file:bg-stone-200 file:cursor-pointer file:transition-colors"
               />
             </div>
           </section>
@@ -110,7 +110,7 @@ export default function EditLicenseModal({
                     className={cls.input + ' pr-12'}
                     placeholder="0.00"
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium pointer-events-none">฿</span>
                 </div>
               </Field>
               <Field label="สถานะ">

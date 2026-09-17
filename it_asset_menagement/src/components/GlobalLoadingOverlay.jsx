@@ -14,22 +14,22 @@ export default function GlobalLoadingOverlay({ show, message }) {
   if (!show) return null;
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/30 animate-in fade-in"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-stone-950/30 animate-in fade-in"
       role="status"
       aria-live="polite"
       aria-busy="true"
       data-no-scroll-lock
     >
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] px-10 py-7 flex flex-col items-center gap-4 border border-slate-200">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] px-10 py-7 flex flex-col items-center gap-4 border border-stone-200">
         {/* Spinner */}
         <div
           className="w-12 h-12 rounded-full animate-spin"
           style={{
-            border: '4px solid rgba(30, 72, 122, 0.15)',
-            borderTopColor: '#1E487A',
+            border: '4px solid rgba(43,103,119, 0.15)',
+            borderTopColor: '#2B6777',
           }}
         />
-        <p className="text-[14.5px] font-semibold text-slate-700 tracking-tight">
+        <p className="text-sm font-medium text-stone-700 tracking-tight">
           {message || 'กำลังประมวลผล...'}
         </p>
       </div>

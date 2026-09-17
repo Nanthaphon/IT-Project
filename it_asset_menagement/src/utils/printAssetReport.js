@@ -91,8 +91,6 @@ const COLUMN_META = {
                    render: (a) => e(a.note) || '<span style="color:#94a3b8">-</span>' },
   remark:        { label: 'Remark', flex: 22, align: 'left',
                    render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
-  remark:        { label: 'Remark', flex: 22, align: 'left',
-                   render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
   age:           { label: 'อายุการใช้งาน', flex: 8, align: 'center',
                    render: (a) => `<span style="white-space:nowrap">${e(calcAge(a.purchaseDate))}</span>` },
   status:        { label: 'สถานะ', flex: 9, align: 'center',
@@ -213,7 +211,7 @@ export function printAssetReport({
       print-color-adjust: exact;
     }
     .page-header {
-      border-bottom: 2px solid #1E487A;
+      border-bottom: 2px solid #2B6777;
       padding-bottom: 7px;
       margin-bottom: 10px;
     }
@@ -221,7 +219,7 @@ export function printAssetReport({
       margin: 0;
       font-size: 17px;
       font-weight: 700;
-      color: #1E487A;
+      color: #2B6777;
     }
     .page-header .sub {
       font-size: 10.5px;
@@ -243,7 +241,7 @@ export function printAssetReport({
     .stats .box .num {
       font-size: 16px;
       font-weight: 700;
-      color: #1E487A;
+      color: #2B6777;
       line-height: 1.1;
     }
     .stats .box .lbl {
@@ -260,12 +258,12 @@ export function printAssetReport({
       display: table-header-group;
     }
     table.report th {
-      background: #1E487A;
+      background: #2B6777;
       color: #fff;
       font-size: ${headerFontSize}px;
       font-weight: 600;
       padding: 6px 7px;
-      border: 1px solid #163963;
+      border: 1px solid #225462;
       overflow: hidden;
       overflow-wrap: anywhere;
     }

@@ -1,23 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { generateITReport, getHardwareSummary, getSoftwareSummary } from '../utils/generateITReport.js';
-import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin } from 'lucide-react';
+import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
+import ITReportPreview from './ITReportPreview.jsx';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
 const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸ On Hold'];
 
-const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-[14px] outline-none transition-colors hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]';
+const DEFAULT_COMPANY = 'Globe Syndicate (Thailand) Company Limited';
+
+const inputCls = 'w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600';
 // select เพิ่ม pr-8 ให้ไม่ทับลูกศร native ของ browser
 const selectCls = inputCls + ' pr-8 truncate';
-const labelCls = 'block text-[13px] font-medium text-slate-600 mb-1';
+const labelCls = 'block text-[13px] font-medium text-stone-600 mb-1';
 
 function SectionHeader({ title, children }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h4 className="text-sm font-bold text-[#1E487A] flex items-center gap-2">{title}</h4>
+      <h4 className="text-sm font-medium text-clay-600 flex items-center gap-2">{title}</h4>
       {children}
     </div>
   );
@@ -40,10 +43,10 @@ function BigIssuesEditor({ value, onChange }) {
   return (
     <div className="space-y-3">
       {value.map((row, i) => (
-        <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+        <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-slate-500">Issue #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 transition-colors">
+            <span className="text-xs font-medium text-stone-500">Issue #{i + 1}</span>
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -70,7 +73,7 @@ function BigIssuesEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่ม Issue
       </button>
     </div>
@@ -90,10 +93,10 @@ function RDEditor({ value, onChange }) {
   return (
     <div className="space-y-3">
       {value.map((row, i) => (
-        <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+        <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-slate-500">โปรเจค #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 transition-colors">
+            <span className="text-xs font-medium text-stone-500">โปรเจค #{i + 1}</span>
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -126,7 +129,7 @@ function RDEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มโปรเจค
       </button>
     </div>
@@ -146,10 +149,10 @@ function FollowupEditor({ value, onChange }) {
   return (
     <div className="space-y-3">
       {value.map((row, i) => (
-        <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+        <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-slate-500">วาระ #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-red-400 hover:text-red-600 transition-colors">
+            <span className="text-xs font-medium text-stone-500">วาระ #{i + 1}</span>
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -176,7 +179,7 @@ function FollowupEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-[#1E487A] hover:text-[#133257] border border-dashed border-[#1E487A]/40 hover:border-[#1E487A] px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มวาระ
       </button>
     </div>
@@ -187,11 +190,11 @@ function FollowupEditor({ value, onChange }) {
 function Section({ id, activeSection, setActiveSection, title, children }) {
   const open = activeSection === id;
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden">
+    <div className="border border-stone-200 rounded-xl overflow-hidden">
       <button type="button" onClick={() => setActiveSection(open ? null : id)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors text-left">
-        <span className="text-sm font-bold text-slate-700">{title}</span>
-        {open ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+        className="w-full flex items-center justify-between px-4 py-3 bg-stone-50 hover:bg-stone-100 transition-colors text-left">
+        <span className="text-sm font-medium text-stone-700">{title}</span>
+        {open ? <ChevronUp className="h-4 w-4 text-stone-400" /> : <ChevronDown className="h-4 w-4 text-stone-400" />}
       </button>
       {open && <div className="p-4 space-y-3">{children}</div>}
     </div>
@@ -199,62 +202,205 @@ function Section({ id, activeSection, setActiveSection, title, children }) {
 }
 
 /* ── Data Preview Card ── */
-function PreviewCard({ title, value, sub, color = '#1E487A' }) {
+function PreviewCard({ title, value, sub, color = '#2B6777' }) {
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-      <div className="text-3xl font-black" style={{ color }}>{value}</div>
-      <div className="text-xs font-bold text-slate-700 mt-1">{title}</div>
-      {sub && <div className="text-xs text-slate-400">{sub}</div>}
+    <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-center">
+      <div className="text-3xl font-medium tabular-nums" style={{ color }}>{value}</div>
+      <div className="text-xs font-medium text-stone-700 mt-1">{title}</div>
+      {sub && <div className="text-xs text-stone-400">{sub}</div>}
     </div>
+  );
+}
+
+/* ── ช่องกรอกตัวเลขสถิติ (แก้ไขได้) ── */
+function StatInput({ label, value, onChange, color = '#2B6777' }) {
+  const num = (v) => (v === '' || isNaN(Number(v)) ? 0 : Number(v));
+  return (
+    <div className="bg-stone-50 border border-stone-200 rounded-xl px-2 py-2.5 text-center focus-within:border-clay-600 focus-within:ring-2 focus-within:ring-clay-600/15 transition-colors">
+      <input
+        type="number" value={value} onChange={e => onChange(num(e.target.value))}
+        className="w-full bg-transparent text-center text-2xl font-medium tabular-nums outline-none"
+        style={{ color }}
+      />
+      <div className="text-[11px] font-medium text-stone-500 mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+/* ── ปุ่มดึงค่าจากระบบใหม่ ── */
+function RefreshBtn({ onClick }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="flex items-center gap-1 text-xs font-medium text-stone-400 hover:text-clay-600 transition-colors shrink-0">
+      <RotateCcw className="h-3.5 w-3.5" /> ดึงจากระบบ
+    </button>
+  );
+}
+
+/* ── ตัวแก้ไขตาราง (การ์ดต่อแถว) — ใช้กับ ฮาร์ดแวร์ / ซอฟต์แวร์ ── */
+function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabel }) {
+  const num = (v) => (v === '' || isNaN(Number(v)) ? 0 : Number(v));
+  const update = (i, k, v) => onChange(rows.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
+  const remove = (i) => onChange(rows.filter((_, idx) => idx !== i));
+  const add = () => onChange([...rows, makeEmpty()]);
+  return (
+    <div className="space-y-2.5">
+      {rows.length === 0 && <p className="text-[13px] text-stone-400 text-center py-3">ยังไม่มีข้อมูล — กดปุ่มด้านล่างเพื่อเพิ่ม</p>}
+      {rows.map((r, i) => (
+        <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-medium text-stone-400">{itemLabel} #{i + 1}</span>
+            <button type="button" onClick={() => remove(i)} className="text-stone-300 hover:text-rose-500 transition-colors" aria-label="ลบแถว">
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {columns.map((c) => (
+              <div key={c.key} className={c.span === 'full' ? 'col-span-2' : ''}>
+                <label className="block text-[11px] font-medium text-stone-500 mb-1">{c.label}</label>
+                {c.type === 'number'
+                  ? <input type="number" value={r[c.key] ?? 0} onChange={e => update(i, c.key, num(e.target.value))} className={inputCls} />
+                  : <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)} className={inputCls} placeholder={c.ph} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <button type="button" onClick={add}
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
+        <Plus className="h-3.5 w-3.5" /> {addLabel}
+      </button>
+    </div>
+  );
+}
+
+/* ── Count badge ── */
+function CountBadge({ n }) {
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-lg ${n > 0 ? 'bg-clay-600/8 text-clay-600' : 'bg-stone-100 text-stone-400'}`}>
+      {n} รายการ
+    </span>
+  );
+}
+
+/* ── Panel card (v2 minimal) ── */
+function PanelCard({ icon: Icon, tint = '#DFEAEF', color = '#2B6777', title, desc, right, children }) {
+  return (
+    <section className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-stone-100">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: tint, color }}>
+          <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[15px] font-medium text-stone-800 leading-tight">{title}</h3>
+          {desc && <p className="text-xs text-stone-400 mt-0.5 truncate">{desc}</p>}
+        </div>
+        {right}
+      </div>
+      <div className="p-5">{children}</div>
+    </section>
   );
 }
 
 /* ════════════════════════════════
    MAIN COMPONENT
 ════════════════════════════════ */
-export default function ITReportModal({
-  isOpen, onClose,
+export default function ITReportPage({
   employees = [], repairRequests = [], assets = [], accessories = [], licenses = [],
 }) {
   const now = new Date();
 
-  // 🆕 จำข้อมูลที่กรอกไว้ (localStorage) — ไม่หายเมื่อปิด modal หรือรีเฟรชหน้า
-  const DRAFT_KEY = 'it_report_draft';
-  const loadDraft = () => {
-    try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {}; }
-    catch { return {}; }
+  // ── ร่างรายงาน: เก็บ "แยกรายเดือน" ──────────────────────────────
+  // เดิมใช้คีย์เดียวทั้งระบบ ทำให้ (1) ตัวเลขที่แก้เองของเดือนก่อนไหลมาเดือนใหม่
+  // และ (2) หน้าเปิดค้างอยู่ที่เดือนเก่าตลอด เพราะ month/year ถูกกู้จากร่าง
+  const DRAFT_PREFIX = 'it_report_draft';
+  const LEGACY_KEY = 'it_report_draft';   // คีย์เดิม ก่อนแยกรายเดือน
+  const draftKey = (m, y) => `${DRAFT_PREFIX}:${y}-${String(m + 1).padStart(2, '0')}`;
+
+  const readDraft = (m, y) => {
+    const read = (k) => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
+    const own = read(draftKey(m, y));
+    if (own) return own;
+    // ย้ายร่างเก่า (คีย์รวม) มาให้เดือนที่มันระบุไว้ — ข้อมูลเดิมของผู้ใช้ไม่หาย
+    const legacy = read(LEGACY_KEY);
+    if (legacy && legacy.month === m && legacy.year === y) return legacy;
+    return {};
   };
-  const draft = loadDraft();
 
-  const [month, setMonth]         = useState(draft.month ?? now.getMonth());
-  const [year, setYear]           = useState(draft.year ?? now.getFullYear());
-  const [companyName, setCompanyName] = useState(draft.companyName ?? 'Globe Syndicate (Thailand) Company Limited');
-  const [bigIssues, setBigIssues]   = useState(draft.bigIssues ?? []);
-  const [rdProjects, setRdProjects] = useState(draft.rdProjects ?? []);
-  const [followUps, setFollowUps]   = useState(draft.followUps ?? []);
-  const [activeSection, setActiveSection] = useState('support'); // 'support' | 'rd' | 'followup'
+  // เปิดหน้าที่เดือนปัจจุบันเสมอ (ไม่กู้จากร่าง) — กันรายงานผิดเดือนโดยไม่รู้ตัว
+  const [month, setMonth] = useState(now.getMonth());
+  const [year, setYear]   = useState(now.getFullYear());
+  const [companyName, setCompanyName] = useState(DEFAULT_COMPANY);
+  const [bigIssues, setBigIssues]   = useState([]);
+  const [rdProjects, setRdProjects] = useState([]);
+  const [followUps, setFollowUps]   = useState([]);
   const [generating, setGenerating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [saved, setSaved]           = useState(false);   // ✓ แสดงผลหลังกดบันทึก
 
-  // 🆕 บันทึก draft ทุกครั้งที่ข้อมูลเปลี่ยน
-  useEffect(() => {
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ month, year, companyName, bigIssues, rdProjects, followUps }));
-    } catch { /* localStorage เต็ม/ปิด — ข้ามไป */ }
-  }, [month, year, companyName, bigIssues, rdProjects, followUps]);
-
-  // Derived stats
-  const monthly = repairRequests.filter(r => {
+  // ── ค่าจากระบบ (คำนวณสด) ──
+  const monthly = useMemo(() => repairRequests.filter(r => {
     const d = new Date(r.timestamp);
     return d.getMonth() === month && d.getFullYear() === year;
+  }), [repairRequests, month, year]);
+
+  const autoStats = useMemo(() => ({
+    employees: employees.length,
+    monthly: monthly.length,
+    closedWon:  monthly.filter(r => ['เสร็จสิ้น','สำเร็จ','แก้ไขแล้ว','ปิดแล้ว'].includes(r.status)).length,
+    closedLose: monthly.filter(r => ['ยกเลิก','ไม่สำเร็จ'].includes(r.status)).length,
+  }), [employees.length, monthly]);
+  const autoHw = useMemo(() => getHardwareSummary(assets, accessories), [assets, accessories]);
+  const autoSw = useMemo(() => getSoftwareSummary(licenses), [licenses]);
+
+  // ── ตัวเลขที่ผู้ใช้แก้เอง ──────────────────────────────────────
+  // null = ยังไม่เคยแก้ -> ใช้ค่าจากระบบ  ·  มีค่า = ผู้ใช้กำหนดเอง
+  // เก็บเป็น derived state แทน useEffect คอยซิงก์ ทำให้ไม่มีจังหวะที่ค่าระบบ
+  // เขียนทับค่าที่ผู้ใช้เพิ่งแก้ (บั๊กเดิมของโครงแบบ effect)
+  const [statsEdit, setStatsEdit] = useState(null);
+  const [hwEdit, setHwEdit]       = useState(null);
+  const [swEdit, setSwEdit]       = useState(null);
+
+  const stats = statsEdit ?? autoStats;
+  const hw    = hwEdit ?? autoHw;
+  const sw    = swEdit ?? autoSw;
+
+  // โหลดร่างของเดือนที่เลือก (รวมตัวเลขที่เคยแก้เอง) ทุกครั้งที่เปลี่ยนเดือน/ปี
+  useEffect(() => {
+    const d = readDraft(month, year);
+    setCompanyName(d.companyName ?? DEFAULT_COMPANY);
+    setBigIssues(d.bigIssues ?? []);
+    setRdProjects(d.rdProjects ?? []);
+    setFollowUps(d.followUps ?? []);
+    setStatsEdit(d.stats ?? null);
+    setHwEdit(d.hw ?? null);
+    setSwEdit(d.sw ?? null);
+    setSaved(false);
+  }, [month, year]); // eslint-disable-line
+
+  // ร่างที่จะเขียนลง localStorage — ทุกอย่างที่หน้านี้แก้ได้ ต้องอยู่ในนี้ครบ
+  const buildDraft = () => ({
+    month, year, companyName, bigIssues, rdProjects, followUps,
+    stats: statsEdit, hw: hwEdit, sw: swEdit,
   });
-  const closedWon  = monthly.filter(r => ['เสร็จสิ้น','สำเร็จ','แก้ไขแล้ว','ปิดแล้ว'].includes(r.status)).length;
-  const closedLose = monthly.filter(r => ['ยกเลิก','ไม่สำเร็จ'].includes(r.status)).length;
 
-  // Hardware summary — ใช้ helper ร่วมกับ PPTX เพื่อให้ตัวเลขตรงกันเป๊ะ
-  const hwSummary = getHardwareSummary(assets, accessories);
+  // บันทึกร่างอัตโนมัติ กันข้อมูลหายระหว่างพิมพ์
+  useEffect(() => {
+    try { localStorage.setItem(draftKey(month, year), JSON.stringify(buildDraft())); }
+    catch { /* ข้าม */ }
+  }, [month, year, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit]); // eslint-disable-line
 
-  // Software summary — ใช้ helper ร่วมกับ PPTX
-  const swSummary = getSoftwareSummary(licenses);
+  const reportDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const editStat = (k, v) => { setStatsEdit({ ...stats, [k]: v }); setSaved(false); };
+  const editHw   = (rows) => { setHwEdit(rows); setSaved(false); };
+  const editSw   = (rows) => { setSwEdit(rows); setSaved(false); };
+
+  // ข้อมูลที่ส่งให้ preview + generator (แหล่งเดียว)
+  const previewData = {
+    company: companyName, month, year, reportDate,
+    stats, hwSummary: hw, swSummary: sw, bigIssues, rdProjects, followUps,
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -263,7 +409,9 @@ export default function ITReportModal({
         month, year, companyName,
         employees, repairRequests, assets, accessories, licenses,
         bigIssues, rdProjects, followUps,
+        supportStats: stats, hardwareSummary: hw, softwareSummary: sw,
       });
+      setShowPreview(false);
     } catch (err) {
       alert('เกิดข้อผิดพลาด: ' + err.message);
     } finally {
@@ -271,202 +419,160 @@ export default function ITReportModal({
     }
   };
 
-  if (!isOpen) return null;
+  const handleSave = () => {
+    try {
+      localStorage.setItem(draftKey(month, year), JSON.stringify(buildDraft()));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2200);
+    } catch { alert('บันทึกไม่สำเร็จ — พื้นที่จัดเก็บเต็ม'); }
+  };
+
+  const clearDraft = () => {
+    if (!window.confirm('ล้างข้อมูลที่กรอกของเดือนนี้ทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง) ใช่หรือไม่?')) return;
+    setBigIssues([]); setRdProjects([]); setFollowUps([]);
+    setStatsEdit(null); setHwEdit(null); setSwEdit(null);
+    try { localStorage.removeItem(draftKey(month, year)); } catch {}
+  };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-3 z-[80]">
-      <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-7xl flex flex-col max-h-[96vh] border border-slate-200/60 overflow-hidden">
+    <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
 
-        {/* Header */}
-        <div className="px-7 py-5 flex justify-between items-start border-b border-slate-100 shrink-0">
-          <div className="flex items-start gap-3.5">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: `${BRAND.primary}10`, color: BRAND.primary }}
-            >
-              <BarChart3 className="h-5 w-5" strokeWidth={1.8} />
-            </div>
-            <div>
-              <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">สร้าง IT Monthly Report</h3>
-              <p className="text-[13.5px] text-slate-500 mt-0.5">กรอกข้อมูล Issue/Project แล้ว Export เป็นไฟล์ .pptx</p>
-            </div>
+      {/* ── Page header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${BRAND.primary}0F`, color: BRAND.primary }}>
+            <BarChart3 className="h-[22px] w-[22px]" strokeWidth={2} />
           </div>
+          <div>
+            <h1 className="text-[22px] font-medium tracking-tight text-stone-900">สร้าง IT Monthly Report</h1>
+            <p className="text-stone-500 text-[13px] mt-1">
+              แก้ไขข้อมูลทุกสไลด์ได้ในหน้านี้ · กด <span className="font-medium text-stone-600">บันทึก</span> เพื่อจำข้อมูล แล้ว Export เป็น <span className="font-medium text-stone-600">.pptx</span>
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors focus:outline-none"
+            onClick={handleSave}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            {saved ? <><Check className="h-4 w-4" strokeWidth={2.5} /> บันทึกแล้ว</> : <><Save className="h-4 w-4" strokeWidth={2} /> บันทึก</>}
+          </button>
+          <button
+            onClick={() => setShowPreview(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-xl hover:bg-stone-50 hover:border-clay-600/40 font-medium text-sm transition-colors"
+          >
+            <Eye className="h-4 w-4" strokeWidth={2} /> ดูตัวอย่าง
+          </button>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
+          >
+            {generating
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้าง...</>
+              : <><FileDown className="h-4 w-4" strokeWidth={2} /> Export .pptx</>}
           </button>
         </div>
+      </div>
 
-        <div className="flex flex-1 overflow-hidden">
+      {/* ── Body grid — แก้ไขได้ครบทุกสไลด์ในที่เดียว ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5 items-start">
 
-          {/* LEFT: Config form */}
-          <div className="w-[52%] border-r border-slate-100 overflow-y-auto p-6 space-y-5">
+        {/* LEFT */}
+        <div className="xl:col-span-3 space-y-5">
 
-            {/* Basic config */}
-            <div className="bg-blue-50/40 border border-blue-200 rounded-xl p-4 space-y-4">
-              <h4 className="text-[14px] font-semibold text-[#1E487A] flex items-center gap-2">
-                <Settings className="h-4 w-4" strokeWidth={2} /> ตั้งค่าทั่วไป
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelCls}>เดือน</label>
-                  <select value={month} onChange={e => setMonth(Number(e.target.value))} className={inputCls}>
-                    {TH_MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelCls}>ปี (ค.ศ.)</label>
-                  <input type="number" value={year} onChange={e => setYear(Number(e.target.value))} className={inputCls} min="2020" max="2050" />
-                </div>
+          <PanelCard icon={Settings} title="ตั้งค่ารายงาน" desc="เดือน / ปี / ชื่อบริษัทที่แสดงในไฟล์ (ปก + ทุกสไลด์)">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className={labelCls}>เดือน</label>
+                <select value={month} onChange={e => setMonth(Number(e.target.value))} className={selectCls}>
+                  {TH_MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                </select>
               </div>
               <div>
-                <label className={labelCls}>ชื่อบริษัท (แสดงในไฟล์)</label>
+                <label className={labelCls}>ปี (ค.ศ.)</label>
+                <input type="number" value={year} onChange={e => setYear(Number(e.target.value))} className={inputCls} min="2020" max="2050" />
+              </div>
+              <div className="sm:col-span-1">
+                <label className={labelCls}>ชื่อบริษัท</label>
                 <input value={companyName} onChange={e => setCompanyName(e.target.value)} className={inputCls} />
               </div>
             </div>
+          </PanelCard>
 
-            {/* Section 3: Big Issues (manual) */}
-            <Section id="support" activeSection={activeSection} setActiveSection={setActiveSection} title="🔴 Big Issue Discussion (Slide 3)">
-              <p className="text-xs text-slate-500">ข้อมูล Support (จำนวนพนักงาน/เคส) ดึงจากระบบอัตโนมัติ — กรอกเฉพาะ Big Issues</p>
-              <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
-            </Section>
-
-            {/* Section 6: R&D */}
-            <Section id="rd" activeSection={activeSection} setActiveSection={setActiveSection} title="🧪 R&D Projects (Slide 6)">
-              <RDEditor value={rdProjects} onChange={setRdProjects} />
-            </Section>
-
-            {/* Section 7: Follow-up */}
-            <Section id="followup" activeSection={activeSection} setActiveSection={setActiveSection} title="📌 วาระติดตาม Follow-up (Slide 7)">
-              <FollowupEditor value={followUps} onChange={setFollowUps} />
-            </Section>
-          </div>
-
-          {/* RIGHT: Data Preview */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50">
-            <h4 className="text-sm font-bold text-slate-700">📋 ดูตัวอย่างข้อมูล (Auto จากระบบ)</h4>
-
-            {/* Support stats */}
-            <div>
-              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">หน้า 3 — ฝ่ายสนับสนุน ({TH_MONTHS[month]})</p>
-              <div className="grid grid-cols-2 gap-2">
-                <PreviewCard title="พนักงานทั้งหมด" value={employees.length} sub="จำนวนพนักงาน" />
-                <PreviewCard title="เคสทั้งหมด" value={monthly.length} sub={`เดือน${TH_MONTHS[month]}`} />
-                <PreviewCard title="ปิดสำเร็จ" value={closedWon} sub="ปิดงานสำเร็จ" color="#16a34a" />
-                <PreviewCard title="ไม่สำเร็จ" value={closedLose} sub="ยกเลิก/ไม่สำเร็จ" color="#dc2626" />
-              </div>
+          <PanelCard icon={BarChart3} title="สรุปฝ่ายสนับสนุน" desc="สไลด์ 3 — ตัวเลขภาพรวม (แก้ไขได้)"
+            right={<RefreshBtn onClick={() => { setStatsEdit(null); setSaved(false); }} />}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <StatInput label="พนักงานทั้งหมด" value={stats.employees}  onChange={v => editStat('employees', v)} />
+              <StatInput label="เคสทั้งหมด"      value={stats.monthly}    onChange={v => editStat('monthly', v)} />
+              <StatInput label="ปิดสำเร็จ"       value={stats.closedWon}  onChange={v => editStat('closedWon', v)}  color="#2c5d53" />
+              <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#B0453C" />
             </div>
+          </PanelCard>
 
-            {/* Hardware */}
-            <div>
-              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">หน้า 4 — ฮาร์ดแวร์</p>
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead className="bg-[#1E487A] text-white">
-                    <tr>
-                      <th className="px-3 py-2 text-left">ประเภทอุปกรณ์</th>
-                      <th className="px-2 py-2 text-center">รวม</th>
-                      <th className="px-2 py-2 text-center">ใช้งาน</th>
-                      <th className="px-2 py-2 text-center">พร้อมส่งมอบ</th>
-                      <th className="px-2 py-2 text-center text-red-300">ชำรุด</th>
-                      <th className="px-2 py-2 text-left">หมายเหตุ</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {hwSummary.length === 0 ? (
-                      <tr><td colSpan={6} className="px-3 py-3 text-center text-slate-400">ไม่มีข้อมูล</td></tr>
-                    ) : hwSummary.map((g) => (
-                      <tr key={g.type} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 font-semibold text-slate-700">{g.type}</td>
-                        <td className="px-2 py-2 text-center font-bold text-[#1E487A]">{g.total}</td>
-                        <td className="px-2 py-2 text-center text-slate-600">{g.inUse}</td>
-                        <td className="px-2 py-2 text-center text-emerald-600">{g.avail || '–'}</td>
-                        <td className="px-2 py-2 text-center text-red-500 font-semibold">{g.broken || '–'}</td>
-                        <td className="px-2 py-2 text-left text-slate-400">{g.note}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          <PanelCard icon={AlertCircle} tint="#FBEAE8" color="#B0453C" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
+            <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
+          </PanelCard>
 
-            {/* Software */}
-            <div>
-              <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">หน้า 5 — ซอฟต์แวร์ ({licenses.length} รายการ)</p>
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead className="bg-[#1E487A] text-white">
-                    <tr>
-                      <th className="px-3 py-2 text-left">ซอฟต์แวร์</th>
-                      <th className="px-2 py-2 text-center">จำนวน</th>
-                      <th className="px-2 py-2 text-center text-green-300">ใช้งาน</th>
-                      <th className="px-2 py-2 text-center text-amber-300">คงเหลือ</th>
-                      <th className="px-2 py-2 text-left">หมายเหตุ</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {swSummary.length === 0 ? (
-                      <tr><td colSpan={5} className="px-3 py-3 text-center text-slate-400">ไม่มีข้อมูล</td></tr>
-                    ) : swSummary.map((r, i) => (
-                      <tr key={i} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 font-semibold text-slate-700">{r.name}</td>
-                        <td className="px-2 py-2 text-center text-[#1E487A] font-bold">{r.stock}</td>
-                        <td className="px-2 py-2 text-center text-emerald-600 font-semibold">{r.active}</td>
-                        <td className="px-2 py-2 text-center text-amber-600">{r.inactive}</td>
-                        <td className="px-2 py-2 text-left text-slate-400">{r.note}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <PanelCard icon={FlaskConical} tint="#DFEAEF" color="#225462" title="R&D Projects" desc="สไลด์ 6 — สถานะโปรเจค" right={<CountBadge n={rdProjects.length} />}>
+            <RDEditor value={rdProjects} onChange={setRdProjects} />
+          </PanelCard>
+
+          <PanelCard icon={Pin} tint="#FBF4E6" color="#A87A2C" title="วาระติดตาม (Follow-up)" desc="สไลด์ 7 — รายการติดตามงาน" right={<CountBadge n={followUps.length} />}>
+            <FollowupEditor value={followUps} onChange={setFollowUps} />
+          </PanelCard>
         </div>
 
-        {/* Footer */}
-        <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60">
-          <div className="flex items-center gap-3">
-            <p className="text-[13px] text-slate-500 hidden sm:block">
-              ระบบจำข้อมูลที่กรอกไว้ให้อัตโนมัติ · ไฟล์ที่ได้เป็น <strong className="text-slate-700">.pptx</strong>
-            </p>
-            <button
-              onClick={() => {
-                if (!window.confirm('ล้างข้อมูลที่กรอกไว้ทั้งหมด (Issue / Project / Follow-up) ใช่หรือไม่?')) return;
-                setBigIssues([]); setRdProjects([]); setFollowUps([]);
-                try { localStorage.removeItem(DRAFT_KEY); } catch {}
-              }}
-              className="text-[12.5px] font-semibold text-slate-500 hover:text-rose-600 transition-colors underline decoration-slate-300 hover:decoration-rose-400 underline-offset-2"
-            >
-              ล้างข้อมูล
-            </button>
-          </div>
-          <div className="flex gap-2.5">
-            <button
-              onClick={onClose}
-              className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:border-slate-300 font-medium text-[14.5px] transition-colors"
-            >
-              ปิด
-            </button>
-            <button
-              onClick={handleGenerate}
-              disabled={generating}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm ${generating ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'text-white'}`}
-              style={!generating ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
-              onMouseEnter={(e) => !generating && (e.currentTarget.style.background = BRAND.primaryDark)}
-              onMouseLeave={(e) => !generating && (e.currentTarget.style.background = BRAND.primary)}
-            >
-              {generating
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้างไฟล์...</>
-                : <><FileDown className="h-4 w-4" strokeWidth={2} /> Export .pptx</>
-              }
+        {/* RIGHT — hardware / software (แก้ไขได้) */}
+        <div className="xl:col-span-2 space-y-5">
+          <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
+            right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
+            <DataRowsEditor
+              rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
+              makeEmpty={() => ({ type: '', total: 0, inUse: 0, avail: 0, broken: 0, note: '–' })}
+              columns={[
+                { key: 'type', label: 'ประเภทอุปกรณ์', span: 'full', ph: 'เช่น โน้ตบุ๊ค' },
+                { key: 'total', label: 'รวม', type: 'number' },
+                { key: 'inUse', label: 'ใช้งาน', type: 'number' },
+                { key: 'avail', label: 'พร้อมส่งมอบ', type: 'number' },
+                { key: 'broken', label: 'ชำรุด', type: 'number' },
+                { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
+              ]}
+            />
+          </PanelCard>
+
+          <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
+            right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
+            <DataRowsEditor
+              rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
+              makeEmpty={() => ({ name: '', stock: 0, active: 0, inactive: 0, note: '–' })}
+              columns={[
+                { key: 'name', label: 'ซอฟต์แวร์', span: 'full', ph: 'เช่น Microsoft 365' },
+                { key: 'stock', label: 'จำนวน', type: 'number' },
+                { key: 'active', label: 'ใช้งาน', type: 'number' },
+                { key: 'inactive', label: 'คงเหลือ', type: 'number' },
+                { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
+              ]}
+            />
+          </PanelCard>
+
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
+            <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors">
+              ล้างข้อมูลที่กรอก
             </button>
           </div>
         </div>
       </div>
+
+      {/* ตัวอย่างสไลด์ PowerPoint + แก้ไข ก่อน Export */}
+      <ITReportPreview
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        onExport={handleGenerate}
+        exporting={generating}
+        data={previewData}
+      />
     </div>
   );
 }

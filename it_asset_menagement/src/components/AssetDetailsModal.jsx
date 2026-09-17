@@ -8,6 +8,10 @@ import { formatDateShort } from '../utils/formatDate.js';
 import DateField from './DateField.jsx';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeader } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
+import Timeline from './timeline/Timeline.jsx';
+import ImageViewer from '../ui/ImageViewer.jsx';
+import SeatTable from './licenses/SeatTable.jsx';
+import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
 
 /* ── Purchase-history document storage helpers ── */
 const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
@@ -41,6 +45,7 @@ export default function AssetDetailsModal({
   setRepairModal, setRepairQuantity, setRepairRemarks, showConfirm, setCustomAlert,
   transactions = [],
   employees = [],
+  repairRequests = [],   // 🆕 ใช้ประกอบไทม์ไลน์
   handleAssignLicenseToAsset,
   handleRevokeLicenseFromAsset,
   asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม (ไม่ใช่ modal ป๊อปอัพ)
@@ -53,6 +58,8 @@ export default function AssetDetailsModal({
   // 🆕 ให้ชิ้นย่อยอุปกรณ์เสริมทำงานเหมือน License (ค้นหา + modal รายละเอียด)
   const [accItemSearch, setAccItemSearch] = useState('');
   const [accItemDetailModal, setAccItemDetailModal] = useState(null);
+  // 🆕 ดูรูปเต็มจอในแอป — เปิด data: URL เป็นแท็บใหม่ไม่ได้ (Chrome บล็อก)
+  const [viewerImage, setViewerImage] = useState(null);
   const [tempSNValue, setTempSNValue] = useState('');
   const [tempModelValue, setTempModelValue] = useState('');
   const [tempCostValue, setTempCostValue] = useState('');
@@ -93,6 +100,8 @@ export default function AssetDetailsModal({
   const [seatDetailModal, setSeatDetailModal] = useState(null);
   // 🆕 ค้นหาในรายการย่อย (seats) ของ License
   const [seatSearch, setSeatSearch] = useState('');
+  // 🆕 กรองรายการสิทธิ์ตามสถานะ — เดิมเป็นลิสต์ยาวรวดเดียว ต้องเลื่อนหาเอง
+  const [seatFilter, setSeatFilter] = useState('all');
   const [tempLicensePurchaseDate, setTempLicensePurchaseDate] = useState('');
   const [tempLicenseExpirationDate, setTempLicenseExpirationDate] = useState('');
   const [tempLicenseProductKey, setTempLicenseProductKey] = useState('');
@@ -124,7 +133,7 @@ export default function AssetDetailsModal({
     const diff = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
     if (diff < 0)   return { isExpiring: true, statusText: 'หมดอายุแล้ว',              colorClass: 'text-rose-600 bg-rose-50 border-rose-200' };
     if (diff <= 30) return { isExpiring: true, statusText: `เหลือ ${diff} วัน`,         colorClass: 'text-rose-600 bg-rose-50 border-rose-200' };
-    if (diff <= 90) return { isExpiring: true, statusText: `เหลือ ${diff} วัน`,         colorClass: 'text-amber-700 bg-amber-50 border-amber-200' };
+    if (diff <= 90) return { isExpiring: true, statusText: `เหลือ ${diff} วัน`,         colorClass: 'text-clay-600 bg-clay-100 border-clay-200' };
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
@@ -160,6 +169,15 @@ export default function AssetDetailsModal({
       return dateB - dateA; // ใหม่สุดขึ้นก่อน
     });
   }
+
+  /* 🆕 ไทม์ไลน์ — รวมทุกเหตุการณ์ของรายการนี้เรียงตามเวลา
+     licenses ใช้มุมมองอีกแบบ (สิทธิ์เคยอยู่กับใคร/เครื่องไหน) */
+  const isLicense = selectedAssetCategory === 'licenses';
+  const timelineEvents = currentAssetDetail
+    ? (isLicense
+        ? buildLicenseTimeline(currentAssetDetail, transactions)
+        : buildAssetTimeline(currentAssetDetail, transactions, repairRequests, licenses))
+    : [];
 
   // 🟢 ฟังก์ชันบันทึก ประวัติการจัดซื้อ (สร้างใหม่ / แก้ไข)
   const handleSaveHistory = async (e) => {
@@ -322,7 +340,7 @@ export default function AssetDetailsModal({
     const start = new Date(purchaseDate);
     if (isNaN(start.getTime())) return null;
     const now = new Date();
-    if (start > now) return { text: 'ยังไม่เริ่มใช้งาน', tone: 'slate', years: 0 };
+    if (start > now) return { text: 'ยังไม่เริ่มใช้งาน', tone: 'stone', years: 0 };
 
     let years = now.getFullYear() - start.getFullYear();
     let months = now.getMonth() - start.getMonth();
@@ -340,8 +358,8 @@ export default function AssetDetailsModal({
     if (days > 0 && years === 0) parts.push(`${days} วัน`);
     if (parts.length === 0) parts.push('วันนี้');
 
-    // อิงนโยบาย accessory: <1ปี = emerald (ภายในอายุ Mouse/KB), 1-2ปี = amber, >2ปี = slate (เกินแล้ว)
-    const tone = years === 0 ? 'emerald' : years < 2 ? 'amber' : 'slate';
+    // อิงนโยบาย accessory: <1ปี = olive (ภายในอายุ Mouse/KB), 1-2ปี = ochre, >2ปี = stone (เกินแล้ว)
+    const tone = years === 0 ? 'olive' : years < 2 ? 'ochre' : 'stone';
     return { text: parts.join(' '), tone, years };
   };
 
@@ -776,9 +794,21 @@ export default function AssetDetailsModal({
   const totalLicenseCost = licenseSeats.reduce((sum, s) => sum + (Number(s.seatCost) || 0), 0);
 
   // 🆕 กรองรายการย่อยตามคำค้นหา (ชื่อ, ผู้ถือ, key, supplier, สถานะ, หมายเหตุ)
+  /* 🆕 จำนวนแต่ละสถานะ — ใช้บนปุ่มกรอง และซ่อนปุ่มที่ไม่มีของ */
+  const seatCounts = {
+    all: licenseSeats.length,
+    available: licenseSeats.filter(s => s.type === 'available').length,
+    assigned: licenseSeats.filter(s => s.type === 'assigned' && !s.assignee?.isAssetBound).length,
+    bound: licenseSeats.filter(s => s.type === 'assigned' && s.assignee?.isAssetBound).length,
+  };
+  const seatsByFilter = seatFilter === 'available' ? licenseSeats.filter(s => s.type === 'available')
+    : seatFilter === 'assigned' ? licenseSeats.filter(s => s.type === 'assigned' && !s.assignee?.isAssetBound)
+    : seatFilter === 'bound'    ? licenseSeats.filter(s => s.type === 'assigned' && s.assignee?.isAssetBound)
+    : licenseSeats;
+
   const seatSearchQ = seatSearch.trim().toLowerCase();
   const visibleLicenseSeats = seatSearchQ
-    ? licenseSeats.filter(s => {
+    ? seatsByFilter.filter(s => {
         const statusText = s.type === 'available'
           ? 'พร้อมใช้งาน ว่าง available'
           : s.assignee?.isAssetBound ? 'ติดตั้งบนเครื่อง ผูกกับทรัพย์สิน' : 'ถูกใช้งาน';
@@ -788,7 +818,7 @@ export default function AssetDetailsModal({
           statusText,
         ].filter(Boolean).join(' ').toLowerCase().includes(seatSearchQ);
       })
-    : licenseSeats;
+    : seatsByFilter;
 
   const handleSelectItem = (itemId) => {
     setSelectedItemsForDelete(prev => 
@@ -1217,7 +1247,7 @@ export default function AssetDetailsModal({
     const qrDataString = `https://itassetmenagement.vercel.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
 
     return (
-      <div data-modal="asset-detail" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
+      <div data-modal="asset-detail" className="fixed inset-0 bg-stone-900/60 flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>
         <style>{`
           @media print {
             body * { visibility: hidden !important; }
@@ -1233,22 +1263,22 @@ export default function AssetDetailsModal({
           }
         `}</style>
 
-        <div className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04)] max-w-md w-full overflow-hidden flex flex-col border border-slate-200 print:border-none print:shadow-none print:bg-transparent">
-          <div className="bg-slate-50 border-b border-slate-200 px-5 py-4 flex justify-between items-center print:hidden">
-            <h3 className="font-semibold text-slate-800">ตัวอย่างป้าย (Label Preview)</h3>
-            <button onClick={() => setShowLabelPreview(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] max-w-md w-full overflow-hidden flex flex-col border border-stone-200/60 print:border-none print:shadow-none print:bg-transparent">
+          <div className="bg-stone-50 border-b border-stone-200 px-5 py-4 flex justify-between items-center print:hidden">
+            <h3 className="font-medium text-stone-800">ตัวอย่างป้าย (Label Preview)</h3>
+            <button onClick={() => setShowLabelPreview(false)} className="text-stone-400 hover:text-stone-600 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
           
-          <div className="p-10 flex justify-center items-center bg-slate-100/50 overflow-x-auto print:p-0 print:bg-transparent">
-            <div id="printable-label-container" className="bg-white border-[3px] border-slate-800 p-2 flex flex-col w-[280px] text-slate-800 shrink-0 relative box-border overflow-hidden">
+          <div className="p-10 flex justify-center items-center bg-stone-100/50 overflow-x-auto print:p-0 print:bg-transparent">
+            <div id="printable-label-container" className="bg-white border-[3px] border-stone-800 p-2 flex flex-col w-[280px] text-stone-800 shrink-0 relative box-border overflow-hidden">
               <div className="flex gap-2.5">
-                <div className="w-[72px] h-[72px] shrink-0 border border-slate-200 p-0.5 bg-white flex items-center justify-center self-start">
+                <div className="w-[72px] h-[72px] shrink-0 border border-stone-200 p-0.5 bg-white flex items-center justify-center self-start">
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
 
-                <div className="flex flex-col text-[12px] leading-[1.3] font-bold w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
+                <div className="flex flex-col text-xs leading-[1.3] font-medium w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
                   <div className="truncate">C: {currentAssetDetail.company || '-'}</div>
                   <div className="line-clamp-2 break-words">N: {currentAssetDetail.name || '-'}</div>
                   <div className="truncate">T: {currentAssetDetail.assetTag || '-'}</div>
@@ -1262,45 +1292,77 @@ export default function AssetDetailsModal({
             </div>
           </div>
           
-          <div className="p-4 bg-white border-t border-slate-200 flex justify-end gap-3 print:hidden">
-            <button onClick={() => setShowLabelPreview(false)} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors">ปิด</button>
-            <button onClick={() => window.print()} className="px-4 py-2 bg-[#1E487A] text-white rounded-lg font-medium hover:bg-[#133257] transition-colors">สั่งพิมพ์ (Print)</button>
+          <div className="p-4 bg-white border-t border-stone-200 flex justify-end gap-3 print:hidden">
+            <button onClick={() => setShowLabelPreview(false)} className="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-xl font-medium hover:bg-stone-50 transition-colors">ปิด</button>
+            <button onClick={() => window.print()} className="px-4 py-2 bg-clay-600 text-white rounded-xl font-medium hover:bg-clay-800 transition-colors">สั่งพิมพ์ (Print)</button>
           </div>
         </div>
       </div>
     );
   }
 
-  const DetailItem = ({ label, value, isMono = false }) => (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[11.5px] font-medium text-slate-400 leading-[1.5]">{label}</span>
-      <span className={`text-[14px] font-semibold text-slate-800 leading-[1.6] ${isMono ? 'font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 w-fit text-[12.5px]' : ''}`}>
-        {value || '-'}
-      </span>
-    </div>
-  );
+  const UsageBar = ({ used, total, unit }) => {
+    const t = Math.max(0, Number(total) || 0);
+    const u = Math.min(Math.max(0, Number(used) || 0), t);
+    const left = Math.max(0, t - u);
+    const pct = t ? Math.round((u / t) * 100) : 0;
+    const tone = left === 0 ? 'bg-brick-500' : pct >= 80 ? 'bg-ochre-500' : 'bg-olive-500';
+    return (
+      <div className="col-span-2 md:col-span-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-medium text-stone-400">การใช้งาน</p>
+            <p className="mt-0.5 text-[19px] font-medium tabular-nums text-stone-900">
+              {u} <span className="text-sm font-normal text-stone-400">/ {t} {unit}</span>
+            </p>
+          </div>
+          <p className="text-[13px] text-stone-500">
+            {left > 0
+              ? <>เหลือ <span className="font-medium text-stone-800 tabular-nums">{left}</span> {unit}</>
+              : <span className="font-medium text-brick-600">ใช้ครบแล้ว</span>}
+          </p>
+        </div>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-sand-200">
+          <div className={`h-full rounded-full transition-all ${tone}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    );
+  };
+
+  const DetailItem = ({ label, value, isMono = false, alwaysShow = false }) => {
+    const empty = value == null || value === '' || value === '-';
+    if (empty && !alwaysShow) return null;
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">{label}</span>
+        <span className={`text-sm font-medium text-stone-800 leading-[1.6] ${isMono ? 'font-mono bg-sand-100 px-1.5 py-0.5 rounded-lg w-fit text-xs' : ''}`}>
+          {empty ? '—' : value}
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div data-modal="asset-detail" className={asPage
       ? 'h-full'
-      : 'fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[80]'}>
+      : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[80]'}>
       <div className={asPage
         ? 'bg-white w-full h-full flex flex-col overflow-hidden'
-        : 'bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(16,47,87,0.03),0_20px_50px_-24px_rgba(16,47,87,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
+        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_3px_rgba(22,32,36,0.03),0_20px_50px_-24px_rgba(22,32,36,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
 
         {/* Header */}
-        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ background: '#1E487A15', color: '#1E487A' }}>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center" style={{ background: '#2B67770F', color: '#2B6777' }}>
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
               </svg>
             </div>
-            <h3 className="text-[14.5px] font-semibold text-slate-700 leading-[1.5]">
+            <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">
               รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม / License'}
             </h3>
           </div>
-          <button onClick={closeAll} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0">
+          <button onClick={closeAll} className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors shrink-0">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -1308,45 +1370,45 @@ export default function AssetDetailsModal({
         </div>
 
         {/* Profile band */}
-        <div className="px-5 py-3 shrink-0 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
+        <div className="px-5 py-3 shrink-0 bg-stone-50 border-b border-stone-100 flex items-center gap-3">
           {currentAssetDetail.image ? (
-            <div className="w-11 h-11 rounded-lg shrink-0 border border-slate-200 bg-white overflow-hidden flex items-center justify-center">
+            <div className="w-11 h-11 rounded-lg shrink-0 border border-stone-200 bg-white overflow-hidden flex items-center justify-center">
               <img src={currentAssetDetail.image} alt="" className="max-w-full max-h-full object-contain p-0.5" />
             </div>
           ) : (
-            <div className="w-11 h-11 rounded-lg shrink-0 border border-dashed border-slate-300 bg-white flex items-center justify-center text-slate-300">
+            <div className="w-11 h-11 rounded-lg shrink-0 border border-dashed border-stone-300 bg-white flex items-center justify-center text-stone-300">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
               </svg>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-[16px] font-bold text-[#1E487A] leading-[1.5] truncate mb-1">{currentAssetDetail.name}</h2>
+            <h2 className="text-[19px] font-medium text-clay-600 leading-tight tracking-tight truncate mb-1">{currentAssetDetail.name}</h2>
             <div className="flex flex-wrap items-center gap-2">
               {currentAssetDetail.type && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-stone-50 text-stone-600 border border-stone-200">
                   {currentAssetDetail.type}
                 </span>
               )}
               {selectedAssetCategory === 'assets' && (
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-50 text-blue-700 border-blue-200' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-slate-100 text-slate-500 border-slate-300' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                  <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-emerald-500' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-blue-500' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-slate-400' : 'bg-amber-500'}`} />
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-olive-50 text-olive-700 border-olive-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-stone-50 text-stone-700 border-stone-200' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-stone-100 text-stone-500 border-stone-300' : 'bg-ochre-50 text-ochre-700 border-ochre-200'}`}>
+                  <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-olive-500' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-stone-500' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-stone-400' : 'bg-clay-500'}`} />
                   {currentAssetDetail.status || 'พร้อมใช้งาน'}
                 </span>
               )}
               {selectedAssetCategory === 'licenses' && (
                 <>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-ochre-50 text-ochre-700 border-ochre-200' : 'bg-olive-50 text-olive-700 border-olive-200'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-clay-500' : 'bg-olive-500'}`} />
                     {(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'ใช้งานเต็ม' : 'มีสิทธิ์ว่าง'}
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 bg-blue-50 text-[#1E487A] rounded-md text-xs font-semibold border border-blue-200">
+                  <span className="inline-flex items-center px-2.5 py-1 bg-sand-100 text-clay-600 rounded-lg text-xs font-medium">
                     {currentAssetDetail.assignees?.length || 0} / {currentAssetDetail.quantity || 0} สิทธิ์
                   </span>
                 </>
               )}
               {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
-                <span className="inline-flex items-center px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-semibold border border-purple-200">
+                <span className="inline-flex items-center px-2.5 py-1 bg-clay-100 text-clay-600 rounded-lg text-xs font-medium">
                   {currentAssetDetail.department}
                 </span>
               )}
@@ -1355,17 +1417,17 @@ export default function AssetDetailsModal({
         </div>
 
         {/* Tabs */}
-        <div className="px-5 border-b border-slate-100 flex gap-2 shrink-0 bg-white flex-wrap">
+        <div className="px-6 border-b border-stone-100 flex gap-1 shrink-0 bg-white flex-wrap">
           <button
             onClick={() => { setActiveTab('info'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-            className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'info' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'info' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
           >
             ข้อมูลทั่วไป
           </button>
           {selectedAssetCategory === 'assets' && (
             <button
               onClick={() => setActiveTab('history')}
-              className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'history' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'history' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
             >
               ประวัติจัดซื้อ ({purchaseHistory.length})
             </button>
@@ -1373,7 +1435,7 @@ export default function AssetDetailsModal({
           {(selectedAssetCategory === 'assets' || selectedAssetCategory === 'accessories') && (
             <button
               onClick={() => { setActiveTab('ownership'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-              className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'ownership' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'ownership' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
             >
               ประวัติการครอบครอง
             </button>
@@ -1381,21 +1443,27 @@ export default function AssetDetailsModal({
           {selectedAssetCategory === 'assets' && (
             <button
               onClick={() => { setActiveTab('licenses'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-              className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'licenses' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+              className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'licenses' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
             >
               ซอฟต์แวร์ / License
             </button>
           )}
           <button
+            onClick={() => { setActiveTab('timeline'); setIsAddingHistory(false); setEditingHistoryId(null); }}
+            className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'timeline' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+          >
+            ไทม์ไลน์ ({timelineEvents.length})
+          </button>
+          <button
             onClick={() => { setActiveTab('docs'); setIsAddingHistory(false); setEditingHistoryId(null); }}
-            className={`py-3 px-5 text-[13.5px] font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'docs' ? 'border-[#1E487A] text-[#1E487A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'docs' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
           >
             เอกสารแนบ
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide p-5 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 bg-stone-50">
 
           {/* TAB: ข้อมูลทั่วไป */}
           {activeTab === 'info' && (
@@ -1403,21 +1471,21 @@ export default function AssetDetailsModal({
 
               {/* Assignee banner — soft (v2) */}
               {selectedAssetCategory === 'assets' && currentAssetDetail.assignedName && (
-                <div className="rounded-xl bg-blue-50/60 border border-blue-200/70 px-4 py-3.5">
+                <div className="rounded-xl bg-stone-50/60 border border-stone-200/70 px-4 py-3.5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-[#1E487A] text-white font-bold text-[15px] flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-clay-600 text-white font-medium text-[15px] flex items-center justify-center shrink-0">
                         {currentAssetDetail.assignedName.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10.5px] text-[#1E487A]/70 font-bold tracking-wide uppercase leading-[1.5]">ผู้ครอบครองปัจจุบัน</p>
-                        <p className="text-[15px] font-bold text-slate-800 leading-[1.4] truncate">{currentAssetDetail.assignedName}</p>
-                        {currentAssetDetail.department && <p className="text-[12px] text-slate-500 leading-[1.5]">{currentAssetDetail.department}</p>}
+                        <p className="text-[10px] text-clay-600/70 font-medium tracking-wide leading-[1.5]">ผู้ครอบครองปัจจุบัน</p>
+                        <p className="text-[15px] font-medium text-stone-800 leading-[1.4] truncate">{currentAssetDetail.assignedName}</p>
+                        {currentAssetDetail.department && <p className="text-xs text-stone-500 leading-[1.5]">{currentAssetDetail.department}</p>}
                       </div>
                     </div>
-                    <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-md border border-blue-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      <span className="text-[12px] font-semibold text-slate-600 whitespace-nowrap">กำลังถูกใช้งาน</span>
+                    <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-lg border border-stone-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-olive-500 shrink-0" />
+                      <span className="text-xs font-medium text-stone-600 whitespace-nowrap">กำลังถูกใช้งาน</span>
                     </div>
                   </div>
                 </div>
@@ -1426,50 +1494,52 @@ export default function AssetDetailsModal({
               {/* KPI Cards — assets only (v2) */}
               {selectedAssetCategory === 'assets' && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
+                  <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">สถานะ</p>
-                    <p className="text-[14px] font-semibold text-slate-800 leading-[1.4] mt-0.5">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
+                    <p className="text-xs font-medium text-stone-400">สถานะ</p>
+                    <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
                   </div>
-                  <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
+                  <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">ราคาจัดซื้อ</p>
-                    <p className="text-[16px] font-bold text-slate-800 leading-[1.4] mt-0.5 tabular-nums">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
+                    <p className="text-xs font-medium text-stone-400">ราคาจัดซื้อ</p>
+                    <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5 tabular-nums">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
                   </div>
-                  <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
+                  <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">อายุใช้งาน</p>
-                    <p className="text-[14px] font-semibold text-slate-800 leading-[1.4] mt-0.5">{calculateAge(currentAssetDetail.purchaseDate)}</p>
+                    <p className="text-xs font-medium text-stone-400">อายุใช้งาน</p>
+                    <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5">{calculateAge(currentAssetDetail.purchaseDate)}</p>
                   </div>
-                  <div className="bg-white rounded-xl border border-slate-200/70 px-4 py-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center mb-2.5">
+                  <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                     </div>
-                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">หมดประกัน</p>
-                    <p className={`text-[14px] font-semibold leading-[1.4] mt-0.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-rose-600' : 'text-slate-800'}`}>{currentAssetDetail.warrantyDate ? formatDateShort(currentAssetDetail.warrantyDate) : 'ไม่ระบุ'}</p>
+                    <p className="text-xs font-medium text-stone-400">หมดประกัน</p>
+                    <p className={`text-sm font-medium leading-[1.4] mt-0.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-rose-600' : 'text-stone-800'}`}>{currentAssetDetail.warrantyDate ? formatDateShort(currentAssetDetail.warrantyDate) : 'ไม่ระบุ'}</p>
                   </div>
                 </div>
               )}
 
-              <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)] overflow-hidden">
-                <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-                  <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                  <h4 className="text-[13.5px] font-semibold text-slate-600">ข้อมูลจำเพาะ</h4>
+              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
+                <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
+                  <div className="w-1 h-4 rounded-full bg-clay-600" />
+                  <h4 className="text-[13px] font-medium text-stone-600">ข้อมูลจำเพาะ</h4>
                 </div>
                 <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
                   {selectedAssetCategory === 'licenses' ? (
                     <>
                       <div className="col-span-2 md:col-span-4"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
+                      <UsageBar
+                        used={currentAssetDetail.assignees?.length || 0}
+                        total={currentAssetDetail.quantity || 0}
+                        unit="สิทธิ์"
+                      />
                       <DetailItem label="รหัสอ้างอิง Key" value={currentAssetDetail.keyCode} />
-                      <DetailItem label="สิทธิ์ทั้งหมด" value={`${currentAssetDetail.quantity || 0} สิทธิ์`} />
-                      <DetailItem label="กำลังใช้งาน" value={`${currentAssetDetail.assignees?.length || 0} สิทธิ์`} />
-                      <DetailItem label="คงเหลือ" value={`${Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0))} สิทธิ์`} />
                       <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
                       <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       <DetailItem label="วันที่หมดอายุ" value={formatDateShort(currentAssetDetail.expirationDate)} />
@@ -1477,9 +1547,9 @@ export default function AssetDetailsModal({
                       {/* 🆕 หมายเหตุ — ใช้บันทึกข้อมูลเพิ่มเติม */}
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
-                          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
-                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
@@ -1496,54 +1566,59 @@ export default function AssetDetailsModal({
                       <DetailItem label="วันที่หมด Warranty" value={formatDateShort(currentAssetDetail.warrantyDate)} />
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
-                          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
-                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
                       {currentAssetDetail.remark && (
                         <div className="col-span-2 md:col-span-4">
-                          <div className="bg-blue-50/60 border border-blue-200/60 rounded-lg p-3">
-                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-blue-700/80 mb-1">Remark</p>
-                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.remark}</p>
+                          <div className="bg-stone-50/60 border border-stone-200/60 rounded-lg p-3">
+                            <p className="text-xs font-medium text-stone-700/80 mb-1">Remark</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.remark}</p>
                           </div>
                         </div>
                       )}
                     </>
                   ) : (
                     <>
-                      <DetailItem label="จำนวนทั้งหมด" value={`${currentAssetDetail.quantity || 0} ชิ้น`} />
-                      <DetailItem label="คงเหลือ (เบิกได้)" value={`${currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : 0} ชิ้น`} />
+                      <UsageBar
+                        used={currentAssetDetail.assignees?.length || 0}
+                        total={currentAssetDetail.quantity || 0}
+                        unit="ชิ้น"
+                      />
                       <DetailItem label="ผู้จัดจำหน่าย (Vendor)" value={currentAssetDetail.vendor} />
                       <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
-                          <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-3">
-                            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-amber-700/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
                     </>
                   )}
-                  <div className="col-span-2 md:col-span-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-slate-500 leading-[1.5]">
-                      {selectedAssetCategory === 'accessories' ? 'มูลค่ารวม' : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาจัดซื้อ'}
-                    </span>
-                    <span className="text-[15px] font-bold text-slate-800">
-                      {selectedAssetCategory === 'accessories'
-                        ? (totalAccessoriesCost > 0 ? `฿${totalAccessoriesCost.toLocaleString()}` : '-')
-                        : selectedAssetCategory === 'licenses'
-                          ? (totalLicenseCost > 0 ? `฿${totalLicenseCost.toLocaleString()}` : '-')
-                          : (currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-')}
-                    </span>
-                  </div>
+                  {(() => {
+                    const total = selectedAssetCategory === 'accessories' ? totalAccessoriesCost
+                      : selectedAssetCategory === 'licenses' ? totalLicenseCost
+                      : Number(currentAssetDetail.cost) || 0;
+                    if (!total) return null;   /* ยังไม่ได้กรอกราคา — ไม่ต้องขึ้นแถบเปล่า */
+                    const label = selectedAssetCategory === 'accessories' ? 'มูลค่ารวม'
+                      : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาซื้อ';
+                    return (
+                      <div className="col-span-2 flex items-center justify-between border-t border-stone-100 pt-3 md:col-span-4">
+                        <span className="text-[13px] font-medium text-stone-500">{label}</span>
+                        <span className="text-[15px] font-medium tabular-nums text-stone-800">฿{total.toLocaleString()}</span>
+                      </div>
+                    );
+                  })()}
                   {/* 🆕 ราคาปัจจุบัน — เฉพาะ asset */}
                   {selectedAssetCategory === 'assets' && (
                     <div className="col-span-2 md:col-span-4 pt-2 flex items-center justify-between">
-                      <span className="text-[13px] font-medium text-slate-500 leading-[1.5]">ราคาปัจจุบัน</span>
-                      <span className="text-[15px] font-bold text-emerald-700">
+                      <span className="text-[13px] font-medium text-stone-500 leading-[1.5]">ราคาปัจจุบัน</span>
+                      <span className="text-[15px] font-medium text-olive-700">
                         {currentAssetDetail.scrapValue ? `฿${Number(currentAssetDetail.scrapValue).toLocaleString()}` : '-'}
                       </span>
                     </div>
@@ -1555,47 +1630,52 @@ export default function AssetDetailsModal({
               {selectedAssetCategory === 'assets' && (() => {
                 const gallery = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
                 return (
-                  <div className="bg-white p-4 rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)]">
+                  <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(22,32,36,0.04)]">
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                        <h4 className="text-[13.5px] font-semibold text-slate-600">
+                        <div className="w-1 h-4 rounded-full bg-clay-600" />
+                        <h4 className="text-[13px] font-medium text-stone-600">
                           รูปภาพประกอบ PDF
-                          {gallery.length > 0 && <span className="ml-1.5 text-[12px] font-normal text-slate-400">({gallery.length} รูป)</span>}
+                          {gallery.length > 0 && <span className="ml-1.5 text-xs font-normal text-stone-400">({gallery.length} รูป)</span>}
                         </h4>
                       </div>
-                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? "border-slate-200 bg-slate-50 text-slate-400" : "border-slate-200 bg-white text-[#1E487A] hover:bg-blue-50 hover:border-blue-200"}`}>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? "border-stone-200 bg-stone-50 text-stone-400" : "border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200"}`}>
                         {isSavingItem ? (
-                          <><div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
+                          <><div className="w-3 h-3 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                         ) : (
                           <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>เพิ่มรูป</>
                         )}
                         <input type="file" multiple accept="image/*" onChange={handlePhotoGalleryUpload} disabled={isSavingItem} className="hidden" />
                       </label>
                     </div>
-                    <p className="text-[11.5px] text-slate-400 mb-3 leading-relaxed">
+                    <p className="text-[11px] text-stone-400 mb-3 leading-relaxed">
                       รูปที่เพิ่มที่นี่จะถูกใช้ประกอบในไฟล์ PDF ที่พิมพ์จากปุ่ม "พิมพ์ PDF" และรายงานทรัพย์สิน
                     </p>
                     {gallery.length === 0 ? (
-                      <div className="py-8 text-center bg-white border border-dashed border-slate-200 rounded-xl">
-                        <svg className="w-8 h-8 mx-auto mb-2 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <div className="py-8 text-center bg-white border border-dashed border-stone-200 rounded-xl">
+                        <svg className="w-8 h-8 mx-auto mb-2 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
-                        <p className="text-[13px] font-semibold text-slate-500">ยังไม่มีรูปในคลัง</p>
-                        <p className="text-[11.5px] text-slate-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
+                        <p className="text-[13px] font-medium text-stone-500">ยังไม่มีรูปในคลัง</p>
+                        <p className="text-[11px] text-stone-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                         {gallery.map((src, idx) => (
-                          <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+                          <div key={idx} className="relative group rounded-xl overflow-hidden border border-stone-200/60 aspect-square bg-stone-50">
                             <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                              <a href={src} target="_blank" rel="noreferrer" className="bg-white/90 text-slate-800 text-[11px] font-semibold px-2 py-1 rounded-md hover:bg-white shadow-sm">ดู</a>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setViewerImage({ src, name: `รูปที่ ${idx + 1}` })}
+                              className="absolute inset-0 flex items-center justify-center bg-stone-950/0 opacity-0 transition-all group-hover:bg-stone-950/30 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
+                              title="ดูรูปขนาดเต็ม"
+                            >
+                              <span className="rounded-lg bg-white/90 px-2 py-1 text-[11px] font-medium text-stone-800">ดู</span>
+                            </button>
                             <button
                               onClick={() => handleRemovePhotoGallery(idx)}
                               disabled={isSavingItem}
-                              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 border border-slate-200 hover:border-rose-300 flex items-center justify-center shadow-sm transition-colors"
+                              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white text-stone-400 hover:text-rose-500 hover:bg-rose-50 border border-stone-200 hover:border-rose-300 flex items-center justify-center shadow-sm transition-colors"
                               title="ลบรูปนี้"
                             >
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1610,38 +1690,59 @@ export default function AssetDetailsModal({
 
               {/* รายการสิทธิ์ผู้ถือครอง (เฉพาะ licenses) */}
               {selectedAssetCategory === 'licenses' && (
-                <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)] overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
+                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
+                      <div className="w-1 h-4 rounded-full bg-clay-600" />
+                      <h4 className="text-[13px] font-medium text-stone-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {licenseSeats.length > 0 && (
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer mr-2">
-                          <input type="checkbox" checked={selectedLicenseSeatsForDelete.length === licenseSeats.length && licenseSeats.length > 0} onChange={handleSelectAllLicenseSeats} className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
+                        <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer mr-2">
+                          <input type="checkbox" checked={selectedLicenseSeatsForDelete.length === licenseSeats.length && licenseSeats.length > 0} onChange={handleSelectAllLicenseSeats} className="w-3.5 h-3.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
                           เลือกทั้งหมด
                         </label>
                       )}
                       {selectedLicenseSeatsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-semibold text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-300 transition-colors disabled:opacity-50">
+                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
                           ลบ ({selectedLicenseSeatsForDelete.length})
                         </button>
                       )}
-                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-xl transition-colors">
                         นำเข้า CSV
                       </button>
-                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-semibold text-white bg-[#1E487A] hover:bg-[#163963] px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors">
                         + เพิ่มสิทธิ์
                       </button>
                     </div>
                   </div>
 
-                  {/* 🆕 ช่องค้นหาในรายการย่อย */}
+                  {/* 🆕 กรองตามสถานะ + ช่องค้นหา */}
                   {licenseSeats.length > 0 && (
-                    <div className="px-5 py-2.5 border-b border-slate-100">
+                    <div className="space-y-2.5 border-b border-stone-100 px-5 py-2.5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { k: 'all',       label: 'ทั้งหมด' },
+                          { k: 'available', label: 'ว่าง' },
+                          { k: 'assigned',  label: 'พนักงานถือ' },
+                          { k: 'bound',     label: 'ผูกกับเครื่อง' },
+                        ].filter(o => o.k === 'all' || seatCounts[o.k] > 0).map(o => (
+                          <button
+                            key={o.k}
+                            type="button"
+                            onClick={() => setSeatFilter(o.k)}
+                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                              seatFilter === o.k
+                                ? 'bg-clay-600 text-white'
+                                : 'bg-sand-100 text-stone-600 hover:bg-sand-200'
+                            }`}
+                          >
+                            {o.label} <span className="tabular-nums opacity-70">{seatCounts[o.k]}</span>
+                          </button>
+                        ))}
+                      </div>
                       <div className="relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
                         </svg>
                         <input
@@ -1649,14 +1750,14 @@ export default function AssetDetailsModal({
                           value={seatSearch}
                           onChange={(e) => setSeatSearch(e.target.value)}
                           placeholder="ค้นหารายการย่อย (ชื่อ, ผู้ถือ, Product Key, Supplier, สถานะ...)"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2 text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] focus:bg-white transition"
+                          className="w-full bg-stone-50 border border-stone-200/60 rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
                         />
                         {seatSearch && (
                           <button
                             type="button"
                             onClick={() => setSeatSearch('')}
                             title="ล้างคำค้นหา"
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 w-5 h-5 flex items-center justify-center rounded transition-colors"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors"
                           >
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1669,18 +1770,18 @@ export default function AssetDetailsModal({
 
                   <div className="p-4">
                   {isImportingLicenseCSV && (
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
+                    <div className="bg-stone-50 p-4 rounded-lg border border-stone-200 mb-4 animate-in fade-in">
                       <div className="flex flex-col sm:flex-row gap-4 mb-3">
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-700 mb-2">1. ดาวน์โหลด Template</p>
-                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors">ดาวน์โหลด .csv</button>
+                          <p className="text-xs font-medium text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
+                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors">ดาวน์โหลด .csv</button>
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-700 mb-2">2. อัปโหลดข้อมูล</p>
-                          <input type="file" accept=".csv" onChange={handleUploadLicenseSeatCSV} className="block w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 cursor-pointer" />
+                          <p className="text-xs font-medium text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
+                          <input type="file" accept=".csv" onChange={handleUploadLicenseSeatCSV} className="block w-full text-xs text-stone-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-stone-200 file:text-stone-700 cursor-pointer" />
                         </div>
                       </div>
-                      <div className="text-right"><button onClick={() => setIsImportingLicenseCSV(false)} className="text-xs text-slate-500 hover:text-slate-700">ยกเลิก</button></div>
+                      <div className="text-right"><button onClick={() => setIsImportingLicenseCSV(false)} className="text-xs text-stone-500 hover:text-stone-700">ยกเลิก</button></div>
                     </div>
                   )}
 
@@ -1736,8 +1837,8 @@ export default function AssetDetailsModal({
                         </Field>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ไฟล์แนบ</span>
-                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                            <span className="text-xs font-medium text-stone-500">ไฟล์แนบ</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                               <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                               <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
                             </label>
@@ -1745,15 +1846,15 @@ export default function AssetDetailsModal({
                           {newSeatDocs.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {newSeatDocs.map((d, i) => (
-                                <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
-                                  <Paperclip className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2} />
-                                  <span className="text-slate-600 truncate max-w-[160px]">{d.name}</span>
-                                  <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                                <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
+                                  <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
+                                  <span className="text-stone-600 truncate max-w-[160px]">{d.name}</span>
+                                  <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                            <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                           )}
                         </div>
                       </section>
@@ -1764,155 +1865,33 @@ export default function AssetDetailsModal({
                     </ModalFooter>
                   </Modal>
 
-                  <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+                  <div className="border border-stone-200 rounded-xl overflow-hidden divide-y divide-stone-100">
                     {visibleLicenseSeats.length === 0 && seatSearchQ && (
-                      <div className="py-10 text-center text-slate-400">
-                        <p className="text-[13.5px] font-medium">ไม่พบรายการย่อยที่ตรงกับ “{seatSearch}”</p>
-                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-[12.5px] font-semibold text-[#1E487A] hover:underline">ล้างคำค้นหา</button>
+                      <div className="py-10 text-center text-stone-400">
+                        <p className="text-[13px] font-medium">ไม่พบรายการย่อยที่ตรงกับ “{seatSearch}”</p>
+                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-xs font-medium text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
-                    {visibleLicenseSeats.map((seat, index) => (
-                      <div key={seat.id} className="bg-white transition-colors hover:bg-slate-50">
-                        <div onClick={() => setSeatDetailModal(seat)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <input type="checkbox" checked={selectedLicenseSeatsForDelete.includes(seat.id)} onChange={(e) => { e.stopPropagation(); handleSelectLicenseSeat(seat.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 shrink-0" />
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${seat.type === 'available' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
-                            {seat.type === 'available' ? (
-                              <div className="flex items-center gap-2 overflow-hidden">
-                                {/* 🆕 ชื่อรายการย่อย — default เป็นชื่อ license หลัก */}
-                                <div className="overflow-hidden">
-                                  <p className="text-xs font-semibold text-slate-800 truncate">
-                                    {seat.seatLabel || currentAssetDetail.name || 'รายการย่อย'}
-                                  </p>
-                                  <p className="text-[11px] text-slate-400 truncate">สิทธิ์ว่าง</p>
-                                  {seat.productKey && (
-                                    <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
-                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
-                                      {seat.productKey}
-                                    </p>
-                                  )}
-                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10.5px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
-                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
-                                    </p>
-                                  )}
-                                </div>
-                                <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold shrink-0">พร้อมใช้งาน</span>
-                                {/* 🆕 Badge ใกล้หมดอายุ */}
-                                {(() => {
-                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
-                                  return ex.isExpiring ? (
-                                    <span
-                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
-                                    >
-                                      ⚠ {ex.statusText}
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </div>
-                            ) : seat.assignee.isAssetBound ? (
-                              /* ── Device-bound seat ── */
-                              <div className="flex items-center gap-2.5 overflow-hidden">
-                                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xs border border-purple-200 shrink-0">
-                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                                </div>
-                                <div className="overflow-hidden">
-                                  <p className="text-xs font-semibold text-slate-800 truncate">{seat.assignee.assignedAssetName || 'ทรัพย์สิน'}</p>
-                                  {seat.assignee.empId ? (
-                                    <p className="text-[11px] text-blue-500 font-medium truncate flex items-center gap-1">
-                                      <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                      {seat.assignee.empName}
-                                    </p>
-                                  ) : (
-                                    <p className="text-[11px] text-purple-500 font-medium">ผูกกับทรัพย์สิน</p>
-                                  )}
-                                  {seat.productKey && (
-                                    <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
-                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
-                                      {seat.productKey}
-                                    </p>
-                                  )}
-                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10.5px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
-                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
-                                    </p>
-                                  )}
-                                </div>
-                                {/* 🆕 Badge ใกล้หมดอายุ */}
-                                {(() => {
-                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
-                                  return ex.isExpiring ? (
-                                    <span
-                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
-                                    >
-                                      ⚠ {ex.statusText}
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2.5 overflow-hidden">
-                                <div className="w-7 h-7 rounded-full bg-blue-100 text-[#1E487A] flex items-center justify-center font-bold text-xs border border-blue-200 shrink-0">
-                                  {seat.assignee.empName?.charAt(0) || '?'}
-                                </div>
-                                <div className="overflow-hidden">
-                                  <p className="text-xs font-semibold text-slate-800 truncate">{seat.assignee.empName}</p>
-                                  {/* 🆕 ชื่อรายการย่อย (label) หรือ checkoutDate */}
-                                  {seat.seatLabel ? (
-                                    <p className="text-[11px] text-slate-500 truncate font-medium">{seat.seatLabel}</p>
-                                  ) : seat.assignee.checkoutDate && (
-                                    <p className="text-[11px] text-slate-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>
-                                  )}
-                                  {seat.productKey && (
-                                    <p className="text-[10.5px] text-slate-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
-                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
-                                      {seat.productKey}
-                                    </p>
-                                  )}
-                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10.5px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
-                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-slate-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
-                                    </p>
-                                  )}
-                                </div>
-                                {/* 🆕 Badge ใกล้หมดอายุ */}
-                                {(() => {
-                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
-                                  return ex.isExpiring ? (
-                                    <span
-                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
-                                    >
-                                      ⚠ {ex.statusText}
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {seat.type === 'available' ? null : seat.assignee.isAssetBound ? (
-                              seat.assignee.empId ? (
-                                <span className="text-[10.5px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md whitespace-nowrap">กำลังใช้งาน</span>
-                              ) : (
-                                <span className="text-[10.5px] font-semibold bg-purple-50 text-purple-600 border border-purple-200 px-2 py-1 rounded-md">ติดตั้งบนเครื่อง</span>
-                              )
-                            ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
-                            )}
-                            <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                          </div>
-                        </div>
-
-                      </div>
-                    ))}
+                    <SeatTable
+                      seats={visibleLicenseSeats}
+                      licenseExpiry={currentAssetDetail.expirationDate}
+                      selectedIds={selectedLicenseSeatsForDelete}
+                      onToggleSelect={handleSelectLicenseSeat}
+                      onOpen={setSeatDetailModal}
+                      onReturn={(seat) => setReturnModal({
+                        isOpen: true,
+                        assetId: currentAssetDetail.id,
+                        checkoutId: seat.assignee.checkoutId,
+                        empId: seat.assignee.empId,
+                        empName: seat.assignee.empName,
+                        assetName: currentAssetDetail.name,
+                        collectionName: 'licenses',
+                      })}
+                      checkExpiration={checkLicenseExpiration}
+                      formatDate={formatDateShort}
+                    />
                     {licenseSeats.length === 0 && (
-                      <div className="py-8 text-center text-[13px] text-slate-400 bg-slate-50 rounded-xl">
+                      <div className="py-8 text-center text-[13px] text-stone-400 bg-stone-50 rounded-xl">
                         ไม่มีข้อมูลสิทธิ์ กรุณาตั้งค่าจำนวนสิทธิ์ก่อน
                       </div>
                     )}
@@ -1923,28 +1902,28 @@ export default function AssetDetailsModal({
 
               {/* ส่วนจัดการชิ้นย่อย (เฉพาะอุปกรณ์เสริม) */}
               {selectedAssetCategory === 'accessories' && (
-                <div className="bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)] overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-slate-100 gap-2">
+                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[13.5px] font-semibold text-slate-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
+                      <div className="w-1 h-4 rounded-full bg-clay-600" />
+                      <h4 className="text-[13px] font-medium text-stone-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {individualItems.length > 0 && (
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer mr-2">
-                          <input type="checkbox" checked={selectedItemsForDelete.length === individualItems.length && individualItems.length > 0} onChange={handleSelectAllItems} className="w-3.5 h-3.5 rounded border-slate-300 text-[#1E487A] focus:ring-[#1E487A]" />
+                        <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer mr-2">
+                          <input type="checkbox" checked={selectedItemsForDelete.length === individualItems.length && individualItems.length > 0} onChange={handleSelectAllItems} className="w-3.5 h-3.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
                           เลือกทั้งหมด
                         </label>
                       )}
                       {selectedItemsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-semibold text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-300 transition-colors disabled:opacity-50">
+                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
                           ลบ ({selectedItemsForDelete.length})
                         </button>
                       )}
-                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-xl transition-colors">
                         นำเข้า CSV
                       </button>
-                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-semibold text-white bg-[#1E487A] hover:bg-[#163963] px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors">
                         + เพิ่มชิ้นใหม่
                       </button>
                     </div>
@@ -1952,9 +1931,9 @@ export default function AssetDetailsModal({
 
                   {/* 🆕 ช่องค้นหาในรายการชิ้นย่อย */}
                   {individualItems.length > 0 && (
-                    <div className="px-5 py-2.5 border-b border-slate-100">
+                    <div className="px-5 py-2.5 border-b border-stone-100">
                       <div className="relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
                         </svg>
                         <input
@@ -1962,10 +1941,10 @@ export default function AssetDetailsModal({
                           value={accItemSearch}
                           onChange={(e) => setAccItemSearch(e.target.value)}
                           placeholder="ค้นหาชิ้นย่อย (SN, รุ่น, ผู้ถือ, สถานะ...)"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2 text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] focus:bg-white transition"
+                          className="w-full bg-stone-50 border border-stone-200/60 rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
                         />
                         {accItemSearch && (
-                          <button type="button" onClick={() => setAccItemSearch('')} title="ล้างคำค้นหา" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 w-5 h-5 flex items-center justify-center rounded transition-colors">
+                          <button type="button" onClick={() => setAccItemSearch('')} title="ล้างคำค้นหา" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors">
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -1977,20 +1956,20 @@ export default function AssetDetailsModal({
 
                   <div className="p-4">
                   {isImportingCSV && (
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 animate-in fade-in">
+                    <div className="bg-stone-50 p-4 rounded-lg border border-stone-200 mb-4 animate-in fade-in">
                       <div className="flex flex-col sm:flex-row gap-4 mb-3">
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-700 mb-2">1. ดาวน์โหลด Template</p>
-                          <button onClick={handleDownloadPieceTemplate} className="w-full py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors">
+                          <p className="text-xs font-medium text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
+                          <button onClick={handleDownloadPieceTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors">
                             ดาวน์โหลด .csv
                           </button>
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-700 mb-2">2. อัปโหลดข้อมูล</p>
-                          <input type="file" accept=".csv" onChange={handleUploadPieceCSV} className="block w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 cursor-pointer" />
+                          <p className="text-xs font-medium text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
+                          <input type="file" accept=".csv" onChange={handleUploadPieceCSV} className="block w-full text-xs text-stone-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-stone-200 file:text-stone-700 cursor-pointer" />
                         </div>
                       </div>
-                      <div className="text-right"><button onClick={() => setIsImportingCSV(false)} className="text-xs text-slate-500 hover:text-slate-700">ยกเลิก</button></div>
+                      <div className="text-right"><button onClick={() => setIsImportingCSV(false)} className="text-xs text-stone-500 hover:text-stone-700">ยกเลิก</button></div>
                     </div>
                   )}
 
@@ -2025,8 +2004,8 @@ export default function AssetDetailsModal({
                         <SectionHeader>ไฟล์แนบ</SectionHeader>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ใบเสร็จ / รูป / ใบรับประกัน</span>
-                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                            <span className="text-xs font-medium text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                               <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                               <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
                             </label>
@@ -2034,15 +2013,15 @@ export default function AssetDetailsModal({
                           {(newItemData.documents || []).length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {newItemData.documents.map((d, i) => (
-                                <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
-                                  <Paperclip className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2} />
-                                  <span className="text-slate-600 truncate max-w-[180px]">{d.name}</span>
-                                  <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                                <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
+                                  <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
+                                  <span className="text-stone-600 truncate max-w-[180px]">{d.name}</span>
+                                  <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                            <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                           )}
                         </div>
                       </section>
@@ -2053,51 +2032,55 @@ export default function AssetDetailsModal({
                     </ModalFooter>
                   </Modal>
                   
-                  <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+                  <div className="border border-stone-200 rounded-xl overflow-hidden divide-y divide-stone-100">
                     {visibleIndividualItems.length === 0 && accSearchQ && (
-                      <div className="py-10 text-center text-slate-400">
-                        <p className="text-[13.5px] font-medium">ไม่พบชิ้นย่อยที่ตรงกับ “{accItemSearch}”</p>
-                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-[12.5px] font-semibold text-[#1E487A] hover:underline">ล้างคำค้นหา</button>
+                      <div className="py-10 text-center text-stone-400">
+                        <p className="text-[13px] font-medium">ไม่พบชิ้นย่อยที่ตรงกับ “{accItemSearch}”</p>
+                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-xs font-medium text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
                     {visibleIndividualItems.map((item) => (
-                      <div key={item.id} className="bg-white transition-colors hover:bg-slate-50">
+                      <div key={item.id} className="bg-white transition-colors hover:bg-stone-50">
                         <div onClick={() => setAccItemDetailModal(item)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
                           <div className="flex items-center gap-3 overflow-hidden">
-                            <input type="checkbox" checked={selectedItemsForDelete.includes(item.id)} onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-[#1E487A] rounded border-slate-300 shrink-0" />
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-emerald-500' : item.type === 'assigned' ? 'bg-blue-500' : 'bg-red-500'}`}></span>
+                            <input type="checkbox" checked={selectedItemsForDelete.includes(item.id)} onChange={(e) => { e.stopPropagation(); handleSelectItem(item.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-clay-600 rounded border-stone-300 shrink-0" />
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-olive-500' : item.type === 'assigned' ? 'bg-stone-500' : 'bg-brick-500'}`}></span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-xs font-semibold text-slate-800 truncate">
+                                <span className="truncate text-[13px] font-medium text-stone-800">
                                   {item.type === 'assigned'
-                                    ? `${currentAssetDetail.name} — ${item.assignee.empName}`
-                                    : currentAssetDetail.name}
+                                    ? item.assignee.empName
+                                    : (item.sn || `ชิ้นที่ ${(item.originalIndex ?? 0) + 1}`)}
                                 </span>
-                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border shrink-0 ${item.type === 'available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : item.type === 'assigned' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
+                                <span className={`shrink-0 rounded-lg px-2 py-0.5 text-[11px] font-medium ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
                               </div>
-                              {(item.sn || item.model) && (
-                                <p className="text-[10.5px] text-slate-400 truncate mt-0.5 flex items-center gap-2">
-                                  {item.sn && <span className="font-mono">SN: {item.sn}</span>}
-                                  {item.model && <span className="truncate">· {item.model}</span>}
-                                </p>
-                              )}
+                              {(() => {
+                                const showSn = item.sn && item.type === 'assigned';
+                                if (!showSn && !item.model) return null;
+                                return (
+                                  <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
+                                    {showSn && <span className="font-mono">SN: {item.sn}</span>}
+                                    {item.model && <span className="truncate">{showSn ? '· ' : ''}{item.model}</span>}
+                                  </p>
+                                );
+                              })()}
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2 shrink-0">
                             {item.type === 'available' ? null
                               : item.type === 'assigned' ? (
-                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
+                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-xl transition-colors">รับคืน</button>
                               ) : (
-                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-semibold bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 px-2.5 py-1 rounded-lg transition-colors">เข้าคลัง</button>
+                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-medium bg-white border border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50 px-2.5 py-1 rounded-xl transition-colors">เข้าคลัง</button>
                               )}
-                            <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
                         </div>
                       </div>
                     ))}
                     {individualItems.length === 0 && (
-                      <div className="py-8 text-center text-[13px] text-slate-400 bg-slate-50">ไม่มีข้อมูลชิ้นย่อย</div>
+                      <div className="py-8 text-center text-[13px] text-stone-400 bg-stone-50">ไม่มีข้อมูลชิ้นย่อย</div>
                     )}
                   </div>
                   </div>
@@ -2129,8 +2112,8 @@ export default function AssetDetailsModal({
                 <>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                      <h4 className="text-[13px] font-semibold text-slate-600">ประวัติการจัดซื้อ ({purchaseHistory.length} ครั้ง)</h4>
+                      <div className="w-1 h-4 rounded-full bg-clay-600" />
+                      <h4 className="text-[13px] font-medium text-stone-600">ประวัติการจัดซื้อ ({purchaseHistory.length} ครั้ง)</h4>
                     </div>
                     <button
                       onClick={() => {
@@ -2138,7 +2121,7 @@ export default function AssetDetailsModal({
                         setPendingPurchaseDocs([]);
                         setHistoryForm({ purchaseDate: '', cost: '', vendor: '', model: currentAssetDetail.model || '', note: '', documents: [] });
                       }}
-                      className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-[#1E487A] text-white px-3.5 py-2 rounded-lg hover:bg-[#163963] transition-colors shadow-sm"
+                      className="inline-flex items-center gap-2 text-sm font-medium bg-clay-600 text-white px-4 py-2.5 rounded-xl hover:bg-clay-700 transition-colors"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                       เพิ่มประวัติจัดซื้อ
@@ -2146,52 +2129,52 @@ export default function AssetDetailsModal({
                   </div>
 
                   {purchaseHistory.length === 0 ? (
-                    <div className="py-14 text-center bg-white rounded-xl border border-dashed border-slate-200">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                    <div className="py-14 text-center bg-white rounded-xl border border-dashed border-stone-200">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-stone-100 flex items-center justify-center text-stone-300">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                       </div>
-                      <p className="text-[14px] font-semibold text-slate-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
-                      <p className="text-[12.5px] text-slate-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
+                      <p className="text-sm font-medium text-stone-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
+                      <p className="text-xs text-stone-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {purchaseHistory.map((hist, index) => (
-                        <div key={hist.id} className={`bg-white rounded-xl px-5 py-4 transition-colors border ${index === 0 ? 'border-[#1E487A]/40' : 'border-slate-200 hover:border-slate-300'}`}>
+                        <div key={hist.id} className={`bg-white rounded-xl px-5 py-4 transition-colors border ${index === 0 ? 'border-clay-600/40' : 'border-stone-200 hover:border-stone-300'}`}>
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5 min-w-0">
                               {index === 0 && (
-                                <span className="bg-blue-50 text-[#1E487A] px-2 py-0.5 rounded-md text-[10.5px] font-semibold border border-blue-200 shrink-0">ล่าสุด</span>
+                                <span className="bg-sand-100 text-clay-600 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">ล่าสุด</span>
                               )}
-                              <span className="text-[13px] text-slate-500 font-medium shrink-0">
+                              <span className="text-[13px] text-stone-500 font-medium shrink-0">
                                 {hist.purchaseDate ? formatDateShort(hist.purchaseDate) : 'ไม่ระบุวันที่'}
                               </span>
                             </div>
-                            <div className="text-[16px] font-bold text-[#1E487A] shrink-0">
+                            <div className="text-[15px] font-medium text-clay-600 shrink-0">
                               {hist.cost ? `฿${Number(hist.cost).toLocaleString()}` : '-'}
                             </div>
                             <div className="flex-1 min-w-0 hidden sm:block">
-                              <p className="text-[13px] text-slate-600 truncate"><span className="text-slate-400">Vendor:</span> {hist.vendor || '-'}</p>
-                              <p className="text-[13px] text-slate-600 truncate"><span className="text-slate-400">Model:</span> {hist.model || '-'}</p>
+                              <p className="text-[13px] text-stone-600 truncate"><span className="text-stone-400">Vendor:</span> {hist.vendor || '-'}</p>
+                              <p className="text-[13px] text-stone-600 truncate"><span className="text-stone-400">Model:</span> {hist.model || '-'}</p>
                             </div>
                             <div className="flex gap-1.5 shrink-0">
-                              <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300 rounded-lg transition-colors">
+                              <button onClick={() => { setEditingHistoryId(hist.id); setHistoryForm(hist); }} className="p-1.5 bg-white border border-stone-200 text-stone-500 hover:bg-stone-50 hover:border-stone-300 rounded-xl transition-colors">
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
-                              <button onClick={() => handleDeleteHistory(hist.id)} className="p-1.5 bg-white border border-slate-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-lg transition-colors">
+                              <button onClick={() => handleDeleteHistory(hist.id)} className="p-1.5 bg-white border border-stone-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-xl transition-colors">
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             </div>
                           </div>
                           {(hist.note || (hist.documents && hist.documents.length > 0)) && (
-                            <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2 items-start">
-                              {hist.note && <p className="text-[13px] text-slate-500 flex-1">{hist.note}</p>}
+                            <div className="mt-3 pt-3 border-t border-stone-100 flex flex-wrap gap-2 items-start">
+                              {hist.note && <p className="text-[13px] text-stone-500 flex-1">{hist.note}</p>}
                               {hist.documents?.map((docItem, idx) => (
                                 <button
                                   key={idx}
                                   type="button"
                                   onClick={() => handleOpenPurchaseDoc(docItem)}
                                   disabled={openingPhDocId === docItem.id}
-                                  className="flex items-center gap-1 text-[12px] bg-white text-slate-500 border border-slate-200 py-1 px-2.5 rounded-md hover:bg-blue-50 hover:text-[#1E487A] hover:border-blue-200 transition-colors max-w-[160px] truncate disabled:opacity-60"
+                                  className="flex items-center gap-1 text-xs bg-white text-stone-500 border border-stone-200 py-1 px-2.5 rounded-lg hover:bg-stone-50 hover:text-clay-600 hover:border-stone-200 transition-colors max-w-[160px] truncate disabled:opacity-60"
                                 >
                                   {openingPhDocId === docItem.id
                                     ? <svg className="w-3 h-3 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth={2} strokeDasharray="40 20"/></svg>
@@ -2208,10 +2191,10 @@ export default function AssetDetailsModal({
                   )}
                 </>
               ) : (
-                <div className="bg-white border border-slate-200/70 p-6 rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04)]">
-                  <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100">
-                    <div className="w-1 h-5 rounded-full bg-[#1E487A]" />
-                    <h4 className="text-[14px] font-semibold text-slate-700">
+                <div className="bg-white border border-stone-200/70 p-6 rounded-xl shadow-[0_1px_2px_rgba(22,32,36,0.04)]">
+                  <div className="flex items-center gap-2 mb-5 pb-4 border-b border-stone-100">
+                    <div className="w-1 h-5 rounded-full bg-clay-600" />
+                    <h4 className="text-sm font-medium text-stone-700">
                       {editingHistoryId ? 'แก้ไขประวัติการจัดซื้อ' : 'เพิ่มประวัติการจัดซื้อใหม่'}
                     </h4>
                   </div>
@@ -2219,39 +2202,39 @@ export default function AssetDetailsModal({
                   <form onSubmit={handleSaveHistory} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">วันที่จัดซื้อ</label>
-                        <DateField value={historyForm.purchaseDate} onChange={(v) => setHistoryForm({...historyForm, purchaseDate: v})} inputClassName="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" />
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่จัดซื้อ</label>
+                        <DateField value={historyForm.purchaseDate} onChange={(v) => setHistoryForm({...historyForm, purchaseDate: v})} inputClassName="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ราคา (บาท)</label>
-                        <input type="number" step="any" value={historyForm.cost} onChange={(e) => setHistoryForm({...historyForm, cost: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" placeholder="ยอดรวมหรือต่อชิ้น" />
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">ราคา (บาท)</label>
+                        <input type="number" step="any" value={historyForm.cost} onChange={(e) => setHistoryForm({...historyForm, cost: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" placeholder="ยอดรวมหรือต่อชิ้น" />
                       </div>
                       <div>
-                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
-                        <input type="text" value={historyForm.vendor} onChange={(e) => setHistoryForm({...historyForm, vendor: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" placeholder="ชื่อร้าน/บริษัท" />
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
+                        <input type="text" value={historyForm.vendor} onChange={(e) => setHistoryForm({...historyForm, vendor: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" placeholder="ชื่อร้าน/บริษัท" />
                       </div>
                       <div>
-                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
-                        <input type="text" value={historyForm.model} onChange={(e) => setHistoryForm({...historyForm, model: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors" />
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
+                        <input type="text" value={historyForm.model} onChange={(e) => setHistoryForm({...historyForm, model: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-[13.5px] font-medium text-slate-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
-                        <textarea value={historyForm.note} onChange={(e) => setHistoryForm({...historyForm, note: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1E487A]/20 focus:border-[#1E487A] transition-colors resize-none" rows="2" placeholder="เช่น จัดซื้อทดแทนเครื่องเดิม..."></textarea>
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
+                        <textarea value={historyForm.note} onChange={(e) => setHistoryForm({...historyForm, note: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors resize-none" rows="2" placeholder="เช่น จัดซื้อทดแทนเครื่องเดิม..."></textarea>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100">
-                      <label className="block text-[13.5px] font-medium text-slate-600 mb-3">เอกสารแนบการจัดซื้อ</label>
+                    <div className="pt-3 border-t border-stone-100">
+                      <label className="block text-[13px] font-medium text-stone-600 mb-3">เอกสารแนบการจัดซื้อ</label>
 
                       {/* เอกสารที่บันทึกแล้ว (historyForm.documents) */}
                       {historyForm.documents && historyForm.documents.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                           {historyForm.documents.map((docItem, idx) => (
-                            <div key={idx} className="flex items-center justify-between bg-slate-50 border border-slate-200 p-2.5 rounded-lg">
+                            <div key={idx} className="flex items-center justify-between bg-stone-50 border border-stone-200 p-2.5 rounded-lg">
                               <button
                                 type="button"
                                 onClick={() => handleOpenPurchaseDoc(docItem)}
-                                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#1E487A] hover:underline max-w-[180px] text-left"
+                                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:underline max-w-[180px] text-left"
                                 title={docItem.name}
                               >
                                 {openingPhDocId === docItem.id
@@ -2259,7 +2242,7 @@ export default function AssetDetailsModal({
                                   : <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />}
                                 <span className="truncate">{docItem.name}</span>
                               </button>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-slate-400 hover:text-red-500 bg-white border border-slate-200 w-6 h-6 rounded-md flex items-center justify-center transition-colors">
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'saved')} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
@@ -2271,11 +2254,11 @@ export default function AssetDetailsModal({
                       {pendingPurchaseDocs.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                           {pendingPurchaseDocs.map((pd, idx) => (
-                            <div key={idx} className="flex items-center justify-between bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
-                              <span className="text-[13px] font-medium text-amber-700 truncate max-w-[180px]">
+                            <div key={idx} className="flex items-center justify-between bg-clay-100 border border-clay-200 p-2.5 rounded-lg">
+                              <span className="text-[13px] font-medium text-clay-600 truncate max-w-[180px]">
                                 🕐 {pd.name}
                               </span>
-                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-amber-400 hover:text-red-500 bg-white border border-amber-200 w-6 h-6 rounded-md flex items-center justify-center transition-colors">
+                              <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-rose-500 bg-white border border-clay-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             </div>
@@ -2283,7 +2266,7 @@ export default function AssetDetailsModal({
                         </div>
                       )}
 
-                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-semibold py-2 px-3.5 rounded-lg border transition-colors ${isSavingItem ? 'border-slate-200 bg-slate-50 text-slate-400' : 'border-slate-200 bg-white text-[#1E487A] hover:bg-blue-50 hover:border-blue-200'}`}>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-medium py-2 px-3.5 rounded-lg border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
                         {isSavingItem ? 'กำลังอัปโหลด...' : (
                           <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>แนบไฟล์</>
                         )}
@@ -2291,9 +2274,9 @@ export default function AssetDetailsModal({
                       </label>
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-slate-100">
-                      <button type="button" onClick={() => { setIsAddingHistory(false); setEditingHistoryId(null); setPendingPurchaseDocs([]); }} className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 text-sm font-semibold transition-colors">ยกเลิก</button>
-                      <button type="submit" disabled={isSavingItem} className="flex-1 py-2.5 bg-[#1E487A] text-white rounded-xl hover:bg-[#163963] text-sm font-semibold transition-colors shadow-sm disabled:opacity-50">บันทึกประวัติ</button>
+                    <div className="flex gap-3 pt-4 border-t border-stone-100">
+                      <button type="button" onClick={() => { setIsAddingHistory(false); setEditingHistoryId(null); setPendingPurchaseDocs([]); }} className="flex-1 py-2.5 bg-stone-100 text-stone-700 rounded-xl hover:bg-stone-200 text-sm font-medium transition-colors">ยกเลิก</button>
+                      <button type="submit" disabled={isSavingItem} className="flex-1 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors shadow-sm disabled:opacity-50">บันทึกประวัติ</button>
                     </div>
                   </form>
                 </div>
@@ -2312,13 +2295,26 @@ export default function AssetDetailsModal({
             />
           )}
 
+          {/* TAB: ไทม์ไลน์ — ประวัติทั้งหมดของรายการนี้เรียงตามเวลา */}
+          {activeTab === "timeline" && (
+            <Timeline
+              events={timelineEvents}
+              holderLabel={isLicense ? "ผู้/เครื่องที่เคยใช้สิทธิ์" : "ผู้เคยถือครอง"}
+              holderKinds={isLicense ? ["seatOn", "licOn"] : ["checkout"]}
+              assignLabel={isLicense ? "จ่ายสิทธิ์ไปแล้ว" : "เบิกจ่ายไปแล้ว"}
+              emptyHint={isLicense
+                ? "ยังไม่มีประวัติการใช้สิทธิ์ของ License นี้"
+                : "ยังไม่มีประวัติการใช้งานของรายการนี้"}
+            />
+          )}
+
           {/* TAB: เอกสารแนบ */}
           {activeTab === 'docs' && (
             <div className="space-y-3 animate-in fade-in duration-200">
-              <div className="bg-white p-4 rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04)]">
+              <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(22,32,36,0.04)]">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1 h-4 rounded-full bg-[#1E487A]" />
-                  <h4 className="text-[13px] font-semibold text-slate-600">จัดการเอกสารแนบ</h4>
+                  <div className="w-1 h-4 rounded-full bg-clay-600" />
+                  <h4 className="text-[13px] font-medium text-stone-600">จัดการเอกสารแนบ</h4>
                 </div>
                 
                 <div className="flex flex-col gap-4">
@@ -2333,23 +2329,23 @@ export default function AssetDetailsModal({
                           // 🆕 รูปภาพ → แสดง thumbnail เล็กๆ (48px) ให้เห็นว่าแนบรูปอะไร
                           const isImg = String(docItem.data || '').startsWith('data:image/');
                           return (
-                          <div key={idx} className="flex items-center justify-between bg-white border border-slate-200 p-3 rounded-lg overflow-hidden">
-                            <a href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13.5px] text-[#1E487A] font-medium hover:underline truncate mr-3 min-w-0">
+                          <div key={idx} className="flex items-center justify-between bg-white border border-stone-200 p-3 rounded-lg overflow-hidden">
+                            <a href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13px] text-clay-600 font-medium hover:underline truncate mr-3 min-w-0">
                               {isImg ? (
                                 <img
                                   src={docItem.data}
                                   alt={docItem.name}
                                   loading="lazy"
-                                  className="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0 bg-white"
+                                  className="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0 bg-white"
                                 />
                               ) : (
-                                <div className="w-12 h-12 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                                  <svg className="w-5 h-5 text-[#1E487A]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                <div className="w-12 h-12 rounded-lg bg-stone-50 border border-stone-200 flex items-center justify-center shrink-0">
+                                  <svg className="w-5 h-5 text-clay-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
                               )}
                               <span className="truncate">{docItem.name}</span>
                             </a>
-                            <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-slate-400 hover:text-red-500 bg-white border border-slate-200 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
+                            <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-7 h-7 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
@@ -2357,20 +2353,20 @@ export default function AssetDetailsModal({
                         })}
                       </div>
                     ) : (
-                      <div className="py-12 text-center bg-white border border-dashed border-slate-200 rounded-xl">
-                        <div className="w-11 h-11 mx-auto mb-3 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300">
+                      <div className="py-12 text-center bg-white border border-dashed border-stone-200 rounded-xl">
+                        <div className="w-11 h-11 mx-auto mb-3 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-stone-300">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
                         </div>
-                        <p className="text-[14px] font-semibold text-slate-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
-                        <p className="text-[12.5px] text-slate-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
+                        <p className="text-sm font-medium text-stone-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
+                        <p className="text-xs text-stone-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
                       </div>
                     );
                   })()}
 
                   <div className="mt-3 flex justify-center">
-                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13.5px] font-semibold py-2.5 px-5 rounded-lg border transition-colors ${isSavingItem ? 'border-slate-200 bg-slate-50 text-slate-400' : 'border-slate-200 bg-white text-[#1E487A] hover:bg-blue-50 hover:border-blue-200'}`}>
+                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-medium py-2.5 px-5 rounded-xl border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
                       {isSavingItem ? (
-                        <><div className="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
+                        <><div className="w-3.5 h-3.5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                       ) : (
                         <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>อัปโหลดไฟล์</>
                       )}
@@ -2385,12 +2381,12 @@ export default function AssetDetailsModal({
         </div>
         
         {/* Footer */}
-        <div className="px-5 py-3 bg-white flex flex-wrap justify-end items-center gap-2 border-t border-slate-100 shrink-0 rounded-b-2xl">
+        <div className="px-5 py-3 bg-white flex flex-wrap justify-end items-center gap-2 border-t border-stone-100 shrink-0 rounded-b-2xl">
           {selectedAssetCategory === 'assets' && (
             (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-              <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-[#1E487A] text-white rounded-lg hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto">เบิกจ่าย</button>
+              <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto">เบิกจ่าย</button>
             ) : currentAssetDetail.status === 'ถูกใช้งาน' ? (
-              <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-[#1E487A] text-white rounded-lg hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto">รับคืน</button>
+              <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto">รับคืน</button>
             ) : null
           )}
 
@@ -2400,11 +2396,11 @@ export default function AssetDetailsModal({
             return availCount > 0 ? (
               <button
                 onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); closeAll(); }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E487A] text-white rounded-lg hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto"
               >
                 <LogIn className="h-4 w-4" strokeWidth={2.4} />
                 เบิกจ่าย
-                <span className="text-[11px] font-bold bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
+                <span className="text-[11px] font-medium bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
               </button>
             ) : null;
           })()}
@@ -2415,17 +2411,17 @@ export default function AssetDetailsModal({
             return availCount > 0 ? (
               <button
                 onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'accessories' }); closeAll(); }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E487A] text-white rounded-lg hover:bg-[#163963] text-[14px] font-semibold transition-colors sm:mr-auto"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto"
               >
                 <LogIn className="h-4 w-4" strokeWidth={2.4} />
                 เบิกจ่าย
-                <span className="text-[11px] font-bold bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
+                <span className="text-[11px] font-medium bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
               </button>
             ) : null;
           })()}
 
           {selectedAssetCategory === 'assets' && (
-            <button onClick={() => setShowLabelPreview(true)} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 text-[14px] font-semibold transition-colors">
+            <button onClick={() => setShowLabelPreview(true)} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-stone-600 border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 text-sm font-medium transition-colors">
               พิมพ์ป้าย
             </button>
           )}
@@ -2436,15 +2432,15 @@ export default function AssetDetailsModal({
                 const { printAssetDetail } = await import('../utils/printAssetDetail.js');
                 printAssetDetail({ asset: currentAssetDetail });
               }}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 text-[14px] font-semibold transition-colors"
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-stone-600 border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 text-sm font-medium transition-colors"
               title="พิมพ์ PDF รายละเอียดทรัพย์สิน + รูปเอกสารแนบ"
             >
               พิมพ์ PDF
             </button>
           )}
 
-          <button onClick={() => { if (asPage && onEditPage) { onEditPage(); return; } if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 text-[14px] font-semibold transition-colors">แก้ไขข้อมูล</button>
-          <button onClick={closeAll} className="w-full sm:w-auto px-6 py-2.5 bg-[#1E487A] text-white rounded-lg hover:bg-[#163963] text-[14px] font-semibold transition-colors">ปิด</button>
+          <button onClick={() => { if (asPage && onEditPage) { onEditPage(); return; } if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-stone-600 border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 text-sm font-medium transition-colors">แก้ไขข้อมูล</button>
+          <button onClick={closeAll} className="w-full sm:w-auto px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors">ปิด</button>
         </div>
       </div>
 
@@ -2534,6 +2530,15 @@ export default function AssetDetailsModal({
           isSavingItem={isSavingItem}
         />
       )}
+
+      {/* 🆕 ดูรูปเต็มจอ — z สูงกว่า sub-modal (z-[95]) */}
+      <ImageViewer
+        src={viewerImage?.src}
+        alt={viewerImage?.name}
+        filename={viewerImage?.name}
+        onClose={() => setViewerImage(null)}
+        z={130}
+      />
     </div>
   );
 }
@@ -2541,7 +2546,7 @@ export default function AssetDetailsModal({
 /* ════════════════════════════════════════════════
    🆕 SeatDetailModal — Modal สวยๆ แสดงรายละเอียด + edit ของ seat
 ════════════════════════════════════════════════ */
-function SeatDetailModal({
+export function SeatDetailModal({
   seat, license, checkLicenseExpiration, calculateAge, onClose, onEdit, isEditing,
   tempLicenseLabel, setTempLicenseLabel,
   tempLicenseProductKey, setTempLicenseProductKey,
@@ -2566,42 +2571,45 @@ function SeatDetailModal({
 
   // Status badge — สไตล์เดียวกับฝั่ง user
   const statusBadge = seat.type === 'available'
-    ? { label: 'พร้อมใช้งาน', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' }
+    ? { label: 'พร้อมใช้งาน', cls: 'bg-olive-50 text-olive-700', dot: 'bg-olive-500' }
     : seat.assignee?.isAssetBound
-    ? { label: 'ติดตั้งบนเครื่อง', cls: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-500' }
-    : { label: 'ถูกใช้งาน', cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' };
+    ? { label: 'ติดตั้งบนเครื่อง', cls: 'bg-ochre-50 text-ochre-700', dot: 'bg-clay-500' }
+    : { label: 'ถูกใช้งาน', cls: 'bg-stone-50 text-stone-700', dot: 'bg-stone-500' };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_24px_60px_-24px_rgba(16,47,87,0.28)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header — ขาวสะอาด ธีมเดียวกับฝั่ง user */}
-        <div className="px-6 py-5 border-b border-slate-100">
+        <div className="px-7 py-5 border-b border-stone-100">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-11 h-11 rounded-xl bg-[#1E487A]/[0.08] text-[#1E487A] flex items-center justify-center shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
                 <KeyRound className="h-5 w-5" strokeWidth={2} />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
+                <p className="text-xs font-medium text-stone-400 mb-0.5">
                   รายการย่อย · {license.name}
                 </p>
-                <h3 className="text-[20px] font-bold text-slate-900 leading-tight break-words">
-                  {seat.seatLabel || license.name || 'รายการย่อย'}
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">
+                  {seat.seatLabel
+                    || seat.assignee?.empName
+                    || seat.assignee?.assignedAssetName
+                    || 'สิทธิ์ว่าง'}
                 </h3>
                 {/* Status row */}
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadge.cls}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${statusBadge.cls}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
                     {statusBadge.label}
                   </span>
                   {seat.type === 'assigned' && seat.assignee?.empName && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 text-xs font-semibold border border-slate-200">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sand-100 text-stone-600 text-xs font-medium">
                       <User className="h-3 w-3" strokeWidth={2.2} /> {seat.assignee.empName}
                     </span>
                   )}
                   {expCheck?.isExpiring && (
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${expCheck.colorClass}`}>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${expCheck.colorClass}`}>
                       ⚠ {expCheck.statusText}
                     </span>
                   )}
@@ -2610,7 +2618,7 @@ function SeatDetailModal({
             </div>
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center shrink-0 transition-colors"
+              className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -2622,7 +2630,7 @@ function SeatDetailModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto bg-white">
           {isEditing ? (
-            <div className="p-6 sm:p-7 space-y-7">
+            <div className="px-7 py-6 space-y-7">
               {/* EDIT MODE — ธีมเดียวกับฟอร์มอื่นในระบบ */}
               <section className="space-y-4">
                 <SectionHeader>ข้อมูลสิทธิ์</SectionHeader>
@@ -2664,8 +2672,8 @@ function SeatDetailModal({
                 </Field>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ไฟล์แนบ</span>
-                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                    <span className="text-xs font-medium text-stone-500">ไฟล์แนบ</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                       <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
                     </label>
@@ -2673,34 +2681,34 @@ function SeatDetailModal({
                   {tempLicenseSeatDocs.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {tempLicenseSeatDocs.map((d, i) => (
-                        <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
-                          <Paperclip className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={2} />
-                          <span className="text-slate-600 truncate max-w-[160px]">{d.name}</span>
-                          <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                        <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
+                          <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
+                          <span className="text-stone-600 truncate max-w-[160px]">{d.name}</span>
+                          <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                    <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                   )}
                 </div>
               </section>
             </div>
           ) : (
-            <div className="px-6 sm:px-7 divide-y divide-slate-100">
+            <div className="px-6 sm:px-7 divide-y divide-stone-100">
               {/* VIEW MODE — clean */}
 
               {/* ── ผู้ถือครอง / การใช้งาน (เฉพาะสิทธิ์ที่ถูกใช้งาน) ── */}
               {seat.type === 'assigned' && seat.assignee && (
                 <Section icon={seat.assignee.isAssetBound ? Laptop : User} title="ผู้ถือครอง / การใช้งาน">
-                  <div className="flex items-start gap-3.5 rounded-xl bg-slate-50 border border-slate-100 p-4">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-[15px] shrink-0 ${seat.assignee.isAssetBound ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-[#1E487A]'}`}>
+                  <div className="flex items-start gap-3.5 rounded-xl bg-stone-50 border border-stone-100 p-4">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-medium text-[15px] shrink-0 ${seat.assignee.isAssetBound ? 'bg-clay-100 text-clay-600' : 'bg-stone-100 text-clay-600'}`}>
                       {seat.assignee.isAssetBound
                         ? <Laptop className="h-5 w-5" strokeWidth={2} />
                         : (seat.assignee.empName?.charAt(0) || '?')}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-bold text-slate-800 break-words">
+                      <p className="text-[15px] font-medium text-stone-800 break-words">
                         {seat.assignee.empName
                           || (seat.assignee.isAssetBound ? (seat.assignee.assignedAssetName || 'ผูกกับทรัพย์สิน') : '-')}
                       </p>
@@ -2712,8 +2720,8 @@ function SeatDetailModal({
                         {seat.assignee.checkoutDate && <KV icon={Calendar} label="เบิกเมื่อ" value={seat.assignee.checkoutDate} />}
                       </div>
                       {seat.assignee.remarks && (
-                        <p className="mt-3 pt-3 border-t border-slate-200/70 text-[13px] text-slate-600 leading-relaxed">
-                          <span className="text-slate-400">หมายเหตุการมอบ: </span>{seat.assignee.remarks}
+                        <p className="mt-3 pt-3 border-t border-stone-200/70 text-[13px] text-stone-600 leading-relaxed">
+                          <span className="text-stone-400">หมายเหตุการมอบ: </span>{seat.assignee.remarks}
                         </p>
                       )}
                     </div>
@@ -2721,20 +2729,21 @@ function SeatDetailModal({
                 </Section>
               )}
 
-              {/* ── Product Key / รหัสอ้างอิง (แสดงเสมอ) ── */}
-              <Section icon={KeyRound} title="Product Key / รหัสอ้างอิง">
-                <div className="space-y-1">
-                  <KeyRow label="Product Key" value={seat.productKey} />
-                  <KeyRow label="รหัสอ้างอิง Key" value={seat.keyCode} />
-                </div>
-              </Section>
+              {/* Product Key — แสดงเมื่อมีค่าจริงเท่านั้น */}
+              {(seat.productKey || seat.keyCode) && (
+                <Section icon={KeyRound} title="Product Key / รหัสอ้างอิง">
+                  <div className="space-y-1">
+                    {seat.productKey && <KeyRow label="Product Key" value={seat.productKey} />}
+                    {seat.keyCode && <KeyRow label="รหัสอ้างอิง Key" value={seat.keyCode} />}
+                  </div>
+                </Section>
+              )}
 
               {/* ── ข้อมูลสิทธิ์ ── */}
               <Section icon={FileText} title="ข้อมูลสิทธิ์">
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
                   <DItem label="Supplier" value={seatSupplier} span={2} />
-                  <DItem label="สถานะ" value={statusBadge.label} />
-                  <DItem label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
+                  <DItem label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : ''} />
                   <DItem label="วันที่ซื้อ" value={seatPDate} />
                   <DItem label="อายุการใช้งาน" value={age} />
                   <DItem
@@ -2749,7 +2758,7 @@ function SeatDetailModal({
               {/* ── หมายเหตุ ── */}
               {seat.seatNote && (
                 <Section icon={FileText} title="หมายเหตุ">
-                  <p className="text-[13.5px] text-slate-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
+                  <p className="text-[13px] text-stone-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
                 </Section>
               )}
 
@@ -2758,14 +2767,14 @@ function SeatDetailModal({
                 {seat.documents?.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {seat.documents.map((d, i) => (
-                      <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-[12.5px] font-medium text-[#1E487A] hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                      <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1.5 bg-sand-100 px-3 py-2 rounded-xl text-[13px] font-medium text-clay-600 hover:bg-stone-50 hover:border-stone-200 transition-colors">
                         <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                         <span className="truncate max-w-[180px]">{d.name}</span>
                       </a>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[13px] text-slate-300">— ไม่มีไฟล์แนบ</p>
+                  <p className="text-[13px] text-stone-300">— ไม่มีไฟล์แนบ</p>
                 )}
               </Section>
             </div>
@@ -2773,20 +2782,20 @@ function SeatDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+        <div className="px-7 py-5 border-t border-stone-100 bg-stone-50 flex justify-end gap-2.5">
           {isEditing ? (
             <>
               <button
                 onClick={onCancelEdit}
                 disabled={isSavingItem}
-                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50"
+                className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 transition-colors hover:border-stone-300 hover:text-stone-900 disabled:opacity-50"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={onSaveEdit}
                 disabled={isSavingItem}
-                className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm disabled:opacity-50"
+                className="rounded-xl px-5 py-2.5 text-sm font-medium text-white bg-clay-600 transition-colors hover:bg-clay-700 disabled:opacity-50"
               >
                 {isSavingItem ? 'กำลังบันทึก...' : '✓ บันทึก'}
               </button>
@@ -2795,13 +2804,13 @@ function SeatDetailModal({
             <>
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 transition-colors hover:border-stone-300 hover:text-stone-900"
               >
                 ปิด
               </button>
               <button
                 onClick={onEdit}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white bg-clay-600 transition-colors hover:bg-clay-700"
               >
                 <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} />
                 แก้ไขข้อมูล
@@ -2818,7 +2827,7 @@ function SeatDetailModal({
    🆕 AccessoryItemDetailModal — รายละเอียด + edit ของชิ้นย่อยอุปกรณ์เสริม
    (โครง/ดีไซน์เดียวกับ SeatDetailModal ของ License)
 ════════════════════════════════════════════════ */
-function AccessoryItemDetailModal({
+export function AccessoryItemDetailModal({
   item, accessoryName, calcAccessoryAge, onClose, onEdit, isEditing,
   onCancelEdit, onSaveEdit,
   tempSNValue, setTempSNValue,
@@ -2830,41 +2839,45 @@ function AccessoryItemDetailModal({
   handleAccItemDocUpload, handleOpenAccDoc, isSavingItem,
 }) {
   const statusBadge = item.type === 'available'
-    ? { label: 'พร้อมใช้งาน', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' }
+    ? { label: 'พร้อมใช้งาน', cls: 'bg-olive-50 text-olive-700', dot: 'bg-olive-500' }
     : item.type === 'assigned'
-    ? { label: 'ถูกใช้งาน', cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' }
-    : { label: 'ชำรุดเสียหาย', cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' };
+    ? { label: 'ถูกใช้งาน', cls: 'bg-stone-50 text-stone-700', dot: 'bg-stone-500' }
+    : { label: 'ชำรุดเสียหาย', cls: 'bg-rose-50 text-rose-700', dot: 'bg-brick-500' };
   const age = calcAccessoryAge(item.purchaseDate);
   const docs = item.documents || [];
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_24px_60px_-24px_rgba(16,47,87,0.28)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100">
+        <div className="px-7 py-5 border-b border-stone-100">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-11 h-11 rounded-xl bg-[#1E487A]/[0.08] text-[#1E487A] flex items-center justify-center shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
                 <Tag className="h-5 w-5" strokeWidth={2} />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">รายการชิ้นย่อย · {accessoryName}</p>
-                <h3 className="text-[20px] font-bold text-slate-900 leading-tight break-words">{item.sn ? `SN: ${item.sn}` : accessoryName}</h3>
+                <p className="text-xs font-medium text-stone-400 mb-0.5">รายการชิ้นย่อย · {accessoryName}</p>
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">
+                  {item.sn
+                    ? `SN: ${item.sn}`
+                    : item.assignee?.empName || `ชิ้นที่ ${(item.originalIndex ?? 0) + 1}`}
+                </h3>
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${statusBadge.cls}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${statusBadge.cls}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
                     {statusBadge.label}
                   </span>
-                  {item.type === 'assigned' && item.assignee?.empName && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 text-xs font-semibold border border-slate-200">
+                  {item.type === 'assigned' && item.assignee?.empName && item.sn && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sand-100 text-stone-600 text-xs font-medium">
                       <User className="h-3 w-3" strokeWidth={2.2} /> {item.assignee.empName}
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center shrink-0 transition-colors">
+            <button onClick={onClose} className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -2873,7 +2886,7 @@ function AccessoryItemDetailModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto bg-white">
           {isEditing ? (
-            <div className="p-6 sm:p-7 space-y-7">
+            <div className="px-7 py-6 space-y-7">
               <section className="space-y-4">
                 <SectionHeader>ข้อมูลชิ้น</SectionHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2898,8 +2911,8 @@ function AccessoryItemDetailModal({
                 <SectionHeader>ไฟล์แนบ</SectionHeader>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">ใบเสร็จ / รูป / ใบรับประกัน</span>
-                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-[#1E487A] border-blue-200 hover:bg-blue-50'}`}>
+                    <span className="text-xs font-medium text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                       <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'edit')} disabled={isSavingItem} className="hidden" />
                     </label>
@@ -2907,28 +2920,29 @@ function AccessoryItemDetailModal({
                   {tempAccDocs.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {tempAccDocs.map((d, i) => (
-                        <div key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-[12px]">
-                          <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-slate-600 hover:text-[#1E487A] truncate max-w-[160px]">{d.name}</button>
-                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-slate-300 hover:text-red-500 ml-0.5">✕</button>
+                        <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
+                          <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-stone-600 hover:text-clay-600 truncate max-w-[160px]">{d.name}</button>
+                          <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[12.5px] text-slate-400">ยังไม่มีไฟล์แนบ</p>
+                    <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                   )}
                 </div>
               </section>
             </div>
           ) : (
-            <div className="px-6 sm:px-7 divide-y divide-slate-100">
-              {item.type === 'assigned' && item.assignee && (
+            <div className="px-6 sm:px-7 divide-y divide-stone-100">
+              {item.type === 'assigned' && item.assignee
+                && (item.sn || item.assignee.department || item.assignee.checkoutDate) && (
                 <Section icon={User} title="ผู้ถือครอง / การใช้งาน">
-                  <div className="flex items-start gap-3.5 rounded-xl bg-slate-50 border border-slate-100 p-4">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-[15px] shrink-0 bg-blue-100 text-[#1E487A]">
+                  <div className="flex items-start gap-3.5 rounded-xl bg-stone-50 border border-stone-100 p-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center font-medium text-[15px] shrink-0 bg-stone-100 text-clay-600">
                       {item.assignee.empName?.charAt(0) || '?'}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-bold text-slate-800 break-words">{item.assignee.empName || '-'}</p>
+                      <p className="text-[15px] font-medium text-stone-800 break-words">{item.assignee.empName || '-'}</p>
                       <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1">
                         {item.assignee.department && <KV icon={Building2} label="แผนก" value={item.assignee.department} />}
                         {item.assignee.checkoutDate && <KV icon={Calendar} label="เบิกเมื่อ" value={formatDateShort(item.assignee.checkoutDate)} />}
@@ -2938,30 +2952,31 @@ function AccessoryItemDetailModal({
                 </Section>
               )}
 
+              {(item.sn || item.model || item.itemCost || item.purchaseDate || item.warrantyDate) && (
               <Section icon={FileText} title="ข้อมูลชิ้น">
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
-                  <DItem label="Serial Number" value={item.sn || '-'} span={2} />
-                  <DItem label="สถานะ" value={statusBadge.label} />
-                  <DItem label="รุ่น / โมเดล" value={item.model || '-'} />
-                  <DItem label="ราคา / ชิ้น" value={item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'} />
-                  <DItem label="อายุการใช้งาน" value={age ? age.text : '-'} />
+                  <DItem label="Serial Number" value={item.sn} span={2} />
+                  <DItem label="รุ่น / โมเดล" value={item.model} />
+                  <DItem label="ราคา / ชิ้น" value={item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : ''} />
+                  <DItem label="อายุการใช้งาน" value={age ? age.text : ''} />
                   <DItem label="วันที่ซื้อ" value={formatDateShort(item.purchaseDate)} />
                   <DItem label="วันหมดประกัน" value={formatDateShort(item.warrantyDate)} span={2} />
                 </dl>
               </Section>
+              )}
 
               <Section icon={Paperclip} title={`ไฟล์แนบ${docs.length ? ` (${docs.length})` : ''}`}>
                 {docs.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {docs.map((d, i) => (
-                      <button key={i} type="button" onClick={() => handleOpenAccDoc(d)} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg text-[12.5px] font-medium text-[#1E487A] hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                      <button key={i} type="button" onClick={() => handleOpenAccDoc(d)} className="inline-flex items-center gap-1.5 bg-sand-100 px-3 py-2 rounded-xl text-[13px] font-medium text-clay-600 hover:bg-stone-50 hover:border-stone-200 transition-colors">
                         <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                         <span className="truncate max-w-[180px]">{d.name}</span>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[13px] text-slate-300">— ไม่มีไฟล์แนบ</p>
+                  <p className="text-[13px] text-stone-300">— ไม่มีไฟล์แนบ</p>
                 )}
               </Section>
             </div>
@@ -2969,16 +2984,16 @@ function AccessoryItemDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+        <div className="px-7 py-5 border-t border-stone-100 bg-stone-50 flex justify-end gap-2.5">
           {isEditing ? (
             <>
-              <button onClick={onCancelEdit} disabled={isSavingItem} className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50">ยกเลิก</button>
-              <button onClick={onSaveEdit} disabled={isSavingItem} className="px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm disabled:opacity-50">{isSavingItem ? 'กำลังบันทึก...' : '✓ บันทึก'}</button>
+              <button onClick={onCancelEdit} disabled={isSavingItem} className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 transition-colors hover:border-stone-300 hover:text-stone-900 disabled:opacity-50">ยกเลิก</button>
+              <button onClick={onSaveEdit} disabled={isSavingItem} className="rounded-xl px-5 py-2.5 text-sm font-medium text-white bg-clay-600 transition-colors hover:bg-clay-700 disabled:opacity-50">{isSavingItem ? 'กำลังบันทึก...' : '✓ บันทึก'}</button>
             </>
           ) : (
             <>
-              <button onClick={onClose} className="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300">ปิด</button>
-              <button onClick={onEdit} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-semibold text-white bg-[#1E487A] hover:bg-[#163963] shadow-sm">
+              <button onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 transition-colors hover:border-stone-300 hover:text-stone-900">ปิด</button>
+              <button onClick={onEdit} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white bg-clay-600 transition-colors hover:bg-clay-700">
                 <Pencil className="h-3.5 w-3.5" strokeWidth={2.4} /> แก้ไขข้อมูล
               </button>
             </>
@@ -2994,10 +3009,10 @@ function AccessoryItemDetailModal({
 ════════════════════════════════════════════════ */
 function Section({ icon: Icon, title, children }) {
   return (
-    <section className="py-5 first:pt-1 last:pb-2">
-      <div className="flex items-center gap-2 mb-3">
-        {Icon && <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />}
-        <h4 className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-400">{title}</h4>
+    <section className="py-6 first:pt-1 last:pb-2">
+      <div className="flex items-center gap-2 mb-4">
+        {Icon && <Icon className="h-4 w-4 text-stone-400" strokeWidth={1.75} />}
+        <h4 className="text-[13px] font-medium text-stone-500">{title}</h4>
       </div>
       {children}
     </section>
@@ -3008,9 +3023,9 @@ function Section({ icon: Icon, title, children }) {
 function KV({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-1.5 min-w-0">
-      {Icon && <Icon className="h-3.5 w-3.5 text-slate-300 shrink-0" strokeWidth={2} />}
-      <span className="text-[12px] text-slate-400 shrink-0">{label}:</span>
-      <span className="text-[13px] font-semibold text-slate-700 truncate">{value}</span>
+      {Icon && <Icon className="h-3.5 w-3.5 text-stone-300 shrink-0" strokeWidth={2} />}
+      <span className="text-xs text-stone-400 shrink-0">{label}</span>
+      <span className="text-sm font-medium text-stone-800 truncate">{value}</span>
     </div>
   );
 }
@@ -3024,16 +3039,16 @@ function KeyRow({ label, value }) {
   };
   return (
     <div className="flex items-center gap-3">
-      <span className="text-[11.5px] text-slate-400 w-28 sm:w-32 shrink-0">{label}</span>
+      <span className="text-xs text-stone-400 w-28 sm:w-32 shrink-0">{label}</span>
       {has ? (
         <>
-          <span className="flex-1 font-mono text-[13px] font-semibold text-slate-800 break-all select-all">{value}</span>
-          <button type="button" onClick={copy} title="คัดลอก" className="shrink-0 text-slate-400 hover:text-[#1E487A] transition-colors">
-            {copied ? <Check className="h-4 w-4 text-emerald-500" strokeWidth={2.4} /> : <Copy className="h-4 w-4" strokeWidth={2} />}
+          <span className="flex-1 font-mono text-[13px] font-medium text-stone-800 break-all select-all">{value}</span>
+          <button type="button" onClick={copy} title="คัดลอก" className="shrink-0 text-stone-400 hover:text-clay-600 transition-colors">
+            {copied ? <Check className="h-4 w-4 text-olive-500" strokeWidth={2.4} /> : <Copy className="h-4 w-4" strokeWidth={2} />}
           </button>
         </>
       ) : (
-        <span className="flex-1 text-[13px] text-slate-300">-</span>
+        <span className="flex-1 text-[13px] text-stone-300">-</span>
       )}
     </div>
   );
@@ -3042,15 +3057,17 @@ function KeyRow({ label, value }) {
 /* ════════════════════════════════════════════════
    DItem — รายการ definition (label เล็ก + value) แบบไม่มีกล่อง
 ════════════════════════════════════════════════ */
-function DItem({ label, value, badge, span }) {
+function DItem({ label, value, badge, span, alwaysShow = false }) {
+  const empty = value == null || value === '' || value === '-';
+  if (empty && !alwaysShow) return null;
   const spanCls = span === 3 ? 'col-span-2 sm:col-span-3' : span === 2 ? 'col-span-2' : '';
   return (
     <div className={`min-w-0 ${spanCls}`}>
-      <dt className="text-[11px] text-slate-400 mb-0.5">{label}</dt>
+      <dt className="text-xs text-stone-400 mb-1">{label}</dt>
       <dd className="flex items-center gap-2 flex-wrap">
-        <span className="text-[14px] font-semibold text-slate-800 break-words">{value}</span>
+        <span className="text-[15px] font-medium text-stone-900 break-words">{value}</span>
         {badge && (
-          <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${badge.cls}`}>
+          <span className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-lg border ${badge.cls}`}>
             ⚠ {badge.text}
           </span>
         )}

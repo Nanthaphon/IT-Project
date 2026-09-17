@@ -15,10 +15,10 @@ const RATING_LABELS = {
 
 const RATING_COLORS = {
   1: 'text-rose-500',
-  2: 'text-orange-500',
-  3: 'text-amber-500',
+  2: 'text-ochre-600',
+  3: 'text-clay-500',
   4: 'text-lime-500',
-  5: 'text-emerald-500',
+  5: 'text-olive-500',
 };
 
 const QUESTIONS = [
@@ -85,16 +85,16 @@ export default function SatisfactionSurveyModal({
   const dateStr = repair.timestamp ? formatDateShort(repair.timestamp) : '-';
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center p-4 z-[95]">
+    <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[95]">
       <div
-        className="bg-white rounded-2xl shadow-md shadow-slate-950/30 max-w-lg w-full overflow-hidden border border-slate-200/60 flex flex-col max-h-[92vh]"
+        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-lg w-full overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header gradient ── */}
         <div
           className="relative px-6 pt-7 pb-5 text-white overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #1E487A 0%, #2563EB 50%, #1E487A 100%)',
+            background: 'linear-gradient(135deg, #2B6777 0%, #6E97A9 50%, #2B6777 100%)',
           }}
         >
           {/* decorative blobs */}
@@ -114,8 +114,8 @@ export default function SatisfactionSurveyModal({
               <Sparkles className="h-5 w-5" strokeWidth={2} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-[18px] font-bold tracking-tight">ประเมินความพึงพอใจ</h3>
-              <p className="text-[13.5px] text-blue-100/90 mt-0.5">
+              <h3 className="text-[19px] font-medium tracking-tight">ประเมินความพึงพอใจ</h3>
+              <p className="text-[13px] text-stone-100/90 mt-0.5">
                 หลังการแก้ไขปัญหา IT — ใช้เวลาเพียงไม่กี่วินาที 🙏
               </p>
             </div>
@@ -123,12 +123,12 @@ export default function SatisfactionSurveyModal({
         </div>
 
         {/* ── Repair info ── */}
-        <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100/60 flex items-center gap-3 text-[13.5px]">
-          <Wrench className="h-3.5 w-3.5 text-[#1E487A] shrink-0" strokeWidth={2} />
-          <span className="font-semibold text-slate-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
-          <span className="text-slate-300">·</span>
-          <CalendarDays className="h-3.5 w-3.5 text-slate-400 shrink-0" strokeWidth={1.8} />
-          <span className="text-slate-500 shrink-0">{dateStr}</span>
+        <div className="px-6 py-3 bg-stone-50/40 border-b border-stone-100/60 flex items-center gap-3 text-[13px]">
+          <Wrench className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
+          <span className="font-medium text-stone-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
+          <span className="text-stone-300">·</span>
+          <CalendarDays className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.8} />
+          <span className="text-stone-500 shrink-0">{dateStr}</span>
         </div>
 
         {/* ── Body / form ── */}
@@ -150,12 +150,12 @@ export default function SatisfactionSurveyModal({
           ))}
 
           {/* comment */}
-          <div className="border-t border-slate-100 pt-5">
+          <div className="border-t border-stone-100 pt-5">
             <label className="block">
-              <span className="flex items-center gap-1.5 text-[14px] font-semibold text-slate-700 mb-2">
-                <MessageSquare className="h-3.5 w-3.5 text-slate-400" strokeWidth={1.9} />
+              <span className="flex items-center gap-1.5 text-sm font-medium text-stone-700 mb-2">
+                <MessageSquare className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.9} />
                 ความคิดเห็นเพิ่มเติม
-                <span className="text-[11.5px] text-slate-400 font-normal"></span>
+                <span className="text-[11px] text-stone-400 font-normal"></span>
               </span>
               <textarea
                 value={comment}
@@ -163,26 +163,26 @@ export default function SatisfactionSurveyModal({
                 placeholder="เช่น ขอบคุณทีม IT ที่แก้ปัญหาเร็วครับ..."
                 rows={3}
                 maxLength={500}
-                className="w-full bg-slate-50/70 border border-slate-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A] outline-none transition-colors text-[14px] text-slate-800 placeholder:text-slate-400 resize-none"
+                className="w-full bg-stone-50/70 border border-stone-200 px-3.5 py-2.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400 resize-none"
               />
-              <p className="text-[11.5px] text-slate-400 mt-1 text-right">{comment.length}/500</p>
+              <p className="text-[11px] text-stone-400 mt-1 text-right">{comment.length}/500</p>
             </label>
           </div>
 
           {/* overall preview */}
           {allRated && (
-            <div className="bg-gradient-to-br from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-100 rounded-2xl px-5 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-br from-stone-50 via-clay-100/60 to-stone-50 border border-stone-100 rounded-2xl px-5 py-4 flex items-center justify-between">
               <div>
-                <p className="text-[12.5px] text-slate-500 font-medium">คะแนนเฉลี่ยรวม</p>
-                <p className="text-[27px] font-black text-[#1E487A] leading-none mt-1 tabular-nums">
-                  {overall.toFixed(2)} <span className="text-[15px] text-slate-400 font-medium">/ 5.00</span>
+                <p className="text-xs text-stone-500 font-medium">คะแนนเฉลี่ยรวม</p>
+                <p className="text-3xl font-medium text-clay-600 leading-none mt-1 tabular-nums">
+                  {overall.toFixed(2)} <span className="text-[15px] text-stone-400 font-medium">/ 5.00</span>
                 </p>
               </div>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map(n => (
                   <Star
                     key={n}
-                    className={`h-5 w-5 ${n <= Math.round(overall) ? 'fill-amber-400 text-amber-400' : 'text-slate-200 fill-slate-100'}`}
+                    className={`h-5 w-5 ${n <= Math.round(overall) ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`}
                     strokeWidth={1.6}
                   />
                 ))}
@@ -192,11 +192,11 @@ export default function SatisfactionSurveyModal({
         </form>
 
         {/* ── Footer ── */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
+        <div className="px-6 py-4 border-t border-stone-100 flex items-center justify-between gap-3 bg-white">
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-2.5 rounded-xl text-[14px] font-medium text-slate-500 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2.5 rounded-xl text-sm font-medium text-stone-500 hover:bg-stone-100 transition-colors"
           >
             ข้ามไปก่อน
           </button>
@@ -204,7 +204,7 @@ export default function SatisfactionSurveyModal({
             type="button"
             onClick={handleSubmit}
             disabled={!allRated || isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[14px] font-bold text-white transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95"
             style={{ background: BRAND.primary, boxShadow: `0 8px 20px ${BRAND.primary}40` }}
           >
             {isSubmitting ? (
@@ -229,17 +229,17 @@ export default function SatisfactionSurveyModal({
 function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHover, onLeave }) {
   const displayValue = hoverValue || value;
   const labelText = displayValue > 0 ? RATING_LABELS[displayValue] : '';
-  const labelColor = displayValue > 0 ? RATING_COLORS[displayValue] : 'text-slate-300';
+  const labelColor = displayValue > 0 ? RATING_COLORS[displayValue] : 'text-stone-300';
 
   return (
     <div>
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-6 h-6 rounded-full bg-[#1E487A]/10 text-[#1E487A] flex items-center justify-center text-[12.5px] font-bold shrink-0 mt-0.5">
+        <div className="w-6 h-6 rounded-full bg-clay-600/10 text-clay-600 flex items-center justify-center text-xs font-medium shrink-0 mt-0.5">
           {index}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[14.5px] font-semibold text-slate-800 leading-snug">{label}</p>
-          <p className="text-[12.5px] text-slate-400 mt-0.5 leading-snug">{desc}</p>
+          <p className="text-sm font-medium text-stone-800 leading-snug">{label}</p>
+          <p className="text-xs text-stone-400 mt-0.5 leading-snug">{desc}</p>
         </div>
       </div>
 
@@ -259,8 +259,8 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
                 <Star
                   className={`h-7 w-7 transition-colors ${
                     filled
-                      ? 'fill-amber-400 text-amber-400 drop-shadow-sm'
-                      : 'text-slate-200 fill-slate-50 hover:fill-amber-100'
+                      ? 'fill-clay-400 text-clay-400 drop-shadow-sm'
+                      : 'text-stone-200 fill-stone-50 hover:fill-clay-100'
                   }`}
                   strokeWidth={1.6}
                 />
@@ -270,7 +270,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
         </div>
 
         {/* label */}
-        <span className={`text-[13px] font-semibold transition-colors ${labelColor}`}>
+        <span className={`text-[13px] font-medium transition-colors ${labelColor}`}>
           {labelText}
         </span>
       </div>

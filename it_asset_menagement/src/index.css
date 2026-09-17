@@ -1,4 +1,80 @@
 @import "tailwindcss";
+/* ════════════════════════════════════════════════════════════════
+   Harbor palette (ธีม v4) — ลงทะเบียนเป็นสีของ Tailwind v4
+   ฐานจากสีที่ผู้ใช้กำหนด: #2b6777 #c8d8e4 #ffffff #f2f2f2 #52ab98
+
+   ชื่อ token ยังเป็นชุดเดิม (clay/sand/ochre/olive/brick/stone)
+   เพื่อไม่ต้องแตะคลาสในคอมโพเนนต์นับพันจุด — เปลี่ยนแค่ "ค่า"
+   ทั้งระบบเปลี่ยนสีตามจากบล็อกนี้บล็อกเดียว
+   ════════════════════════════════════════════════════════════════ */
+@theme {
+  /* teal — สีหลักของแบรนด์ (ปุ่ม/ไฮไลท์/sidebar) ฐาน #2b6777 */
+  --color-clay-50:  #F1F6F8;
+  --color-clay-100: #DFEAEF;
+  --color-clay-200: #C8D8E4;   /* จากรูปที่กำหนด */
+  --color-clay-300: #9FBDCB;
+  --color-clay-400: #6E97A9;
+  --color-clay-500: #427C91;
+  --color-clay-600: #2B6777;   /* สีหลัก — ตัวอักษรขาวได้ 6.35:1 ผ่าน WCAG AA */
+  --color-clay-700: #225462;
+  --color-clay-800: #1A414C;
+  --color-clay-900: #12303A;   /* เข้มสุด (พื้น sidebar) */
+
+  /* พื้นผิว — เทาอ่อนโทนเย็น */
+  --color-sand-50:  #F7F9FA;   /* พื้นหน้าจอ */
+  --color-sand-100: #F2F2F2;   /* จากรูปที่กำหนด */
+  --color-sand-200: #E6EAEC;
+  --color-sand-300: #D3DADE;
+
+  /* ochre — สถานะกำลังดำเนินการ (อำพันหม่น ตัดกับ teal ชัด) */
+  --color-ochre-50:  #FBF3E4;
+  --color-ochre-100: #F5E7C6;
+  --color-ochre-200: #EBD6A8;
+  --color-ochre-500: #C99542;
+  --color-ochre-600: #A87A2C;
+  --color-ochre-700: #8A6520;
+
+  /* olive — สถานะสำเร็จ/พร้อมใช้งาน ฐาน #52ab98
+     หมายเหตุ: #52ab98 ตัวอักษรขาวได้แค่ 2.75:1 ใช้เป็นพื้นปุ่มไม่ได้
+     จึงมี 600/700 เป็นเฉดเข้มไว้ใช้กับตัวอักษร */
+  --color-olive-50:  #EAF5F2;
+  --color-olive-100: #D6EDE7;
+  --color-olive-200: #B3DCD2;
+  --color-olive-300: #8ACABB;
+  --color-olive-400: #6BBBA9;
+  --color-olive-500: #52AB98;   /* จากรูปที่กำหนด */
+  --color-olive-600: #3D8072;   /* ตัวอักษรขาวได้ 4.64:1 ผ่าน AA */
+  --color-olive-700: #2C5D53;
+  --color-olive-800: #234A42;
+
+  /* brick — ปุ่มลบ/อันตราย แบบพื้นทึบ */
+  --color-brick-500: #CC5A50;
+  --color-brick-600: #B0453C;   /* ตัวอักษรขาวได้ 5.58:1 */
+  --color-brick-700: #8F372F;
+
+  /* rose — ป้ายเตือนพื้นอ่อน (ทับค่า default ให้เข้าโทนเย็น) */
+  --color-rose-50:  #FBEAE8;
+  --color-rose-100: #F6D5D1;
+  --color-rose-200: #EBB0A9;
+  --color-rose-500: #CC5A50;
+  --color-rose-600: #B0453C;
+  --color-rose-700: #8F372F;
+
+  /* stone — ทับค่า Tailwind เดิม (เทาอมน้ำตาล) ด้วยเทาโทนเย็น
+     ทำให้ text-stone-* / border-stone-* ทั้งระบบเข้ากับ teal ทันที
+     โดยไม่ต้องแก้คลาสสักจุด */
+  --color-stone-50:  #F7F9FA;
+  --color-stone-100: #EFF3F5;
+  --color-stone-200: #E1E8EB;
+  --color-stone-300: #CBD6DB;
+  --color-stone-400: #82959E;   /* ป้ายรอง — 3.15:1 ดีกว่า stone-400 เดิม (2.54:1) */
+  --color-stone-500: #64757D;
+  --color-stone-600: #4A5A61;
+  --color-stone-700: #374449;
+  --color-stone-800: #263034;
+  --color-stone-900: #162024;
+}
+
 
 *, *::before, *::after {
   font-family: 'Bai Jamjuree', sans-serif;
@@ -7,4 +83,15 @@
 /* ยกเว้นฟอร์ม — ใช้ฟ้อนระบบเดิม */
 input, textarea, select {
   font-family: inherit;
+}
+
+/* ธีม v3 (earth tone) — ให้ control ของเบราว์เซอร์เอง (checkbox / radio /
+   progress / แถบเลือกข้อความ) ใช้สีแบรนด์แทนสีฟ้า default ของระบบ */
+:root {
+  accent-color: #2B6777;
+  color-scheme: light;
+}
+::selection {
+  background: #2B6777;
+  color: #fff;
 }

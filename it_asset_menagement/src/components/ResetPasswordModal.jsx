@@ -27,9 +27,9 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[90]" onClick={onClose}>
+    <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] max-w-sm w-full overflow-hidden border border-slate-200/60 text-center p-7"
+        className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-sm w-full overflow-hidden border border-stone-200/60 text-center p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -38,10 +38,10 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
         >
           <KeyRound className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-[20px] font-semibold mb-2 tracking-tight" style={{ color: BRAND.primary }}>
+        <h3 className="text-[19px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           รีเซ็ตรหัสผ่าน
         </h3>
-        <p className="text-[14.5px] text-slate-500 mb-6 leading-relaxed">
+        <p className="text-sm text-stone-500 mb-6 leading-relaxed">
           กรุณาระบุอีเมลที่ใช้ในระบบ
           <br />
           เพื่อรับลิงก์สำหรับตั้งรหัสผ่านใหม่
@@ -59,14 +59,14 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-2.5 rounded-lg text-[14.5px] font-semibold text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
               onMouseEnter={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primaryDark)}
               onMouseLeave={(e) => !isLoading && (e.currentTarget.style.background = BRAND.primary)}

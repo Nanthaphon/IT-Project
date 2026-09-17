@@ -4,13 +4,13 @@ import DateField from './DateField.jsx';
 import { COMPANIES } from '../ui/theme.js';
 import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
-const BRAND = '#1E487A';
+const BRAND = '#2B6777';
 
 function SectionHeader({ children }) {
   return (
     <div className="flex items-center gap-3 pt-2 first:pt-0">
-      <span className="text-[12px] font-semibold tracking-[0.14em] text-slate-500 uppercase">{children}</span>
-      <span className="flex-1 h-px bg-slate-200/80" />
+      <span className="text-xs font-medium text-stone-500">{children}</span>
+      <span className="flex-1 h-px bg-stone-200/80" />
     </div>
   );
 }
@@ -18,19 +18,19 @@ function SectionHeader({ children }) {
 function Field({ label, required, hint, children, className = '' }) {
   return (
     <div className={className}>
-      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+      <label className="block text-xs font-medium text-stone-500 mb-1.5">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[12px] text-slate-400 mt-1.5 leading-snug">{hint}</p>}
+      {hint && <p className="text-xs text-stone-400 mt-1.5 leading-snug">{hint}</p>}
     </div>
   );
 }
 
 const inputCls =
-  'w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 ' +
-  'placeholder:text-slate-400 outline-none transition-colors ' +
-  'hover:border-slate-300 focus:border-[#1E487A] focus:ring-2 focus:ring-[#1E487A]/15';
+  'w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 ' +
+  'placeholder:text-stone-400 outline-none transition-colors ' +
+  'hover:border-stone-300 focus:border-clay-600 focus:ring-2 focus:ring-clay-600/15';
 
 const monoCls = inputCls + ' font-mono tracking-tight';
 
@@ -77,12 +77,12 @@ export default function EditAssetModal({
   };
 
   return (
-    <div className={asPage ? 'h-full' : 'fixed inset-0 bg-slate-950/50 flex items-center justify-center p-4 z-[70]'}>
+    <div className={asPage ? 'h-full' : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[70]'}>
       <div className={asPage
         ? 'bg-white w-full h-full overflow-hidden flex flex-col'
-        : 'bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_2px_rgba(16,47,87,0.04),0_10px_28px_-16px_rgba(16,47,87,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
+        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
-        <div className="px-7 py-5 border-b border-slate-100">
+        <div className="px-7 py-5 border-b border-stone-100">
           <div className={`flex items-start justify-between ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
             <div className="flex items-start gap-3.5">
               <div
@@ -94,13 +94,13 @@ export default function EditAssetModal({
                 </svg>
               </div>
               <div>
-                <h3 className="text-[18px] font-semibold text-slate-900 leading-tight">แก้ไข{title}</h3>
-                <p className="text-[13.5px] text-slate-500 mt-0.5">{subtitle}</p>
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight">แก้ไข{title}</h3>
+                <p className="text-[13px] text-stone-500 mt-0.5">{subtitle}</p>
               </div>
             </div>
             <button
               onClick={close}
-              className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors focus:outline-none"
+              className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-lg transition-colors focus:outline-none"
               aria-label="ปิด"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -123,7 +123,7 @@ export default function EditAssetModal({
                     <img
                       src={editAssetModal.data.image}
                       alt="Preview"
-                      className="w-20 h-20 rounded-lg object-cover border border-slate-200"
+                      className="w-20 h-20 rounded-lg object-cover border border-stone-200"
                     />
                     <button
                       type="button"
@@ -137,21 +137,21 @@ export default function EditAssetModal({
                     </button>
                   </div>
                 ) : (
-                  <div className="w-20 h-20 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 border border-dashed border-slate-300 shrink-0">
+                  <div className="w-20 h-20 rounded-lg bg-stone-50 flex items-center justify-center text-stone-300 border border-dashed border-stone-300 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
                   </div>
                 )}
                 <div className="flex items-center gap-3 flex-wrap">
-                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[13.5px] font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors">
+                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-[13px] font-medium text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-colors">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
                     </svg>
                     {editAssetModal.data.image ? 'เปลี่ยนรูป' : 'เลือกรูปภาพ'}
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   </label>
-                  <span className="text-[12.5px] text-slate-400">รองรับ .jpg .png (ย่อขนาดอัตโนมัติ)</span>
+                  <span className="text-xs text-stone-400">รองรับ .jpg .png (ย่อขนาดอัตโนมัติ)</span>
                 </div>
               </div>
             </section>
@@ -255,18 +255,18 @@ export default function EditAssetModal({
                   {isAssets && (
                     <Field label="สถานะเครื่อง">
                       <div className="flex gap-2">
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border text-sm font-medium ${
                           (editAssetModal.data.purchaseCondition || 'new') === 'new'
-                            ? 'bg-emerald-50 border border-emerald-500 text-emerald-700'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-olive-50 border border-olive-500 text-olive-700'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="new" checked={(editAssetModal.data.purchaseCondition || 'new') === 'new'} onChange={handleEditAssetChange} className="sr-only" />
                           <span>✨ เครื่องใหม่</span>
                         </label>
-                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
+                        <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border text-sm font-medium ${
                           editAssetModal.data.purchaseCondition === 'used'
-                            ? 'bg-amber-50 border border-amber-500 text-amber-700'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-clay-100 border border-clay-500 text-clay-600'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="used" checked={editAssetModal.data.purchaseCondition === 'used'} onChange={handleEditAssetChange} className="sr-only" />
                           <span>♻️ เครื่องเก่า / มือสอง</span>
@@ -288,14 +288,14 @@ export default function EditAssetModal({
                     <DateField
                       value={editAssetModal.data.purchaseDate || ''}
                       onChange={(v) => handleEditAssetChange({ target: { name: 'purchaseDate', value: v } })}
-                      inputClassName={inputCls + ' text-slate-700 pr-9'}
+                      inputClassName={inputCls + ' text-stone-700 pr-9'}
                     />
                   </Field>
                   <Field label="วันที่หมด Warranty">
                     <DateField
                       value={editAssetModal.data.warrantyDate || ''}
                       onChange={(v) => handleEditAssetChange({ target: { name: 'warrantyDate', value: v } })}
-                      inputClassName={inputCls + ' text-slate-700 pr-9'}
+                      inputClassName={inputCls + ' text-stone-700 pr-9'}
                     />
                   </Field>
                   <Field label="ราคา (บาท)">
@@ -312,7 +312,7 @@ export default function EditAssetModal({
                         className={inputCls + ' pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'}
                         placeholder="0.00"
                       />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium pointer-events-none">฿</span>
                     </div>
                   </Field>
                   {/* 🆕 ราคาปัจจุบัน */}
@@ -330,7 +330,7 @@ export default function EditAssetModal({
                         className={inputCls + ' pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'}
                         placeholder="0.00"
                       />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">฿</span>
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 font-medium pointer-events-none">฿</span>
                     </div>
                   </Field>
                   <Field label="สถานะ">
@@ -441,7 +441,7 @@ export default function EditAssetModal({
                     <DateField
                       value={editAssetModal.data.purchaseDate || ''}
                       onChange={(v) => handleEditAssetChange({ target: { name: 'purchaseDate', value: v } })}
-                      inputClassName={inputCls + ' text-slate-700 pr-9'}
+                      inputClassName={inputCls + ' text-stone-700 pr-9'}
                     />
                   </Field>
                 </div>
@@ -457,17 +457,17 @@ export default function EditAssetModal({
                 </Field>
 
                 {/* 🆕 Toggle ปิดการเบิก — พนักงานจะมองไม่เห็นใน catalog */}
-                <label className="flex items-start gap-3 p-3.5 rounded-lg border border-slate-200 hover:bg-slate-50/60 cursor-pointer">
+                <label className="flex items-start gap-3 p-3.5 rounded-lg border border-stone-200 hover:bg-stone-50/60 cursor-pointer">
                   <input
                     type="checkbox"
                     name="requestDisabled"
                     checked={!!editAssetModal.data.requestDisabled}
                     onChange={(e) => handleEditAssetChange({ target: { name: 'requestDisabled', value: e.target.checked, type: 'checkbox', checked: e.target.checked } })}
-                    className="mt-0.5 w-4 h-4 text-[#1E487A] rounded border-slate-300 focus:ring-[#1E487A]/30"
+                    className="mt-0.5 w-4 h-4 text-clay-600 rounded border-stone-300 focus:ring-clay-600/30"
                   />
                   <div className="flex-1">
-                    <p className="text-[13.5px] font-semibold text-slate-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
-                    <p className="text-[12px] text-slate-500 mt-0.5">
+                    <p className="text-[13px] font-medium text-stone-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
+                    <p className="text-xs text-stone-500 mt-0.5">
                       เปิดใช้เมื่อต้องการกันของให้พนักงานบางคน หรือเก็บไว้สำหรับเหตุการณ์พิเศษ
                       — ฝั่งพนักงานจะไม่เห็นอุปกรณ์นี้ใน catalog แม้จะมีของเหลือก็ตาม
                     </p>
@@ -505,18 +505,18 @@ export default function EditAssetModal({
           </div>
 
           {/* Footer */}
-          <div className="px-7 py-4 border-t border-slate-100 bg-white">
+          <div className="px-7 py-4 border-t border-stone-100 bg-white">
             <div className={`flex justify-end gap-2.5 ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
               <button
                 type="button"
                 onClick={close}
-                className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors"
               >
                 ยกเลิก
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-[#1E487A] hover:bg-[#163963] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1E487A]/30"
+                className="px-5 py-2.5 text-sm font-medium text-white rounded-xl bg-clay-600 hover:bg-clay-700 transition-colors focus:outline-none focus:ring-2 focus:ring-clay-600/30"
               >
                 บันทึกการแก้ไข
               </button>

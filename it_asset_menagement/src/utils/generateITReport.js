@@ -5,19 +5,19 @@ import { formatDateShort } from './formatDate.js';
    PALETTE
 ═══════════════════════════════════ */
 const C = {
-  blue:      '1E487A',
-  blueMid:   '2E5F9A',
-  blueLight: 'D6E4F0',
-  blueRow:   'EBF3FB',   // alternating row tint
+  blue:      '2B6777',
+  blueMid:   '6E97A9',
+  blueLight: 'C8D8E4',
+  blueRow:   'F1F6F8',   // alternating row tint
   white:     'FFFFFF',
-  grayBg:    'F8FAFC',
-  grayBorder:'CBD5E1',
-  grayText:  '64748B',
-  green:     '16A34A',
-  greenBg:   'DCFCE7',
-  amber:     'D97706',
-  amberBg:   'FEF3C7',
-  red:       'DC2626',
+  grayBg:    'F7F9FA',
+  grayBorder:'D3DADE',
+  grayText:  '64757D',
+  green:     '2C5D53',
+  greenBg:   'EAF5F2',
+  amber:     'A87A2C',
+  amberBg:   'FBF4E6',
+  red:       'B0453C',
   redBg:     'FEE2E2',
 };
 
@@ -214,7 +214,7 @@ function slide1(pptx, { month, year, company, reportDate }) {
 
   s.addShape(pptx.ShapeType.rect, { x:0, y:0, w:13.33, h:7.5, fill:{ color: C.blue }, line:{ color: C.blue } });
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.6, w:13.33, h:0.12, fill:{ color: C.blueLight }, line:{ color: C.blueLight } });
-  s.addShape(pptx.ShapeType.rect, { x:0, y:5.72, w:13.33, h:1.78, fill:{ color: '163860' }, line:{ color: '163860' } });
+  s.addShape(pptx.ShapeType.rect, { x:0, y:5.72, w:13.33, h:1.78, fill:{ color: '225462' }, line:{ color: '225462' } });
 
   s.addText(company.toUpperCase(), {
     x:0.8, y:1.6, w:11.73, h:0.9,
@@ -282,7 +282,7 @@ function slide2(pptx, { month, year, company, reportDate }) {
 /* ═══════════════════════════════════
    SLIDE 3 – SUPPORT
 ═══════════════════════════════════ */
-function slide3(pptx, { month, year, company, employees, repairRequests, bigIssues }) {
+function slide3(pptx, { month, year, company, employees, repairRequests, bigIssues, supportStats }) {
   const s = pptx.addSlide();
   s.background = { color: C.white };
   addHeader(pptx, s, 'สรุปผลการดำเนินงาน', 'ฝ่ายสนับสนุน');
@@ -296,11 +296,17 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
   const closedWon  = monthly.filter(r => doneKw.some(k => (r.status||'').includes(k))).length;
   const closedLose = monthly.filter(r => loseKw.some(k => (r.status||'').includes(k))).length;
 
+  // 🆕 ใช้ค่าที่ผู้ใช้แก้ใน preview (ถ้ามี) มิฉะนั้นคำนวณจากระบบ
+  const empCount  = supportStats?.employees  ?? employees.length;
+  const caseCount = supportStats?.monthly    ?? monthly.length;
+  const won       = supportStats?.closedWon  ?? closedWon;
+  const lose      = supportStats?.closedLose ?? closedLose;
+
   const stats = [
-    { v: employees.length, label:'พนักงานทั้งหมด', sub:'จำนวนพนักงาน', color: C.blue  },
-    { v: monthly.length,   label:'เคสทั้งหมด',       sub:'เดือนนี้',      color: C.blue  },
-    { v: closedWon,        label:'ปิดสำเร็จ',       sub:'ปิดงานสำเร็จ',  color: C.green },
-    { v: closedLose,       label:'ไม่สำเร็จ',       sub:'ยกเลิก/ไม่สำเร็จ', color: C.red },
+    { v: empCount,  label:'พนักงานทั้งหมด', sub:'จำนวนพนักงาน', color: C.blue  },
+    { v: caseCount, label:'เคสทั้งหมด',       sub:'เดือนนี้',      color: C.blue  },
+    { v: won,       label:'ปิดสำเร็จ',       sub:'ปิดงานสำเร็จ',  color: C.green },
+    { v: lose,      label:'ไม่สำเร็จ',       sub:'ยกเลิก/ไม่สำเร็จ', color: C.red },
   ];
   stats.forEach((st, i) => {
     const bx = 0.4 + i * 3.13, by = 1.18, bw = 2.9, bh = 1.65;
@@ -396,8 +402,9 @@ export function getHardwareSummary(assets = [], accessories = []) {
 }
 
 function slide4(pptx, ctx, startPageNum) {
-  const { assets, accessories } = ctx;
-  const summary = getHardwareSummary(assets, accessories);
+  const { assets, accessories, hardwareSummary } = ctx;
+  // 🆕 ใช้ตารางที่ผู้ใช้แก้ใน preview (ถ้ามี) มิฉะนั้นคำนวณจากระบบ
+  const summary = hardwareSummary ?? getHardwareSummary(assets, accessories);
 
   const hdr = [
     cellH('ลำดับ',          {}),
@@ -469,8 +476,9 @@ export function getSoftwareSummary(licenses = []) {
 }
 
 function slide5(pptx, ctx, startPageNum) {
-  const { licenses } = ctx;
-  const summary = getSoftwareSummary(licenses);
+  const { licenses, softwareSummary } = ctx;
+  // 🆕 ใช้ตารางที่ผู้ใช้แก้ใน preview (ถ้ามี) มิฉะนั้นคำนวณจากระบบ
+  const summary = softwareSummary ?? getSoftwareSummary(licenses);
 
   const hdr = [
     cellH('ลำดับ',     {}),
@@ -605,7 +613,7 @@ function slide8(pptx, { month, year, company }) {
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.4, w:13.33, h:0.12,
     fill:{ color:C.blueLight }, line:{ color:C.blueLight } });
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.52, w:13.33, h:1.98,
-    fill:{ color:'163860' }, line:{ color:'163860' } });
+    fill:{ color:'225462' }, line:{ color:'225462' } });
 
   s.addText('ขอบคุณครับ', { x:0.8, y:1.6, w:11.73, h:1.6,
     fontSize:64, bold:true, color:C.white, align:'center', fontFace:F, charSpacing:0 });
@@ -630,6 +638,8 @@ export async function generateITReport({
   employees = [], repairRequests = [],
   assets = [], accessories = [], licenses = [],
   bigIssues = [], rdProjects = [], followUps = [],
+  // 🆕 ค่าที่ผู้ใช้แก้ใน preview (override การคำนวณอัตโนมัติ) — ไม่ส่งมา = ใช้ค่าจากระบบ
+  supportStats = null, hardwareSummary = null, softwareSummary = null,
 }) {
   const pptx = new PptxGenJS();
   pptx.layout  = 'LAYOUT_WIDE';
@@ -644,6 +654,7 @@ export async function generateITReport({
     month, year, company: companyName, reportDate,
     employees, repairRequests, assets, accessories, licenses,
     bigIssues, rdProjects, followUps,
+    supportStats, hardwareSummary, softwareSummary,   // 🆕 override จาก preview
   };
 
   slide1(pptx, ctx);

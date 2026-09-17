@@ -68,8 +68,7 @@ import { splitName, joinName, resolveName } from './utils/nameUtils.js';
 import { useActiveTab } from './hooks/useActiveTab.js';
 import { EMPTY_CHECKLIST, EMPTY_FIELDS, flattenFields } from './components/ConditionCapture.jsx';
 import TopHeader from './components/TopHeader.jsx';
-import DashboardStats from './components/DashboardStats.jsx';
-import ActionBar from './components/ActionBar.jsx';
+import DashboardPage from './components/dashboard/DashboardPage.jsx';   // ธีม v3 (earth tone)
 import CustomAlert from './components/CustomAlert.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import AssetDetailsModal from './components/AssetDetailsModal.jsx';
@@ -81,26 +80,29 @@ import ModalsContainer from './components/ModalsContainer.jsx';
 // 🆕 Lazy load — โหลดเมื่อจำเป็นเท่านั้น เพื่อลด initial bundle size
 const StaffView             = lazy(() => import('./components/StaffView.jsx'));
 const KpiDashboard          = lazy(() => import('./components/KpiDashboard.jsx'));
-const ITReportModal         = lazy(() => import('./components/ITReportModal.jsx'));
+const ITReportPage          = lazy(() => import('./components/ITReportModal.jsx'));
 const DropdownOptionsManager = lazy(() => import('./components/DropdownOptionsManager.jsx'));
 const UserManagementPage    = lazy(() => import('./components/UserManagementPage.jsx'));
 const SnipeITImportModal    = lazy(() => import('./components/SnipeITImportModal.jsx'));
 
-import EmployeeTable from './components/EmployeeTable.jsx';
-import LicenseTable from './components/LicenseTable.jsx';
-import OfficeSupplyTable from './components/OfficeSupplyTable.jsx';
-import AssetTable from './components/AssetTable.jsx';
-import AccessoryTable from './components/AccessoryTable.jsx';
+import AssetListPage from './components/assets/AssetListPage.jsx';   // ธีม v3 (earth tone)
+import LicenseListPage from './components/licenses/LicenseListPage.jsx';
+import AccessoryListPage from './components/accessories/AccessoryListPage.jsx';
+import EmployeeListPage from './components/employees/EmployeeListPage.jsx';
+import OfficeSupplyListPage from './components/officeSupplies/OfficeSupplyListPage.jsx';
+import {
+  ASSET_TYPE_OPTIONS, ASSET_STATUS_OPTIONS, LICENSE_EXPIRY_OPTIONS, ACCESSORY_TYPE_OPTIONS,
+  OFFICE_STOCK_OPTIONS,
+} from './components/list/filterOptions.js';
 import RepairTable from './components/RepairTable.jsx';
 import SupplyRequestTable from './components/SupplyRequestTable.jsx';
 import ReplacementRequestTable from './components/ReplacementRequestTable.jsx';
 import AccessoryRequestTable from './components/AccessoryRequestTable.jsx';
-import TablePagination from './components/TablePagination.jsx';
 
 // Fallback spinner สำหรับ lazy-loaded routes
 const LazyFallback = () => (
   <div className="flex items-center justify-center py-20">
-    <div className="w-8 h-8 border-3 border-slate-200 border-t-[#1E487A] rounded-full animate-spin" />
+    <div className="w-8 h-8 border-3 border-stone-200 border-t-clay-600 rounded-full animate-spin" />
   </div>
 );
 
@@ -108,7 +110,6 @@ function App() {
   const [authRole, setAuthRole] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [currentUid, setCurrentUid] = useState(null);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
@@ -302,6 +303,10 @@ function App() {
     image: true, name: true, productKey: true, supplier: true,
     purchaseDate: false, expirationDate: true, cost: true, quantity: true, status: true,
   }));
+  // คอลัมน์เสริมของเมนูอุปกรณ์สำนักงาน (ธีม v3) — ค่าเริ่มต้นโชว์เฉพาะราคา
+  const [visibleOfficeSupplyColumns, setVisibleOfficeSupplyColumns] = useState(() => loadLS('cols:officeSupply', {
+    cost: true, vendor: false, purchaseDate: false, note: false,
+  }));
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
@@ -411,6 +416,7 @@ function App() {
   useEffect(() => { try { localStorage.setItem('filter:accType',     JSON.stringify(accFilterType)); } catch {} }, [accFilterType]);
   useEffect(() => { try { localStorage.setItem('filter:licenseExp',  JSON.stringify(licenseExpFilter)); } catch {} }, [licenseExpFilter]);
   useEffect(() => { try { localStorage.setItem('cols:asset',         JSON.stringify(visibleAssetColumns)); } catch {} }, [visibleAssetColumns]);
+  useEffect(() => { try { localStorage.setItem('cols:officeSupply', JSON.stringify(visibleOfficeSupplyColumns)); } catch {} }, [visibleOfficeSupplyColumns]);
   useEffect(() => { try { localStorage.setItem('cols:license',       JSON.stringify(visibleLicenseColumns)); } catch {} }, [visibleLicenseColumns]);
 
   useEffect(() => {
@@ -597,9 +603,10 @@ function App() {
     else if (activeMenu === 'office_supplies') setType('เครื่องเขียน');
   }, [activeMenu]);
 
-  const handleAdminLogin = async (e) => {
-    e.preventDefault(); setLoginError(''); setLoginLoading(true);
-    try { await signInWithEmailAndPassword(auth, loginForm.username, loginForm.password); setShowAdminLogin(false); setLoginForm({ username: '', password: '' }); } 
+  const handleAdminLogin = async (e, creds) => {
+    e?.preventDefault?.(); setLoginError(''); setLoginLoading(true);
+    const { username, password } = creds ?? loginForm;
+    try { await signInWithEmailAndPassword(auth, username, password); setLoginForm({ username: '', password: '' }); } 
     catch (error) { setLoginError('Email หรือ Password ไม่ถูกต้อง'); } 
     finally { setLoginLoading(false); }
   };
@@ -614,15 +621,17 @@ function App() {
     setStaffMustChangePassword(false);
   };
 
-  const handleStaffLogin = async (e) => {
-    e.preventDefault();
-    const empId    = staffEmpIdInput.trim();
-    const password = staffPasswordInput;
+  const handleStaffLogin = async (e, creds) => {
+    e?.preventDefault?.();
+    const empId    = (creds?.empId ?? staffEmpIdInput).trim();
+    const password = creds?.password ?? staffPasswordInput;
     if (!empId)    return;
     if (!password) {
+      setLoginError('กรุณากรอกรหัสผ่าน');
       setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'กรุณากรอกรหัสผ่าน', type: 'error' });
       return;
     }
+    setLoginError(''); setLoginLoading(true);
     try {
       // เรียก Vercel API /api/staff-login เพื่อรับ Firebase custom token
       const resp = await fetch(`${VERCEL_API_BASE}/api/staff-login`, {
@@ -647,7 +656,10 @@ function App() {
       // ถ้าต้องเปลี่ยนรหัสผ่าน → set flag
       setStaffMustChangePassword(!!mustChangePassword);
     } catch (err) {
+      setLoginError(err?.message || 'เข้าสู่ระบบไม่สำเร็จ');
       setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: err?.message || 'เกิดข้อผิดพลาด', type: 'error' });
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -2052,7 +2064,6 @@ function App() {
     if (id) navigate(`/licenses/${encodeURIComponent(id)}`);
   };
 
-  const [isITReportOpen, setIsITReportOpen] = useState(false);
   const [savingFieldOptions, setSavingFieldOptions] = useState(false);
   const handleSaveFieldOptions = async (data) => {
     setSavingFieldOptions(true);
@@ -2187,7 +2198,10 @@ function App() {
           availableSeatDocs: newDocMap,
         });
         await addDoc(collection(db, 'licenses_transactions'), {
-          empId: emp.id, assetName: item.name, category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
+          empId: emp.id, assetName: item.name,
+          licenseId: item.id, licenseName: item.name,
+          productKey: seatProductKey || '', keyCode: seatKeyCode || '',
+          category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       } else {
         const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
@@ -2307,7 +2321,8 @@ function App() {
       await addDoc(collection(db, 'licenses_transactions'), {
         // 🆕 ใส่ empId ของผู้ถือเครื่อง ณ ตอนผูก เพื่อให้ขึ้นใน history พนักงาน
         empId: currentEmpId, empName: currentEmpName,
-        assetId, assetName, licenseName: item.name,
+        assetId, assetName, licenseId: item.id, licenseName: item.name,
+        productKey: seatProductKey || '', keyCode: seatKeyCode || '',
         category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ',
         remarks: remarks.trim() || '-', timestamp: Date.now(), isAssetBound: true,
       });
@@ -2351,7 +2366,8 @@ function App() {
       });
       await addDoc(collection(db, 'licenses_transactions'), {
         empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName,
-        licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
+        productKey: seat.productKey || '', keyCode: seat.keyCode || '',
+        licenseId: item.id, licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
         remarks: '-', timestamp: Date.now(), isAssetBound: true,
       });
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: `ยกเลิกการผูก ${item.name} เรียบร้อยแล้ว`, type: 'success' });
@@ -2407,6 +2423,8 @@ function App() {
 
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
+              licenseId: item.id, licenseName: item.name,
+              productKey: a.productKey || '', keyCode: a.keyCode || '',
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
             });
@@ -2415,6 +2433,8 @@ function App() {
           for (const a of assetBoundToClear) {
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
+              licenseId: item.id, licenseName: item.name,
+              productKey: a.productKey || '', keyCode: a.keyCode || '',
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
               isAssetBound: true,
@@ -3005,6 +3025,11 @@ function App() {
                     activeMenu === 'users' ? 'จัดการผู้ใช้' : 'พนักงาน';
   // เมนูที่แสดงเป็นตารางแบบเต็มจอ (edge-to-edge) — ตัด max-width / padding รอบออก
   const isListMenu = ['assets', 'furniture', 'licenses', 'accessories', 'office_supplies', 'employees'].includes(activeMenu);
+  // หน้าที่คุม padding + พื้นหลังของตัวเอง -> container ไม่ต้องใส่ padding ให้
+  // (dashboard ธีม v3 วาดพื้น stone-50 เต็มพื้นที่เอง)
+  const isFullBleedMenu = isListMenu
+    || ['dashboard', 'replacement_requests', 'repairs',
+        'supply_requests', 'accessory_requests', 'field_options'].includes(activeMenu);
 
   const checkLicenseExpiration = (expirationDate) => {
     if (!expirationDate) return { isExpiring: false, statusText: '', colorClass: '' };
@@ -3013,7 +3038,7 @@ function App() {
     const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
     if (diffDays < 0)   return { isExpiring: true, statusText: 'หมดอายุแล้ว',              colorClass: 'text-rose-700 bg-rose-50 border-rose-200' };
     if (diffDays <= 30) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-rose-700 bg-rose-50 border-rose-200' };
-    if (diffDays <= 90) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-amber-700 bg-amber-50 border-amber-200' };
+    if (diffDays <= 90) return { isExpiring: true, statusText: `เหลืออีก ${diffDays} วัน`, colorClass: 'text-clay-600 bg-clay-100 border-clay-200' };
     return { isExpiring: false, statusText: '', colorClass: '' };
   };
 
@@ -3053,12 +3078,12 @@ function App() {
   const totalSystemItems = assets.length + licenses.length + accessories.length + employees.length;
   const currentDataLength = currentData.length;
 
-  if (authLoading || (authRole === 'admin' && permLoading)) return (<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-[#1E487A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>);
+  if (authLoading || (authRole === 'admin' && permLoading)) return (<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-clay-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>);
   
   if (authRole === null) return (
     <React.Fragment>
       <GlobalLoadingOverlay show={globalLoading} message={globalLoadingMsg} />
-      <LoginView showAdminLogin={showAdminLogin} setShowAdminLogin={setShowAdminLogin} setAuthRole={setAuthRole} loginForm={loginForm} setLoginForm={setLoginForm} handleAdminLogin={handleAdminLogin} loginError={loginError} setLoginError={setLoginError} loginLoading={loginLoading} />
+      <LoginView setLoginForm={setLoginForm} handleAdminLogin={handleAdminLogin} handleStaffLogin={handleStaffLogin} loginError={loginError} setLoginError={setLoginError} loginLoading={loginLoading} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </React.Fragment>
   );
@@ -3101,7 +3126,7 @@ function App() {
   );
 
   return (
-    <div className="flex h-screen bg-[#F1F5FA] text-slate-900 font-sans">
+    <div className="flex h-screen bg-sand-50 text-stone-900 font-sans">
       <GlobalLoadingOverlay show={globalLoading} message={globalLoadingMsg} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
       <Sidebar
@@ -3126,7 +3151,7 @@ function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
 
-        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || routeFurnitureId || isListMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || routeFurnitureId || isFullBleedMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
           {routeAssetEdit ? (
             /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
             <div className="h-full">
@@ -3147,8 +3172,8 @@ function App() {
               if (!routeAsset) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/assets')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
-                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบทรัพย์สินนี้ (อาจถูกลบไปแล้ว)</div>
+                    <button onClick={() => navigate('/assets')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบทรัพย์สินนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
               }
@@ -3164,6 +3189,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3195,8 +3221,8 @@ function App() {
               if (!routeLicense) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/licenses')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
-                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบโปรแกรมนี้ (อาจถูกลบไปแล้ว)</div>
+                    <button onClick={() => navigate('/licenses')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบโปรแกรมนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
               }
@@ -3212,6 +3238,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3243,8 +3270,8 @@ function App() {
               if (!routeAccessory) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/accessories')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
-                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบอุปกรณ์นี้ (อาจถูกลบไปแล้ว)</div>
+                    <button onClick={() => navigate('/accessories')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบอุปกรณ์นี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
               }
@@ -3260,6 +3287,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3291,8 +3319,8 @@ function App() {
               if (!routeFurniture) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/furniture')} className="text-[13.5px] font-semibold text-[#1E487A] hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
-                    <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-20 text-center text-slate-400">ไม่พบครุภัณฑ์นี้ (อาจถูกลบไปแล้ว)</div>
+                    <button onClick={() => navigate('/furniture')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบครุภัณฑ์นี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
               }
@@ -3308,6 +3336,7 @@ function App() {
                     setSelectedAssetCategory={setSelectedAssetCategory}
                     assets={assets} accessories={accessories} licenses={licenses}
                     transactions={transactions} employees={employees}
+                    repairRequests={repairRequests}
                     setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal}
                     handleCheckin={handleCheckin}
                     openEditLicenseModal={openEditLicenseModal} openEditAssetModal={openEditAssetModal}
@@ -3328,34 +3357,25 @@ function App() {
               />
             </Suspense>
           ) : activeMenu === 'it_report' ? (
-            <div className="flex flex-col items-center justify-center h-full gap-6">
-              <div className="text-center max-w-md">
-                <div
-                  className="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg shadow-[#1E487A]/20 ring-1 ring-white/50"
-                  style={{ background: 'linear-gradient(135deg, #1E487A 0%, #163963 100%)' }}
-                >
-                  <svg className="h-9 w-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                  </svg>
-                </div>
-                <h2 className="text-[23px] font-semibold text-slate-900 tracking-tight">สร้าง IT Monthly Report</h2>
-                <p className="text-slate-500 mt-2 text-[14.5px] leading-relaxed">
-                  ระบบจะดึงข้อมูล Hardware, Software, Support จากระบบโดยอัตโนมัติ และ Export เป็นไฟล์ .pptx พร้อม Present
-                </p>
-              </div>
-              <button
-                onClick={() => setIsITReportOpen(true)}
-                className="flex items-center gap-2 px-7 py-3.5 bg-[#1E487A] hover:bg-[#163963] text-white rounded-xl font-semibold text-[15px] transition-colors shadow-lg"
-                style={{ boxShadow: '0 8px 20px rgba(30,72,122,0.30)' }}
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                สร้างไฟล์ Report
-              </button>
-            </div>
+            <Suspense fallback={<LazyFallback />}>
+              <ITReportPage
+                employees={employees}
+                repairRequests={repairRequests}
+                assets={assets}
+                accessories={accessories}
+                licenses={licenses}
+              />
+            </Suspense>
           ) : activeMenu === 'dashboard' ? (
-            <DashboardStats assets={assets} licenses={licenses} accessories={accessories} employees={employees} />
+            <DashboardPage
+              assets={assets}
+              licenses={licenses}
+              accessories={accessories}
+              employees={employees}
+              repairRequests={repairRequests}
+              onOpenRepairs={() => setActiveMenu('repairs')}
+              onOpenAssets={() => setActiveMenu('assets')}
+            />
           ) : activeMenu === 'kpi_dashboard' ? (
             <Suspense fallback={<LazyFallback />}>
               <KpiDashboard repairRequests={repairRequests} />
@@ -3385,92 +3405,157 @@ function App() {
                 canManagePasswords={adminPermissions?.canManagePasswords === true}
               />
             </Suspense>
+          ) : activeMenu === 'office_supplies' ? (
+            <OfficeSupplyListPage
+              rows={paginatedTableData}
+              totalCount={currentData.length}
+              canEdit={canEdit}
+              page={tablePage}
+              pageSize={TABLE_ITEMS_PER_PAGE}
+              onPageChange={setTablePage}
+              searchTerm={searchTerm}
+              onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
+              stockFilter={officeSupplyStockFilter}
+              onStockFilterChange={(v) => { setOfficeSupplyStockFilter(v); setTablePage(1); }}
+              stockOptions={OFFICE_STOCK_OPTIONS}
+              visibleColumns={visibleOfficeSupplyColumns}
+              onVisibleColumnsChange={setVisibleOfficeSupplyColumns}
+              selectedIds={selectedOfficeSupplyIds}
+              onSelect={(id) => handleSelectOfficeSupply({ target: { checked: !selectedOfficeSupplyIds.includes(id) } }, id)}
+              onSelectAll={(on) => handleSelectAllOfficeSupplies({ target: { checked: on } })}
+              onBulkDelete={() => setConfirmDeleteModal({ isOpen: true, id: selectedOfficeSupplyIds, collectionName: 'office_supplies' })}
+              onAdd={() => setIsAddModalOpen(true)}
+              onExportCsv={handleExportOfficeSupplies}
+              onImport={() => setIsImportModalOpen(true)}
+              onEdit={(i) => openEditAssetModal(i, 'office_supplies')}
+              onDelete={(i) => setConfirmDeleteModal({ isOpen: true, id: i.id, collectionName: 'office_supplies' })}
+            />
+          ) : activeMenu === 'licenses' ? (
+            /* ธีม v3 — ใช้ state/handler เดิมทั้งหมด */
+            <LicenseListPage
+              rows={paginatedTableData}
+              totalCount={currentData.length}
+              canEdit={canEdit}
+              page={tablePage}
+              pageSize={TABLE_ITEMS_PER_PAGE}
+              onPageChange={setTablePage}
+              searchTerm={searchTerm}
+              onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
+              filterExpiry={licenseExpFilter}
+              onFilterExpiryChange={(v) => { setLicenseExpFilter(v); setTablePage(1); }}
+              expiryOptions={LICENSE_EXPIRY_OPTIONS}
+              visibleColumns={visibleLicenseColumns}
+              onVisibleColumnsChange={setVisibleLicenseColumns}
+              selectedIds={selectedLicenseIds}
+              onSelect={(id) => handleSelectLicense({ target: { checked: !selectedLicenseIds.includes(id) } }, id)}
+              onSelectAll={(on) => handleSelectAllLicenses({ target: { checked: on } })}
+              onBulkDelete={() => setConfirmDeleteModal({ isOpen: true, id: selectedLicenseIds, collectionName: 'licenses' })}
+              onAdd={() => setIsAddModalOpen(true)}
+              onExportCsv={handleExportLicenses}
+              onOpen={openLicensePage}
+              onEdit={(l) => navigate(`/licenses/${encodeURIComponent(l.id)}/edit`)}
+              onCheckout={(l) => setCheckoutModal({ isOpen: true, assetId: l.id, collectionName: 'licenses' })}
+              onCheckin={(l) => handleCheckin(l.id, 'licenses')}
+              onDelete={(l) => setConfirmDeleteModal({ isOpen: true, id: l.id, collectionName: 'licenses' })}
+              checkExpiration={checkLicenseExpiration}
+            />
+          ) : activeMenu === 'accessories' ? (
+            <AccessoryListPage
+              rows={paginatedTableData}
+              totalCount={currentData.length}
+              canEdit={canEdit}
+              page={tablePage}
+              pageSize={TABLE_ITEMS_PER_PAGE}
+              onPageChange={setTablePage}
+              searchTerm={searchTerm}
+              onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
+              filterType={accFilterType}
+              onFilterTypeChange={(v) => { setAccFilterType(v); setTablePage(1); }}
+              typeOptions={ACCESSORY_TYPE_OPTIONS}
+              selectedIds={selectedAccessoryIds}
+              onSelect={(id) => handleSelectAccessory({ target: { checked: !selectedAccessoryIds.includes(id) } }, id)}
+              onSelectAll={(on) => handleSelectAllAccessories({ target: { checked: on } })}
+              onBulkDelete={() => setConfirmDeleteModal({ isOpen: true, id: selectedAccessoryIds, collectionName: 'accessories' })}
+              onAdd={() => setIsAddModalOpen(true)}
+              onExportCsv={handleExportAccessories}
+              onOpen={openAccessoryPage}
+              onEdit={(a) => navigate(`/accessories/${encodeURIComponent(a.id)}/edit`)}
+              onCheckout={(a) => setCheckoutModal({ isOpen: true, assetId: a.id, collectionName: 'accessories' })}
+              onDelete={(a) => setConfirmDeleteModal({ isOpen: true, id: a.id, collectionName: 'accessories' })}
+            />
+          ) : activeMenu === 'employees' ? (
+            <EmployeeListPage
+              rows={paginatedTableData}
+              totalCount={currentData.length}
+              canEdit={canEdit}
+              page={tablePage}
+              pageSize={TABLE_ITEMS_PER_PAGE}
+              onPageChange={setTablePage}
+              searchTerm={searchTerm}
+              onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
+              filterDepartment={assetFilterDepartment}
+              onFilterDepartmentChange={(v) => { setAssetFilterDepartment(v); setTablePage(1); }}
+              departmentOptions={fieldOptions.forDepartments || []}
+              selectedIds={selectedEmployeeIds}
+              onSelect={(id) => handleSelectEmployee({ target: { checked: !selectedEmployeeIds.includes(id) } }, id)}
+              onSelectAll={(on) => handleSelectAllEmployees({ target: { checked: on } })}
+              onBulkDelete={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })}
+              onAdd={() => setIsAddModalOpen(true)}
+              onExportCsv={handleExportEmployees}
+              onImport={() => setIsImportModalOpen(true)}
+              showDeleted={showDeletedEmployees}
+              onToggleDeleted={(on) => { setShowDeletedEmployees(on); setTablePage(1); }}
+              onRestore={handleRestoreEmployee}
+              onPermanentDelete={handlePermanentDeleteEmployee}
+              onOpen={(emp) => { setSelectedEmployee(emp); setEmpModalTab('info'); }}
+              onEdit={openEditEmpModal}
+              onDelete={(emp) => setConfirmDeleteModal({ isOpen: true, id: emp.id, collectionName: 'employees' })}
+            />
+          ) : (activeMenu === 'assets' || activeMenu === 'furniture') ? (
+            /* ธีม v3 — แทนของเดิม (ActionBar + AssetTable + TablePagination ที่ลบไปแล้ว)
+               ใช้ state/handler เดิมทั้งหมด ไม่มีการสร้าง state ซ้ำ */
+            <AssetListPage
+              title={activeMenu === 'furniture' ? 'ครุภัณฑ์สำนักงาน' : 'ทรัพย์สิน'}
+              rows={paginatedTableData}
+              totalCount={currentData.length}
+              canEdit={canEdit}
+              searchTerm={searchTerm}
+              onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
+              filterType={assetFilterType}
+              onFilterTypeChange={(v) => { setAssetFilterType(v); setTablePage(1); }}
+              typeOptions={activeMenu === 'furniture' ? [] : ASSET_TYPE_OPTIONS}
+              filterStatus={assetFilterStatus}
+              onFilterStatusChange={(v) => { setAssetFilterStatus(v); setTablePage(1); }}
+              statusOptions={activeMenu === 'furniture' ? [] : ASSET_STATUS_OPTIONS}
+              filterDepartment={assetFilterDepartment}
+              onFilterDepartmentChange={(v) => { setAssetFilterDepartment(v); setTablePage(1); }}
+              departmentOptions={fieldOptions.forDepartments || []}
+              page={tablePage}
+              pageSize={TABLE_ITEMS_PER_PAGE}
+              onPageChange={setTablePage}
+              visibleColumns={visibleAssetColumns}
+              onVisibleColumnsChange={setVisibleAssetColumns}
+              selectedIds={selectedAssetIds}
+              onSelect={(id) => handleSelectAsset({ target: { checked: !selectedAssetIds.includes(id) } }, id)}
+              onSelectAll={(on) => handleSelectAllAssets({ target: { checked: on } })}
+              onClearSelection={clearSelectedAssets}
+              onBulkDelete={handleDeleteSelectedAssets}
+              onBulkExportPdf={handleExportSelectedAssetsPDF}
+              onAdd={() => setIsAddModalOpen(true)}
+              onExportCsv={handleExportAssets}
+              onExportPdf={handleExportAssetsPDF}
+              onOpen={activeMenu === 'furniture' ? openFurniturePage : openAssetPage}
+              onEdit={(a) => navigate(`/${activeMenu === 'furniture' ? 'furniture' : 'assets'}/${encodeURIComponent(a.id)}/edit`)}
+              onCheckout={(a) => setCheckoutModal({ isOpen: true, assetId: a.id, collectionName: 'assets' })}
+              onReturn={(a) => setReturnModal({ isOpen: true, assetId: a.id, collectionName: 'assets', empId: a.assignedTo, empName: a.assignedName, assetName: a.name })}
+              onClone={handleCloneAsset}
+              onDelete={(a) => setConfirmDeleteModal({ isOpen: true, id: a.id, collectionName: 'assets' })}
+            />
           ) : (
-            <div className="h-full flex flex-col w-full">
-              {/* 🆕 v2 page header — ไม่ซ้ำ title (มีบน TopHeader แล้ว) เหลือแค่จำนวนรายการ */}
-              <div className="shrink-0 px-5 md:px-6 pt-4 pb-3">
-                <p className="text-[13px] text-slate-400">
-                  {currentData.length.toLocaleString()} รายการในระบบ
-                  {showDeletedEmployees ? ' · กำลังดูถังขยะ' : ''}
-                </p>
-              </div>
-              <div className="bg-white border-t border-slate-200 flex flex-col flex-1 overflow-hidden">
-                <div className="px-5 md:px-6 pt-5">
-                <ActionBar
-                  menuTitle={menuTitle} activeMenu={activeMenu} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showDeletedEmployees={showDeletedEmployees} setShowDeletedEmployees={setShowDeletedEmployees} setIsImportModalOpen={setIsImportModalOpen} handleExportEmployees={handleExportEmployees}
-                  selectedEmployeeIds={selectedEmployeeIds} setConfirmDeleteModal={setConfirmDeleteModal} assetFilterDepartment={assetFilterDepartment} setAssetFilterDepartment={setAssetFilterDepartment} assetFilterType={assetFilterType} setAssetFilterType={setAssetFilterType} assetFilterStatus={assetFilterStatus} setAssetFilterStatus={setAssetFilterStatus} accFilterType={accFilterType} setAccFilterType={setAccFilterType}
-                  handleExportAccessories={handleExportAccessories} selectedAccessoryIds={selectedAccessoryIds} officeSupplyStockFilter={officeSupplyStockFilter} setOfficeSupplyStockFilter={setOfficeSupplyStockFilter} selectedOfficeSupplyIds={selectedOfficeSupplyIds} setIsAddModalOpen={setIsAddModalOpen} handleExportAssets={handleExportAssets} handleExportAssetsPDF={handleExportAssetsPDF} handleExportOfficeSupplies={handleExportOfficeSupplies} visibleAssetColumns={visibleAssetColumns} setVisibleAssetColumns={setVisibleAssetColumns}
-                  handleExportLicenses={handleExportLicenses} selectedLicenseIds={selectedLicenseIds}
-                  visibleLicenseColumns={visibleLicenseColumns} setVisibleLicenseColumns={setVisibleLicenseColumns}
-                  licenseExpFilter={licenseExpFilter} setLicenseExpFilter={setLicenseExpFilter}
-                  setIsSnipeITImportOpen={setIsSnipeITImportOpen}
-                  setIsHistoryImportOpen={setIsHistoryImportOpen}
-                  canEdit={canEdit}
-                  fieldOptions={fieldOptions}
-                  selectedAssetIds={selectedAssetIds}
-                  handleExportSelectedAssetsPDF={handleExportSelectedAssetsPDF}
-                  handleDeleteSelectedAssets={handleDeleteSelectedAssets}
-                  clearSelectedAssets={clearSelectedAssets}
-                />
-                </div>
-
-                {currentData.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-16">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
-                      <svg className="h-7 w-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-                      </svg>
-                    </div>
-                    <p className="font-medium text-[15px] text-slate-500">ไม่พบข้อมูลที่ค้นหา</p>
-                    <p className="text-[13px] text-slate-400 mt-1">ลองเปลี่ยนคำค้นหาหรือปรับตัวกรอง</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto flex-1 border-t border-slate-100 bg-white">
-                    {activeMenu === 'employees' ? (
-                      <EmployeeTable currentData={paginatedTableData} selectedEmployeeIds={selectedEmployeeIds} handleSelectAllEmployees={handleSelectAllEmployees} handleSelectEmployee={handleSelectEmployee} setSelectedEmployee={setSelectedEmployee} setEmpModalTab={setEmpModalTab} showDeletedEmployees={showDeletedEmployees} handleRestoreEmployee={handleRestoreEmployee} handlePermanentDeleteEmployee={handlePermanentDeleteEmployee} openEditEmpModal={openEditEmpModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} />
-                    ) : activeMenu === 'licenses' ? (
-                      <LicenseTable
-                        currentData={paginatedTableData}
-                        selectedLicenseIds={selectedLicenseIds}
-                        handleSelectAllLicenses={handleSelectAllLicenses}
-                        handleSelectLicense={handleSelectLicense}
-                        setSelectedAssetDetail={setSelectedAssetDetail}
-                        setSelectedAssetCategory={setSelectedAssetCategory}
-                        checkLicenseExpiration={checkLicenseExpiration}
-                        setCheckoutModal={setCheckoutModal}
-                        handleCheckin={handleCheckin}
-                        openEditLicenseModal={openEditLicenseModal}
-                        setConfirmDeleteModal={setConfirmDeleteModal}
-                        visibleLicenseColumns={visibleLicenseColumns}
-                        canEdit={canEdit}
-                        onOpenLicense={openLicensePage}
-                        onEditLicense={(l)=>navigate(`/licenses/${encodeURIComponent(l.id)}/edit`)}
-                      />
-                    ) : activeMenu === 'office_supplies' ? (
-                      <OfficeSupplyTable currentData={paginatedTableData} selectedOfficeSupplyIds={selectedOfficeSupplyIds} handleSelectAllOfficeSupplies={handleSelectAllOfficeSupplies} handleSelectOfficeSupply={handleSelectOfficeSupply} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} activeMenu={activeMenu} canEdit={canEdit} />
-                    ) : activeMenu === 'accessories' ? (
-                      <AccessoryTable currentData={paginatedTableData} selectedAccessoryIds={selectedAccessoryIds} handleSelectAllAccessories={handleSelectAllAccessories} handleSelectAccessory={handleSelectAccessory} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} canEdit={canEdit} onOpenAccessory={openAccessoryPage} onEditAccessory={(a)=>navigate(`/accessories/${encodeURIComponent(a.id)}/edit`)} />
-                    ) : (activeMenu === 'assets' || activeMenu === 'furniture') ? (
-                      <AssetTable currentData={paginatedTableData} setSelectedAssetDetail={setSelectedAssetDetail} setSelectedAssetCategory={setSelectedAssetCategory} setCheckoutModal={setCheckoutModal} setReturnModal={setReturnModal} openEditAssetModal={openEditAssetModal} setConfirmDeleteModal={setConfirmDeleteModal} handleCloneAsset={handleCloneAsset} visibleAssetColumns={visibleAssetColumns} canEdit={canEdit} selectedAssetIds={selectedAssetIds} handleSelectAsset={handleSelectAsset} handleSelectAllAssets={handleSelectAllAssets}
-                        onOpenAsset={activeMenu === 'furniture' ? openFurniturePage : openAssetPage}
-                        onEditAsset={(a)=>navigate(`/${activeMenu === 'furniture' ? 'furniture' : 'assets'}/${encodeURIComponent(a.id)}/edit`)} />
-                    ) : null}
-                  </div>
-                )}
-
-                {/* ── Pagination footer (โชว์เมื่อ ≥ 2 หน้า) ── */}
-                {currentData.length > 0 && tableTotalPages > 1 && (
-                  <div className="px-5 md:px-6 pb-4 pt-1">
-                    <TablePagination
-                      currentPage={tablePage}
-                      totalPages={tableTotalPages}
-                      totalItems={currentData.length}
-                      itemsPerPage={TABLE_ITEMS_PER_PAGE}
-                      onPageChange={setTablePage}
-                    />
-                  </div>
-                )}
-              </div>
+            /* ทุกเมนูมี branch ของตัวเองแล้ว — อันนี้เป็นตาข่ายกันหน้าขาว
+               เผื่อ activeMenu หลุดมาเป็นค่าที่ไม่รู้จัก */
+            <div className="flex h-full items-center justify-center p-10 text-sm text-stone-400">
+              ไม่พบหน้าที่ต้องการ
             </div>
           )}
         </div>
@@ -3497,20 +3582,6 @@ function App() {
         suppressEditAssetModal={routeAssetEdit || routeAccessoryEdit || routeFurnitureEdit}
         suppressEditLicenseModal={routeLicenseEdit}
       />
-      {/* 🆕 โหลด modal เฉพาะตอนเปิด — ลด initial bundle */}
-      {isITReportOpen && (
-        <Suspense fallback={null}>
-          <ITReportModal
-            isOpen={isITReportOpen}
-            onClose={() => setIsITReportOpen(false)}
-            employees={employees}
-            repairRequests={repairRequests}
-            assets={assets}
-            accessories={accessories}
-            licenses={licenses}
-          />
-        </Suspense>
-      )}
       {isSnipeITImportOpen && (
         <Suspense fallback={null}>
           <SnipeITImportModal

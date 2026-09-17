@@ -154,7 +154,7 @@ export default function CheckoutModal({
                     <label
                       key={slot.index}
                       className={`flex items-start gap-3 p-3.5 rounded-lg cursor-pointer transition-colors border ${
-                        isSelected ? 'bg-blue-50 border-[#1E487A]' : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
+                        isSelected ? 'bg-stone-50 border-clay-600' : 'bg-white border-stone-200 hover:border-stone-300 hover:bg-stone-50/60'
                       }`}
                     >
                       <input
@@ -163,24 +163,24 @@ export default function CheckoutModal({
                         value={slot.index}
                         checked={isSelected}
                         onChange={() => selectSlot(slot)}
-                        className="mt-1 w-4 h-4 text-[#1E487A] focus:ring-[#1E487A] border-slate-300 shrink-0"
+                        className="mt-1 w-4 h-4 text-clay-600 focus:ring-clay-600 border-stone-300 shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[13.5px] font-semibold text-slate-700">{slot.label}</span>
+                          <span className="text-[13px] font-medium text-stone-700">{slot.label}</span>
                           {slot.cost && (
-                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md tabular-nums">
+                            <span className="text-xs font-medium text-olive-700 bg-olive-50 border border-olive-200 px-2 py-0.5 rounded-lg tabular-nums">
                               ฿{Number(slot.cost).toLocaleString()}
                             </span>
                           )}
                         </div>
                         {slot.sub && (
-                          <div className={`mt-1.5 text-[13px] truncate ${isLicense ? 'font-mono text-slate-800 bg-slate-50 px-2 py-1 rounded-md border border-slate-200' : 'text-slate-500'}`}>
+                          <div className={`mt-1.5 text-[13px] truncate ${isLicense ? 'font-mono text-stone-800 bg-stone-50 px-2 py-1 rounded-lg border border-stone-200' : 'text-stone-500'}`}>
                             {slot.sub}
                           </div>
                         )}
-                        {slot.sub2 && <div className="mt-0.5 text-[12.5px] text-slate-400 truncate">{slot.sub2}</div>}
-                        {!slot.sub && !slot.cost && <div className="mt-0.5 text-[12.5px] text-slate-400">ไม่มีข้อมูลเพิ่มเติม</div>}
+                        {slot.sub2 && <div className="mt-0.5 text-xs text-stone-400 truncate">{slot.sub2}</div>}
+                        {!slot.sub && !slot.cost && <div className="mt-0.5 text-xs text-stone-400">ไม่มีข้อมูลเพิ่มเติม</div>}
                       </div>
                     </label>
                   );
@@ -191,7 +191,7 @@ export default function CheckoutModal({
 
           {/* 🆕 ซ่อนตอน submitting — กัน flash error เมื่อ Firestore update มาก่อน modal ปิด */}
           {needSelector && availableSlots.length === 0 && !isSubmitting && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[14px] font-medium px-4 py-3 rounded-lg flex items-start gap-2">
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium px-4 py-3 rounded-lg flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={2} />
               ไม่มีรายการที่พร้อมเบิกจ่าย
             </div>
@@ -200,7 +200,7 @@ export default function CheckoutModal({
           {/* Employee selector */}
           <Field label="ค้นหาและเลือกพนักงาน" required>
             <div ref={wrapperRef} className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" strokeWidth={2} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" strokeWidth={2} />
               <input
                 type="text"
                 placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
@@ -209,39 +209,39 @@ export default function CheckoutModal({
                 onFocus={() => setIsDropdownOpen(true)}
                 className={`w-full pl-10 pr-4 py-3 text-[15px] bg-white border rounded-lg outline-none transition-colors ${
                   !checkoutEmpId && checkoutSearchTerm
-                    ? 'border-amber-300 focus:ring-2 focus:ring-amber-200 focus:border-amber-400'
-                    : 'border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-[#1E487A]/15 focus:border-[#1E487A]'
+                    ? 'border-clay-300 focus:ring-2 focus:ring-clay-200 focus:border-clay-400'
+                    : 'border-stone-200 hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600'
                 }`}
                 autoComplete="off"
               />
 
               {isDropdownOpen && (
-                <div className="absolute z-10 w-full mt-1.5 bg-white border border-slate-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(16,47,87,0.12)] max-h-[320px] overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1.5 bg-white border border-stone-200 rounded-lg shadow-[0_10px_28px_-16px_rgba(22,32,36,0.12)] max-h-[320px] overflow-y-auto">
                   {filteredEmployees.length > 0 ? (
                     filteredEmployees.map(emp => (
                       <div
                         key={emp.id}
-                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50/60 transition-colors flex items-center gap-3 border-b border-slate-50 last:border-b-0 ${checkoutEmpId === emp.id ? 'bg-blue-50' : ''}`}
+                        className={`px-4 py-3 cursor-pointer hover:bg-stone-50/60 transition-colors flex items-center gap-3 border-b border-stone-50 last:border-b-0 ${checkoutEmpId === emp.id ? 'bg-stone-50' : ''}`}
                         onClick={() => {
                           setCheckoutEmpId(emp.id);
                           setCheckoutSearchTerm(`${emp.empId} - ${emp.fullName}${emp.nickname ? ` (${emp.nickname})` : ''}`);
                           setIsDropdownOpen(false);
                         }}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 text-[#1E487A] flex items-center justify-center font-semibold text-[15px] shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-stone-100 text-clay-600 flex items-center justify-center font-medium text-[15px] shrink-0">
                           {emp.fullName?.charAt(0) || '?'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-slate-800 truncate">
-                            {emp.fullName} {emp.nickname ? <span className="text-slate-400">({emp.nickname})</span> : null}
+                          <div className="font-medium text-stone-800 truncate">
+                            {emp.fullName} {emp.nickname ? <span className="text-stone-400">({emp.nickname})</span> : null}
                           </div>
-                          <div className="text-[13px] text-slate-500 truncate">{emp.empId} • {emp.department || '-'}</div>
+                          <div className="text-[13px] text-stone-500 truncate">{emp.empId} • {emp.department || '-'}</div>
                         </div>
-                        {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-[#1E487A] shrink-0" strokeWidth={2.4} />}
+                        {checkoutEmpId === emp.id && <Check className="h-5 w-5 text-clay-600 shrink-0" strokeWidth={2.4} />}
                       </div>
                     ))
                   ) : (
-                    <div className="p-5 text-center text-[14px] text-slate-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
+                    <div className="p-5 text-center text-sm text-stone-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
                   )}
                 </div>
               )}
@@ -261,7 +261,7 @@ export default function CheckoutModal({
 
           {/* 🆕 100-point checklist — เก็บข้อมูลตอนเบิกจ่าย เพื่อใช้ตอนพิมพ์ใบส่งมอบ (asset หลักเท่านั้น) */}
           {!isLicense && !isAccessory && checkoutCondition && setCheckoutCondition && (
-            <div className="border-t border-slate-200 pt-4">
+            <div className="border-t border-stone-200 pt-4">
               <AssetAssessmentSection
                 assessment={checkoutCondition.assessment || {}}
                 setAssessment={(fnOrValue) => {
@@ -284,10 +284,10 @@ export default function CheckoutModal({
           <button
             type="submit"
             disabled={!canSubmit}
-            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 ${
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 ${
               canSubmit
-                ? 'bg-[#1E487A] hover:bg-[#163963] text-white shadow-sm focus:ring-[#1E487A]/30'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                ? 'bg-clay-600 hover:bg-clay-700 text-white shadow-sm focus:ring-clay-600/30'
+                : 'bg-stone-200 text-stone-400 cursor-not-allowed'
             }`}
           >
             ยืนยันเบิกจ่าย

@@ -67,7 +67,7 @@ export default function DateField({
     el.click();
   };
 
-  const baseInput = 'w-full border border-slate-200 p-2 rounded-lg text-[13px] pr-9 focus:ring-2 focus:ring-[#1E487A]/30 focus:border-[#1E487A] outline-none';
+  const baseInput = 'w-full border border-stone-200 p-2 rounded-lg text-[13px] pr-9 focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 outline-none';
 
   return (
     <div className={`relative ${className}`}>
@@ -84,7 +84,7 @@ export default function DateField({
         onClick={openPicker}
         tabIndex={-1}
         aria-label="เลือกวันที่"
-        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-slate-400 hover:text-[#1E487A] transition-colors"
+        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-stone-400 hover:text-clay-600 transition-colors"
       >
         <Calendar className="h-4 w-4" strokeWidth={2} />
       </button>

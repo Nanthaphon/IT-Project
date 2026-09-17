@@ -87,7 +87,7 @@ export function printAssetDetail({
   /* ── Section: ข้อมูลจำเพาะ ── */
   const specSection = `
     <div style="margin-bottom:9px">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">ข้อมูลจำเพาะ</div>
+      <div style="font-size:11px;font-weight:700;color:#2B6777;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #2B6777;padding-bottom:4px;margin-bottom:10px">ข้อมูลจำเพาะ</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px 24px">
         ${field('Asset Tag', asset.assetTag ? `<span style="font-family:'Courier New',monospace;background:#f1f5f9;padding:1px 6px;border-radius:3px">${e(asset.assetTag)}</span>` : '', { bold: true })}
         ${field('Serial Number', asset.sn ? `<span style="font-family:'Courier New',monospace;background:#f1f5f9;padding:1px 6px;border-radius:3px">${e(asset.sn)}</span>` : '')}
@@ -101,12 +101,12 @@ export function printAssetDetail({
   /* ── Section: การจัดซื้อ + ราคา + อายุการใช้งาน ── */
   const purchaseSection = `
     <div style="margin-bottom:9px">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">การจัดซื้อ &amp; การรับประกัน</div>
+      <div style="font-size:11px;font-weight:700;color:#2B6777;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #2B6777;padding-bottom:4px;margin-bottom:10px">การจัดซื้อ &amp; การรับประกัน</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px 24px">
         ${field('วันที่ซื้อ', asset.purchaseDate ? e(formatDateShort(asset.purchaseDate)) : '')}
         ${field('วันหมด Warranty', asset.warrantyDate ? e(formatDateShort(asset.warrantyDate)) : '')}
         ${field('อายุการใช้งาน', e(calcAge(asset.purchaseDate)))}
-        ${field('ราคาจัดซื้อ', asset.cost ? `<span style="color:#1E487A">฿${fmtTHB(asset.cost)}</span>` : '', { bold: true, large: true })}
+        ${field('ราคาจัดซื้อ', asset.cost ? `<span style="color:#2B6777">฿${fmtTHB(asset.cost)}</span>` : '', { bold: true, large: true })}
         ${field('ราคาปัจจุบัน', asset.scrapValue ? `<span style="color:#059669">฿${fmtTHB(asset.scrapValue)}</span>` : '', { bold: true, large: true })}
       </div>
     </div>`;
@@ -114,7 +114,7 @@ export function printAssetDetail({
   /* ── Section: ผู้ครอบครอง ── */
   const ownerSection = `
     <div style="margin-bottom:9px">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">ผู้ครอบครอง</div>
+      <div style="font-size:11px;font-weight:700;color:#2B6777;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #2B6777;padding-bottom:4px;margin-bottom:10px">ผู้ครอบครอง</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px 24px">
         ${field('ชื่อผู้ครอบครอง', e(asset.assignedName), { large: true, bold: true })}
       </div>
@@ -123,21 +123,21 @@ export function printAssetDetail({
   /* ── Section: หมายเหตุ ── */
   const noteSection = asset.note ? `
     <div style="margin-bottom:9px">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">หมายเหตุ / รายละเอียดเพิ่มเติม</div>
+      <div style="font-size:11px;font-weight:700;color:#2B6777;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #2B6777;padding-bottom:4px;margin-bottom:10px">หมายเหตุ / รายละเอียดเพิ่มเติม</div>
       <div style="background:#fefce8;border-left:3px solid #facc15;padding:8px 12px;border-radius:3px;font-size:12.5px;color:#422006;white-space:pre-wrap">${e(asset.note)}</div>
     </div>` : '';
 
   /* ── Section: Remark ── */
   const remarkSection = asset.remark ? `
     <div style="margin-bottom:9px">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">Remark</div>
+      <div style="font-size:11px;font-weight:700;color:#2B6777;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #2B6777;padding-bottom:4px;margin-bottom:10px">Remark</div>
       <div style="background:#eff6ff;border-left:3px solid #3b82f6;padding:8px 12px;border-radius:3px;font-size:12.5px;color:#1e3a5f;white-space:pre-wrap">${e(asset.remark)}</div>
     </div>` : '';
 
   /* ── Section: รูปภาพประกอบ (จากคลังรูปที่ตั้งไว้ในแท็บข้อมูลทั่วไป) ── */
   const attachSection = galleryPhotos.length > 0 ? `
     <div style="margin-bottom:9px;break-inside:avoid">
-      <div style="font-size:11px;font-weight:700;color:#1E487A;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #1E487A;padding-bottom:4px;margin-bottom:10px">รูปภาพประกอบ (${galleryPhotos.length} รูป)</div>
+      <div style="font-size:11px;font-weight:700;color:#2B6777;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #2B6777;padding-bottom:4px;margin-bottom:10px">รูปภาพประกอบ (${galleryPhotos.length} รูป)</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px">
         ${galleryPhotos.map((src, i) => `
           <div style="break-inside:avoid">
@@ -173,7 +173,7 @@ export function printAssetDetail({
       line-height: 1.4;
     }
     .page-header {
-      border-bottom: 2px solid #1E487A;
+      border-bottom: 2px solid #2B6777;
       padding-bottom: 6px;
       margin-bottom: 10px;
       display: flex;
@@ -183,7 +183,7 @@ export function printAssetDetail({
     .page-header .company {
       font-size: 14px;
       font-weight: 700;
-      color: #1E487A;
+      color: #2B6777;
     }
     .page-header .title {
       font-size: 11px;

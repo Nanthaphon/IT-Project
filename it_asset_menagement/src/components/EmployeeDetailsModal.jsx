@@ -404,7 +404,7 @@ export default function EmployeeDetailsModal({
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบส่งมอบ
-              {hasNotebook && <span className="text-[10.5px] font-medium text-stone-400 tabular-nums">{empNotebooks.length}</span>}
+              {hasNotebook && <span className="text-[10px] font-medium text-stone-400 tabular-nums">{empNotebooks.length}</span>}
             </button>
             <button
               onClick={handlePrintReturn}
@@ -414,7 +414,7 @@ export default function EmployeeDetailsModal({
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบรับคืน
-              {allHeld.length > 0 && <span className="text-[10.5px] font-medium text-stone-400 tabular-nums">{allHeld.length}</span>}
+              {allHeld.length > 0 && <span className="text-[10px] font-medium text-stone-400 tabular-nums">{allHeld.length}</span>}
             </button>
             {/* 🆕 พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง */}
             <button
@@ -480,7 +480,7 @@ export default function EmployeeDetailsModal({
               <h3 className="text-[15px] font-medium text-stone-800">เลือกเครื่องที่ต้องการพิมพ์ใบรับคืน</h3>
               <button onClick={() => setReturnPickerOpen(false)} className="text-stone-400 hover:text-stone-600 text-xl leading-none">×</button>
             </div>
-            <p className="text-[12.5px] text-stone-500 mb-3">
+            <p className="text-xs text-stone-500 mb-3">
               พนักงานคนนี้ถือทรัพย์สินหลัก {empAssets.length} เครื่อง — เลือก 1 เครื่อง
             </p>
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -492,7 +492,7 @@ export default function EmployeeDetailsModal({
                 >
                   <div className="overflow-hidden">
                     <p className="text-sm font-semibold text-stone-800 truncate">{asset.name || '-'}</p>
-                    <p className="text-[12px] text-stone-500 truncate">
+                    <p className="text-xs text-stone-500 truncate">
                       {asset.model || '-'} · {asset.sn || asset.assetTag || '-'}
                     </p>
                   </div>
@@ -538,7 +538,7 @@ export default function EmployeeDetailsModal({
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[12.5px] font-medium text-stone-500r mb-2 px-1">{title}</p>
+      <p className="text-xs font-medium text-stone-500 mb-2 px-1">{title}</p>
       <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
@@ -552,7 +552,7 @@ function InfoItem({ label, value, accent, span2, mono }) {
   return (
     <div className={`px-4 py-2.5 ${span2 ? 'sm:col-span-2' : ''} border-b border-stone-100 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0`}>
       <span className="block text-[11px] text-stone-400 mb-0.5">{label}</span>
-      <span className={`block text-[13.5px] ${accent ? 'text-clay-600 font-semibold' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
+      <span className={`block text-[13px] ${accent ? 'text-clay-600 font-semibold' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-stone-300">—</span>}
       </span>
     </div>
@@ -659,7 +659,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
       {/* Info banner */}
       <div className="bg-stone-50/40 border border-stone-200 rounded-lg px-3 py-2 flex items-start gap-2">
         <Shield className="h-3.5 w-3.5 text-clay-600 shrink-0 mt-0.5" strokeWidth={2.2} />
-        <p className="text-[11.5px] text-stone-900/85 leading-relaxed">
+        <p className="text-[11px] text-stone-900/85 leading-relaxed">
           ระบบเก็บทั้ง <strong>hash + salt</strong> (สำหรับ login) และ <strong>plaintext</strong> (visibility สำหรับ admin) —
           Firestore rules จำกัดให้เฉพาะ admin เท่านั้นที่อ่านได้
         </p>
@@ -668,15 +668,15 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
       {/* Status badges */}
       <div className="flex flex-wrap items-center gap-2">
         {isUnset ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-[11.5px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-[11px] font-semibold">
             ยังไม่เคยตั้งรหัสผ่าน
           </span>
         ) : isDefault ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-clay-100 text-clay-600 border border-clay-200 text-[11.5px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-clay-100 text-clay-600 border border-clay-200 text-[11px] font-semibold">
             🔓 ใช้รหัสพนักงานเป็นรหัสผ่าน
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200 text-[11.5px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200 text-[11px] font-semibold">
             🔐 ตั้งรหัสผ่านส่วนตัว
           </span>
         )}
@@ -687,7 +687,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
 
       {/* Password input */}
       <div>
-        <label className="block text-[11.5px] font-semibold text-stone-500 mb-1.5">
+        <label className="block text-[11px] font-semibold text-stone-500 mb-1.5">
           รหัสผ่าน (Staff Portal)
         </label>
         <div className="relative">
@@ -696,7 +696,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
             value={pwd}
             onChange={e => handleChange(e.target.value)}
             placeholder={isUnset ? 'พนักงานยังไม่เคย login — รหัสจะเป็นรหัสพนักงานอัตโนมัติ' : 'รหัสผ่าน'}
-            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2 rounded-lg text-[14px] font-mono focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
+            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
             autoComplete="new-password"
             spellCheck={false}
           />
@@ -723,7 +723,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           </div>
         </div>
         {isDirty && (
-          <p className="text-[11.5px] text-clay-600 mt-1.5 flex items-center gap-1">
+          <p className="text-[11px] text-clay-600 mt-1.5 flex items-center gap-1">
             ● มีการแก้ไข — กด "บันทึก" เพื่อยืนยัน
           </p>
         )}
@@ -735,7 +735,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleResetToEmpId}
           disabled={resetting || saving || !empId || (isDefault && !isDirty)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-clay-600 bg-white border border-stone-200 hover:bg-clay-100 hover:border-clay-300 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-clay-600 bg-white border border-stone-200 hover:bg-clay-100 hover:border-clay-300 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
         >
           <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -745,7 +745,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleSave}
           disabled={saving || resetting || !isDirty}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
@@ -754,7 +754,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
 
       {/* Message */}
       {msg && (
-        <div className={`text-[12.5px] font-medium px-2.5 py-1.5 rounded-lg ${
+        <div className={`text-xs font-medium px-2.5 py-1.5 rounded-lg ${
           msg.type === 'error'
             ? 'bg-rose-50 text-rose-700 border border-rose-200'
             : 'bg-olive-50 text-olive-700 border border-olive-200'
@@ -819,7 +819,7 @@ function PasswordReveal({ label, value }) {
 
 function Th({ children, center }) {
   return (
-    <th className={`px-4 py-2.5 text-[11px] font-semibold text-stone-400r ${center ? 'text-center' : 'text-left'}`}>
+    <th className={`px-4 py-2.5 text-[11px] font-semibold text-stone-400 ${center ? 'text-center' : 'text-left'}`}>
       {children}
     </th>
   );
@@ -866,7 +866,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
           <button
             key={f.id}
             onClick={() => setHistoryFilter(f.id)}
-            className={`text-[12.5px] font-medium px-3 py-1.5 rounded-lg transition-colors ${
+            className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
               historyFilter === f.id
                 ? 'bg-stone-900 text-white'
                 : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 hover:border-stone-300'
@@ -875,7 +875,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
             {f.label}
           </button>
         ))}
-        <span className="ml-auto text-[12px] text-stone-400 self-center">{empHistory.length} รายการ</span>
+        <span className="ml-auto text-xs text-stone-400 self-center">{empHistory.length} รายการ</span>
       </div>
 
       {/* ── List — clean & simple ── */}
@@ -897,21 +897,21 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     {/* 🆕 License category — แสดงชื่อ License แทนชื่อทรัพย์สินที่ผูก */}
-                    <span className="text-[13.5px] font-semibold text-stone-800 truncate">
+                    <span className="text-[13px] font-semibold text-stone-800 truncate">
                       {(rec.category === 'licenses' || rec.category === 'license')
                         ? (rec.licenseName || rec.assetName)
                         : rec.assetName}
                     </span>
-                    <span className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded ${
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
                       isCheckout ? 'bg-stone-50 text-stone-700' : 'bg-olive-50 text-olive-700'
                     }`}>
                       {isCheckout ? 'เบิก' : 'คืน'}
                     </span>
-                    <span className="text-[10.5px] font-medium text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-medium text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
                       {catLabel(rec.category)}
                     </span>
                     {isBroken && (
-                      <span className="text-[10.5px] font-medium text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">ชำรุด</span>
+                      <span className="text-[10px] font-medium text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">ชำรุด</span>
                     )}
                   </div>
                   {/* 🆕 SN / Asset Tag — เฉพาะหมวดทรัพย์สิน */}
@@ -929,7 +929,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                       )}
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-[11.5px] text-stone-400">
+                  <div className="flex items-center gap-2 text-[11px] text-stone-400">
                     <span>{fmtDate(rec.timestamp)} · {fmtTime(rec.timestamp)}</span>
                     {rec.remarks && (
                       <>
@@ -944,7 +944,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                 {canPrint && (
                   <button
                     onClick={() => openPrintReturn(rec)}
-                    className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 hover:bg-stone-50 px-2.5 py-1 rounded transition-colors"
                     title="พิมพ์ใบรับคืน"
                   >
                     <Printer className="h-3 w-3" strokeWidth={2.2} />
@@ -969,7 +969,7 @@ function StatTile({ label, value, color, bg }) {
       className="rounded-xl px-3.5 py-2.5 border transition-colors"
       style={{ background: bg, borderColor: 'transparent' }}
     >
-      <p className="text-[12.5px] font-medium" style={{ color: `${color}AA` }}>{label}</p>
+      <p className="text-xs font-medium" style={{ color: `${color}AA` }}>{label}</p>
       <p className="text-[22px] font-medium tabular-nums leading-tight mt-0.5" style={{ color }}>{value}</p>
     </div>
   );

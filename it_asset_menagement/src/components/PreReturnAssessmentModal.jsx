@@ -168,7 +168,7 @@ export default function PreReturnAssessmentModal({
               <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[18px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
+              <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
               <p className="text-[13px] text-stone-500 mt-0.5 truncate">
                 ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-semibold text-stone-700">{employee?.fullName}</span>
               </p>
@@ -188,18 +188,18 @@ export default function PreReturnAssessmentModal({
               <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่รับมอบ (ขา 1)</label>
               <DateField value={editableHandoverDate}
                 onChange={(v) => setEditableHandoverDate(v)}
-                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
+                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่คืน (ขา 2)</label>
               <DateField value={editableReturnDate}
                 onChange={(v) => setEditableReturnDate(v)}
-                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
+                inputClassName="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 pr-9 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"/>
             </div>
             <div>
               <label className="block text-[13px] font-medium text-stone-600 mb-1.5">Tier (อัตราค่าปรับ)</label>
               <select value={tier} onChange={(e) => setTier(e.target.value)}
-                className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600">
+                className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600">
                 <option value="General">General (~25K)</option>
                 <option value="Data">Data (~35K)</option>
                 <option value="Graphic/DX">Graphic/DX (~55K)</option>
@@ -210,11 +210,11 @@ export default function PreReturnAssessmentModal({
           {/* Score banner */}
           <div className="bg-clay-600 text-white rounded-lg p-4 flex items-center justify-between">
             <div>
-              <div className="text-[12px] opacity-80 font-medium">คะแนนรับคืน (ขา 2) /100</div>
-              <div className="text-[34px] font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
+              <div className="text-xs opacity-80 font-medium">คะแนนรับคืน (ขา 2) /100</div>
+              <div className="text-3xl font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
             </div>
             <div className="flex flex-col items-center gap-1.5 shrink-0">
-              <div className="text-[10.5px] opacity-80 font-medium">เกรด</div>
+              <div className="text-[10px] opacity-80 font-medium">เกรด</div>
               <div className={`w-14 h-14 rounded-xl bg-white shadow-sm border border-white/40 flex items-center justify-center text-[30px] font-extrabold leading-none ${gradeColor}`}>
                 {grade}
               </div>
@@ -241,10 +241,10 @@ export default function PreReturnAssessmentModal({
               className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-stone-50 transition text-left"
             >
               <div>
-                <p className="text-[13.5px] font-semibold text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
-                <p className="text-[11.5px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
+                <p className="text-[13px] font-semibold text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
+                <p className="text-[11px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
               </div>
-              <span className="text-[12px] font-semibold text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
+              <span className="text-xs font-semibold text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
             </button>
             {showHandover && (
               <div className="px-4 pb-4 border-t border-stone-100">
@@ -261,7 +261,7 @@ export default function PreReturnAssessmentModal({
           <Section title="รายการความเสียหายและค่าปรับ">
             <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
               <div className="px-3 py-2 bg-stone-50/60 border-b border-stone-200">
-                <p className="text-[12.5px] text-stone-700 flex items-center gap-1.5">
+                <p className="text-xs text-stone-700 flex items-center gap-1.5">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                   เลือกจากตารางอ้างอิง <b>ค่าปรับจะ auto-fill ตาม Tier "{tier}"</b> — แก้ตัวเลขในช่องได้ถ้าจริงต่างจากตาราง
                 </p>
@@ -274,9 +274,9 @@ export default function PreReturnAssessmentModal({
                 <table className="w-full">
                   <thead className="bg-stone-50 border-b border-stone-200">
                     <tr>
-                      <th className="text-left text-[12px] font-medium text-stone-500 px-3 py-2 w-12">ลำดับ</th>
-                      <th className="text-left text-[12px] font-medium text-stone-500 px-3 py-2">รายละเอียดความเสียหาย</th>
-                      <th className="text-left text-[12px] font-medium text-stone-500 px-3 py-2 w-36">ค่าปรับ (THB)</th>
+                      <th className="text-left text-xs font-medium text-stone-500 px-3 py-2 w-12">ลำดับ</th>
+                      <th className="text-left text-xs font-medium text-stone-500 px-3 py-2">รายละเอียดความเสียหาย</th>
+                      <th className="text-left text-xs font-medium text-stone-500 px-3 py-2 w-36">ค่าปรับ (THB)</th>
                       <th className="w-10"></th>
                     </tr>
                   </thead>
@@ -289,7 +289,7 @@ export default function PreReturnAssessmentModal({
                             <select
                               value=""
                               onChange={(e) => pickDamageTemplate(i, e.target.value)}
-                              className="text-[12px] bg-stone-50 border border-stone-200 rounded px-2 py-1 outline-none hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+                              className="text-xs bg-stone-50 border border-stone-200 rounded px-2 py-1 outline-none hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                             >
                               <option value="">เลือกจากตารางอ้างอิง...</option>
                               {DAMAGE_ITEMS.map(row => (
@@ -301,7 +301,7 @@ export default function PreReturnAssessmentModal({
                               value={d.name}
                               onChange={(e) => updateDamage(i, { name: e.target.value })}
                               placeholder="หรือพิมพ์รายละเอียดเอง"
-                              className="w-full text-[14px] bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+                              className="w-full text-sm bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                             />
                           </div>
                         </td>
@@ -310,7 +310,7 @@ export default function PreReturnAssessmentModal({
                             type="number" min="0" step="any"
                             value={d.fee}
                             onChange={(e) => updateDamage(i, { fee: e.target.value })}
-                            className="w-full text-[14px] bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 tabular-nums text-right"
+                            className="w-full text-sm bg-white border border-stone-200 rounded px-2 py-1.5 outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 tabular-nums text-right"
                           />
                         </td>
                         <td className="px-3 py-2 text-center">
@@ -325,7 +325,7 @@ export default function PreReturnAssessmentModal({
                       </tr>
                     ))}
                     <tr className="bg-clay-100">
-                      <td colSpan={2} className="px-3 py-2.5 text-right text-[13.5px] font-medium text-stone-700">รวมค่าปรับทั้งหมด</td>
+                      <td colSpan={2} className="px-3 py-2.5 text-right text-[13px] font-medium text-stone-700">รวมค่าปรับทั้งหมด</td>
                       <td className="px-3 py-2.5 text-right text-[15px] font-medium text-rose-600 tabular-nums">{Number(totalFee).toLocaleString('th-TH')} ฿</td>
                       <td></td>
                     </tr>
@@ -349,7 +349,7 @@ export default function PreReturnAssessmentModal({
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
               placeholder="หมายเหตุ / เงื่อนไขพิเศษ (ถ้ามี)"
-              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
+              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -375,7 +375,7 @@ export default function PreReturnAssessmentModal({
             </div>
             <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-stone-50/60 border border-stone-200 rounded-lg">
               <AlertCircle className="h-4 w-4 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
-              <p className="text-[12.5px] text-stone-700 leading-relaxed">
+              <p className="text-xs text-stone-700 leading-relaxed">
                 แนบรูปได้ถึง 4 รูป — ใช้ถ่ายความเสียหายเป็นหลักฐาน ภาพจะถูกฝังลง PDF ที่พิมพ์ออก
               </p>
             </div>
@@ -385,13 +385,13 @@ export default function PreReturnAssessmentModal({
         {/* Footer */}
         <div className="flex items-center justify-between px-7 py-4 border-t border-stone-100 bg-white shrink-0 gap-3 flex-wrap">
           <div className="flex flex-col gap-1.5">
-            <div className="text-[12.5px] text-stone-500">
+            <div className="text-xs text-stone-500">
               แนบรูปทั่วไป <b>{Object.keys(photosReturn).length}/6</b> · ความเสียหาย <b>{Object.keys(photosDamage).length}/4</b>
               &nbsp;·&nbsp; ค่าปรับรวม <b className="text-rose-600">{Number(totalFee).toLocaleString('th-TH')} ฿</b>
             </div>
             {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
             {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
-              <label className="flex items-center gap-1.5 text-[12px] text-stone-600 cursor-pointer select-none">
+              <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={includeHoldings}
@@ -404,7 +404,7 @@ export default function PreReturnAssessmentModal({
             )}
           </div>
           <div className="flex gap-2.5">
-            <button onClick={onClose} className="px-5 py-2.5 text-[14px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition">
+            <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition">
               ยกเลิก
             </button>
             <button
@@ -458,7 +458,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
             <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm font-medium text-clay-600 truncate">{sec.title}</span>
-                <span className="text-[12px] font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
+                <span className="text-xs font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                   {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                 </span>
               </div>
@@ -473,10 +473,10 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                 const cell = assessment[no] || {};
                 return (
                   <div key={no} className="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-50/60">
-                    <span className="text-[12px] font-mono text-stone-400 shrink-0 w-8">{no}</span>
+                    <span className="text-xs font-mono text-stone-400 shrink-0 w-8">{no}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-semibold text-stone-700 truncate">{name}</div>
-                      <div className="text-[11.5px] text-stone-500 truncate">{criteria}</div>
+                      <div className="text-[13px] font-semibold text-stone-700 truncate">{name}</div>
+                      <div className="text-[11px] text-stone-500 truncate">{criteria}</div>
                     </div>
                     <div className="flex gap-1 shrink-0">
                       {STATUS_OPTIONS.map(opt => {
@@ -486,7 +486,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                             key={opt.value}
                             type="button"
                             onClick={() => setItemStatus(no, opt.value, si)}
-                            className={`text-[12px] font-semibold px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
+                            className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
                               selected
                                 ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
                                 : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
@@ -538,7 +538,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
       <div className="px-3 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
-        <span className="text-[12.5px] font-semibold text-stone-700 truncate">{label}</span>
+        <span className="text-xs font-semibold text-stone-700 truncate">{label}</span>
         {src && (
           <button type="button" onClick={onRemove}
             className="text-rose-500 hover:text-rose-600 p-1 rounded transition" title="ลบรูป">
@@ -559,7 +559,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
             ) : (
               <>
                 <ImagePlus className="h-6 w-6" strokeWidth={1.8} />
-                <span className="text-[11.5px] font-medium">แนบรูป</span>
+                <span className="text-[11px] font-medium">แนบรูป</span>
               </>
             )}
           </button>

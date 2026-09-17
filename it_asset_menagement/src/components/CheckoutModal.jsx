@@ -167,7 +167,7 @@ export default function CheckoutModal({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[13.5px] font-semibold text-stone-700">{slot.label}</span>
+                          <span className="text-[13px] font-semibold text-stone-700">{slot.label}</span>
                           {slot.cost && (
                             <span className="text-xs font-semibold text-olive-700 bg-olive-50 border border-olive-200 px-2 py-0.5 rounded-lg tabular-nums">
                               ฿{Number(slot.cost).toLocaleString()}
@@ -179,8 +179,8 @@ export default function CheckoutModal({
                             {slot.sub}
                           </div>
                         )}
-                        {slot.sub2 && <div className="mt-0.5 text-[12.5px] text-stone-400 truncate">{slot.sub2}</div>}
-                        {!slot.sub && !slot.cost && <div className="mt-0.5 text-[12.5px] text-stone-400">ไม่มีข้อมูลเพิ่มเติม</div>}
+                        {slot.sub2 && <div className="mt-0.5 text-xs text-stone-400 truncate">{slot.sub2}</div>}
+                        {!slot.sub && !slot.cost && <div className="mt-0.5 text-xs text-stone-400">ไม่มีข้อมูลเพิ่มเติม</div>}
                       </div>
                     </label>
                   );
@@ -191,7 +191,7 @@ export default function CheckoutModal({
 
           {/* 🆕 ซ่อนตอน submitting — กัน flash error เมื่อ Firestore update มาก่อน modal ปิด */}
           {needSelector && availableSlots.length === 0 && !isSubmitting && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[14px] font-medium px-4 py-3 rounded-lg flex items-start gap-2">
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium px-4 py-3 rounded-lg flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={2} />
               ไม่มีรายการที่พร้อมเบิกจ่าย
             </div>
@@ -241,7 +241,7 @@ export default function CheckoutModal({
                       </div>
                     ))
                   ) : (
-                    <div className="p-5 text-center text-[14px] text-stone-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
+                    <div className="p-5 text-center text-sm text-stone-500 font-medium">ไม่พบข้อมูลพนักงาน</div>
                   )}
                 </div>
               )}

@@ -74,21 +74,21 @@ export default function AssetAssessmentSection({
       {/* ── Score banner ── */}
       <div className="bg-clay-600 text-white rounded-lg p-3.5 flex items-center justify-between">
         <div>
-          <div className="text-[11.5px] opacity-80 font-medium">คะแนนรวม (100)</div>
-          <div className="text-[28px] font-medium leading-none mt-0.5">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
+          <div className="text-[11px] opacity-80 font-medium">คะแนนรวม (100)</div>
+          <div className="text-3xl font-medium leading-none mt-0.5">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
         </div>
         <div className="flex flex-col items-center gap-1 shrink-0">
-          <div className="text-[9.5px] opacity-80 font-medium">เกรด</div>
+          <div className="text-[10px] opacity-80 font-medium">เกรด</div>
           <div className={`w-12 h-12 rounded-xl bg-white shadow-sm border border-white/40 flex items-center justify-center text-[26px] font-extrabold leading-none ${gradeColor}`}>
             {grade}
           </div>
-          <div className="text-[10.5px] opacity-90 font-medium leading-tight">{gradeLabel}</div>
+          <div className="text-[10px] opacity-90 font-medium leading-tight">{gradeLabel}</div>
         </div>
       </div>
 
       {/* ── Assessment sections ── */}
       <div>
-        <h4 className="text-[12.5px] font-medium text-stone-500 mb-2">แบบประเมินสภาพอุปกรณ์ (100 คะแนน)</h4>
+        <h4 className="text-xs font-medium text-stone-500 mb-2">แบบประเมินสภาพอุปกรณ์ (100 คะแนน)</h4>
         <div className="space-y-3">
           {ASSESSMENT_SECTIONS.map((sec, si) => {
             const itemMax = itemMaxScore(si);
@@ -115,8 +115,8 @@ export default function AssetAssessmentSection({
                       <div key={no} className="flex items-center gap-2 px-3 py-2 hover:bg-stone-50/60">
                         <span className="text-[11px] font-mono text-stone-400 shrink-0 w-7">{no}</span>
                         <div className="flex-1 min-w-0">
-                          <div className="text-[12.5px] font-semibold text-stone-700 truncate">{name}</div>
-                          <div className="text-[10.5px] text-stone-500 truncate">{criteria}</div>
+                          <div className="text-xs font-semibold text-stone-700 truncate">{name}</div>
+                          <div className="text-[10px] text-stone-500 truncate">{criteria}</div>
                         </div>
                         <div className="flex gap-1 shrink-0">
                           {STATUS_OPTIONS.map(opt => {
@@ -138,10 +138,10 @@ export default function AssetAssessmentSection({
                           })}
                         </div>
                         <div className="w-11 shrink-0 text-right">
-                          <span className="text-[12px] font-medium text-clay-600 tabular-nums">
+                          <span className="text-xs font-medium text-clay-600 tabular-nums">
                             {cell.score != null ? (cell.score % 1 === 0 ? cell.score : cell.score.toFixed(1)) : '-'}
                           </span>
-                          <span className="text-[9.5px] text-stone-400">/{itemMax}</span>
+                          <span className="text-[10px] text-stone-400">/{itemMax}</span>
                         </div>
                       </div>
                     );
@@ -155,19 +155,19 @@ export default function AssetAssessmentSection({
 
       {/* ── Defects note ── */}
       <div>
-        <h4 className="text-[12.5px] font-medium text-stone-500 mb-2">บันทึกตำหนิที่มีอยู่แล้ว</h4>
+        <h4 className="text-xs font-medium text-stone-500 mb-2">บันทึกตำหนิที่มีอยู่แล้ว</h4>
         <textarea
           value={defectsNote}
           onChange={(e) => setDefectsNote(e.target.value)}
           rows={2}
           placeholder='ระบุตำหนิ / รอย / Dead Pixel ที่มีอยู่แล้ว (ถ้าไม่มีให้ระบุ "ไม่มี")'
-          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
+          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
         />
       </div>
 
       {/* ── Photos ── */}
       <div>
-        <h4 className="text-[12.5px] font-medium text-stone-500 mb-2">
+        <h4 className="text-xs font-medium text-stone-500 mb-2">
           รูปภาพสภาพอุปกรณ์ ({Object.keys(photos).length}/6 มุม)
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -196,7 +196,7 @@ function QuickFillBtn({ onClick, color, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`text-[10.5px] font-semibold px-1.5 py-0.5 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
+      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
     >
       {children}
     </button>
@@ -226,7 +226,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
   return (
     <div className="rounded-lg border border-stone-200 bg-white overflow-hidden">
       <div className="px-2 py-1.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
-        <span className="text-[11.5px] font-semibold text-stone-700 truncate">{label}</span>
+        <span className="text-[11px] font-semibold text-stone-700 truncate">{label}</span>
         {src && (
           <button
             type="button"
@@ -255,7 +255,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
             ) : (
               <>
                 <ImagePlus className="h-5 w-5" strokeWidth={1.8} />
-                <span className="text-[10.5px] font-medium">แนบรูป</span>
+                <span className="text-[10px] font-medium">แนบรูป</span>
               </>
             )}
           </button>

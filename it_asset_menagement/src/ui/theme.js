@@ -83,7 +83,7 @@ export const cls = {
 
   // Table
   tableHead:
-    'text-[12px] font-medium text-stone-400 border-b border-stone-200/60',
+    'text-xs font-medium text-stone-400 border-b border-stone-200/60',
 
   tableRow:
     'border-b border-stone-100 hover:bg-stone-50/60 transition-colors',

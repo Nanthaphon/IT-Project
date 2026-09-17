@@ -325,7 +325,7 @@ export default function SupplyRequestTable({
               <div className="flex items-center gap-2.5">
                 <BarChart3 className="h-4 w-4 text-clay-600" strokeWidth={2} />
                 <span className="text-[13px] font-semibold text-stone-700">Dashboard วิเคราะห์คำขอ</span>
-                <span className="text-[11.5px] text-stone-400 hidden sm:inline">
+                <span className="text-[11px] text-stone-400 hidden sm:inline">
                   อนุมัติแล้ว {insights.approvedCount} รายการ · {insights.totalApprovedQty.toLocaleString()} ชิ้น
                 </span>
               </div>
@@ -399,7 +399,7 @@ export default function SupplyRequestTable({
                         return (
                           <div key={item.supplyId || item.name} className="flex items-center gap-2 min-w-0">
                             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                            <span className="text-[12px] font-semibold text-stone-700 truncate flex-1">{item.name}</span>
+                            <span className="text-xs font-semibold text-stone-700 truncate flex-1">{item.name}</span>
                             <span className="text-[11px] font-medium tabular-nums shrink-0" style={{ color }}>{pct.toFixed(0)}%</span>
                           </div>
                         );
@@ -447,9 +447,9 @@ export default function SupplyRequestTable({
                             <div className="text-right shrink-0">
                               <p className="text-[15px] font-medium text-clay-600 tabular-nums leading-none">
                                 {item.qty.toLocaleString()}
-                                <span className="text-[10.5px] font-normal text-stone-400 ml-0.5">{item.unit || 'ชิ้น'}</span>
+                                <span className="text-[10px] font-normal text-stone-400 ml-0.5">{item.unit || 'ชิ้น'}</span>
                               </p>
-                              <p className="text-[10.5px] text-stone-400 leading-none mt-1">{item.count} ครั้ง</p>
+                              <p className="text-[10px] text-stone-400 leading-none mt-1">{item.count} ครั้ง</p>
                             </div>
                           </div>
                         );
@@ -479,14 +479,14 @@ export default function SupplyRequestTable({
                               i === 2 ? 'bg-ochre-200 text-ochre-700' :
                               'bg-stone-100 text-stone-500'
                             }`}>{i + 1}</div>
-                            <div className="w-8 h-8 rounded-full bg-clay-600/10 text-clay-600 flex items-center justify-center font-medium text-[12px] shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-clay-600/10 text-clay-600 flex items-center justify-center font-medium text-xs shrink-0">
                               {(emp.name || '?').charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-[13px] font-semibold text-stone-700 truncate">{emp.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 {emp.dept && (
-                                  <span className="text-[10.5px] text-stone-400 truncate">{emp.dept}</span>
+                                  <span className="text-[10px] text-stone-400 truncate">{emp.dept}</span>
                                 )}
                                 <div className="flex-1 h-1 bg-stone-100 rounded-full overflow-hidden max-w-[100px]">
                                   <div className="h-full bg-olive-500 rounded-full" style={{ width: `${pct}%` }} />
@@ -496,9 +496,9 @@ export default function SupplyRequestTable({
                             <div className="text-right shrink-0">
                               <p className="text-[15px] font-medium text-olive-700 tabular-nums leading-none">
                                 {emp.count}
-                                <span className="text-[10.5px] font-normal text-stone-400 ml-0.5">ครั้ง</span>
+                                <span className="text-[10px] font-normal text-stone-400 ml-0.5">ครั้ง</span>
                               </p>
-                              <p className="text-[10.5px] text-stone-400 leading-none mt-1">รวม {emp.qty.toLocaleString()} ชิ้น</p>
+                              <p className="text-[10px] text-stone-400 leading-none mt-1">รวม {emp.qty.toLocaleString()} ชิ้น</p>
                             </div>
                           </div>
                         );
@@ -542,8 +542,8 @@ export default function SupplyRequestTable({
           /* empty state */
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
-            <p className="font-semibold text-stone-500 text-[14px]">ไม่มีคำขอในสถานะนี้</p>
-            <p className="text-[12.5px] text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
+            <p className="font-semibold text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
+            <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
           <>
@@ -565,14 +565,14 @@ export default function SupplyRequestTable({
             {/* 🆕 Pagination */}
             {currentSupplyRequests.length > PAGE_SIZE && (
               <div className="flex items-center justify-between gap-3 mt-4">
-                <p className="text-[12px] text-stone-500">
+                <p className="text-xs text-stone-500">
                   แสดง {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, currentSupplyRequests.length)} จาก {currentSupplyRequests.length} รายการ
                 </p>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     ‹
                   </button>
@@ -581,11 +581,11 @@ export default function SupplyRequestTable({
                     .map((p, i, arr) => (
                       <React.Fragment key={p}>
                         {i > 0 && p - arr[i - 1] > 1 && (
-                          <span className="px-1 text-stone-400 text-[12px]">…</span>
+                          <span className="px-1 text-stone-400 text-xs">…</span>
                         )}
                         <button
                           onClick={() => setCurrentPage(p)}
-                          className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
+                          className={`min-w-[32px] px-2 py-1.5 text-xs font-semibold rounded-lg transition ${
                             p === currentPage
                               ? 'bg-clay-600 text-white'
                               : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
@@ -598,7 +598,7 @@ export default function SupplyRequestTable({
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     ›
                   </button>
@@ -642,15 +642,15 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
       {/* main info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[13.5px] font-semibold text-stone-800 truncate">{req.empName}</span>
+          <span className="text-[13px] font-semibold text-stone-800 truncate">{req.empName}</span>
           <span className="text-[11px] text-stone-400">·</span>
-          <span className="text-[11.5px] text-stone-500 truncate">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
+          <span className="text-[11px] text-stone-500 truncate">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
         </div>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="text-[12px] text-stone-700 truncate">{req.supplyName}</span>
+          <span className="text-xs text-stone-700 truncate">{req.supplyName}</span>
           <span className="text-[11px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
           {(req.supplyCompany || supply?.company) && (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
               <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
               {req.supplyCompany || supply?.company}
             </span>
@@ -677,14 +677,14 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <>
             <button
               onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
               <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">อนุมัติ</span>
             </button>
             <button
               onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-rose-600 bg-white border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-white border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">ปฏิเสธ</span>
@@ -722,7 +722,7 @@ function StatCell({ label, count, dot }) {
       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
         <p className={`${LABEL} truncate`}>{label}</p>
-        <p className="mt-0.5 text-[26px] font-medium text-stone-900 tabular-nums leading-none">{count}</p>
+        <p className="mt-0.5 text-3xl font-medium text-stone-900 tabular-nums leading-none">{count}</p>
       </div>
     </div>
   );

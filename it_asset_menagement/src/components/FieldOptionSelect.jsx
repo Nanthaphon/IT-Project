@@ -213,13 +213,13 @@ export default function FieldOptionSelect({
             className="max-h-56 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-stone-200 [&::-webkit-scrollbar-thumb]:rounded-full"
           >
             {filtered.length === 0 && !allowCustom && (
-              <div className="px-3 py-6 text-center text-[13.5px] text-stone-400">
+              <div className="px-3 py-6 text-center text-[13px] text-stone-400">
                 ไม่พบรายการ
               </div>
             )}
 
             {filtered.length === 0 && allowCustom && !query.trim() && (
-              <div className="px-3 py-6 text-center text-[13.5px] text-stone-400">
+              <div className="px-3 py-6 text-center text-[13px] text-stone-400">
                 ยังไม่มีตัวเลือก — พิมพ์เพื่อสร้างใหม่
               </div>
             )}
@@ -235,7 +235,7 @@ export default function FieldOptionSelect({
                   onMouseEnter={() => setHighlight(idx)}
                   onClick={() => handleSelect(opt)}
                   className={`
-                    w-full px-3 py-2 text-[14px] text-left flex items-center justify-between gap-2 transition-colors
+                    w-full px-3 py-2 text-sm text-left flex items-center justify-between gap-2 transition-colors
                     ${isHighlighted ? 'bg-stone-50/70' : ''}
                     ${isSelected ? 'text-clay-600 font-semibold' : 'text-stone-700'}
                   `}
@@ -254,7 +254,7 @@ export default function FieldOptionSelect({
                 type="button"
                 onClick={handleCreate}
                 onMouseEnter={() => setHighlight(-1)}
-                className="w-full px-3 py-2 text-[14px] text-left flex items-center gap-2 text-olive-700 hover:bg-olive-50/60 border-t border-stone-100 mt-1 pt-2.5"
+                className="w-full px-3 py-2 text-sm text-left flex items-center gap-2 text-olive-700 hover:bg-olive-50/60 border-t border-stone-100 mt-1 pt-2.5"
               >
                 <div className="w-5 h-5 rounded-lg bg-olive-100 flex items-center justify-center shrink-0">
                   <Plus className="h-3 w-3 text-olive-600" strokeWidth={2.5} />

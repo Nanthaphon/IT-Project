@@ -176,8 +176,8 @@ export default function RepairTable({
         {currentRepairRequests.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
-            <p className="font-semibold text-stone-500 text-[14px]">ไม่มีคิวงานในสถานะนี้</p>
-            <p className="text-[12.5px] text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
+            <p className="font-semibold text-stone-500 text-sm">ไม่มีคิวงานในสถานะนี้</p>
+            <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
           <>
@@ -197,14 +197,14 @@ export default function RepairTable({
             {/* Pagination */}
             {currentRepairRequests.length > PAGE_SIZE && (
               <div className="flex items-center justify-between gap-3 mt-4">
-                <p className="text-[12px] text-stone-500">
+                <p className="text-xs text-stone-500">
                   แสดง {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, currentRepairRequests.length)} จาก {currentRepairRequests.length} รายการ
                 </p>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     ‹
                   </button>
@@ -213,11 +213,11 @@ export default function RepairTable({
                     .map((p, i, arr) => (
                       <React.Fragment key={p}>
                         {i > 0 && p - arr[i - 1] > 1 && (
-                          <span className="px-1 text-stone-400 text-[12px]">…</span>
+                          <span className="px-1 text-stone-400 text-xs">…</span>
                         )}
                         <button
                           onClick={() => setCurrentPage(p)}
-                          className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
+                          className={`min-w-[32px] px-2 py-1.5 text-xs font-semibold rounded-lg transition ${
                             p === currentPage
                               ? 'bg-clay-600 text-white'
                               : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
@@ -230,7 +230,7 @@ export default function RepairTable({
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     ›
                   </button>
@@ -269,15 +269,15 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
         {/* Main info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[13.5px] font-semibold text-stone-800 truncate">{req.empName}</span>
+            <span className="text-[13px] font-semibold text-stone-800 truncate">{req.empName}</span>
             <span className="text-[11px] text-stone-400 hidden sm:inline">·</span>
-            <span className="text-[11.5px] text-stone-500 truncate hidden sm:inline">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
+            <span className="text-[11px] text-stone-500 truncate hidden sm:inline">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <Wrench className="h-3 w-3 text-stone-400 shrink-0" strokeWidth={2} />
-            <span className="text-[12px] text-stone-700 truncate">{req.assetName || '—'}</span>
+            <span className="text-xs text-stone-700 truncate">{req.assetName || '—'}</span>
             {req.issue && (
-              <span className="text-[11.5px] text-stone-500 truncate hidden md:inline">— {req.issue}</span>
+              <span className="text-[11px] text-stone-500 truncate hidden md:inline">— {req.issue}</span>
             )}
           </div>
         </div>
@@ -318,7 +318,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
           {canEdit && isPending && (
             <button
               onClick={() => onUpdateStatus(req.id, 'กำลังดำเนินการ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
               <Play className="h-3 w-3" strokeWidth={2.4} />
               <span className="hidden sm:inline">เริ่มซ่อม</span>
@@ -327,7 +327,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
           {canEdit && isInProgress && (
             <button
               onClick={() => onUpdateStatus(req.id, 'ซ่อมเสร็จสิ้น')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-olive-600 bg-white border border-stone-200 hover:border-olive-300 hover:bg-olive-50 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-olive-600 bg-white border border-stone-200 hover:border-olive-300 hover:bg-olive-50 transition-colors"
             >
               <Check className="h-3 w-3" strokeWidth={2.4} />
               <span className="hidden sm:inline">ซ่อมเสร็จ</span>
@@ -349,7 +349,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
       {expanded && hasDetails && (
         <div className="px-4 pb-4 pt-1 space-y-2 border-t border-stone-100 bg-stone-50/40">
           {req.issue && (
-            <p className="text-[12.5px] text-stone-700 leading-relaxed">
+            <p className="text-xs text-stone-700 leading-relaxed">
               <span className="font-semibold text-stone-500">ปัญหา:</span> {req.issue}
             </p>
           )}
@@ -386,7 +386,7 @@ function EvaluationDetail({ evaluation }) {
     <div className="bg-stone-50 border border-stone-100 rounded-lg px-3.5 py-3 space-y-2.5 animate-[fadeIn_0.18s_ease-out]">
       {items.map((it, i) => (
         <div key={i} className="flex items-center justify-between gap-2">
-          <span className="text-[12.5px] text-stone-600 font-medium">{it.label}</span>
+          <span className="text-xs text-stone-600 font-medium">{it.label}</span>
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
               {[1, 2, 3, 4, 5].map(n => (
@@ -397,7 +397,7 @@ function EvaluationDetail({ evaluation }) {
                 />
               ))}
             </div>
-            <span className="text-[12px] font-medium text-stone-700 tabular-nums w-3 text-right">
+            <span className="text-xs font-medium text-stone-700 tabular-nums w-3 text-right">
               {it.value || 0}
             </span>
           </div>
@@ -409,7 +409,7 @@ function EvaluationDetail({ evaluation }) {
         <div className="pt-2 border-t border-stone-200/60">
           <div className="flex items-start gap-1.5">
             <MessageSquare className="h-3 w-3 text-stone-400 shrink-0 mt-0.5" strokeWidth={2} />
-            <p className="text-[12.5px] text-stone-600 leading-relaxed italic">
+            <p className="text-xs text-stone-600 leading-relaxed italic">
               "{evaluation.comment}"
             </p>
           </div>
@@ -435,7 +435,7 @@ function StatCell({ label, count, dot }) {
       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
         <p className={`${LABEL} truncate`}>{label}</p>
-        <p className="mt-0.5 text-[26px] font-medium text-stone-900 tabular-nums leading-none">{count}</p>
+        <p className="mt-0.5 text-3xl font-medium text-stone-900 tabular-nums leading-none">{count}</p>
       </div>
     </div>
   );

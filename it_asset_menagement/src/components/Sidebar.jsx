@@ -125,7 +125,7 @@ export default function Sidebar({
                 style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
-            <p className="text-[15.5px] font-medium text-white tracking-tight">IT Admin</p>
+            <p className="text-[15px] font-medium text-white tracking-tight">IT Admin</p>
           </div>
         </div>
 
@@ -145,7 +145,7 @@ export default function Sidebar({
                       onClick={() => handleMenuClick(id)}
                       onMouseEnter={() => setHoveredId(id)}
                       onMouseLeave={() => setHoveredId(null)}
-                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] transition-colors group
+                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-colors group
                         ${active
                           ? 'font-semibold text-white bg-white/15 border border-white/15'
                           : hovered
@@ -169,7 +169,7 @@ export default function Sidebar({
                       {/* Count badge */}
                       {count > 0 && (
                         <span
-                          className={`text-[10.5px] font-medium tabular-nums px-1.5 min-w-[20px] h-[19px] inline-flex items-center justify-center rounded-full shrink-0 ${
+                          className={`text-[10px] font-medium tabular-nums px-1.5 min-w-[20px] h-[19px] inline-flex items-center justify-center rounded-full shrink-0 ${
                             active
                               ? 'bg-white/25 text-white'
                               : isExpiryBadge
@@ -210,7 +210,7 @@ export default function Sidebar({
               onClick={handleChangePassword}
               onMouseEnter={() => setHoveredId('__changepwd__')}
               onMouseLeave={() => setHoveredId(null)}
-              className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-colors ${
+              className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
                 hoveredId === '__changepwd__'
                   ? 'bg-white/8 text-white'
                   : 'text-stone-100/85 hover:text-white'

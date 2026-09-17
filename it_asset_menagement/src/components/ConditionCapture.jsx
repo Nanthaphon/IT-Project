@@ -162,11 +162,11 @@ export default function ConditionCapture({
       <div className="flex items-center justify-between gap-2 pb-2 border-b border-stone-200">
         <div className="flex items-center gap-2">
           <Camera className="h-4 w-4 text-clay-600" strokeWidth={2} />
-          <p className="text-[14.5px] font-semibold text-stone-700">
+          <p className="text-sm font-semibold text-stone-700">
             {isCheckout ? 'ตรวจสภาพอุปกรณ์ตอนส่งมอบ' : 'ตรวจสภาพอุปกรณ์ตอนรับคืน'}
           </p>
         </div>
-        <span className="text-[11.5px] text-stone-500 font-medium">
+        <span className="text-[11px] text-stone-500 font-medium">
           แนบรูปแล้ว <span className="font-medium text-clay-600">{totalPhotos}</span> รูป
         </span>
       </div>
@@ -174,7 +174,7 @@ export default function ConditionCapture({
       {/* Hint — compact */}
       <div className="flex items-start gap-2 px-3 py-1.5 bg-stone-50/60 border border-stone-200 rounded-lg">
         <AlertCircle className="h-3.5 w-3.5 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
-        <p className="text-[12px] text-stone-700 leading-snug">
+        <p className="text-xs text-stone-700 leading-snug">
           เลือกสถานะแต่ละจุด แล้วกดปุ่ม
           <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-lg bg-white border border-stone-300 text-stone-600">
             <ImagePlus className="h-3 w-3" strokeWidth={2.2} />
@@ -209,7 +209,7 @@ export default function ConditionCapture({
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
+          className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
           placeholder={isCheckout ? 'เช่น มีรอยขีดเล็กที่ฝาหลัง...' : 'เช่น พบรอยใหม่บริเวณบอดี้...'}
           rows="2"
         />
@@ -327,7 +327,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
         <div className="absolute inset-0 rounded-lg bg-clay-600/5 border-2 border-dashed border-clay-600 pointer-events-none flex items-center justify-center z-10">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-clay-600/20">
             <ImagePlus className="h-4 w-4 text-clay-600" strokeWidth={2.4} />
-            <span className="text-[12px] font-medium text-clay-600">
+            <span className="text-xs font-medium text-clay-600">
               วางรูปเพื่อแนบใน "{field.label}"
             </span>
           </div>
@@ -335,7 +335,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       )}
       {/* Single row: label + status pills + photo button */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[13.5px] font-semibold text-stone-700 flex-1 min-w-[120px] truncate">
+        <span className="text-[13px] font-semibold text-stone-700 flex-1 min-w-[120px] truncate">
           {field.label}
         </span>
 
@@ -349,7 +349,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                 key={value}
                 type="button"
                 onClick={() => onStatusChange(value)}
-                className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
+                className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
                   selected
                     ? STATUS_COLOR_CLS[color] + ' border shadow-sm'
                     : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
@@ -383,7 +383,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
 
           {/* Photo count badge — only when has photos */}
           {hasPhotos && (
-            <span className="text-[10.5px] font-medium text-clay-600 bg-stone-50 border border-stone-200 px-1.5 py-0.5 rounded-lg shrink-0 ml-0.5">
+            <span className="text-[10px] font-medium text-clay-600 bg-stone-50 border border-stone-200 px-1.5 py-0.5 rounded-lg shrink-0 ml-0.5">
               {photos.length}/{MAX_PHOTOS_PER_FIELD}
             </span>
           )}

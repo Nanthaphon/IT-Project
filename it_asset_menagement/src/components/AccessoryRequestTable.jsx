@@ -98,7 +98,7 @@ export default function AccessoryRequestTable({
         <SummaryChip label="ปฏิเสธ" value={counts.rejected} color="var(--color-rose-500)" active={statusFilter === 'ปฏิเสธคำขอ'} onClick={() => setStatusFilter('ปฏิเสธคำขอ')} />
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[12.5px] text-stone-500 font-medium">ประเภท:</span>
+          <span className="text-xs text-stone-500 font-medium">ประเภท:</span>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
@@ -118,7 +118,7 @@ export default function AccessoryRequestTable({
         <div className="bg-white rounded-2xl border border-stone-200/60 p-12 text-center">
           <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={1.5} />
           <p className="text-sm font-semibold text-stone-500">ไม่มีคำขอ</p>
-          <p className="text-[12.5px] text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
+          <p className="text-xs text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)] overflow-hidden">
@@ -156,14 +156,14 @@ export default function AccessoryRequestTable({
                   {/* Main info — flex column */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13.5px] font-medium text-stone-800 truncate">
+                      <span className="text-[13px] font-medium text-stone-800 truncate">
                         {req.empName}
                         {req.nickname && <span className="text-stone-500 font-medium ml-1">({req.nickname})</span>}
                       </span>
                       <span className="text-[11px] text-stone-400 font-mono">#{req.id?.slice(-6)}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-[12px] text-stone-600 truncate">
+                      <span className="text-xs text-stone-600 truncate">
                         {req.accessoryName}
                         <span className="text-stone-400 ml-1">× {req.quantity || 1}</span>
                       </span>
@@ -206,14 +206,14 @@ export default function AccessoryRequestTable({
                       <>
                         <button
                           onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '', { requestType: 'request' })}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-olive-600 hover:bg-olive-700 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-olive-600 hover:bg-olive-700 transition-colors"
                         >
                           <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
                           <span className="hidden sm:inline">อนุมัติ</span>
                         </button>
                         <button
                           onClick={() => openRejectModal(req)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
                         >
                           <X className="h-3.5 w-3.5" strokeWidth={2.4} />
                           <span className="hidden sm:inline">ปฏิเสธ</span>
@@ -237,11 +237,11 @@ export default function AccessoryRequestTable({
                     {req.requestType === 'replace' && req.oldAccessoryName && (
                       <div className="p-2.5 rounded-lg bg-white border border-stone-200">
                         <p className="text-[11px] font-semibold text-stone-500 mb-0.5">ของเดิมที่ต้องการเปลี่ยน</p>
-                        <p className="text-[12.5px] font-semibold text-stone-800">
+                        <p className="text-xs font-semibold text-stone-800">
                           {req.oldAccessoryName}
                           {req.oldAccessoryModel && <span className="text-stone-500 font-normal ml-1">(รุ่น: {req.oldAccessoryModel})</span>}
                         </p>
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11.5px] text-stone-500">
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-stone-500">
                           {req.oldPurchaseDate && <span>ซื้อ: {req.oldPurchaseDate}</span>}
                           {req.oldAge && <span>อายุ: {req.oldAge}</span>}
                           {req.oldWarranty && <span>{req.oldWarranty}</span>}
@@ -249,12 +249,12 @@ export default function AccessoryRequestTable({
                       </div>
                     )}
                     {req.reason && (
-                      <p className="text-[12.5px] text-stone-700">
+                      <p className="text-xs text-stone-700">
                         <span className="font-semibold text-stone-500">เหตุผล:</span> {req.reason}
                       </p>
                     )}
                     {req.requestType === 'borrow' && req.returnDate && (
-                      <div className="inline-flex items-center gap-1.5 text-[12px] text-stone-700 bg-white px-2 py-1 rounded-lg border border-stone-200">
+                      <div className="inline-flex items-center gap-1.5 text-xs text-stone-700 bg-white px-2 py-1 rounded-lg border border-stone-200">
                         <CalendarDays className="h-3 w-3" strokeWidth={2.2} />
                         กำหนดคืน: <span className="font-semibold">{req.returnDate}</span>
                       </div>
@@ -262,14 +262,14 @@ export default function AccessoryRequestTable({
                     {req.damagePhoto && (
                       <button
                         onClick={() => setPreviewPhoto(req.damagePhoto)}
-                        className="inline-flex items-center gap-1.5 text-[12px] text-stone-700 hover:text-clay-600 bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs text-stone-700 hover:text-clay-600 bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
                       >
                         <ImageIcon className="h-3 w-3" strokeWidth={2.2} />
                         ดูรูปอุปกรณ์ที่ชำรุด
                       </button>
                     )}
                     {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
-                      <p className="text-[12px] text-rose-700 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
+                      <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
                         <span className="font-semibold">เหตุผลปฏิเสธ:</span> {req.rejectReason}
                       </p>
                     )}
@@ -284,14 +284,14 @@ export default function AccessoryRequestTable({
       {/* ── Pagination ── */}
       {filtered.length > PAGE_SIZE && (
         <div className="flex items-center justify-between gap-3 pt-1">
-          <p className="text-[12px] text-stone-500">
+          <p className="text-xs text-stone-500">
             แสดง {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} จาก {filtered.length} รายการ
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ‹
             </button>
@@ -300,11 +300,11 @@ export default function AccessoryRequestTable({
               .map((p, i, arr) => (
                 <React.Fragment key={p}>
                   {i > 0 && p - arr[i - 1] > 1 && (
-                    <span className="px-1 text-stone-400 text-[12px]">…</span>
+                    <span className="px-1 text-stone-400 text-xs">…</span>
                   )}
                   <button
                     onClick={() => setCurrentPage(p)}
-                    className={`min-w-[32px] px-2 py-1.5 text-[12px] font-semibold rounded-lg transition ${
+                    className={`min-w-[32px] px-2 py-1.5 text-xs font-semibold rounded-lg transition ${
                       p === currentPage
                         ? 'bg-clay-600 text-white'
                         : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
@@ -317,7 +317,7 @@ export default function AccessoryRequestTable({
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-2.5 py-1.5 text-[12px] font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ›
             </button>
@@ -348,7 +348,7 @@ export default function AccessoryRequestTable({
           <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-md w-full overflow-hidden">
             <div className="px-6 py-5 border-b border-stone-100">
               <h3 className="text-[16px] font-medium text-stone-800">เหตุผลในการปฏิเสธคำขอ</h3>
-              <p className="text-[12.5px] text-stone-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
+              <p className="text-xs text-stone-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
             </div>
             <div className="px-6 py-5">
               <textarea
@@ -357,7 +357,7 @@ export default function AccessoryRequestTable({
                 rows={4}
                 autoFocus
                 placeholder="เช่น: เพิ่งเปลี่ยนเมื่อ 2 สัปดาห์ที่แล้ว / ยังมีของเก่าอยู่ในสต็อก"
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 resize-none"
+                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 resize-none"
               />
             </div>
             <div className="px-6 py-4 border-t border-stone-100 bg-sand-50 flex justify-end gap-2.5">

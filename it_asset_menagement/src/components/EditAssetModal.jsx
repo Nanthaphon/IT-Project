@@ -9,7 +9,7 @@ const BRAND = '#A65F3C';
 function SectionHeader({ children }) {
   return (
     <div className="flex items-center gap-3 pt-2 first:pt-0">
-      <span className="text-[12px] font-semibold text-stone-500">{children}</span>
+      <span className="text-xs font-semibold text-stone-500">{children}</span>
       <span className="flex-1 h-px bg-stone-200/80" />
     </div>
   );
@@ -22,7 +22,7 @@ function Field({ label, required, hint, children, className = '' }) {
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[12px] text-stone-400 mt-1.5 leading-snug">{hint}</p>}
+      {hint && <p className="text-xs text-stone-400 mt-1.5 leading-snug">{hint}</p>}
     </div>
   );
 }
@@ -94,8 +94,8 @@ export default function EditAssetModal({
                 </svg>
               </div>
               <div>
-                <h3 className="text-[18px] font-medium text-stone-900 leading-tight">แก้ไข{title}</h3>
-                <p className="text-[13.5px] text-stone-500 mt-0.5">{subtitle}</p>
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight">แก้ไข{title}</h3>
+                <p className="text-[13px] text-stone-500 mt-0.5">{subtitle}</p>
               </div>
             </div>
             <button
@@ -144,14 +144,14 @@ export default function EditAssetModal({
                   </div>
                 )}
                 <div className="flex items-center gap-3 flex-wrap">
-                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-[13.5px] font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-colors">
+                  <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-[13px] font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-300 transition-colors">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
                     </svg>
                     {editAssetModal.data.image ? 'เปลี่ยนรูป' : 'เลือกรูปภาพ'}
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   </label>
-                  <span className="text-[12.5px] text-stone-400">รองรับ .jpg .png (ย่อขนาดอัตโนมัติ)</span>
+                  <span className="text-xs text-stone-400">รองรับ .jpg .png (ย่อขนาดอัตโนมัติ)</span>
                 </div>
               </div>
             </section>
@@ -466,8 +466,8 @@ export default function EditAssetModal({
                     className="mt-0.5 w-4 h-4 text-clay-600 rounded border-stone-300 focus:ring-clay-600/30"
                   />
                   <div className="flex-1">
-                    <p className="text-[13.5px] font-semibold text-stone-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
-                    <p className="text-[12px] text-stone-500 mt-0.5">
+                    <p className="text-[13px] font-semibold text-stone-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
+                    <p className="text-xs text-stone-500 mt-0.5">
                       เปิดใช้เมื่อต้องการกันของให้พนักงานบางคน หรือเก็บไว้สำหรับเหตุการณ์พิเศษ
                       — ฝั่งพนักงานจะไม่เห็นอุปกรณ์นี้ใน catalog แม้จะมีของเหลือก็ตาม
                     </p>

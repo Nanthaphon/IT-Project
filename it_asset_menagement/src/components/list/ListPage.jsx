@@ -102,7 +102,7 @@ export default function ListPage({
                   </button>
                 }
               >
-                <p className="px-3 pb-1.5 pt-2 text-[12px] text-stone-400">คอลัมน์เสริม</p>
+                <p className="px-3 pb-1.5 pt-2 text-xs text-stone-400">คอลัมน์เสริม</p>
                 {optionalColumns.map(c => (
                   <OptionRow
                     key={c.key} label={c.label} checked={!!visibleColumns?.[c.key]}

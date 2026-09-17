@@ -14,7 +14,7 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, canc
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-clay-100 text-clay-500 mb-5 border border-clay-100">
           <AlertTriangle className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>{title}</h3>
+        <h3 className="text-[19px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>{title}</h3>
         <p className="text-sm text-stone-500 mb-7 leading-relaxed">{message}</p>
         <div className="flex gap-2.5">
           <button

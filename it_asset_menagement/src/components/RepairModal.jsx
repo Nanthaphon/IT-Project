@@ -34,7 +34,7 @@ export default function RepairModal({
             className="rounded-xl border p-5"
             style={{ background: `${BRAND.primary}08`, borderColor: `${BRAND.primary}25` }}
           >
-            <p className="text-[12.5px] font-medium mb-1" style={{ color: BRAND.primary }}>
+            <p className="text-xs font-medium mb-1" style={{ color: BRAND.primary }}>
               อุปกรณ์ที่ซ่อมเสร็จแล้ว
             </p>
             <p className="text-[18px] font-medium" style={{ color: BRAND.primary }}>{repairModal.assetName}</p>

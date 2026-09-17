@@ -1248,7 +1248,7 @@ export default function AssetDetailsModal({
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
 
-                <div className="flex flex-col text-[12px] leading-[1.3] font-medium w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
+                <div className="flex flex-col text-xs leading-[1.3] font-medium w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
                   <div className="truncate">C: {currentAssetDetail.company || '-'}</div>
                   <div className="line-clamp-2 break-words">N: {currentAssetDetail.name || '-'}</div>
                   <div className="truncate">T: {currentAssetDetail.assetTag || '-'}</div>
@@ -1273,8 +1273,8 @@ export default function AssetDetailsModal({
 
   const DetailItem = ({ label, value, isMono = false }) => (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11.5px] font-medium text-stone-400 leading-[1.5]">{label}</span>
-      <span className={`text-sm font-medium text-stone-800 leading-[1.6] ${isMono ? 'font-mono bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 w-fit text-[12.5px]' : ''}`}>
+      <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">{label}</span>
+      <span className={`text-sm font-medium text-stone-800 leading-[1.6] ${isMono ? 'font-mono bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 w-fit text-xs' : ''}`}>
         {value || '-'}
       </span>
     </div>
@@ -1296,7 +1296,7 @@ export default function AssetDetailsModal({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
               </svg>
             </div>
-            <h3 className="text-[17px] font-medium tracking-tight text-stone-900 leading-tight">
+            <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">
               รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม / License'}
             </h3>
           </div>
@@ -1410,14 +1410,14 @@ export default function AssetDetailsModal({
                         {currentAssetDetail.assignedName.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10.5px] text-clay-600/70 font-medium tracking-wide leading-[1.5]">ผู้ครอบครองปัจจุบัน</p>
+                        <p className="text-[10px] text-clay-600/70 font-medium tracking-wide leading-[1.5]">ผู้ครอบครองปัจจุบัน</p>
                         <p className="text-[15px] font-medium text-stone-800 leading-[1.4] truncate">{currentAssetDetail.assignedName}</p>
-                        {currentAssetDetail.department && <p className="text-[12px] text-stone-500 leading-[1.5]">{currentAssetDetail.department}</p>}
+                        {currentAssetDetail.department && <p className="text-xs text-stone-500 leading-[1.5]">{currentAssetDetail.department}</p>}
                       </div>
                     </div>
                     <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-lg border border-stone-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-olive-500 shrink-0" />
-                      <span className="text-[12px] font-semibold text-stone-600 whitespace-nowrap">กำลังถูกใช้งาน</span>
+                      <span className="text-xs font-semibold text-stone-600 whitespace-nowrap">กำลังถูกใช้งาน</span>
                     </div>
                   </div>
                 </div>
@@ -1430,28 +1430,28 @@ export default function AssetDetailsModal({
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <p className="text-[12.5px] font-medium text-stone-400">สถานะ</p>
+                    <p className="text-xs font-medium text-stone-400">สถานะ</p>
                     <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5">{currentAssetDetail.status || 'พร้อมใช้งาน'}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <p className="text-[12.5px] font-medium text-stone-400">ราคาจัดซื้อ</p>
+                    <p className="text-xs font-medium text-stone-400">ราคาจัดซื้อ</p>
                     <p className="text-[16px] font-medium text-stone-800 leading-[1.4] mt-0.5 tabular-nums">{currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <p className="text-[12.5px] font-medium text-stone-400">อายุใช้งาน</p>
+                    <p className="text-xs font-medium text-stone-400">อายุใช้งาน</p>
                     <p className="text-sm font-medium text-stone-800 leading-[1.4] mt-0.5">{calculateAge(currentAssetDetail.purchaseDate)}</p>
                   </div>
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                     </div>
-                    <p className="text-[12.5px] font-medium text-stone-400">หมดประกัน</p>
+                    <p className="text-xs font-medium text-stone-400">หมดประกัน</p>
                     <p className={`text-sm font-medium leading-[1.4] mt-0.5 ${currentAssetDetail.warrantyDate && new Date(currentAssetDetail.warrantyDate) < new Date() ? 'text-rose-600' : 'text-stone-800'}`}>{currentAssetDetail.warrantyDate ? formatDateShort(currentAssetDetail.warrantyDate) : 'ไม่ระบุ'}</p>
                   </div>
                 </div>
@@ -1460,7 +1460,7 @@ export default function AssetDetailsModal({
               <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
                 <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
-                  <h4 className="text-[13.5px] font-semibold text-stone-600">ข้อมูลจำเพาะ</h4>
+                  <h4 className="text-[13px] font-semibold text-stone-600">ข้อมูลจำเพาะ</h4>
                 </div>
                 <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
                   {selectedAssetCategory === 'licenses' ? (
@@ -1478,8 +1478,8 @@ export default function AssetDetailsModal({
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
-                            <p className="text-[12.5px] font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13.5px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
@@ -1497,16 +1497,16 @@ export default function AssetDetailsModal({
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
-                            <p className="text-[12.5px] font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13.5px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
                       {currentAssetDetail.remark && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-stone-50/60 border border-stone-200/60 rounded-lg p-3">
-                            <p className="text-[12.5px] font-medium text-stone-700/80 mb-1">Remark</p>
-                            <p className="text-[13.5px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.remark}</p>
+                            <p className="text-xs font-medium text-stone-700/80 mb-1">Remark</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.remark}</p>
                           </div>
                         </div>
                       )}
@@ -1520,8 +1520,8 @@ export default function AssetDetailsModal({
                       {currentAssetDetail.note && (
                         <div className="col-span-2 md:col-span-4">
                           <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
-                            <p className="text-[12.5px] font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13.5px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
                           </div>
                         </div>
                       )}
@@ -1559,12 +1559,12 @@ export default function AssetDetailsModal({
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 rounded-full bg-clay-600" />
-                        <h4 className="text-[13.5px] font-semibold text-stone-600">
+                        <h4 className="text-[13px] font-semibold text-stone-600">
                           รูปภาพประกอบ PDF
-                          {gallery.length > 0 && <span className="ml-1.5 text-[12px] font-normal text-stone-400">({gallery.length} รูป)</span>}
+                          {gallery.length > 0 && <span className="ml-1.5 text-xs font-normal text-stone-400">({gallery.length} รูป)</span>}
                         </h4>
                       </div>
-                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? "border-stone-200 bg-stone-50 text-stone-400" : "border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200"}`}>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? "border-stone-200 bg-stone-50 text-stone-400" : "border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200"}`}>
                         {isSavingItem ? (
                           <><div className="w-3 h-3 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                         ) : (
@@ -1573,7 +1573,7 @@ export default function AssetDetailsModal({
                         <input type="file" multiple accept="image/*" onChange={handlePhotoGalleryUpload} disabled={isSavingItem} className="hidden" />
                       </label>
                     </div>
-                    <p className="text-[11.5px] text-stone-400 mb-3 leading-relaxed">
+                    <p className="text-[11px] text-stone-400 mb-3 leading-relaxed">
                       รูปที่เพิ่มที่นี่จะถูกใช้ประกอบในไฟล์ PDF ที่พิมพ์จากปุ่ม "พิมพ์ PDF" และรายงานทรัพย์สิน
                     </p>
                     {gallery.length === 0 ? (
@@ -1582,7 +1582,7 @@ export default function AssetDetailsModal({
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
                         <p className="text-[13px] font-semibold text-stone-500">ยังไม่มีรูปในคลัง</p>
-                        <p className="text-[11.5px] text-stone-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
+                        <p className="text-[11px] text-stone-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
@@ -1614,7 +1614,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13.5px] font-semibold text-stone-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
+                      <h4 className="text-[13px] font-semibold text-stone-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {licenseSeats.length > 0 && (
@@ -1736,8 +1736,8 @@ export default function AssetDetailsModal({
                         </Field>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[12px] font-semibold text-stone-500">ไฟล์แนบ</span>
-                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                            <span className="text-xs font-semibold text-stone-500">ไฟล์แนบ</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                               <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                               <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
                             </label>
@@ -1745,7 +1745,7 @@ export default function AssetDetailsModal({
                           {newSeatDocs.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {newSeatDocs.map((d, i) => (
-                                <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
+                                <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
                                   <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
                                   <span className="text-stone-600 truncate max-w-[160px]">{d.name}</span>
                                   <button type="button" onClick={() => setNewSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
@@ -1753,7 +1753,7 @@ export default function AssetDetailsModal({
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[12.5px] text-stone-400">ยังไม่มีไฟล์แนบ</p>
+                            <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                           )}
                         </div>
                       </section>
@@ -1767,8 +1767,8 @@ export default function AssetDetailsModal({
                   <div className="border border-stone-200 rounded-xl overflow-hidden divide-y divide-stone-100">
                     {visibleLicenseSeats.length === 0 && seatSearchQ && (
                       <div className="py-10 text-center text-stone-400">
-                        <p className="text-[13.5px] font-medium">ไม่พบรายการย่อยที่ตรงกับ “{seatSearch}”</p>
-                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-[12.5px] font-semibold text-clay-600 hover:underline">ล้างคำค้นหา</button>
+                        <p className="text-[13px] font-medium">ไม่พบรายการย่อยที่ตรงกับ “{seatSearch}”</p>
+                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-xs font-semibold text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
                     {visibleLicenseSeats.map((seat, index) => (
@@ -1786,13 +1786,13 @@ export default function AssetDetailsModal({
                                   </p>
                                   <p className="text-[11px] text-stone-400 truncate">สิทธิ์ว่าง</p>
                                   {seat.productKey && (
-                                    <p className="text-[10.5px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
+                                    <p className="text-[10px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
                                       <KeyRound className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
                                       {seat.productKey}
                                     </p>
                                   )}
                                   {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10.5px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
+                                    <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
                                       <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
                                       หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
                                     </p>
@@ -1804,7 +1804,7 @@ export default function AssetDetailsModal({
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
                                   return ex.isExpiring ? (
                                     <span
-                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
+                                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
                                       title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
@@ -1829,13 +1829,13 @@ export default function AssetDetailsModal({
                                     <p className="text-[11px] text-clay-500 font-medium">ผูกกับทรัพย์สิน</p>
                                   )}
                                   {seat.productKey && (
-                                    <p className="text-[10.5px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
+                                    <p className="text-[10px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
                                       <KeyRound className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
                                       {seat.productKey}
                                     </p>
                                   )}
                                   {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10.5px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
+                                    <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
                                       <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
                                       หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
                                     </p>
@@ -1846,7 +1846,7 @@ export default function AssetDetailsModal({
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
                                   return ex.isExpiring ? (
                                     <span
-                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
+                                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
                                       title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
@@ -1868,13 +1868,13 @@ export default function AssetDetailsModal({
                                     <p className="text-[11px] text-stone-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>
                                   )}
                                   {seat.productKey && (
-                                    <p className="text-[10.5px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
+                                    <p className="text-[10px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
                                       <KeyRound className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
                                       {seat.productKey}
                                     </p>
                                   )}
                                   {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10.5px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
+                                    <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
                                       <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
                                       หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
                                     </p>
@@ -1885,7 +1885,7 @@ export default function AssetDetailsModal({
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
                                   return ex.isExpiring ? (
                                     <span
-                                      className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
+                                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
                                       title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
@@ -1898,9 +1898,9 @@ export default function AssetDetailsModal({
                           <div className="flex items-center gap-2 shrink-0">
                             {seat.type === 'available' ? null : seat.assignee.isAssetBound ? (
                               seat.assignee.empId ? (
-                                <span className="text-[10.5px] font-semibold bg-stone-50 text-stone-600 border border-stone-200 px-2 py-1 rounded-lg whitespace-nowrap">กำลังใช้งาน</span>
+                                <span className="text-[10px] font-semibold bg-stone-50 text-stone-600 border border-stone-200 px-2 py-1 rounded-lg whitespace-nowrap">กำลังใช้งาน</span>
                               ) : (
-                                <span className="text-[10.5px] font-semibold bg-clay-100 text-clay-600 border border-clay-200 px-2 py-1 rounded-lg">ติดตั้งบนเครื่อง</span>
+                                <span className="text-[10px] font-semibold bg-clay-100 text-clay-600 border border-clay-200 px-2 py-1 rounded-lg">ติดตั้งบนเครื่อง</span>
                               )
                             ) : (
                               <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
@@ -1927,7 +1927,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13.5px] font-semibold text-stone-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
+                      <h4 className="text-[13px] font-semibold text-stone-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {individualItems.length > 0 && (
@@ -2025,8 +2025,8 @@ export default function AssetDetailsModal({
                         <SectionHeader>ไฟล์แนบ</SectionHeader>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[12px] font-semibold text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
-                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                            <span className="text-xs font-semibold text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                               <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                               <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
                             </label>
@@ -2034,7 +2034,7 @@ export default function AssetDetailsModal({
                           {(newItemData.documents || []).length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {newItemData.documents.map((d, i) => (
-                                <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
+                                <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
                                   <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
                                   <span className="text-stone-600 truncate max-w-[180px]">{d.name}</span>
                                   <button type="button" onClick={() => setNewItemData(prev => ({ ...prev, documents: prev.documents.filter((_, j) => j !== i) }))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
@@ -2042,7 +2042,7 @@ export default function AssetDetailsModal({
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[12.5px] text-stone-400">ยังไม่มีไฟล์แนบ</p>
+                            <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                           )}
                         </div>
                       </section>
@@ -2056,8 +2056,8 @@ export default function AssetDetailsModal({
                   <div className="border border-stone-200 rounded-xl overflow-hidden divide-y divide-stone-100">
                     {visibleIndividualItems.length === 0 && accSearchQ && (
                       <div className="py-10 text-center text-stone-400">
-                        <p className="text-[13.5px] font-medium">ไม่พบชิ้นย่อยที่ตรงกับ “{accItemSearch}”</p>
-                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-[12.5px] font-semibold text-clay-600 hover:underline">ล้างคำค้นหา</button>
+                        <p className="text-[13px] font-medium">ไม่พบชิ้นย่อยที่ตรงกับ “{accItemSearch}”</p>
+                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-xs font-semibold text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
                     {visibleIndividualItems.map((item) => (
@@ -2076,7 +2076,7 @@ export default function AssetDetailsModal({
                                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border shrink-0 ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
                               </div>
                               {(item.sn || item.model) && (
-                                <p className="text-[10.5px] text-stone-400 truncate mt-0.5 flex items-center gap-2">
+                                <p className="text-[10px] text-stone-400 truncate mt-0.5 flex items-center gap-2">
                                   {item.sn && <span className="font-mono">SN: {item.sn}</span>}
                                   {item.model && <span className="truncate">· {item.model}</span>}
                                 </p>
@@ -2138,7 +2138,7 @@ export default function AssetDetailsModal({
                         setPendingPurchaseDocs([]);
                         setHistoryForm({ purchaseDate: '', cost: '', vendor: '', model: currentAssetDetail.model || '', note: '', documents: [] });
                       }}
-                      className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
+                      className="inline-flex items-center gap-1.5 text-[13px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                       เพิ่มประวัติจัดซื้อ
@@ -2151,7 +2151,7 @@ export default function AssetDetailsModal({
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                       </div>
                       <p className="text-sm font-medium text-stone-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
-                      <p className="text-[12.5px] text-stone-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
+                      <p className="text-xs text-stone-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -2191,7 +2191,7 @@ export default function AssetDetailsModal({
                                   type="button"
                                   onClick={() => handleOpenPurchaseDoc(docItem)}
                                   disabled={openingPhDocId === docItem.id}
-                                  className="flex items-center gap-1 text-[12px] bg-white text-stone-500 border border-stone-200 py-1 px-2.5 rounded-lg hover:bg-stone-50 hover:text-clay-600 hover:border-stone-200 transition-colors max-w-[160px] truncate disabled:opacity-60"
+                                  className="flex items-center gap-1 text-xs bg-white text-stone-500 border border-stone-200 py-1 px-2.5 rounded-lg hover:bg-stone-50 hover:text-clay-600 hover:border-stone-200 transition-colors max-w-[160px] truncate disabled:opacity-60"
                                 >
                                   {openingPhDocId === docItem.id
                                     ? <svg className="w-3 h-3 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" strokeWidth={2} strokeDasharray="40 20"/></svg>
@@ -2219,29 +2219,29 @@ export default function AssetDetailsModal({
                   <form onSubmit={handleSaveHistory} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">วันที่จัดซื้อ</label>
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">วันที่จัดซื้อ</label>
                         <DateField value={historyForm.purchaseDate} onChange={(v) => setHistoryForm({...historyForm, purchaseDate: v})} inputClassName="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">ราคา (บาท)</label>
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">ราคา (บาท)</label>
                         <input type="number" step="any" value={historyForm.cost} onChange={(e) => setHistoryForm({...historyForm, cost: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" placeholder="ยอดรวมหรือต่อชิ้น" />
                       </div>
                       <div>
-                        <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">ผู้จัดจำหน่าย (Vendor)</label>
                         <input type="text" value={historyForm.vendor} onChange={(e) => setHistoryForm({...historyForm, vendor: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" placeholder="ชื่อร้าน/บริษัท" />
                       </div>
                       <div>
-                        <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">ยี่ห้อ/รุ่น (Model)</label>
                         <input type="text" value={historyForm.model} onChange={(e) => setHistoryForm({...historyForm, model: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
+                        <label className="block text-[13px] font-medium text-stone-600 mb-1.5">รายละเอียด / หมายเหตุ</label>
                         <textarea value={historyForm.note} onChange={(e) => setHistoryForm({...historyForm, note: e.target.value})} className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors resize-none" rows="2" placeholder="เช่น จัดซื้อทดแทนเครื่องเดิม..."></textarea>
                       </div>
                     </div>
 
                     <div className="pt-3 border-t border-stone-100">
-                      <label className="block text-[13.5px] font-medium text-stone-600 mb-3">เอกสารแนบการจัดซื้อ</label>
+                      <label className="block text-[13px] font-medium text-stone-600 mb-3">เอกสารแนบการจัดซื้อ</label>
 
                       {/* เอกสารที่บันทึกแล้ว (historyForm.documents) */}
                       {historyForm.documents && historyForm.documents.length > 0 && (
@@ -2334,7 +2334,7 @@ export default function AssetDetailsModal({
                           const isImg = String(docItem.data || '').startsWith('data:image/');
                           return (
                           <div key={idx} className="flex items-center justify-between bg-white border border-stone-200 p-3 rounded-lg overflow-hidden">
-                            <a href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13.5px] text-clay-600 font-medium hover:underline truncate mr-3 min-w-0">
+                            <a href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13px] text-clay-600 font-medium hover:underline truncate mr-3 min-w-0">
                               {isImg ? (
                                 <img
                                   src={docItem.data}
@@ -2362,13 +2362,13 @@ export default function AssetDetailsModal({
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
                         </div>
                         <p className="text-sm font-medium text-stone-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
-                        <p className="text-[12.5px] text-stone-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
+                        <p className="text-xs text-stone-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
                       </div>
                     );
                   })()}
 
                   <div className="mt-3 flex justify-center">
-                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13.5px] font-semibold py-2.5 px-5 rounded-xl border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
+                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-semibold py-2.5 px-5 rounded-xl border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
                       {isSavingItem ? (
                         <><div className="w-3.5 h-3.5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                       ) : (
@@ -2583,10 +2583,10 @@ export function SeatDetailModal({
                 <KeyRound className="h-5 w-5" strokeWidth={2} />
               </div>
               <div className="min-w-0">
-                <p className="text-[12.5px] font-medium text-stone-400 mb-0.5">
+                <p className="text-xs font-medium text-stone-400 mb-0.5">
                   รายการย่อย · {license.name}
                 </p>
-                <h3 className="text-[20px] font-medium text-stone-900 leading-tight break-words">
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">
                   {seat.seatLabel || license.name || 'รายการย่อย'}
                 </h3>
                 {/* Status row */}
@@ -2664,8 +2664,8 @@ export function SeatDetailModal({
                 </Field>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] font-semibold text-stone-500">ไฟล์แนบ</span>
-                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                    <span className="text-xs font-semibold text-stone-500">ไฟล์แนบ</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                       <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
                     </label>
@@ -2673,7 +2673,7 @@ export function SeatDetailModal({
                   {tempLicenseSeatDocs.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {tempLicenseSeatDocs.map((d, i) => (
-                        <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
+                        <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
                           <Paperclip className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={2} />
                           <span className="text-stone-600 truncate max-w-[160px]">{d.name}</span>
                           <button type="button" onClick={() => setTempLicenseSeatDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
@@ -2681,7 +2681,7 @@ export function SeatDetailModal({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[12.5px] text-stone-400">ยังไม่มีไฟล์แนบ</p>
+                    <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                   )}
                 </div>
               </section>
@@ -2749,7 +2749,7 @@ export function SeatDetailModal({
               {/* ── หมายเหตุ ── */}
               {seat.seatNote && (
                 <Section icon={FileText} title="หมายเหตุ">
-                  <p className="text-[13.5px] text-stone-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
+                  <p className="text-[13px] text-stone-700 whitespace-pre-wrap leading-relaxed">{seat.seatNote}</p>
                 </Section>
               )}
 
@@ -2849,8 +2849,8 @@ export function AccessoryItemDetailModal({
                 <Tag className="h-5 w-5" strokeWidth={2} />
               </div>
               <div className="min-w-0">
-                <p className="text-[12.5px] font-medium text-stone-400 mb-0.5">รายการชิ้นย่อย · {accessoryName}</p>
-                <h3 className="text-[20px] font-medium text-stone-900 leading-tight break-words">{item.sn ? `SN: ${item.sn}` : accessoryName}</h3>
+                <p className="text-xs font-medium text-stone-400 mb-0.5">รายการชิ้นย่อย · {accessoryName}</p>
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">{item.sn ? `SN: ${item.sn}` : accessoryName}</h3>
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${statusBadge.cls}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
@@ -2898,8 +2898,8 @@ export function AccessoryItemDetailModal({
                 <SectionHeader>ไฟล์แนบ</SectionHeader>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] font-semibold text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
-                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                    <span className="text-xs font-semibold text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                       <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'edit')} disabled={isSavingItem} className="hidden" />
                     </label>
@@ -2907,14 +2907,14 @@ export function AccessoryItemDetailModal({
                   {tempAccDocs.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {tempAccDocs.map((d, i) => (
-                        <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-[12px]">
+                        <div key={i} className="inline-flex items-center gap-1.5 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg text-xs">
                           <button type="button" onClick={() => handleOpenAccDoc(d)} className="text-stone-600 hover:text-clay-600 truncate max-w-[160px]">{d.name}</button>
                           <button type="button" onClick={() => setTempAccDocs(prev => prev.filter((_, j) => j !== i))} className="text-stone-300 hover:text-rose-500 ml-0.5">✕</button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[12.5px] text-stone-400">ยังไม่มีไฟล์แนบ</p>
+                    <p className="text-xs text-stone-400">ยังไม่มีไฟล์แนบ</p>
                   )}
                 </div>
               </section>
@@ -3009,7 +3009,7 @@ function KV({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-1.5 min-w-0">
       {Icon && <Icon className="h-3.5 w-3.5 text-stone-300 shrink-0" strokeWidth={2} />}
-      <span className="text-[12.5px] text-stone-400 shrink-0">{label}</span>
+      <span className="text-xs text-stone-400 shrink-0">{label}</span>
       <span className="text-sm font-medium text-stone-800 truncate">{value}</span>
     </div>
   );
@@ -3024,10 +3024,10 @@ function KeyRow({ label, value }) {
   };
   return (
     <div className="flex items-center gap-3">
-      <span className="text-[12.5px] text-stone-400 w-28 sm:w-32 shrink-0">{label}</span>
+      <span className="text-xs text-stone-400 w-28 sm:w-32 shrink-0">{label}</span>
       {has ? (
         <>
-          <span className="flex-1 font-mono text-[13.5px] font-medium text-stone-800 break-all select-all">{value}</span>
+          <span className="flex-1 font-mono text-[13px] font-medium text-stone-800 break-all select-all">{value}</span>
           <button type="button" onClick={copy} title="คัดลอก" className="shrink-0 text-stone-400 hover:text-clay-600 transition-colors">
             {copied ? <Check className="h-4 w-4 text-olive-500" strokeWidth={2.4} /> : <Copy className="h-4 w-4" strokeWidth={2} />}
           </button>
@@ -3046,7 +3046,7 @@ function DItem({ label, value, badge, span }) {
   const spanCls = span === 3 ? 'col-span-2 sm:col-span-3' : span === 2 ? 'col-span-2' : '';
   return (
     <div className={`min-w-0 ${spanCls}`}>
-      <dt className="text-[12.5px] text-stone-400 mb-1">{label}</dt>
+      <dt className="text-xs text-stone-400 mb-1">{label}</dt>
       <dd className="flex items-center gap-2 flex-wrap">
         <span className="text-[15px] font-medium text-stone-900 break-words">{value}</span>
         {badge && (

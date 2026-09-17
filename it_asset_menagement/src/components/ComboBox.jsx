@@ -106,7 +106,7 @@ export default function ComboBox({
                     e.preventDefault();
                     handleSelect(opt);
                   }}
-                  className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center gap-2.5 transition-colors ${
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 transition-colors ${
                     opt === value
                       ? 'bg-clay-600/[.07] text-clay-600 font-semibold'
                       : 'text-stone-700 hover:bg-stone-50'

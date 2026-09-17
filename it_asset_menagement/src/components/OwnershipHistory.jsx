@@ -114,7 +114,7 @@ export default function OwnershipHistory({
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={2.4} /> เพิ่มประวัติ
         </button>
@@ -124,7 +124,7 @@ export default function OwnershipHistory({
         <div className="flex flex-col items-center justify-center py-12 text-stone-400 bg-stone-50/60 rounded-xl border border-dashed border-stone-200">
           <User className="h-10 w-10 mb-3 opacity-40" />
           <p className="text-sm font-medium">ยังไม่มีประวัติการครอบครอง</p>
-          <p className="text-[12.5px] text-stone-400 mt-1">กด “เพิ่มประวัติ” เพื่อบันทึกย้อนหลังได้</p>
+          <p className="text-xs text-stone-400 mt-1">กด “เพิ่มประวัติ” เพื่อบันทึกย้อนหลังได้</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -259,7 +259,7 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
     }
   };
 
-  const inCls = 'w-full border border-stone-200 rounded-lg px-3 py-2 text-[13.5px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
+  const inCls = 'w-full border border-stone-200 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[100] flex items-center justify-center p-4">
@@ -281,28 +281,28 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
 
         <div className="px-6 py-5 overflow-y-auto space-y-4">
           <div>
-            <label className="block text-[12px] font-semibold text-stone-500 mb-1.5">ผู้ครอบครอง <span className="text-rose-500 normal-case">*</span></label>
+            <label className="block text-xs font-semibold text-stone-500 mb-1.5">ผู้ครอบครอง <span className="text-rose-500 normal-case">*</span></label>
             <input list="own-emp-list" value={empName} onChange={(e) => onNameChange(e.target.value)} className={inCls} placeholder="พิมพ์ชื่อ หรือเลือกจากพนักงาน" />
             <datalist id="own-emp-list">
               {employees.map(e => <option key={e.id} value={e.fullName}>{e.empId || ''}</option>)}
             </datalist>
-            {empId && <p className="text-[11.5px] text-stone-400 mt-1">รหัสพนักงาน: {empId}</p>}
+            {empId && <p className="text-[11px] text-stone-400 mt-1">รหัสพนักงาน: {empId}</p>}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12px] font-semibold text-stone-500 mb-1.5">วันที่รับมอบ <span className="text-rose-500 normal-case">*</span></label>
+              <label className="block text-xs font-semibold text-stone-500 mb-1.5">วันที่รับมอบ <span className="text-rose-500 normal-case">*</span></label>
               <DateField value={checkoutDate} onChange={setCheckoutDate} inputClassName={inCls + ' pr-9'} />
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-stone-500 mb-1.5">วันที่คืน <span className="text-stone-400 normal-case font-normal">(เว้นว่าง = ยังถืออยู่)</span></label>
+              <label className="block text-xs font-semibold text-stone-500 mb-1.5">วันที่คืน <span className="text-stone-400 normal-case font-normal">(เว้นว่าง = ยังถืออยู่)</span></label>
               <DateField value={returnDate} onChange={setReturnDate} inputClassName={inCls + ' pr-9'} />
             </div>
           </div>
           <div>
-            <label className="block text-[12px] font-semibold text-stone-500 mb-1.5">หมายเหตุ</label>
+            <label className="block text-xs font-semibold text-stone-500 mb-1.5">หมายเหตุ</label>
             <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={3} className={inCls + ' resize-y'} placeholder="เช่น รับช่วงต่อจากพนักงานเก่า, ข้อมูลย้อนหลัง ฯลฯ" />
           </div>
-          {err && <p className="text-[12.5px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{err}</p>}
+          {err && <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{err}</p>}
         </div>
 
         <div className="px-6 py-4 border-t border-stone-100 bg-white flex justify-end gap-2.5">
@@ -388,14 +388,14 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="text-[15px] font-medium text-stone-800 truncate">{checkout.empName || '-'}</p>
               {isCurrent && (
-                <span className="inline-flex items-center text-[10.5px] font-semibold text-clay-600 bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-lg">
+                <span className="inline-flex items-center text-[10px] font-semibold text-clay-600 bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-lg">
                   ปัจจุบัน
                 </span>
               )}
             </div>
 
             {/* Date range — cleaner */}
-            <div className="flex items-center gap-1.5 mt-1 text-[12px] flex-wrap">
+            <div className="flex items-center gap-1.5 mt-1 text-xs flex-wrap">
               <Calendar className="h-3 w-3 text-stone-400 shrink-0" strokeWidth={2} />
               <span className="text-stone-600 font-medium">{fmt(checkout.timestamp)}</span>
               <ArrowRight className="h-3 w-3 text-stone-300" />
@@ -442,7 +442,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
             <button
               onClick={onPrintReturn}
               title="พิมพ์ใบรับคืน"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-clay-600 border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-200 transition"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-clay-600 border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-200 transition"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2.2} />
               <span className="hidden sm:inline">ใบรับคืน</span>
@@ -525,7 +525,7 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
               </p>
               <ul className="space-y-1">
                 {damages.map((d, i) => (
-                  <li key={i} className="text-[12.5px] text-rose-700">
+                  <li key={i} className="text-xs text-rose-700">
                     • <span className="font-semibold">{d.field}:</span> {labelOf(d.fieldKey, d.before)} → {labelOf(d.fieldKey, d.after)}
                   </li>
                 ))}
@@ -749,7 +749,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
     <div className="border-t border-dashed border-stone-200 pt-4">
       {/* ── Section header ── */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[12.5px] font-medium text-stone-700 flex items-center gap-1.5">
+        <p className="text-xs font-medium text-stone-700 flex items-center gap-1.5">
           <Paperclip className="h-3.5 w-3.5 text-stone-500" strokeWidth={2.2} />
           เอกสารแนบ (ฉบับลงนามแล้ว)
           {attachments?.length > 0 && (
@@ -761,7 +761,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
         {!pendingFile && !saving && (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-clay-600 hover:bg-clay-600/8 px-2.5 py-1 rounded-lg border border-stone-200 hover:border-stone-200 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:bg-clay-600/8 px-2.5 py-1 rounded-lg border border-stone-200 hover:border-stone-200 transition-colors"
           >
             <Upload className="h-3.5 w-3.5" strokeWidth={2.2} />
             แนบไฟล์
@@ -796,7 +796,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
           </div>
 
           {/* Type selector label */}
-          <p className="text-[12px] font-medium text-stone-700 mb-2.5">
+          <p className="text-xs font-medium text-stone-700 mb-2.5">
             ระบุประเภทเอกสาร
             <span className="font-normal text-stone-400 ml-1">(ฉบับที่พนักงานลงนามแล้ว)</span>
           </p>
@@ -816,11 +816,11 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dt.iconBg} ${dt.iconCol}`}>
                   <FileText className="h-3.5 w-3.5" strokeWidth={2} />
                 </div>
-                <span className={`text-[12.5px] font-medium leading-tight ${docType === dt.value ? 'text-clay-600' : 'text-stone-600'}`}>
+                <span className={`text-xs font-medium leading-tight ${docType === dt.value ? 'text-clay-600' : 'text-stone-600'}`}>
                   {dt.label}
                 </span>
                 {dt.formNo && (
-                  <span className={`text-[10.5px] font-medium ${docType === dt.value ? 'text-clay-600/70' : 'text-stone-400'}`}>
+                  <span className={`text-[10px] font-medium ${docType === dt.value ? 'text-clay-600/70' : 'text-stone-400'}`}>
                     {dt.formNo}
                   </span>
                 )}
@@ -843,7 +843,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
           <div className="flex justify-end gap-2">
             <button
               onClick={cancelPending}
-              className="px-4 py-2 text-[12.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition"
+              className="px-4 py-2 text-xs font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition"
             >
               ยกเลิก
             </button>
@@ -863,17 +863,17 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
       {saving && (
         <div className="mb-4 rounded-lg bg-stone-50/50 border border-stone-200 p-3 flex items-center gap-2.5">
           <div className="w-4 h-4 border-2 border-clay-600 border-t-transparent rounded-full animate-spin shrink-0" />
-          <span className="text-[12.5px] font-medium text-stone-700">กำลังบันทึกเอกสาร...</span>
+          <span className="text-xs font-medium text-stone-700">กำลังบันทึกเอกสาร...</span>
         </div>
       )}
 
       {/* ── File list ── */}
       {attachments === null ? (
-        <p className="text-[12px] text-stone-400 italic py-1">กำลังโหลดเอกสาร...</p>
+        <p className="text-xs text-stone-400 italic py-1">กำลังโหลดเอกสาร...</p>
       ) : attachments.length === 0 && !pendingFile && !saving ? (
         <div className="flex flex-col items-center justify-center py-5 rounded-lg bg-white border border-dashed border-stone-200">
           <Paperclip className="h-6 w-6 mb-1.5 text-stone-300" strokeWidth={1.5} />
-          <p className="text-[12px] font-medium text-stone-400">ยังไม่มีเอกสารแนบ</p>
+          <p className="text-xs font-medium text-stone-400">ยังไม่มีเอกสารแนบ</p>
           <p className="text-[11px] text-stone-300 mt-0.5">
             กด "แนบไฟล์" เพื่อแนบใบส่งมอบ / ใบรับคืน ฉบับลงนามแล้ว
           </p>
@@ -890,9 +890,9 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                 {/* Doc-type badge (left strip) */}
                 <div className={`shrink-0 flex flex-col items-center justify-center rounded-lg px-2 py-1.5 min-w-[60px] border ${dt.badge}`}>
                   <FileText className="h-4 w-4 mb-0.5" strokeWidth={1.8} />
-                  <span className="text-[10.5px] font-medium leading-tight text-center">{dt.label}</span>
+                  <span className="text-[10px] font-medium leading-tight text-center">{dt.label}</span>
                   {dt.formNo && (
-                    <span className="text-[9.5px] font-medium opacity-70 leading-tight">{dt.formNo}</span>
+                    <span className="text-[10px] font-medium opacity-70 leading-tight">{dt.formNo}</span>
                   )}
                 </div>
 
@@ -925,7 +925,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                   <button
                     onClick={() => handleOpen(att)}
                     disabled={openingId === att.id}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-clay-600 hover:bg-clay-600/8 px-2.5 py-1.5 rounded-lg transition disabled:opacity-60"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-clay-600 hover:bg-clay-600/8 px-2.5 py-1.5 rounded-lg transition disabled:opacity-60"
                     title="เปิด / ดาวน์โหลด"
                   >
                     {openingId === att.id
@@ -950,7 +950,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 
       {/* Error */}
       {error && (
-        <div className="text-[12px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mt-2 flex items-start gap-1.5">
+        <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mt-2 flex items-start gap-1.5">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" strokeWidth={2} />
           <span>{error}</span>
         </div>
@@ -979,7 +979,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
 
     return (
       <div>
-        <p className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium px-2.5 py-1 rounded-lg border mb-2 ${colorCls}`}>
+        <p className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border mb-2 ${colorCls}`}>
           <Icon className="h-3 w-3" strokeWidth={2.4} />
           {label}
         </p>
@@ -987,7 +987,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
         {/* Score banner (compact) */}
         <div className="bg-clay-600 text-white rounded-lg p-3 flex items-center justify-between mb-3">
           <div>
-            <div className="text-[10.5px] opacity-80 font-medium">คะแนนรวม</div>
+            <div className="text-[10px] opacity-80 font-medium">คะแนนรวม</div>
             <div className="text-[22px] font-medium leading-none mt-0.5">{total % 1 === 0 ? total : total.toFixed(1)}<span className="text-[13px] opacity-70 font-normal">/100</span></div>
           </div>
           <div className="flex items-center gap-2">
@@ -1003,7 +1003,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             return (
               <div key={sec.title} className="border border-stone-200 rounded-lg bg-white overflow-hidden">
                 <div className="flex items-center justify-between gap-2 bg-stone-50 px-3 py-1.5 border-b border-stone-100">
-                  <span className="text-[12px] font-semibold text-clay-600">{sec.title}</span>
+                  <span className="text-xs font-semibold text-clay-600">{sec.title}</span>
                   <span className="text-[11px] font-medium text-stone-600 bg-white px-1.5 py-0.5 rounded-lg border border-stone-200">
                     {secScore % 1 === 0 ? secScore : secScore.toFixed(1)}/{sec.max}
                   </span>
@@ -1017,7 +1017,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                              : 'bg-rose-50 text-rose-700 border-rose-200';
                     const lbl = st === 'normal' ? 'ปกติ' : st === 'scratch' ? 'ตำหนิ' : 'ชำรุด';
                     return (
-                      <span key={no} className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded-lg border ${bg}`}>
+                      <span key={no} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-lg border ${bg}`}>
                         <span className="text-stone-600/70 font-mono mr-1">{no}</span>
                         {name}: <span className="font-medium">{lbl}</span>
                       </span>
@@ -1032,7 +1032,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
         {/* Photos (6-slot) */}
         {photoCount > 0 && (
           <div className="mb-3">
-            <p className="text-[12.5px] font-medium text-stone-500 mb-1.5">รูปสภาพอุปกรณ์ ({photoCount}/6)</p>
+            <p className="text-xs font-medium text-stone-500 mb-1.5">รูปสภาพอุปกรณ์ ({photoCount}/6)</p>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
               {PHOTO_SLOTS.map(slot => slots[slot.key] ? (
                 <button key={slot.key} type="button" onClick={() => onPhotoClick?.(slots[slot.key])}
@@ -1048,8 +1048,8 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
         {/* Defects note */}
         {defectsNote && (
           <div className="bg-clay-100/60 border border-clay-200 rounded-lg p-2.5 mb-2">
-            <p className="text-[12.5px] font-medium text-clay-600/80 mb-1">ตำหนิที่มีอยู่แล้ว</p>
-            <p className="text-[12.5px] text-stone-700 whitespace-pre-wrap">{defectsNote}</p>
+            <p className="text-xs font-medium text-clay-600/80 mb-1">ตำหนิที่มีอยู่แล้ว</p>
+            <p className="text-xs text-stone-700 whitespace-pre-wrap">{defectsNote}</p>
           </div>
         )}
       </div>
@@ -1090,28 +1090,28 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
         <div className={`w-6 h-6 rounded-lg ${sectionBar.iconBg} text-white flex items-center justify-center shrink-0 shadow-sm`}>
           <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
         </div>
-        <span className={`text-[13.5px] font-medium ${sectionBar.text}`}>{label}</span>
+        <span className={`text-[13px] font-medium ${sectionBar.text}`}>{label}</span>
         {hasFields && (
           <div className="flex items-center gap-1 ml-auto flex-wrap">
             {stateCount.normal > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-olive-700 bg-olive-50 border border-olive-200 px-1.5 py-0.5 rounded-lg">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-olive-700 bg-olive-50 border border-olive-200 px-1.5 py-0.5 rounded-lg">
                 <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />
                 ปกติ {stateCount.normal}
               </span>
             )}
             {stateCount.scratch > 0 && (
-              <span className="text-[10.5px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
+              <span className="text-[10px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
                 ตำหนิ {stateCount.scratch}
               </span>
             )}
             {stateCount.broken > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-lg">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-lg">
                 <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />
                 ชำรุด {stateCount.broken}
               </span>
             )}
             {totalFieldPhotos > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-stone-600 bg-white border border-stone-200 px-1.5 py-0.5 rounded-lg">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-stone-600 bg-white border border-stone-200 px-1.5 py-0.5 rounded-lg">
                 <Camera className="h-2.5 w-2.5" strokeWidth={2.4} />
                 {totalFieldPhotos} รูป
               </span>
@@ -1130,13 +1130,13 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             return (
               <div className="mb-3">
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <p className="text-[11.5px] text-stone-400 italic flex items-center gap-1">
+                  <p className="text-[11px] text-stone-400 italic flex items-center gap-1">
                     <Camera className="h-3 w-3" /> ไม่ได้แนบรูปใดๆ — แสดงเฉพาะสถานะ
                   </p>
                   {onAddPhotos && (
                     <button
                       onClick={onAddPhotos}
-                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-clay-600 bg-clay-600/8 hover:bg-clay-600/15 px-2.5 py-1 rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-clay-600 bg-clay-600/8 hover:bg-clay-600/15 px-2.5 py-1 rounded-lg transition-colors"
                     >
                       <Upload className="h-3 w-3" strokeWidth={2.2} />
                       เพิ่มรูปย้อนหลัง
@@ -1169,7 +1169,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                       <div key={f.key} className="group rounded-lg bg-white border border-stone-200 p-2.5 hover:border-clay-600/40 transition-colors">
                         {/* Title + status row */}
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <p className="text-[12.5px] font-semibold text-stone-800 leading-snug line-clamp-2 flex-1" title={f.label}>{f.label}</p>
+                          <p className="text-xs font-semibold text-stone-800 leading-snug line-clamp-2 flex-1" title={f.label}>{f.label}</p>
                           <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${STATUS_COLOR[v]}`}>
                             {v === 'normal' && <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.6} />}
                             {v === 'broken' && <AlertTriangle className="h-2.5 w-2.5" strokeWidth={2.6} />}
@@ -1187,7 +1187,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                               title={`${f.label} - รูปที่ ${i + 1}`}
                             >
                               <img src={src} alt={`${f.label}-${i + 1}`} className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform" />
-                              <span className="absolute top-1 left-1 text-[9px] font-medium text-white bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded">
+                              <span className="absolute top-1 left-1 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded">
                                 {i + 1}
                               </span>
                             </button>
@@ -1202,7 +1202,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                 <details className="group rounded-lg bg-stone-50 border border-stone-200 overflow-hidden">
                   <summary className="cursor-pointer flex items-center gap-2 px-3 py-2 hover:bg-stone-100/60 transition-colors">
                     <Camera className="h-3.5 w-3.5 text-stone-400" strokeWidth={2} />
-                    <span className="text-[11.5px] font-semibold text-stone-600">
+                    <span className="text-[11px] font-semibold text-stone-600">
                       จุดที่ไม่ได้แนบรูป <span className="text-stone-400 font-normal">({fieldsWithoutPhotos.length})</span>
                     </span>
                     <ChevronDown className="h-3.5 w-3.5 text-stone-400 ml-auto group-open:rotate-180 transition-transform" strokeWidth={2} />
@@ -1235,7 +1235,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
               ))}
             </div>
           ) : (
-            <p className="text-[12px] text-stone-400 italic mb-3 flex items-center gap-1">
+            <p className="text-xs text-stone-400 italic mb-3 flex items-center gap-1">
               <Camera className="h-3 w-3" /> ไม่ได้บันทึกรูป
             </p>
           )}
@@ -1255,7 +1255,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
       )}
 
       {notes && (
-        <p className="text-[12.5px] text-stone-600 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 mt-1">
+        <p className="text-xs text-stone-600 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 mt-1">
           💬 {notes}
         </p>
       )}
@@ -1357,7 +1357,7 @@ function EditPeriodModal({ period, onClose }) {
             </div>
             <div className="min-w-0">
               <h3 className="text-[16px] font-medium text-stone-900">แก้ไขประวัติการครอบครอง</h3>
-              <p className="text-[12.5px] text-stone-500 truncate">{checkout.empName || '-'}</p>
+              <p className="text-xs text-stone-500 truncate">{checkout.empName || '-'}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-1.5 rounded-lg transition shrink-0">
@@ -1382,12 +1382,12 @@ function EditPeriodModal({ period, onClose }) {
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 bg-stone-50/40">
           <div className="bg-white border border-stone-200 rounded-lg p-4">
-            <label className="block text-[12.5px] font-medium text-stone-600 mb-1">ชื่อพนักงาน</label>
+            <label className="block text-xs font-medium text-stone-600 mb-1">ชื่อพนักงาน</label>
             <input
               type="text"
               value={empName}
               onChange={(e) => setEmpName(e.target.value)}
-              className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+              className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
               placeholder="ชื่อ-นามสกุล"
             />
             <p className="text-[11px] text-stone-400 mt-1">การเปลี่ยนชื่อจะมีผลกับทั้งบันทึกส่งมอบและรับคืน</p>
@@ -1396,16 +1396,16 @@ function EditPeriodModal({ period, onClose }) {
           {activeTab === 'checkout' && (
             <>
               <div className="bg-white border border-stone-200 rounded-lg p-4 space-y-3">
-                <p className="text-[12px] font-medium text-stone-700 flex items-center gap-1.5">
+                <p className="text-xs font-medium text-stone-700 flex items-center gap-1.5">
                   <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการส่งมอบ
                 </p>
                 <div>
-                  <label className="block text-[12.5px] font-medium text-stone-600 mb-1">วันและเวลา</label>
+                  <label className="block text-xs font-medium text-stone-600 mb-1">วันและเวลา</label>
                   <input
                     type="datetime-local"
                     value={checkoutDate}
                     onChange={(e) => setCheckoutDate(e.target.value)}
-                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                   />
                 </div>
               </div>
@@ -1422,16 +1422,16 @@ function EditPeriodModal({ period, onClose }) {
           {activeTab === 'return' && ret && (
             <>
               <div className="bg-white border border-olive-200 rounded-lg p-4 space-y-3">
-                <p className="text-[12px] font-medium text-olive-700 flex items-center gap-1.5">
+                <p className="text-xs font-medium text-olive-700 flex items-center gap-1.5">
                   <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} /> ข้อมูลการรับคืน
                 </p>
                 <div>
-                  <label className="block text-[12.5px] font-medium text-stone-600 mb-1">วันและเวลา</label>
+                  <label className="block text-xs font-medium text-stone-600 mb-1">วันและเวลา</label>
                   <input
                     type="datetime-local"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+                    className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
                   />
                 </div>
               </div>
@@ -1446,7 +1446,7 @@ function EditPeriodModal({ period, onClose }) {
           )}
 
           {(overSoftCO || overSoftR) && (
-            <div className={`text-[12.5px] rounded-lg px-3 py-2 border ${overHard ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-clay-600 bg-clay-100 border-clay-200'}`}>
+            <div className={`text-xs rounded-lg px-3 py-2 border ${overHard ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-clay-600 bg-clay-100 border-clay-200'}`}>
               <div className="font-semibold mb-0.5">
                 {overHard ? '⛔ ขนาดข้อมูลเกิน 1 MB — บันทึกไม่ได้' : '⚠️ ข้อมูลรูปภาพใกล้เต็มขีดจำกัด'}
               </div>
@@ -1459,7 +1459,7 @@ function EditPeriodModal({ period, onClose }) {
           )}
 
           {error && (
-            <div className="text-[12.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+            <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
               {error}
             </div>
           )}
@@ -1467,7 +1467,7 @@ function EditPeriodModal({ period, onClose }) {
 
         <div className="px-6 py-4 border-t border-stone-100 bg-white flex justify-end gap-2.5 shrink-0">
           <button onClick={onClose} disabled={saving}
-            className="px-5 py-2.5 text-[13.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition disabled:opacity-60">
+            className="px-5 py-2.5 text-[13px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition disabled:opacity-60">
             ยกเลิก
           </button>
           <button onClick={handleSave} disabled={saving || overHard}
@@ -1492,7 +1492,7 @@ function TabBtn({ active, onClick, color, Icon, children }) {
   }[color];
   return (
     <button onClick={onClick}
-      className={`flex items-center gap-2 py-3 px-1 mr-6 text-[13.5px] font-medium border-b-2 transition-colors whitespace-nowrap ${colorCls}`}>
+      className={`flex items-center gap-2 py-3 px-1 mr-6 text-[13px] font-medium border-b-2 transition-colors whitespace-nowrap ${colorCls}`}>
       <Icon className="h-3.5 w-3.5" strokeWidth={2.2} />
       {children}
     </button>
@@ -1527,25 +1527,25 @@ function DeletePeriodConfirm({ period, onClose }) {
           <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
             <Trash2 className="h-6 w-6" strokeWidth={2} />
           </div>
-          <h3 className="text-[17px] font-medium text-stone-900 mb-1.5">ลบประวัติการครอบครอง</h3>
-          <p className="text-[13.5px] text-stone-500 leading-relaxed">
+          <h3 className="text-[19px] font-medium text-stone-900 mb-1.5">ลบประวัติการครอบครอง</h3>
+          <p className="text-[13px] text-stone-500 leading-relaxed">
             ลบช่วงครอบครองของ <span className="font-semibold text-stone-700">{checkout.empName}</span>?<br/>
             {ret ? 'จะลบทั้งบันทึกการส่งมอบและการรับคืน' : 'จะลบบันทึกการส่งมอบ (ยังไม่มีการรับคืน)'}
           </p>
-          <p className="text-[12px] text-rose-600 mt-2 font-medium">การลบไม่สามารถย้อนกลับได้</p>
+          <p className="text-xs text-rose-600 mt-2 font-medium">การลบไม่สามารถย้อนกลับได้</p>
           {error && (
-            <div className="text-[12.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mt-3 text-left">
+            <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mt-3 text-left">
               {error}
             </div>
           )}
         </div>
         <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/60 flex justify-end gap-2.5">
           <button onClick={onClose} disabled={deleting}
-            className="px-5 py-2.5 text-[13.5px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition disabled:opacity-60">
+            className="px-5 py-2.5 text-[13px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition disabled:opacity-60">
             ยกเลิก
           </button>
           <button onClick={handleDelete} disabled={deleting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white bg-brick-600 hover:bg-brick-700 rounded-xl shadow-sm transition disabled:opacity-60">
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white bg-brick-600 hover:bg-brick-700 rounded-xl shadow-sm transition disabled:opacity-60">
             {deleting ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังลบ...</>
             ) : (

@@ -316,12 +316,12 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
           <table className="min-w-full text-left border-collapse w-full whitespace-nowrap">
             <thead className="bg-stone-50/80 border-b border-stone-200">
               <tr>
-                <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500">ชื่อ</th>
-                <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500">Email</th>
-                <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500 text-center">สิทธิ์</th>
-                <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500 text-center">เมนูที่เข้าถึงได้</th>
-                <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500">วันที่สร้าง</th>
-                <th className="px-5 py-3 text-[12.5px] font-medium text-stone-500 text-center">จัดการ</th>
+                <th className="px-5 py-3 text-xs font-medium text-stone-500">ชื่อ</th>
+                <th className="px-5 py-3 text-xs font-medium text-stone-500">Email</th>
+                <th className="px-5 py-3 text-xs font-medium text-stone-500 text-center">สิทธิ์</th>
+                <th className="px-5 py-3 text-xs font-medium text-stone-500 text-center">เมนูที่เข้าถึงได้</th>
+                <th className="px-5 py-3 text-xs font-medium text-stone-500">วันที่สร้าง</th>
+                <th className="px-5 py-3 text-xs font-medium text-stone-500 text-center">จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 text-sm bg-white">
@@ -350,7 +350,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   </td>
 
                   {/* Email */}
-                  <td className="px-5 py-3.5 text-stone-600 font-mono text-[13.5px]">{user.email || '-'}</td>
+                  <td className="px-5 py-3.5 text-stone-600 font-mono text-[13px]">{user.email || '-'}</td>
 
                   {/* สิทธิ์ */}
                   <td className="px-5 py-3.5 text-center">
@@ -382,7 +382,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   </td>
 
                   {/* วันที่สร้าง */}
-                  <td className="px-5 py-3.5 text-stone-500 text-[13.5px]">{fmtDate(user.createdAt)}</td>
+                  <td className="px-5 py-3.5 text-stone-500 text-[13px]">{fmtDate(user.createdAt)}</td>
 
                   {/* จัดการ */}
                   <td className="px-5 py-3.5 text-center">
@@ -390,7 +390,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       const canReset = (canFullManage || canManagePasswords) && !user.isSuperAdmin;
                       const canEditDelete = canFullManage && !user.isSuperAdmin;
                       if (!canReset && !canEditDelete) {
-                        return <span className="text-[12px] text-stone-400">-</span>;
+                        return <span className="text-xs text-stone-400">-</span>;
                       }
                       return (
                         <div className="flex items-center justify-center gap-1.5">
@@ -418,7 +418,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-stone-400 text-[14px]">
+                  <td colSpan={6} className="px-5 py-12 text-center text-stone-400 text-sm">
                     ยังไม่มีผู้ใช้งานในระบบ
                   </td>
                 </tr>
@@ -567,7 +567,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                         onChange={() => toggleMenu(id)}
                         className="w-3.5 h-3.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600 focus:ring-offset-0"
                       />
-                      <span className="text-[13.5px] text-stone-700 font-medium truncate">
+                      <span className="text-[13px] text-stone-700 font-medium truncate">
                         {MENU_LABELS[id]}
                       </span>
                     </label>
@@ -587,7 +587,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   />
                   <div>
                     <p className="text-sm font-medium text-stone-700">อนุญาตให้รีเซ็ตรหัสผ่านผู้ใช้อื่น</p>
-                    <p className="text-[12.5px] text-stone-400 mt-0.5">
+                    <p className="text-xs text-stone-400 mt-0.5">
                       ผู้ใช้คนนี้จะเข้าหน้าจัดการผู้ใช้ และตั้งรหัสผ่านใหม่ให้บัญชีอื่นได้
                     </p>
                   </div>
@@ -596,7 +596,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
               {/* Error */}
               {error && (
-                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl border border-rose-200">
+                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-sm font-medium rounded-xl border border-rose-200">
                   {error}
                 </div>
               )}
@@ -639,7 +639,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
               </div>
               <h3 className="text-[16px] font-medium text-stone-800 text-center mb-1">ยืนยันการลบผู้ใช้</h3>
-              <p className="text-[14px] text-stone-500 text-center">
+              <p className="text-sm text-stone-500 text-center">
                 คุณต้องการลบ <span className="font-semibold text-stone-700">{confirmDelete.displayName}</span> ออกจากระบบใช่หรือไม่?
                 ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้อีกต่อไป
               </p>
@@ -685,7 +685,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
 
             {/* body */}
             <form onSubmit={handleResetPassword} className="px-6 py-5 space-y-4">
-              <p className="text-[14px] text-stone-500">
+              <p className="text-sm text-stone-500">
                 ตั้งรหัสผ่านใหม่ให้ <span className="font-semibold text-stone-700">{pwUser.displayName}</span>
                 {pwUser.email && <span className="text-stone-400"> ({pwUser.email})</span>}
               </p>
@@ -712,12 +712,12 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 />
               </div>
               {pwError && (
-                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-[14px] font-medium rounded-xl border border-rose-200">
+                <div className="px-3.5 py-2.5 bg-rose-50 text-rose-600 text-sm font-medium rounded-xl border border-rose-200">
                   {pwError}
                 </div>
               )}
               {pwSuccess && (
-                <div className="px-3.5 py-2.5 bg-olive-50 text-olive-700 text-[14px] font-medium rounded-xl border border-olive-200">
+                <div className="px-3.5 py-2.5 bg-olive-50 text-olive-700 text-sm font-medium rounded-xl border border-olive-200">
                   {pwSuccess}
                 </div>
               )}

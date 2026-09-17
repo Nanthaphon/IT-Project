@@ -110,10 +110,10 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               <KeyRound className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div>
-              <h3 className="text-[17px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
+              <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
                 จัดการรหัสผ่าน
               </h3>
-              <p className="text-[12.5px] text-stone-500 mt-0.5">ตั้งรหัสผ่านส่วนตัว หรือใช้รหัสพนักงานเป็นรหัสผ่าน</p>
+              <p className="text-xs text-stone-500 mt-0.5">ตั้งรหัสผ่านส่วนตัว หรือใช้รหัสพนักงานเป็นรหัสผ่าน</p>
             </div>
           </div>
         </div>
@@ -153,14 +153,14 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           {mode === 'reset' ? (
             <div className="bg-clay-100/60 border border-clay-200 rounded-xl p-3.5 space-y-1.5">
               <p className="text-[13px] font-medium text-clay-700">รีเซ็ตเป็นค่าเริ่มต้น</p>
-              <p className="text-[12.5px] text-clay-600/90 leading-relaxed">
+              <p className="text-xs text-clay-600/90 leading-relaxed">
                 รหัสผ่านจะถูกตั้งกลับเป็นรหัสพนักงาน: <code className="px-1.5 py-0.5 bg-white/80 rounded font-mono font-semibold">{empId}</code>
               </p>
-              <p className="text-[12px] text-clay-600/80">หลังรีเซ็ตแล้ว Login ครั้งถัดไป — ใช้รหัสพนักงานเป็นทั้ง username และ password</p>
+              <p className="text-xs text-clay-600/80">หลังรีเซ็ตแล้ว Login ครั้งถัดไป — ใช้รหัสพนักงานเป็นทั้ง username และ password</p>
             </div>
           ) : (
             <div className="bg-stone-50/40 border border-stone-200 rounded-xl p-3.5">
-              <p className="text-[12.5px] text-stone-900/85 leading-relaxed">
+              <p className="text-xs text-stone-900/85 leading-relaxed">
                 💡 ตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัยเพิ่มเติม — ระบบจะใช้รหัสที่ตั้งนี้แทนรหัสพนักงานในการ login
               </p>
             </div>
@@ -202,7 +202,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               {newPassword.length > 0 && (
                 <div className="bg-stone-50 border border-stone-100 rounded-xl px-3.5 py-2.5 space-y-1">
                   {rules.map((r, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[12.5px]">
+                    <div key={i} className="flex items-center gap-2 text-xs">
                       <CheckCircle2
                         className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-olive-500' : 'text-stone-300'}`}
                         strokeWidth={2.2}
@@ -223,10 +223,10 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
                   error={confirmPassword.length > 0 && !matchOk}
                 />
                 {confirmPassword.length > 0 && !matchOk && (
-                  <p className="text-[12.5px] text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
+                  <p className="text-xs text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
                 )}
                 {confirmPassword.length > 0 && matchOk && (
-                  <p className="text-[12.5px] text-olive-600 mt-1.5 font-medium flex items-center gap-1">
+                  <p className="text-xs text-olive-600 mt-1.5 font-medium flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" strokeWidth={2.5} /> ตรงกันแล้ว
                   </p>
                 )}
@@ -240,7 +240,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           <button
             type="button"
             onClick={handleClose}
-            className="flex-1 py-2.5 rounded-xl text-[14px] font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
           >
             ยกเลิก
           </button>
@@ -289,7 +289,7 @@ function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus
         placeholder={placeholder}
         autoFocus={autoFocus}
         required
-        className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-xl focus:bg-white focus:ring-2 outline-none transition-colors text-[14px] text-stone-800 placeholder:text-stone-400 ${
+        className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-xl focus:bg-white focus:ring-2 outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400 ${
           error
             ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
             : 'border-stone-200 focus:ring-clay-600/15 focus:border-clay-600'

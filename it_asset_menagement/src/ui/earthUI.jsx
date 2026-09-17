@@ -182,7 +182,7 @@ export function DataTable({ columns, children }) {
             {columns.map(c => (
               <th
                 key={c.key}
-                className={`px-5 pb-3 text-[12px] font-medium text-stone-400 ${c.align === 'right' ? 'text-right' : ''} ${c.width || ''}`}
+                className={`px-5 pb-3 text-xs font-medium text-stone-400 ${c.align === 'right' ? 'text-right' : ''} ${c.width || ''}`}
               >
                 {c.label}
               </th>

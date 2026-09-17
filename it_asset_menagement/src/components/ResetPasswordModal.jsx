@@ -38,7 +38,7 @@ export default function ResetPasswordModal({ isOpen, onClose, onSuccess, onError
         >
           <KeyRound className="h-7 w-7" strokeWidth={1.8} />
         </div>
-        <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
+        <h3 className="text-[19px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           รีเซ็ตรหัสผ่าน
         </h3>
         <p className="text-sm text-stone-500 mb-6 leading-relaxed">

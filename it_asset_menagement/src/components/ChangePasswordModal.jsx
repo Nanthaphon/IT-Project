@@ -88,7 +88,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
             เปลี่ยนรหัสผ่าน
           </h3>
-          <p className="text-[13.5px] text-stone-500 mt-1">
+          <p className="text-[13px] text-stone-500 mt-1">
             ยืนยันด้วยรหัสผ่านปัจจุบัน เพื่อความปลอดภัยของบัญชี
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 
           {/* error banner */}
           {fieldError && (
-            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13.5px] font-medium border border-rose-200 flex items-start gap-2.5">
+            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13px] font-medium border border-rose-200 flex items-start gap-2.5">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
               <span>{fieldError}</span>
             </div>
@@ -131,7 +131,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           {newPassword.length > 0 && (
             <div className="bg-stone-50 border border-stone-100 rounded-xl px-3.5 py-2.5 space-y-1">
               {rules.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 text-[12.5px]">
+                <div key={i} className="flex items-center gap-2 text-xs">
                   <CheckCircle2
                     className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-olive-500' : 'text-stone-300'}`}
                     strokeWidth={2.2}
@@ -153,10 +153,10 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
               error={confirmPassword.length > 0 && !matchOk}
             />
             {confirmPassword.length > 0 && !matchOk && (
-              <p className="text-[12.5px] text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
+              <p className="text-xs text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
             )}
             {confirmPassword.length > 0 && matchOk && (
-              <p className="text-[12.5px] text-olive-600 mt-1.5 font-medium flex items-center gap-1">
+              <p className="text-xs text-olive-600 mt-1.5 font-medium flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" strokeWidth={2.5} /> ตรงกันแล้ว
               </p>
             )}
@@ -190,7 +190,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
 function Field({ label, required, children }) {
   return (
     <div>
-      <label className="block text-[13.5px] font-medium text-stone-600 mb-1.5">
+      <label className="block text-[13px] font-medium text-stone-600 mb-1.5">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       {children}

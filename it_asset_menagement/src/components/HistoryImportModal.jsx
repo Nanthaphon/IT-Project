@@ -21,14 +21,14 @@ export default function HistoryImportModal({ isOpen, onClose, onDownloadTemplate
           <p className="text-[13px] font-semibold text-clay-600 flex items-center gap-1.5 mb-2">
             <Info className="h-4 w-4" strokeWidth={2} /> คอลัมน์ที่รองรับ
           </p>
-          <ul className="text-[12.5px] text-stone-600 space-y-1 leading-relaxed list-disc pl-5">
+          <ul className="text-xs text-stone-600 space-y-1 leading-relaxed list-disc pl-5">
             <li><b>Asset Tag</b> หรือ <b>Serial</b> — ใช้จับคู่เครื่องในระบบ (จำเป็นอย่างใดอย่างหนึ่ง)</li>
             <li><b>Action</b> — <code>checkout</code> (เบิก) / <code>checkin</code> (คืน) — รองรับคำไทยด้วย</li>
             <li><b>Date</b> — วันที่ (เช่น 2026-01-15 หรือ 15/01/2026)</li>
             <li><b>Name</b> — ชื่อผู้ถือครอง (สำหรับ checkout)</li>
             <li><b>Note</b> — หมายเหตุ (ถ้ามี)</li>
           </ul>
-          <p className="text-[12px] text-stone-500 mt-2">
+          <p className="text-xs text-stone-500 mt-2">
             ระบบจะจับคู่ <b>เบิก → คืน</b> เป็นช่วงการถือครองให้อัตโนมัติ (เรียงตามวันที่) · แถวที่จับคู่เครื่องไม่ได้จะถูกข้ามและสรุปให้ทราบ
           </p>
         </div>

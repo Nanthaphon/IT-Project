@@ -89,8 +89,8 @@ export default function ReplacementRequestTable({
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
-            <p className="font-semibold text-stone-500 text-[14px]">ไม่มีคำขอในสถานะนี้</p>
-            <p className="text-[12.5px] text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
+            <p className="font-semibold text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
+            <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -133,10 +133,10 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-stone-800 text-[14px] truncate">
+            <p className="font-semibold text-stone-800 text-sm truncate">
               {req.empName}
             </p>
-            <p className="text-[11.5px] text-stone-400 truncate">
+            <p className="text-[11px] text-stone-400 truncate">
               {req.empId}{req.department ? ` · ${req.department}` : ''}
             </p>
           </div>
@@ -156,7 +156,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className={LABEL}>สถานะเครื่องปัจจุบัน</p>
-            <p className="font-semibold text-stone-800 text-[13.5px] truncate">
+            <p className="font-semibold text-stone-800 text-[13px] truncate">
               {req.currentStatus || '(ไม่ระบุ)'}
             </p>
           </div>
@@ -173,7 +173,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
               {req.reason}
             </p>
             {req.reason.length > 80 && (
-              <p className="text-[11.5px] text-clay-600 font-semibold mt-1 text-right">
+              <p className="text-[11px] text-clay-600 font-semibold mt-1 text-right">
                 {expanded ? 'ย่อ ▲' : 'อ่านเพิ่ม ▼'}
               </p>
             )}
@@ -212,26 +212,26 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className={LABEL}>หัวหน้างาน</p>
-            <p className="font-semibold text-stone-700 text-[13.5px] truncate">
+            <p className="font-semibold text-stone-700 text-[13px] truncate">
               {req.managerName || '(ไม่ระบุ)'}
             </p>
             {req.managerEmail ? (
               <a
                 href={`mailto:${req.managerEmail}`}
-                className="flex items-center gap-1 text-[12px] text-clay-600 font-medium mt-0.5 hover:underline truncate"
+                className="flex items-center gap-1 text-xs text-clay-600 font-medium mt-0.5 hover:underline truncate"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Mail className="h-3 w-3 shrink-0" strokeWidth={2} />
                 {req.managerEmail}
               </a>
             ) : (
-              <p className="text-[12px] text-stone-400 mt-0.5">ไม่มีข้อมูลอีเมล</p>
+              <p className="text-xs text-stone-400 mt-0.5">ไม่มีข้อมูลอีเมล</p>
             )}
           </div>
         </div>
 
         {/* date */}
-        <div className="flex items-center gap-1.5 text-[12px] text-stone-400">
+        <div className="flex items-center gap-1.5 text-xs text-stone-400">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
           {dateStr}
         </div>
@@ -244,14 +244,14 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             <>
               <button
                 onClick={() => onUpdateStatus(req.id, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-clay-600 text-white hover:bg-clay-700 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-clay-600 text-white hover:bg-clay-700 transition-colors"
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                 อนุมัติ
               </button>
               <button
                 onClick={() => onUpdateStatus(req.id, 'ปฏิเสธคำขอ')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12.5px] font-semibold bg-white text-rose-600 border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-rose-600 border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                 ปฏิเสธ
@@ -306,7 +306,7 @@ function StatCell({ label, count, dot }) {
       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <div className="min-w-0">
         <p className="text-[13px] text-stone-500 truncate">{label}</p>
-        <p className="mt-0.5 text-[26px] font-medium text-stone-900 tabular-nums leading-none">{count}</p>
+        <p className="mt-0.5 text-3xl font-medium text-stone-900 tabular-nums leading-none">{count}</p>
       </div>
     </div>
   );

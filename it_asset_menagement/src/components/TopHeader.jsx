@@ -65,7 +65,7 @@ export default function TopHeader({
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-[13.5px] font-medium text-stone-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+          className="flex items-center gap-1.5 text-[13px] font-medium text-stone-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
           aria-label="ออกจากระบบ"
         >
           <LogOut className="h-[15px] w-[15px]" strokeWidth={1.8} />
@@ -94,9 +94,9 @@ function NotifItem({ label, count, kind, Icon, onClick }) {
         <Icon className="h-4 w-4" strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-medium text-stone-800 truncate">{label}</p>
+        <p className="text-sm font-medium text-stone-800 truncate">{label}</p>
       </div>
-      <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-lg border ${kindCls.badge} shrink-0`}>
+      <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${kindCls.badge} shrink-0`}>
         {count}
       </span>
       <ChevronRight className="h-3.5 w-3.5 text-stone-300 group-hover:text-stone-500 transition-colors shrink-0" />

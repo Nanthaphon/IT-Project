@@ -161,7 +161,7 @@ export default function PreHandoverAssessmentModal({
               <ClipboardCheck className="h-5 w-5" strokeWidth={1.8} />
             </div>
             <div>
-              <h3 className="text-[18px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
+              <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
               <p className="text-[13px] text-stone-500 mt-0.5">
                 ติ๊กผลประเมินสภาพอุปกรณ์ + แนบรูปก่อนส่งมอบให้ <span className="font-semibold text-stone-700">{employee?.fullName}</span>
               </p>
@@ -181,8 +181,8 @@ export default function PreHandoverAssessmentModal({
               <div className="flex items-start gap-2 mb-3">
                 <ClipboardCheck className="h-4 w-4 text-clay-600 mt-0.5 shrink-0" strokeWidth={2} />
                 <div>
-                  <p className="text-[13.5px] font-medium text-clay-700">พนักงานถือโน๊ตบุ๊ค {notebooks.length} เครื่อง — เลือกเครื่องที่จะพิมพ์ใบส่งมอบ</p>
-                  <p className="text-[12px] text-clay-600/80 mt-0.5">ใบส่งมอบต้องออกทีละเครื่อง เพื่อให้ข้อมูลประเมินตรงกับเครื่องนั้น</p>
+                  <p className="text-[13px] font-medium text-clay-700">พนักงานถือโน๊ตบุ๊ค {notebooks.length} เครื่อง — เลือกเครื่องที่จะพิมพ์ใบส่งมอบ</p>
+                  <p className="text-xs text-clay-600/80 mt-0.5">ใบส่งมอบต้องออกทีละเครื่อง เพื่อให้ข้อมูลประเมินตรงกับเครื่องนั้น</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -208,8 +208,8 @@ export default function PreHandoverAssessmentModal({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13.5px] font-semibold text-stone-800 truncate">{a.name}</p>
-                          <p className="text-[11.5px] text-stone-500 truncate">
+                          <p className="text-[13px] font-semibold text-stone-800 truncate">{a.name}</p>
+                          <p className="text-[11px] text-stone-500 truncate">
                             {[a.assetTag, a.sn].filter(Boolean).join(' · ') || (a.type || '-')}
                           </p>
                         </div>
@@ -230,10 +230,10 @@ export default function PreHandoverAssessmentModal({
               value={handoverDate}
               onChange={(v) => setHandoverDate(v)}
               className="w-full sm:w-72"
-              inputClassName="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 pr-9 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+              inputClassName="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 pr-9 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
             />
             {selectedAsset && (
-              <p className="mt-2 text-[12px] text-stone-500">
+              <p className="mt-2 text-xs text-stone-500">
                 📄 พิมพ์สำหรับ: <span className="font-semibold text-stone-700">{selectedAsset.name}</span>
                 {selectedCheckout ? (
                   <span className="ml-1.5 text-olive-700 font-medium">· ✓ pre-fill จาก transaction</span>
@@ -247,11 +247,11 @@ export default function PreHandoverAssessmentModal({
           {/* Score banner */}
           <div className="bg-clay-600 text-white rounded-lg p-4 flex items-center justify-between">
             <div>
-              <div className="text-[12px] opacity-80 font-medium">คะแนนรวม (100)</div>
-              <div className="text-[34px] font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
+              <div className="text-xs opacity-80 font-medium">คะแนนรวม (100)</div>
+              <div className="text-3xl font-medium leading-none mt-1">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</div>
             </div>
             <div className="flex flex-col items-center gap-1.5 shrink-0">
-              <div className="text-[10.5px] opacity-80 font-medium">เกรด</div>
+              <div className="text-[10px] opacity-80 font-medium">เกรด</div>
               <div className={`w-14 h-14 rounded-xl bg-white shadow-sm border border-white/40 flex items-center justify-center text-[30px] font-extrabold leading-none ${gradeColor}`}>
                 {grade}
               </div>
@@ -272,7 +272,7 @@ export default function PreHandoverAssessmentModal({
                     <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-sm font-medium text-clay-600 truncate">{sec.title}</span>
-                        <span className="text-[12px] font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
+                        <span className="text-xs font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                           {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                         </span>
                       </div>
@@ -287,10 +287,10 @@ export default function PreHandoverAssessmentModal({
                         const cell = assessment[no] || {};
                         return (
                           <div key={no} className="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-50/60">
-                            <span className="text-[12px] font-mono text-stone-400 shrink-0 w-8">{no}</span>
+                            <span className="text-xs font-mono text-stone-400 shrink-0 w-8">{no}</span>
                             <div className="flex-1 min-w-0">
-                              <div className="text-[13.5px] font-semibold text-stone-700 truncate">{name}</div>
-                              <div className="text-[11.5px] text-stone-500 truncate">{criteria}</div>
+                              <div className="text-[13px] font-semibold text-stone-700 truncate">{name}</div>
+                              <div className="text-[11px] text-stone-500 truncate">{criteria}</div>
                             </div>
                             <div className="flex gap-1 shrink-0">
                               {STATUS_OPTIONS.map(opt => {
@@ -300,7 +300,7 @@ export default function PreHandoverAssessmentModal({
                                     key={opt.value}
                                     type="button"
                                     onClick={() => setItemStatus(no, opt.value, si)}
-                                    className={`text-[12px] font-semibold px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
+                                    className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
                                       selected
                                         ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
                                         : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
@@ -334,7 +334,7 @@ export default function PreHandoverAssessmentModal({
               onChange={(e) => setDefectsNote(e.target.value)}
               rows={3}
               placeholder='ระบุตำหนิ / รอย / Dead Pixel ที่มีอยู่แล้วก่อนส่งมอบ (ถ้าไม่มีให้ระบุ "ไม่มี")'
-              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
+              className="w-full bg-white border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 resize-none"
             />
           </Section>
 
@@ -353,7 +353,7 @@ export default function PreHandoverAssessmentModal({
             </div>
             <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-stone-50/60 border border-stone-200 rounded-lg">
               <AlertCircle className="h-4 w-4 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
-              <p className="text-[12.5px] text-stone-700 leading-relaxed">
+              <p className="text-xs text-stone-700 leading-relaxed">
                 แนะนำให้แนบครบทั้ง 6 มุม รูปจะถูกฝังลงในเอกสาร PDF ที่พิมพ์ออก
               </p>
             </div>
@@ -364,7 +364,7 @@ export default function PreHandoverAssessmentModal({
             <div className="space-y-3">
               {bundledItems.length === 0 && !showAddBundleForm ? (
                 <div className="text-center py-6 px-4 bg-stone-50 rounded-xl border border-dashed border-stone-300">
-                  <p className="text-[13.5px] text-stone-500 mb-2.5">ยังไม่มีของแถมในระบบ — กดปุ่มด้านล่างเพื่อเพิ่มเป็นรายการแรก</p>
+                  <p className="text-[13px] text-stone-500 mb-2.5">ยังไม่มีของแถมในระบบ — กดปุ่มด้านล่างเพื่อเพิ่มเป็นรายการแรก</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -387,11 +387,11 @@ export default function PreHandoverAssessmentModal({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[13.5px] font-semibold text-stone-800 truncate">{item.name}</span>
+                            <span className="text-[13px] font-semibold text-stone-800 truncate">{item.name}</span>
                             <span className="text-[11px] font-semibold bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded">{item.type || 'อื่นๆ'}</span>
                           </div>
                           {(item.model || item.note) && (
-                            <div className="mt-0.5 text-[12px] text-stone-500 truncate">
+                            <div className="mt-0.5 text-xs text-stone-500 truncate">
                               {item.model || ''}{item.model && item.note ? ' · ' : ''}{item.note || ''}
                             </div>
                           )}
@@ -460,7 +460,7 @@ export default function PreHandoverAssessmentModal({
                     <button
                       type="button"
                       onClick={() => { setShowAddBundleForm(false); setNewBundle({ name: '', type: 'กระเป๋า', model: '', note: '' }); }}
-                      className="px-3 py-1.5 text-[12.5px] text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50"
+                      className="px-3 py-1.5 text-xs text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50"
                     >
                       ยกเลิก
                     </button>
@@ -468,7 +468,7 @@ export default function PreHandoverAssessmentModal({
                       type="button"
                       onClick={handleSaveNewBundle}
                       disabled={!newBundle.name.trim() || savingBundle}
-                      className="px-3 py-1.5 text-[12.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg disabled:opacity-50"
+                      className="px-3 py-1.5 text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg disabled:opacity-50"
                     >
                       {savingBundle ? 'กำลังเพิ่ม...' : 'เพิ่มเข้า Catalog + เลือก'}
                     </button>
@@ -485,7 +485,7 @@ export default function PreHandoverAssessmentModal({
               )}
 
               {selectedBundles.length > 0 && (
-                <div className="text-[12.5px] text-stone-600 bg-olive-50/60 border border-olive-200 rounded-lg px-3 py-2">
+                <div className="text-xs text-stone-600 bg-olive-50/60 border border-olive-200 rounded-lg px-3 py-2">
                   <span className="font-semibold text-olive-700">เลือกแล้ว {selectedBundles.length} รายการ</span> — จะแสดงในส่วนที่ 4.1 ของใบส่งมอบ
                 </div>
               )}
@@ -496,13 +496,13 @@ export default function PreHandoverAssessmentModal({
         {/* ── Footer ── */}
         <div className="flex items-center justify-between px-7 py-4 border-t border-stone-100 bg-white shrink-0 gap-3 flex-wrap">
           <div className="flex flex-col gap-1.5">
-            <div className="text-[12.5px] text-stone-500">
+            <div className="text-xs text-stone-500">
               แนบรูปแล้ว <span className="font-semibold text-stone-700">{Object.keys(photos).length}/6</span> รูป
               · คะแนนรวม <span className="font-semibold text-clay-600">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
             </div>
             {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
             {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
-              <label className="flex items-center gap-1.5 text-[12px] text-stone-600 cursor-pointer select-none">
+              <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={includeHoldings}
@@ -517,7 +517,7 @@ export default function PreHandoverAssessmentModal({
           <div className="flex gap-2.5">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 text-[14px] font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition"
+              className="px-5 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition"
             >
               ยกเลิก
             </button>
@@ -592,7 +592,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
       <div className="px-3 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
-        <span className="text-[12.5px] font-semibold text-stone-700 truncate">{label}</span>
+        <span className="text-xs font-semibold text-stone-700 truncate">{label}</span>
         {src && (
           <button
             type="button"
@@ -621,7 +621,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
             ) : (
               <>
                 <ImagePlus className="h-6 w-6" strokeWidth={1.8} />
-                <span className="text-[11.5px] font-medium">แนบรูป</span>
+                <span className="text-[11px] font-medium">แนบรูป</span>
               </>
             )}
           </button>

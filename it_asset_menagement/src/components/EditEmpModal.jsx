@@ -127,7 +127,7 @@ export default function EditEmpModal({
                         }}
                       >
                         <div className="font-medium text-stone-800">{emp.fullName}</div>
-                        <div className="text-[12.5px] text-stone-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                        <div className="text-xs text-stone-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
                       </div>
                     ))}
                     {employees.filter(emp =>
@@ -162,7 +162,7 @@ export default function EditEmpModal({
               <Link2 className="h-4 w-4" strokeWidth={2} />
               <p className="text-[13px] font-semibold tracking-wide">ลิงก์ / เว็บไซต์</p>
             </div>
-            <p className="text-[12px] text-stone-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
+            <p className="text-xs text-stone-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
             <EmpLinksEditor
               links={data.links}
               setLinks={(next) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, links: next } }))}
@@ -184,11 +184,11 @@ function EmpLinksEditor({ links, setLinks }) {
   const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
   const add = () => setLinks([...rows, { label: '', url: '' }]);
   const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
-  const inCls = 'w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
+  const inCls = 'w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
   return (
     <div className="space-y-2">
       {rows.length === 0 && (
-        <p className="text-[12.5px] text-stone-400">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์”</p>
+        <p className="text-xs text-stone-400">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์”</p>
       )}
       {rows.map((r, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center">

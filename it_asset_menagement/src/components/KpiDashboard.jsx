@@ -180,7 +180,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <select
               value={rangeValue}
               onChange={(e) => setRangeValue(e.target.value)}
-              className="appearance-none bg-stone-50 border border-stone-200/60 pl-9 pr-9 py-2.5 rounded-xl text-[14px] text-stone-700 font-medium focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors"
+              className="appearance-none bg-stone-50 border border-stone-200/60 pl-9 pr-9 py-2.5 rounded-xl text-sm text-stone-700 font-medium focus:bg-white focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600 outline-none transition-colors"
             >
               {RANGE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -294,7 +294,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                     ))}
                   </div>
                 </div>
-                <p className="text-[12.5px] text-clay-600/70 font-medium">
+                <p className="text-xs text-clay-600/70 font-medium">
                   จาก {k.evaluated} ผู้ประเมิน
                 </p>
               </div>
@@ -310,7 +310,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.9} />
-                    <span className="text-[12.5px] text-stone-500">อัตราการประเมิน</span>
+                    <span className="text-xs text-stone-500">อัตราการประเมิน</span>
                   </div>
                   <span className="text-[13px] font-medium text-stone-700 tabular-nums">
                     {k.responseRate.toFixed(1)}%
@@ -327,8 +327,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
             <div className="lg:col-span-2 bg-white border border-stone-200/60 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-[14.5px] font-medium text-stone-800">แนวโน้มรายเดือน</p>
-                  <p className="text-[12.5px] text-stone-400">เคสซ่อม &amp; คะแนนเฉลี่ย — 6 เดือนล่าสุด</p>
+                  <p className="text-sm font-medium text-stone-800">แนวโน้มรายเดือน</p>
+                  <p className="text-xs text-stone-400">เคสซ่อม &amp; คะแนนเฉลี่ย — 6 เดือนล่าสุด</p>
                 </div>
                 <TrendingUp className="h-4 w-4 text-stone-400" strokeWidth={1.9} />
               </div>
@@ -337,8 +337,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
             {/* Rating distribution */}
             <div className="bg-white border border-stone-200/60 rounded-2xl p-5">
-              <p className="text-[14.5px] font-medium text-stone-800 mb-1">การกระจายคะแนน</p>
-              <p className="text-[12.5px] text-stone-400 mb-4">Rating Distribution</p>
+              <p className="text-sm font-medium text-stone-800 mb-1">การกระจายคะแนน</p>
+              <p className="text-xs text-stone-400 mb-4">Rating Distribution</p>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map(star => {
                   const d = k.distribution.find(x => x.star === star);
@@ -355,7 +355,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                           style={{ width: `${pct}%`, background: starColor(star) }}
                         />
                       </div>
-                      <span className="text-[12.5px] text-stone-500 font-semibold tabular-nums w-10 text-right">
+                      <span className="text-xs text-stone-500 font-semibold tabular-nums w-10 text-right">
                         {d.count}
                       </span>
                     </div>
@@ -370,8 +370,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
             {/* Top depts */}
             <div className="bg-white border border-stone-200/60 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-[14.5px] font-medium text-stone-800">แผนกที่แจ้งซ่อมมากที่สุด</p>
-                <span className="text-[12px] text-stone-400 font-medium">Top 5</span>
+                <p className="text-sm font-medium text-stone-800">แผนกที่แจ้งซ่อมมากที่สุด</p>
+                <span className="text-xs text-stone-400 font-medium">Top 5</span>
               </div>
               {k.topDepts.length === 0 ? (
                 <p className="text-[13px] text-stone-400 text-center py-6">ไม่มีข้อมูล</p>
@@ -382,10 +382,10 @@ export default function KpiDashboard({ repairRequests = [] }) {
                     const pct = max > 0 ? (count / max) * 100 : 0;
                     return (
                       <div key={dept} className="flex items-center gap-3">
-                        <span className="text-[12px] font-medium text-stone-400 w-5">#{idx + 1}</span>
+                        <span className="text-xs font-medium text-stone-400 w-5">#{idx + 1}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[13.5px] font-semibold text-stone-700 truncate">{dept}</span>
+                            <span className="text-[13px] font-semibold text-stone-700 truncate">{dept}</span>
                             <span className="text-[13px] font-medium text-stone-600 tabular-nums">{count}</span>
                           </div>
                           <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
@@ -407,7 +407,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               >
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-stone-400" strokeWidth={1.9} />
-                  <p className="text-[14.5px] font-medium text-stone-800">ความเห็นล่าสุด</p>
+                  <p className="text-sm font-medium text-stone-800">ความเห็นล่าสุด</p>
                 </div>
                 <ChevronDown
                   className={`h-4 w-4 text-stone-400 transition-transform ${openComments ? 'rotate-180' : ''}`}
@@ -422,7 +422,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                   {k.recentComments.map((r, idx) => (
                     <div key={idx} className="bg-stone-50 border border-stone-200/60 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[12.5px] font-semibold text-stone-600 truncate">
+                        <span className="text-xs font-semibold text-stone-600 truncate">
                           {r.evaluation.evaluatedByName || r.empName || 'ไม่ระบุ'}
                         </span>
                         <div className="flex items-center gap-0.5 shrink-0">
@@ -453,17 +453,17 @@ function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
   return (
     <div className="bg-white border border-stone-200/60 rounded-2xl p-4 flex flex-col gap-2.5 transition-colors">
       <div className="flex items-center justify-between">
-        <p className="text-[12.5px] font-semibold text-stone-500 tracking-wide">{label}</p>
+        <p className="text-xs font-semibold text-stone-500 tracking-wide">{label}</p>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: tint }}>
           <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2.2} />
         </div>
       </div>
       <div>
-        <p className="text-[27px] font-medium text-stone-800 leading-none tabular-nums">
+        <p className="text-3xl font-medium text-stone-800 leading-none tabular-nums">
           {value}
           {unit && <span className="text-[13px] text-stone-400 font-medium ml-1.5">{unit}</span>}
         </p>
-        {sub && <p className="text-[12px] text-stone-400 mt-1.5">{sub}</p>}
+        {sub && <p className="text-xs text-stone-400 mt-1.5">{sub}</p>}
       </div>
     </div>
   );
@@ -477,7 +477,7 @@ function RatingBar({ label, value, color }) {
         <span className="text-[13px] font-semibold text-stone-600">{label}</span>
         <span className="text-[13px] font-medium tabular-nums" style={{ color }}>
           {value.toFixed(2)}
-          <span className="text-stone-400 font-normal text-[11.5px]"> / 5.00</span>
+          <span className="text-stone-400 font-normal text-[11px]"> / 5.00</span>
         </span>
       </div>
       <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
@@ -506,13 +506,13 @@ function MonthlyTrend({ data }) {
                     background: `linear-gradient(180deg, ${BRAND.primary} 0%, ${BRAND.primary}AA 100%)`,
                   }}
                 >
-                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[11.5px] font-medium text-stone-600 tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[11px] font-medium text-stone-600 tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     {d.cases} เคส
                   </span>
                 </div>
               </div>
-              <span className="text-[11.5px] text-stone-500 font-medium truncate w-full text-center">{d.label}</span>
-              <span className="text-[11.5px] font-medium text-stone-700 tabular-nums">{d.cases}</span>
+              <span className="text-[11px] text-stone-500 font-medium truncate w-full text-center">{d.label}</span>
+              <span className="text-[11px] font-medium text-stone-700 tabular-nums">{d.cases}</span>
             </div>
           );
         })}
@@ -520,13 +520,13 @@ function MonthlyTrend({ data }) {
 
       {/* Avg rating per month */}
       <div className="pt-3 border-t border-stone-100">
-        <p className="text-[12.5px] font-medium text-stone-400r mb-2">คะแนนเฉลี่ยรายเดือน</p>
+        <p className="text-xs font-medium text-stone-400 mb-2">คะแนนเฉลี่ยรายเดือน</p>
         <div className="flex items-center justify-between gap-2">
           {data.map((d, idx) => (
             <div key={idx} className="flex-1 text-center">
               <div className="flex items-center justify-center gap-0.5">
                 <Star className={`h-3 w-3 ${d.rating > 0 ? 'fill-clay-400 text-clay-400' : 'text-stone-200 fill-stone-100'}`} strokeWidth={1.6} />
-                <span className="text-[12px] font-medium text-stone-600 tabular-nums">
+                <span className="text-xs font-medium text-stone-600 tabular-nums">
                   {d.rating > 0 ? d.rating.toFixed(1) : '-'}
                 </span>
               </div>

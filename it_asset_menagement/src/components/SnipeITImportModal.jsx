@@ -313,8 +313,8 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
             <FileSpreadsheet className="h-5 w-5" strokeWidth={2} />
           </div>
           <div className="flex-1">
-            <h2 className="text-[17px] font-medium text-stone-800">Smart Import จาก Snipe-IT</h2>
-            <p className="text-[12px] text-stone-500 mt-0.5">อัปโหลด CSV → ระบบ auto-group เป็น license พร้อม preview ก่อน import</p>
+            <h2 className="text-[19px] font-medium text-stone-800">Smart Import จาก Snipe-IT</h2>
+            <p className="text-xs text-stone-500 mt-0.5">อัปโหลด CSV → ระบบ auto-group เป็น license พร้อม preview ก่อน import</p>
           </div>
           <button onClick={close} className="w-9 h-9 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-700">
             <X className="h-4.5 w-4.5" strokeWidth={2} />
@@ -415,16 +415,16 @@ function UploadArea({ onFile }) {
         </div>
         <p className="text-[15px] font-medium text-stone-800 mb-1">ลาก CSV จาก Snipe-IT มาวาง</p>
         <p className="text-[13px] text-stone-500">หรือคลิกเพื่อเลือกไฟล์</p>
-        <p className="text-[11.5px] text-stone-400 mt-3">รองรับไฟล์ .csv ที่ export จาก Snipe-IT</p>
+        <p className="text-[11px] text-stone-400 mt-3">รองรับไฟล์ .csv ที่ export จาก Snipe-IT</p>
       </label>
 
       {/* Info */}
       <div className="bg-stone-50/50 border border-stone-200 rounded-xl p-4 space-y-2">
-        <p className="text-[12.5px] font-medium text-stone-900 flex items-center gap-1.5">
+        <p className="text-xs font-medium text-stone-900 flex items-center gap-1.5">
           <Layers className="h-3.5 w-3.5" strokeWidth={2.2} />
           ระบบจะทำอะไรให้:
         </p>
-        <ul className="text-[12px] text-stone-900/85 space-y-1 pl-5 list-disc">
+        <ul className="text-xs text-stone-900/85 space-y-1 pl-5 list-disc">
           <li>อ่าน CSV ทุก row → group ตามชื่อโปรแกรม</li>
           <li>1 ชื่อโปรแกรม = 1 license หลัก + เก็บ Product Key ทุก row เป็น seats</li>
           <li>Map columns: Name / Product Key / Expiration Date / Manufacturer / Purchase Date / Notes</li>
@@ -456,7 +456,7 @@ function PreviewSection({ parsed }) {
 
       {/* Column mapping info */}
       <div className="bg-white border border-stone-200 rounded-xl p-4">
-        <p className="text-[12.5px] font-medium text-stone-700 mb-2 flex items-center gap-1.5">
+        <p className="text-xs font-medium text-stone-700 mb-2 flex items-center gap-1.5">
           <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
           จับคู่ Columns สำเร็จ ({mapped.length} ฟิลด์)
         </p>
@@ -501,8 +501,8 @@ function LicenseRow({ lic }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <Package className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
-            <p className="text-[13.5px] font-medium text-stone-800 truncate">{lic.name}</p>
-            <span className="text-[10.5px] font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded">{lic.quantity} seats</span>
+            <p className="text-[13px] font-medium text-stone-800 truncate">{lic.name}</p>
+            <span className="text-[10px] font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded">{lic.quantity} seats</span>
             {lic._meta?.extrasCount > 0 && (
               <span
                 className="text-[10px] font-medium text-clay-600 bg-clay-100 px-1.5 py-0.5 rounded border border-clay-200"
@@ -512,7 +512,7 @@ function LicenseRow({ lic }) {
               </span>
             )}
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11.5px] text-stone-500 ml-5">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-stone-500 ml-5">
             {lic._meta?.manufacturer && <span>🏢 {lic._meta.manufacturer}</span>}
             {lic.expirationDate && <span>📅 หมด: {lic.expirationDate}</span>}
             {lic.terminationDate && <span>⛔ ยกเลิก: {lic.terminationDate}</span>}
@@ -523,12 +523,12 @@ function LicenseRow({ lic }) {
             <div className="ml-5 mt-1.5">
               <div className="flex flex-wrap gap-1">
                 {showKeys.map((k, i) => (
-                  <span key={i} className="text-[10.5px] font-mono text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded truncate max-w-[280px]" title={k}>
+                  <span key={i} className="text-[10px] font-mono text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded truncate max-w-[280px]" title={k}>
                     {k.length > 40 ? k.slice(0, 40) + '...' : k}
                   </span>
                 ))}
                 {allKeys.length > 3 && !expand && (
-                  <button onClick={() => setExpand(true)} className="text-[10.5px] font-medium text-clay-600 hover:underline">
+                  <button onClick={() => setExpand(true)} className="text-[10px] font-medium text-clay-600 hover:underline">
                     +{allKeys.length - 3} เพิ่มเติม
                   </button>
                 )}
@@ -544,7 +544,7 @@ function LicenseRow({ lic }) {
 function StatBox({ label, value, color, bg }) {
   return (
     <div className="rounded-xl px-4 py-3" style={{ background: bg }}>
-      <p className="text-[12.5px] font-medium" style={{ color: `${color}AA` }}>{label}</p>
+      <p className="text-xs font-medium" style={{ color: `${color}AA` }}>{label}</p>
       <p className="text-[22px] font-medium tabular-nums leading-tight" style={{ color }}>{value.toLocaleString()}</p>
     </div>
   );
@@ -563,10 +563,10 @@ function ResultSection({ result, onClose, onAnother }) {
           ? <CheckCircle2 className="h-10 w-10 text-olive-600" strokeWidth={2} />
           : <AlertTriangle className="h-10 w-10 text-clay-600" strokeWidth={2} />}
       </div>
-      <h3 className="text-[20px] font-medium text-stone-800 mb-1">
+      <h3 className="text-[19px] font-medium text-stone-800 mb-1">
         {result.failed === 0 ? 'Import สำเร็จ!' : 'Import เสร็จ (มีบาง license พลาด)'}
       </h3>
-      <p className="text-[14px] text-stone-500 mb-6">
+      <p className="text-sm text-stone-500 mb-6">
         นำเข้าสำเร็จ <span className="font-medium text-olive-600">{result.success}</span> license
         {result.failed > 0 && <> · ล้มเหลว <span className="font-medium text-rose-600">{result.failed}</span></>}
       </p>

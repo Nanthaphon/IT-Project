@@ -12,7 +12,7 @@ const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸
 
 const DEFAULT_COMPANY = 'Globe Syndicate (Thailand) Company Limited';
 
-const inputCls = 'w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-[14px] outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600';
+const inputCls = 'w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600';
 // select เพิ่ม pr-8 ให้ไม่ทับลูกศร native ของ browser
 const selectCls = inputCls + ' pr-8 truncate';
 const labelCls = 'block text-[13px] font-medium text-stone-600 mb-1';
@@ -205,7 +205,7 @@ function Section({ id, activeSection, setActiveSection, title, children }) {
 function PreviewCard({ title, value, sub, color = '#A65F3C' }) {
   return (
     <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-center">
-      <div className="text-3xl font-black" style={{ color }}>{value}</div>
+      <div className="text-3xl font-medium tabular-nums" style={{ color }}>{value}</div>
       <div className="text-xs font-medium text-stone-700 mt-1">{title}</div>
       {sub && <div className="text-xs text-stone-400">{sub}</div>}
     </div>
@@ -219,7 +219,7 @@ function StatInput({ label, value, onChange, color = '#A65F3C' }) {
     <div className="bg-stone-50 border border-stone-200 rounded-xl px-2 py-2.5 text-center focus-within:border-clay-600 focus-within:ring-2 focus-within:ring-clay-600/15 transition-colors">
       <input
         type="number" value={value} onChange={e => onChange(num(e.target.value))}
-        className="w-full bg-transparent text-center text-[24px] font-black outline-none"
+        className="w-full bg-transparent text-center text-2xl font-medium tabular-nums outline-none"
         style={{ color }}
       />
       <div className="text-[11px] font-semibold text-stone-500 mt-0.5">{label}</div>
@@ -231,7 +231,7 @@ function StatInput({ label, value, onChange, color = '#A65F3C' }) {
 function RefreshBtn({ onClick }) {
   return (
     <button type="button" onClick={onClick}
-      className="flex items-center gap-1 text-[12px] font-semibold text-stone-400 hover:text-clay-600 transition-colors shrink-0">
+      className="flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-clay-600 transition-colors shrink-0">
       <RotateCcw className="h-3.5 w-3.5" /> ดึงจากระบบ
     </button>
   );
@@ -277,7 +277,7 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
 /* ── Count badge ── */
 function CountBadge({ n }) {
   return (
-    <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-lg ${n > 0 ? 'bg-clay-600/8 text-clay-600' : 'bg-stone-100 text-stone-400'}`}>
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${n > 0 ? 'bg-clay-600/8 text-clay-600' : 'bg-stone-100 text-stone-400'}`}>
       {n} รายการ
     </span>
   );
@@ -293,7 +293,7 @@ function PanelCard({ icon: Icon, tint = '#EFF6FF', color = '#A65F3C', title, des
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-[15px] font-semibold text-stone-800 leading-tight">{title}</h3>
-          {desc && <p className="text-[12.5px] text-stone-400 mt-0.5 truncate">{desc}</p>}
+          {desc && <p className="text-xs text-stone-400 mt-0.5 truncate">{desc}</p>}
         </div>
         {right}
       </div>
@@ -445,7 +445,7 @@ export default function ITReportPage({
           </div>
           <div>
             <h1 className="text-[22px] font-medium tracking-tight text-stone-900">สร้าง IT Monthly Report</h1>
-            <p className="text-stone-500 text-[13.5px] mt-1">
+            <p className="text-stone-500 text-[13px] mt-1">
               แก้ไขข้อมูลทุกสไลด์ได้ในหน้านี้ · กด <span className="font-medium text-stone-600">บันทึก</span> เพื่อจำข้อมูล แล้ว Export เป็น <span className="font-medium text-stone-600">.pptx</span>
             </p>
           </div>
@@ -453,20 +453,20 @@ export default function ITReportPage({
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={handleSave}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-[14px] border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
           >
             {saved ? <><Check className="h-4 w-4" strokeWidth={2.5} /> บันทึกแล้ว</> : <><Save className="h-4 w-4" strokeWidth={2} /> บันทึก</>}
           </button>
           <button
             onClick={() => setShowPreview(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-lg hover:bg-stone-50 hover:border-clay-600/40 font-semibold text-[14px] transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-lg hover:bg-stone-50 hover:border-clay-600/40 font-semibold text-sm transition-colors"
           >
             <Eye className="h-4 w-4" strokeWidth={2} /> ดูตัวอย่าง
           </button>
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14px] text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
           >
             {generating
               ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้าง...</>
@@ -557,8 +557,8 @@ export default function ITReportPage({
           </PanelCard>
 
           <div className="flex items-center justify-between px-1">
-            <span className="text-[12px] text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
-            <button onClick={clearDraft} className="text-[12.5px] font-semibold text-stone-500 hover:text-rose-600 transition-colors">
+            <span className="text-xs text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
+            <button onClick={clearDraft} className="text-xs font-semibold text-stone-500 hover:text-rose-600 transition-colors">
               ล้างข้อมูลที่กรอก
             </button>
           </div>

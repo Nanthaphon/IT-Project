@@ -89,10 +89,10 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           <Icon className={`h-5 w-5 ${c.icon}`} strokeWidth={1.8} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-stone-900 text-[15.5px] leading-tight tracking-tight">{category.label}</h3>
-          <p className="text-[12.5px] text-stone-500 mt-0.5">{category.description}</p>
+          <h3 className="font-semibold text-stone-900 text-[15px] leading-tight tracking-tight">{category.label}</h3>
+          <p className="text-xs text-stone-500 mt-0.5">{category.description}</p>
         </div>
-        <span className="text-[12px] font-semibold text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full shrink-0">
+        <span className="text-xs font-semibold text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full shrink-0">
           {values.length} รายการ
         </span>
       </div>
@@ -105,7 +105,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
         {values.map((val) => (
           <span
             key={val}
-            className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium px-2.5 py-1 rounded-lg border ${c.chip}`}
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border ${c.chip}`}
           >
             {val}
             <button
@@ -128,7 +128,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={category.placeholder}
-          className="flex-1 bg-white border border-stone-200/60 px-3 py-2 rounded-xl text-[14px] outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
+          className="flex-1 bg-white border border-stone-200/60 px-3 py-2 rounded-xl text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600"
         />
         <button
           type="button"
@@ -198,7 +198,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
           <button
             onClick={handleSave}
             disabled={!dirty || saving}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14.5px] transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
             style={dirty && !saving ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
             onMouseEnter={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primary)}
@@ -211,18 +211,18 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
 
       {/* Unsaved banner */}
       {dirty && (
-        <div className="mb-5 bg-clay-100 border border-clay-200 rounded-xl px-4 py-3 flex items-center gap-2 text-clay-600 text-[14px] font-medium">
+        <div className="mb-5 bg-clay-100 border border-clay-200 rounded-xl px-4 py-3 flex items-center gap-2 text-clay-600 text-sm font-medium">
           <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={2} />
           มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก กด "บันทึก" เพื่อใช้งาน
         </div>
       )}
 
       {/* How to use */}
-      <div className="mb-6 bg-stone-50/60 border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-[13.5px] leading-relaxed flex items-start gap-2">
+      <div className="mb-6 bg-stone-50/60 border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-[13px] leading-relaxed flex items-start gap-2">
         <Info className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
         <div>
           <span className="font-semibold">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด{' '}
-          <kbd className="bg-white border border-stone-300 px-1.5 py-0.5 rounded font-mono text-[12px]">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
+          <kbd className="bg-white border border-stone-300 px-1.5 py-0.5 rounded font-mono text-xs">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
           — ตัวเลือกจะปรากฏใน Dropdown ของฟอร์มเพิ่ม/แก้ไขรายการ (ยังพิมพ์เองได้เสมอ)
         </div>
       </div>

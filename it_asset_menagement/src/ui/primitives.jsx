@@ -12,8 +12,8 @@ export function Field({ label, required, hint, error, children, className = '' }
         </label>
       )}
       {children}
-      {hint && !error && <p className="text-[12px] text-stone-400 mt-1.5 leading-snug">{hint}</p>}
-      {error && <p className="text-[12px] text-rose-500 mt-1.5 leading-snug">{error}</p>}
+      {hint && !error && <p className="text-xs text-stone-400 mt-1.5 leading-snug">{hint}</p>}
+      {error && <p className="text-xs text-rose-500 mt-1.5 leading-snug">{error}</p>}
     </div>
   );
 }
@@ -47,7 +47,7 @@ export function Button({
     cls.btnPrimary;
 
   const sizeCls =
-    size === 'sm' ? 'px-3 py-1.5 text-[14px]' :
+    size === 'sm' ? 'px-3 py-1.5 text-sm' :
     size === 'lg' ? 'px-5 py-3 text-[16px]' : '';
 
   return (
@@ -107,7 +107,7 @@ export function ModalHeader({ icon: Icon, title, subtitle, onClose }) {
         )}
         <div>
           <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">{title}</h3>
-          {subtitle && <p className="text-[13.5px] text-stone-500 mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-[13px] text-stone-500 mt-0.5">{subtitle}</p>}
         </div>
       </div>
       {onClose && (

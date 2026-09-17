@@ -44,7 +44,7 @@ export default function LoginView({
             <h1 className="text-[34px] font-semibold text-stone-900 mb-2 tracking-tight">
               ระบบจัดการทรัพย์สิน IT
             </h1>
-            <p className="text-stone-500 text-[15.5px]">เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
+            <p className="text-stone-500 text-[15px]">เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
           </div>
 
           {/* Role buttons — compact horizontal pills */}
@@ -69,7 +69,7 @@ export default function LoginView({
           </div>
 
           {/* Footer hint */}
-          <p className="mt-9 text-[12.5px] text-stone-400 text-center">
+          <p className="mt-9 text-xs text-stone-400 text-center">
             © {new Date().getFullYear()} Globe Syndicate — IT Asset Management
           </p>
         </div>
@@ -133,7 +133,7 @@ export default function LoginView({
                 <button
                   type="button"
                   onClick={() => setForgotOpen(true)}
-                  className="text-[13.5px] font-medium text-stone-500 hover:text-clay-600 transition-colors inline-flex items-center gap-1.5"
+                  className="text-[13px] font-medium text-stone-500 hover:text-clay-600 transition-colors inline-flex items-center gap-1.5"
                 >
                   <KeyRound className="h-3.5 w-3.5" strokeWidth={1.8} />
                   ลืมรหัสผ่าน?
@@ -144,7 +144,7 @@ export default function LoginView({
 
           {/* alert จาก reset password */}
           {alertMsg && (
-            <div className={`mt-4 px-4 py-3 rounded-xl text-[13.5px] font-medium border flex items-start gap-2 ${
+            <div className={`mt-4 px-4 py-3 rounded-xl text-[13px] font-medium border flex items-start gap-2 ${
               alertMsg.type === 'success'
                 ? 'bg-olive-50 text-olive-700 border-olive-200'
                 : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -227,8 +227,8 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
         <h2 className="text-[18px] font-semibold text-stone-900 group-hover:text-clay-600 transition-colors leading-tight">
           {title}
         </h2>
-        <p className="text-stone-500 text-[14px] mt-1 leading-snug">{description}</p>
-        <p className="text-stone-400 text-[12.5px] font-medium flex items-center gap-1.5 mt-1.5">
+        <p className="text-stone-500 text-sm mt-1 leading-snug">{description}</p>
+        <p className="text-stone-400 text-xs font-medium flex items-center gap-1.5 mt-1.5">
           <HintIcon className="h-3.5 w-3.5" strokeWidth={2} />
           {hint}
         </p>
@@ -246,7 +246,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 function FormField({ label, icon: Icon, children }) {
   return (
     <div>
-      <label className="block text-[14px] font-medium text-stone-600 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-stone-600 mb-1.5">{label}</label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
           <Icon className="h-4 w-4 text-stone-400" strokeWidth={1.8} />

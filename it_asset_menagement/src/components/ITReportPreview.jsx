@@ -418,7 +418,7 @@ function EditPanel({ idx, edit, set }) {
           <Fld label="ไม่สำเร็จ"><input type="number" value={stats.closedLose} onChange={e => set.stat('closedLose', toNum(e.target.value))} className={fld} /></Fld>
         </div>
         <div>
-          <p className="text-[12px] font-medium text-stone-600 mb-1.5">🔴 ประเด็นสำคัญ (Big Issues)</p>
+          <p className="text-xs font-medium text-stone-600 mb-1.5">🔴 ประเด็นสำคัญ (Big Issues)</p>
           <RowsEditor rows={edit.bigIssues} setRows={set.bigIssues} itemLabel="Issue" addLabel="เพิ่ม Issue"
             makeEmpty={() => ({ issue: '', raiseBy: 'All', status: '⏳ In Progress', due: '' })}
             columns={[
@@ -565,11 +565,11 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
           ))}
         </div>
         <div className="flex items-center gap-2.5">
-          <button onClick={onClose} className="px-4 py-2.5 rounded-lg font-medium text-[14px] text-stone-200 bg-white/10 hover:bg-white/20 transition-colors">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-lg font-medium text-sm text-stone-200 bg-white/10 hover:bg-white/20 transition-colors">
             ปิด
           </button>
           <button onClick={() => onExport()} disabled={exporting}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14px] transition-colors ${exporting ? 'bg-stone-500 text-stone-300 cursor-not-allowed' : 'bg-white text-clay-600 hover:bg-stone-100'}`}>
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${exporting ? 'bg-stone-500 text-stone-300 cursor-not-allowed' : 'bg-white text-clay-600 hover:bg-stone-100'}`}>
             {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้างไฟล์...</> : <><FileDown className="h-4 w-4" strokeWidth={2} /> Export .pptx</>}
           </button>
         </div>

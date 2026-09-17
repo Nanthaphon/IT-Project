@@ -101,7 +101,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             เพิ่ม License
@@ -188,7 +188,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
             <div className="space-y-3 pt-3 border-t border-stone-100">
               {availableCount > 1 && (
                 <div>
-                  <label className="block text-[12.5px] font-medium text-stone-600 mb-1">เลือก Seat / Slot</label>
+                  <label className="block text-xs font-medium text-stone-600 mb-1">เลือก Seat / Slot</label>
                   <select
                     value={selectedSeatIdx}
                     onChange={e => setSelectedSeatIdx(Number(e.target.value))}
@@ -214,7 +214,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                 </div>
               )}
               <div>
-                <label className="block text-[12.5px] font-medium text-stone-600 mb-1">หมายเหตุ</label>
+                <label className="block text-xs font-medium text-stone-600 mb-1">หมายเหตุ</label>
                 <input
                   type="text"
                   value={remarks}
@@ -258,7 +258,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
             <Package className="h-6 w-6" strokeWidth={1.5} />
           </div>
           <p className="text-sm font-medium text-stone-500">ยังไม่มี License ที่ผูกกับเครื่องนี้</p>
-          <p className="text-[12.5px] text-stone-400 mt-1">
+          <p className="text-xs text-stone-400 mt-1">
             กดปุ่ม "เพิ่ม License" เพื่อผูก License กับทรัพย์สินนี้
           </p>
         </div>
@@ -277,7 +277,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13.5px] font-semibold text-stone-800 truncate">{seat.licenseName}</p>
+                    <p className="text-[13px] font-semibold text-stone-800 truncate">{seat.licenseName}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 bg-clay-100 px-1.5 py-0.5 rounded-lg border border-clay-200">
                         <Monitor className="h-2.5 w-2.5" strokeWidth={2.5} />
@@ -287,7 +287,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                         <span className="text-[11px] text-stone-400">เมื่อ {seat.checkoutDate}</span>
                       )}
                       {seat.productKey && (
-                        <span className="inline-flex items-center gap-0.5 text-[10.5px] font-mono bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded border border-stone-200">
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-mono bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded border border-stone-200">
                           <Key className="h-2.5 w-2.5" strokeWidth={2} />
                           {seat.productKey.length > 22
                             ? seat.productKey.slice(0, 22) + '…'
@@ -307,7 +307,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     <button
                       onClick={() => handleRevoke(seat.licenseId, seat.checkoutId)}
                       disabled={revoking === seat.checkoutId}
-                      className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-rose-600 bg-white border border-stone-200 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-white border border-stone-200 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-60"
                       title="ยกเลิกการผูก License"
                     >
                       {revoking === seat.checkoutId
@@ -322,7 +322,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                 {/* Expanded detail */}
                 {isExp && (
                   <div className="border-t border-stone-100 px-4 py-3 bg-stone-50/50">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 text-[12.5px]">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 text-xs">
                       {seat.productKey && (
                         <div className="col-span-2 md:col-span-3">
                           <p className="text-[11px] text-stone-400 mb-0.5">Product Key</p>

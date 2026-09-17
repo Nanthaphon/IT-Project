@@ -159,7 +159,7 @@ export default function AddModal({
                           }}
                         >
                           <div className="font-medium text-stone-800">{emp.fullName}</div>
-                          <div className="text-[12.5px] text-stone-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
+                          <div className="text-xs text-stone-500 mt-0.5">{emp.empId} • {emp.department || 'ไม่ระบุแผนก'}</div>
                         </div>
                       ))}
                       {employees.filter(emp =>

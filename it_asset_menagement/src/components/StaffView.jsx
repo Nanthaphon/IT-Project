@@ -632,12 +632,12 @@ export default function StaffView({
               <img src="/gb_icon.svg" alt="Logo" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
             <h1 className="text-[21px] font-semibold text-clay-600 tracking-tight">พนักงานทั่วไป</h1>
-            <p className="text-[14px] text-stone-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
+            <p className="text-sm text-stone-500 mt-1">ระบบจัดการทรัพย์สิน IT</p>
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] p-7">
             <h2 className="text-[16px] font-semibold text-stone-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
-            <p className="text-[12.5px] text-stone-500 mb-5 leading-relaxed">
+            <p className="text-xs text-stone-500 mb-5 leading-relaxed">
               💡 รหัสผ่านเริ่มต้น = <span className="font-semibold text-clay-600">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
             </p>
 
@@ -676,12 +676,12 @@ export default function StaffView({
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
-                <span className="text-[14px] text-stone-500">จดจำการเข้าสู่ระบบ</span>
+                <span className="text-sm text-stone-500">จดจำการเข้าสู่ระบบ</span>
               </label>
               <button
                 type="submit"
                 disabled={isLoggingIn}
-                className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-[14.5px] font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm mt-1 flex items-center justify-center gap-2 disabled:opacity-60"
                 style={{ boxShadow: '0 4px 14px rgba(166,95,60,0.25)' }}
               >
                 {isLoggingIn ? (
@@ -696,7 +696,7 @@ export default function StaffView({
 
           <button
             onClick={() => { setAuthRole(null); setStaffEmpIdInput(''); setStaffPasswordInput?.(''); }}
-            className="w-full mt-5 text-[14px] text-stone-500 hover:text-clay-600 transition-colors text-center inline-flex items-center justify-center gap-1.5"
+            className="w-full mt-5 text-sm text-stone-500 hover:text-clay-600 transition-colors text-center inline-flex items-center justify-center gap-1.5"
           >
             ← กลับไปหน้าเลือกบทบาท
           </button>
@@ -722,7 +722,7 @@ export default function StaffView({
               </svg>
             </div>
             <h1 className="text-[21px] font-semibold text-stone-800 tracking-tight">ตั้งรหัสผ่านใหม่</h1>
-            <p className="text-[13.5px] text-stone-500 mt-1.5 text-center px-4 leading-relaxed">
+            <p className="text-[13px] text-stone-500 mt-1.5 text-center px-4 leading-relaxed">
               สวัสดี <span className="font-semibold text-clay-600">{currentStaff?.fullName}</span> —<br />
               กรุณาตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัย (เข้าใช้ครั้งแรก)
             </p>
@@ -754,7 +754,7 @@ export default function StaffView({
                 </div>
               )}
               <button type="submit" disabled={changeSubmitting}
-                className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-[14.5px] font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
+                className="w-full py-3 bg-clay-600 hover:bg-clay-700 text-white text-sm font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
                 style={{ boxShadow: '0 4px 14px rgba(166,95,60,0.25)' }}>
                 {changeSubmitting ? (
                   <>
@@ -784,7 +784,7 @@ export default function StaffView({
 
       {/* ── Toast ── */}
       {setPwdToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-olive-600 text-white px-4 py-2.5 rounded-lg font-medium text-[13.5px]">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-olive-600 text-white px-4 py-2.5 rounded-lg font-medium text-[13px]">
           ✓ {setPwdToast}
         </div>
       )}
@@ -854,7 +854,7 @@ export default function StaffView({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsSidebarOpen(false)}
-                  className="group w-full flex items-center gap-3 px-3 py-2.5 text-[13.5px] rounded-xl transition-colors text-stone-600 hover:bg-stone-50 hover:text-stone-900 font-medium"
+                  className="group w-full flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-xl transition-colors text-stone-600 hover:bg-stone-50 hover:text-stone-900 font-medium"
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0 text-stone-400 group-hover:text-stone-500 transition-colors" strokeWidth={1.8} />
                   <span className="flex-1 text-left truncate">{tab.label}</span>
@@ -867,7 +867,7 @@ export default function StaffView({
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }}
-                className={`group w-full flex items-center gap-3 px-3 py-2.5 text-[13.5px] rounded-xl transition-all relative ${
+                className={`group w-full flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-xl transition-all relative ${
                   isActive
                     ? 'bg-gradient-to-r from-clay-600/[0.12] to-clay-600/[0.04] text-clay-600 font-semibold shadow-sm shadow-clay-600/10'
                     : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900 font-medium'
@@ -968,10 +968,10 @@ export default function StaffView({
                     <span className="text-white/60 font-normal text-[15px] sm:text-[17px] ml-1">({currentStaff.nickname})</span>
                   )}
                 </p>
-                <p className="text-[13px] sm:text-[14px] text-white/80 mt-1">
+                <p className="text-[13px] sm:text-sm text-white/80 mt-1">
                   {currentStaff.position || '—'}
                 </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2.5 text-[12px] text-white/60">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2.5 text-xs text-white/60">
                   <span className="font-mono font-semibold text-white bg-white/10 ring-1 ring-white/15 rounded-lg px-2 py-0.5">{currentStaff.empId}</span>
                   {currentStaff.department && <span>{currentStaff.department}</span>}
                   {currentStaff.company && <><span className="text-white/30">·</span><span>{currentStaff.company}</span></>}
@@ -1341,13 +1341,13 @@ export default function StaffView({
                     placeholder="ค้นหาอุปกรณ์..."
                     value={supplySearchTerm}
                     onChange={e => setSupplySearchTerm(e.target.value)}
-                    className="w-full bg-transparent pl-10 pr-3 py-2 text-[14px] focus:outline-none placeholder:text-stone-400"
+                    className="w-full bg-transparent pl-10 pr-3 py-2 text-sm focus:outline-none placeholder:text-stone-400"
                   />
                 </div>
 
                 {/* 🆕 บอกบริษัทที่พนักงานสังกัด (fixed — ไม่ให้เลือกเปลี่ยน) */}
                 {staffCompany && (
-                  <div className="pt-2 border-t border-stone-100 flex items-center gap-1.5 text-[11.5px] text-stone-500">
+                  <div className="pt-2 border-t border-stone-100 flex items-center gap-1.5 text-[11px] text-stone-500">
                     <Building2 className="h-3 w-3 text-clay-600 shrink-0" strokeWidth={2.4} />
                     <span>อุปกรณ์ของ</span>
                     <span className="inline-flex items-center gap-1 font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded-full ring-1 ring-stone-100">
@@ -1401,7 +1401,7 @@ export default function StaffView({
                               <Check className="h-3.5 w-3.5" strokeWidth={3} />
                             </span>
                           )}
-                          <span className={`absolute top-2 right-2 text-[10.5px] font-semibold px-1.5 py-0.5 rounded ${
+                          <span className={`absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                             isOut
                               ? 'bg-rose-100 text-rose-700'
                               : item.quantity <= 5
@@ -1414,12 +1414,12 @@ export default function StaffView({
                         <div className="p-3 border-t border-stone-100">
                           <p className="text-[13px] font-semibold text-stone-800 truncate leading-tight">{item.name}</p>
                           {item.company ? (
-                            <p className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded mt-1 max-w-full">
+                            <p className="inline-flex items-center gap-1 text-[10px] font-semibold text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded mt-1 max-w-full">
                               <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
                               <span className="truncate">{item.company}</span>
                             </p>
                           ) : (
-                            <p className="text-[10.5px] text-stone-400 italic mt-1">ไม่ระบุบริษัท</p>
+                            <p className="text-[10px] text-stone-400 italic mt-1">ไม่ระบุบริษัท</p>
                           )}
                           <p className="text-[11px] text-stone-500 mt-0.5">{item.unit || 'ชิ้น'}</p>
                         </div>
@@ -1432,8 +1432,8 @@ export default function StaffView({
               {/* History */}
               <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
                 <div className="flex justify-between items-center px-5 py-4 border-b border-stone-100">
-                  <p className="text-[14px] font-semibold text-stone-800">ประวัติคำขอ</p>
-                  {totalSupplyPages > 1 && <span className="text-[11.5px] text-stone-400">หน้า {supplyPage} / {totalSupplyPages}</span>}
+                  <p className="text-sm font-semibold text-stone-800">ประวัติคำขอ</p>
+                  {totalSupplyPages > 1 && <span className="text-[11px] text-stone-400">หน้า {supplyPage} / {totalSupplyPages}</span>}
                 </div>
 
                 {currentSupplyRequests.length === 0 ? (
@@ -1444,8 +1444,8 @@ export default function StaffView({
                       {currentSupplyRequests.map(req => (
                         <div key={req.id} className="flex items-center gap-3 px-5 py-3 hover:bg-stone-50/60 transition-colors">
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13.5px] font-semibold text-stone-800 truncate">{req.supplyName}</p>
-                            <p className="text-[11.5px] text-stone-400 mt-0.5">
+                            <p className="text-[13px] font-semibold text-stone-800 truncate">{req.supplyName}</p>
+                            <p className="text-[11px] text-stone-400 mt-0.5">
                               {formatDateShort(req.timestamp)}
                             </p>
                           </div>
@@ -1476,9 +1476,9 @@ export default function StaffView({
             <div className="lg:sticky lg:top-24">
               <form onSubmit={onSupplySubmit} className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
                 <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-                  <p className="text-[14.5px] font-semibold text-stone-800">รายการที่เลือก</p>
+                  <p className="text-sm font-semibold text-stone-800">รายการที่เลือก</p>
                   {supplyCart.length > 0 && (
-                    <span className="text-[12px] font-semibold text-clay-600 bg-clay-600/8 px-2 py-0.5 rounded">
+                    <span className="text-xs font-semibold text-clay-600 bg-clay-600/8 px-2 py-0.5 rounded">
                       {supplyCart.length}
                     </span>
                   )}
@@ -1487,7 +1487,7 @@ export default function StaffView({
                 {supplyCart.length === 0 ? (
                   <div className="px-5 py-12 text-center">
                     <Package className="h-9 w-9 mx-auto text-stone-300 mb-2" strokeWidth={1.5} />
-                    <p className="text-[12.5px] text-stone-400">ยังไม่มีรายการที่เลือก</p>
+                    <p className="text-xs text-stone-400">ยังไม่มีรายการที่เลือก</p>
                     <p className="text-[11px] text-stone-400 mt-1">คลิกที่อุปกรณ์เพื่อเพิ่ม</p>
                   </div>
                 ) : (
@@ -1507,7 +1507,7 @@ export default function StaffView({
                                 <span className="truncate">{cartItem.company}</span>
                               </p>
                             )}
-                            <p className="text-[10.5px] text-stone-400 mt-0.5">สูงสุด {cartItem.maxQty} {cartItem.unit || ''}</p>
+                            <p className="text-[10px] text-stone-400 mt-0.5">สูงสุด {cartItem.maxQty} {cartItem.unit || ''}</p>
                           </div>
                           <button
                             type="button"
@@ -1527,7 +1527,7 @@ export default function StaffView({
                           <input
                             type="number" min="1" max={cartItem.maxQty} value={cartItem.quantity}
                             onChange={e => { const nc = [...supplyCart]; nc[index].quantity = e.target.value; setSupplyCart(nc); }}
-                            className="w-12 bg-white border border-stone-200 rounded-lg px-1 py-1 text-[12.5px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
+                            className="w-12 bg-white border border-stone-200 rounded-lg px-1 py-1 text-xs text-center font-semibold focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
                             required
                           />
                           <button
@@ -1540,7 +1540,7 @@ export default function StaffView({
                             type="text" value={cartItem.note}
                             onChange={e => { const nc = [...supplyCart]; nc[index].note = e.target.value; setSupplyCart(nc); }}
                             placeholder="หมายเหตุ"
-                            className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-[11.5px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 focus:bg-white"
+                            className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-[11px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 focus:bg-white"
                           />
                         </div>
                       </div>
@@ -1552,7 +1552,7 @@ export default function StaffView({
                   <button
                     type="submit"
                     disabled={supplyCart.length === 0 || isSubmittingSupply}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {isSubmittingSupply
                       ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>
@@ -1689,7 +1689,7 @@ export default function StaffView({
 function EvaluationCell({ req, onOpen }) {
   // ถ้ายังไม่ซ่อมเสร็จ → ขีดกลาง
   if (req.status !== 'ซ่อมเสร็จสิ้น') {
-    return <span className="text-[12px] text-stone-300">—</span>;
+    return <span className="text-xs text-stone-300">—</span>;
   }
 
   // ประเมินแล้ว → แสดงดาวคะแนน
@@ -1703,7 +1703,7 @@ function EvaluationCell({ req, onOpen }) {
         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-clay-100 ring-1 ring-clay-200 hover:bg-clay-100 transition cursor-pointer"
       >
         <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={1.6} />
-        <span className="text-[12.5px] font-medium text-clay-600 tabular-nums">{score.toFixed(2)}</span>
+        <span className="text-xs font-medium text-clay-600 tabular-nums">{score.toFixed(2)}</span>
         <span className="text-[11px] text-clay-500/70 font-medium">/{`5`}</span>
       </button>
     );
@@ -1713,7 +1713,7 @@ function EvaluationCell({ req, onOpen }) {
   return (
     <button
       onClick={onOpen}
-      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-clay-600 hover:bg-clay-700 text-white text-[11.5px] font-medium transition-colors"
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-clay-600 hover:bg-clay-700 text-white text-[11px] font-medium transition-colors"
     >
       <Sparkles className="h-3 w-3" strokeWidth={2.2} />
       ทำแบบประเมิน
@@ -1726,7 +1726,7 @@ function EvaluationCell({ req, onOpen }) {
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[12.5px] font-medium text-stone-400r mb-3">{title}</p>
+      <p className="text-xs font-medium text-stone-400 mb-3">{title}</p>
       <div className="border border-stone-200 rounded-xl overflow-hidden">{children}</div>
     </div>
   );
@@ -1739,7 +1739,7 @@ function InfoGrid({ children }) {
 function InfoItem({ label, value, accent, mono }) {
   return (
     <div className="flex flex-col px-4 py-3 border-b border-stone-100 last:border-b-0">
-      <span className="text-[12.5px] font-medium text-stone-400 mb-0.5">{label}</span>
+      <span className="text-xs font-medium text-stone-400 mb-0.5">{label}</span>
       <span className={`text-sm font-medium ${accent ? 'text-clay-600' : 'text-stone-800'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-stone-300">—</span>}
       </span>
@@ -1761,7 +1761,7 @@ function PasswordRevealItem({ label, value, show, setShow }) {
   };
   return (
     <div className="flex flex-col px-4 py-3 border-b border-stone-100 last:border-b-0">
-      <span className="text-[12.5px] font-medium text-stone-400 mb-0.5">{label}</span>
+      <span className="text-xs font-medium text-stone-400 mb-0.5">{label}</span>
       {!hasValue ? (
         <span className="text-sm text-stone-300">—</span>
       ) : (
@@ -1794,8 +1794,8 @@ function PasswordRevealItem({ label, value, show, setShow }) {
 function CompactItem({ label, value, accent }) {
   return (
     <div className="px-5 py-3.5">
-      <p className="text-[11.5px] text-stone-500 mb-0.5">{label}</p>
-      <p className={`text-[14.5px] font-medium break-words ${accent ? 'text-clay-600' : 'text-stone-800'}`}>
+      <p className="text-[11px] text-stone-500 mb-0.5">{label}</p>
+      <p className={`text-sm font-medium break-words ${accent ? 'text-clay-600' : 'text-stone-800'}`}>
         {value || <span className="text-stone-300 font-normal">—</span>}
       </p>
     </div>
@@ -1816,12 +1816,12 @@ function CompactPassword({ label, value, show, setShow }) {
   };
   return (
     <>
-      <p className="text-[11.5px] text-stone-500 mb-0.5">{label}</p>
+      <p className="text-[11px] text-stone-500 mb-0.5">{label}</p>
       {!hasValue ? (
-        <p className="text-[14.5px] text-stone-300">—</p>
+        <p className="text-sm text-stone-300">—</p>
       ) : (
         <div className="flex items-center gap-2">
-          <span className="text-[14.5px] font-medium text-stone-800 font-mono select-all">
+          <span className="text-sm font-medium text-stone-800 font-mono select-all">
             {show ? value : '•'.repeat(Math.min(String(value).length, 12))}
           </span>
           <button type="button" onClick={() => setShow(s => !s)}
@@ -1850,12 +1850,12 @@ function EditableItem({ label, name, value, accent, mono, editing, form, setForm
   }
   return (
     <div className="py-2.5">
-      <label className="block text-[11.5px] text-stone-500 mb-1">{label}</label>
+      <label className="block text-[11px] text-stone-500 mb-1">{label}</label>
       <input
         type="text"
         value={form[name] ?? ''}
         onChange={(e) => setForm(prev => ({ ...prev, [name]: e.target.value }))}
-        className={`w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px]
+        className={`w-full bg-white border border-stone-200 px-3 py-2 rounded-lg text-sm
                     focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition
                     ${accent ? 'text-clay-600 font-medium' : 'text-stone-800'}
                     ${mono ? 'font-mono' : ''}`}
@@ -1888,7 +1888,7 @@ function LinkCards({ links }) {
   if (!items.length) return null;
   return (
     <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-5">
-      <p className="text-[12.5px] font-medium text-stone-500 mb-3">ลิงก์ / เว็บไซต์</p>
+      <p className="text-xs font-medium text-stone-500 mb-3">ลิงก์ / เว็บไซต์</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {items.map((l, i) => {
           const href = normalizeLinkUrl(l.url);
@@ -1901,8 +1901,8 @@ function LinkCards({ links }) {
                 <ExternalLink className="h-4 w-4" strokeWidth={2} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-medium text-stone-800 truncate group-hover:text-clay-600">{label}</span>
-                {host && <span className="block text-[12px] text-stone-400 truncate">{host}</span>}
+                <span className="block text-sm font-medium text-stone-800 truncate group-hover:text-clay-600">{label}</span>
+                {host && <span className="block text-xs text-stone-400 truncate">{host}</span>}
               </span>
             </a>
           );
@@ -1918,12 +1918,12 @@ function LinksEditor({ links, setLinks }) {
   const update = (i, key, val) => setLinks(rows.map((r, idx) => idx === i ? { ...r, [key]: val } : r));
   const add = () => setLinks([...rows, { label: '', url: '' }]);
   const remove = (i) => setLinks(rows.filter((_, idx) => idx !== i));
-  const inCls = 'bg-white border border-stone-200 px-3 py-2 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
+  const inCls = 'bg-white border border-stone-200 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition';
   return (
     <div>
-      <label className="block text-[11.5px] text-stone-500 font-medium mb-2">ลิงก์ / เว็บไซต์</label>
+      <label className="block text-[11px] text-stone-500 font-medium mb-2">ลิงก์ / เว็บไซต์</label>
       {rows.length === 0 && (
-        <p className="text-[12.5px] text-stone-400 mb-1">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์” เพื่อแปะเว็บไซต์ที่ต้องการ</p>
+        <p className="text-xs text-stone-400 mb-1">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์” เพื่อแปะเว็บไซต์ที่ต้องการ</p>
       )}
       <div className="space-y-2">
         {rows.map((r, i) => (
@@ -1960,7 +1960,7 @@ function EmptyState({ label }) {
 
 function Th({ children, center }) {
   return (
-    <th className={`px-4 py-3 text-[12.5px] font-medium text-stone-400r ${center ? 'text-center' : 'text-left'}`}>
+    <th className={`px-4 py-3 text-xs font-medium text-stone-400 ${center ? 'text-center' : 'text-left'}`}>
       {children}
     </th>
   );
@@ -2093,7 +2093,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="ค้นหาอุปกรณ์..."
-              className="w-full bg-transparent pl-10 pr-3 py-2 text-[14px] focus:outline-none placeholder:text-stone-400"
+              className="w-full bg-transparent pl-10 pr-3 py-2 text-sm focus:outline-none placeholder:text-stone-400"
             />
           </div>
         </div>
@@ -2136,7 +2136,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                         <Check className="h-3.5 w-3.5" strokeWidth={3} />
                       </span>
                     )}
-                    <span className={`absolute top-2 right-2 text-[10.5px] font-semibold px-1.5 py-0.5 rounded ${
+                    <span className={`absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                       isDisabled
                         ? 'bg-rose-100 text-rose-700'
                         : avail <= 3
@@ -2159,8 +2159,8 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
         {/* History */}
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
           <div className="flex justify-between items-center px-5 py-4 border-b border-stone-100">
-            <p className="text-[14px] font-semibold text-stone-800">ประวัติคำขอของฉัน</p>
-            <span className="text-[11.5px] text-stone-400">{myAccessoryReqs.length} รายการ</span>
+            <p className="text-sm font-semibold text-stone-800">ประวัติคำขอของฉัน</p>
+            <span className="text-[11px] text-stone-400">{myAccessoryReqs.length} รายการ</span>
           </div>
 
           {myAccessoryReqs.length === 0 ? (
@@ -2171,18 +2171,18 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                 <div key={req.id} className="flex items-start gap-3 px-5 py-3 hover:bg-stone-50/60 transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-[13.5px] font-semibold text-stone-800 truncate">{req.accessoryName}</p>
-                      <span className="text-[12px] font-semibold text-clay-600 tabular-nums">× {req.quantity || 1}</span>
+                      <p className="text-[13px] font-semibold text-stone-800 truncate">{req.accessoryName}</p>
+                      <span className="text-xs font-semibold text-clay-600 tabular-nums">× {req.quantity || 1}</span>
                     </div>
-                    {req.reason && <p className="text-[11.5px] text-stone-500 mt-1 line-clamp-2">{req.reason}</p>}
+                    {req.reason && <p className="text-[11px] text-stone-500 mt-1 line-clamp-2">{req.reason}</p>}
                     {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
-                      <p className="text-[11.5px] text-rose-600 mt-1">ปฏิเสธ: {req.rejectReason}</p>
+                      <p className="text-[11px] text-rose-600 mt-1">ปฏิเสธ: {req.rejectReason}</p>
                     )}
-                    <p className="text-[10.5px] text-stone-400 mt-1">
+                    <p className="text-[10px] text-stone-400 mt-1">
                       {req.timestamp ? formatDateShort(req.timestamp) : ''}
                     </p>
                   </div>
-                  <span className={`text-[10.5px] font-semibold px-2 py-1 rounded ring-1 ring-inset shrink-0 ${STATUS_BADGE[req.status] || ''}`}>
+                  <span className={`text-[10px] font-semibold px-2 py-1 rounded ring-1 ring-inset shrink-0 ${STATUS_BADGE[req.status] || ''}`}>
                     {req.status}
                   </span>
                 </div>
@@ -2196,13 +2196,13 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
       <div className="lg:sticky lg:top-24">
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
           <div className="px-5 py-4 border-b border-stone-100">
-            <p className="text-[14.5px] font-semibold text-stone-800">รายการที่เลือก</p>
+            <p className="text-sm font-semibold text-stone-800">รายการที่เลือก</p>
           </div>
 
           {!selectedAcc ? (
             <div className="px-5 py-12 text-center">
               <Package className="h-9 w-9 mx-auto text-stone-300 mb-2" strokeWidth={1.5} />
-              <p className="text-[12.5px] text-stone-400">ยังไม่ได้เลือกอุปกรณ์</p>
+              <p className="text-xs text-stone-400">ยังไม่ได้เลือกอุปกรณ์</p>
               <p className="text-[11px] text-stone-400 mt-1">คลิกที่อุปกรณ์ในรายการ</p>
             </div>
           ) : (
@@ -2216,7 +2216,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                     </div>
                 }
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-semibold text-stone-800 truncate">{selectedAcc.name}</p>
+                  <p className="text-[13px] font-semibold text-stone-800 truncate">{selectedAcc.name}</p>
                   {selectedAcc.type && <p className="text-[11px] text-stone-500 mt-0.5 truncate">{selectedAcc.type}</p>}
                   <p className="text-[11px] text-stone-500 mt-1">สต็อก <span className="font-semibold text-stone-700">{stockAvailable}</span> ชิ้น</p>
                 </div>
@@ -2224,7 +2224,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
 
               {/* Quantity */}
               <div>
-                <label className="block text-[12.5px] font-medium text-stone-600 mb-1.5">จำนวนที่ต้องการ</label>
+                <label className="block text-xs font-medium text-stone-600 mb-1.5">จำนวนที่ต้องการ</label>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -2238,7 +2238,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                     max={stockAvailable || 1}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                    className="flex-1 bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13.5px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
+                    className="flex-1 bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13px] text-center font-semibold focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
                   />
                   <button
                     type="button"
@@ -2251,7 +2251,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
 
               {/* Reason */}
               <div>
-                <label className="block text-[12.5px] font-medium text-stone-600 mb-1.5">
+                <label className="block text-xs font-medium text-stone-600 mb-1.5">
                   เหตุผล <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -2270,7 +2270,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
             <button
               type="submit"
               disabled={isSubmitting || !accessoryId || !reason.trim()}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13.5px] font-semibold text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13px] font-semibold text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting
                 ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>

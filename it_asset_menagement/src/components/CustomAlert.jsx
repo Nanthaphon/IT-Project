@@ -20,7 +20,7 @@ export default function CustomAlert({ customAlert, setCustomAlert }) {
         >
           {isError ? <AlertCircle className="h-8 w-8" strokeWidth={1.8} /> : <CheckCircle2 className="h-8 w-8" strokeWidth={1.8} />}
         </div>
-        <h3 className="text-[20px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
+        <h3 className="text-[19px] font-medium mb-2 tracking-tight" style={{ color: BRAND.primary }}>
           {customAlert.title}
         </h3>
         <p className="text-[15px] text-stone-500 mb-7 whitespace-pre-line leading-relaxed">{customAlert.message}</p>

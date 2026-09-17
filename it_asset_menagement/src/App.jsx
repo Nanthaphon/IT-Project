@@ -110,7 +110,6 @@ function App() {
   const [authRole, setAuthRole] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [currentUid, setCurrentUid] = useState(null);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
@@ -604,9 +603,10 @@ function App() {
     else if (activeMenu === 'office_supplies') setType('เครื่องเขียน');
   }, [activeMenu]);
 
-  const handleAdminLogin = async (e) => {
-    e.preventDefault(); setLoginError(''); setLoginLoading(true);
-    try { await signInWithEmailAndPassword(auth, loginForm.username, loginForm.password); setShowAdminLogin(false); setLoginForm({ username: '', password: '' }); } 
+  const handleAdminLogin = async (e, creds) => {
+    e?.preventDefault?.(); setLoginError(''); setLoginLoading(true);
+    const { username, password } = creds ?? loginForm;
+    try { await signInWithEmailAndPassword(auth, username, password); setLoginForm({ username: '', password: '' }); } 
     catch (error) { setLoginError('Email หรือ Password ไม่ถูกต้อง'); } 
     finally { setLoginLoading(false); }
   };
@@ -621,15 +621,17 @@ function App() {
     setStaffMustChangePassword(false);
   };
 
-  const handleStaffLogin = async (e) => {
-    e.preventDefault();
-    const empId    = staffEmpIdInput.trim();
-    const password = staffPasswordInput;
+  const handleStaffLogin = async (e, creds) => {
+    e?.preventDefault?.();
+    const empId    = (creds?.empId ?? staffEmpIdInput).trim();
+    const password = creds?.password ?? staffPasswordInput;
     if (!empId)    return;
     if (!password) {
+      setLoginError('กรุณากรอกรหัสผ่าน');
       setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: 'กรุณากรอกรหัสผ่าน', type: 'error' });
       return;
     }
+    setLoginError(''); setLoginLoading(true);
     try {
       // เรียก Vercel API /api/staff-login เพื่อรับ Firebase custom token
       const resp = await fetch(`${VERCEL_API_BASE}/api/staff-login`, {
@@ -654,7 +656,10 @@ function App() {
       // ถ้าต้องเปลี่ยนรหัสผ่าน → set flag
       setStaffMustChangePassword(!!mustChangePassword);
     } catch (err) {
+      setLoginError(err?.message || 'เข้าสู่ระบบไม่สำเร็จ');
       setCustomAlert({ isOpen: true, title: 'เข้าสู่ระบบไม่สำเร็จ!', message: err?.message || 'เกิดข้อผิดพลาด', type: 'error' });
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -3078,7 +3083,7 @@ function App() {
   if (authRole === null) return (
     <React.Fragment>
       <GlobalLoadingOverlay show={globalLoading} message={globalLoadingMsg} />
-      <LoginView showAdminLogin={showAdminLogin} setShowAdminLogin={setShowAdminLogin} setAuthRole={setAuthRole} loginForm={loginForm} setLoginForm={setLoginForm} handleAdminLogin={handleAdminLogin} loginError={loginError} setLoginError={setLoginError} loginLoading={loginLoading} />
+      <LoginView setLoginForm={setLoginForm} handleAdminLogin={handleAdminLogin} handleStaffLogin={handleStaffLogin} loginError={loginError} setLoginError={setLoginError} loginLoading={loginLoading} />
       <CustomAlert customAlert={customAlert} setCustomAlert={setCustomAlert} />
     </React.Fragment>
   );

@@ -166,6 +166,7 @@ localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุป
 localhost:5173/form-preview.html        primitives กลาง + CheckoutModal
 localhost:5173/preview-test.html        IT Report
 localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
+localhost:5173/login-preview.html       หน้าเข้าสู่ระบบ (ไม่ต้อง logout ของจริง)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 

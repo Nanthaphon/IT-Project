@@ -271,7 +271,7 @@ export default function PreHandoverAssessmentModal({
                   <div key={sec.title} className="border border-stone-200 rounded-xl overflow-hidden bg-white">
                     <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[14px] font-semibold text-clay-600 truncate">{sec.title}</span>
+                        <span className="text-sm font-medium text-clay-600 truncate">{sec.title}</span>
                         <span className="text-[12px] font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                           {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                         </span>
@@ -525,12 +525,11 @@ export default function PreHandoverAssessmentModal({
               onClick={handlePrint}
               disabled={!selectedAsset}
               title={!selectedAsset ? 'กรุณาเลือกเครื่องก่อน' : ''}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold rounded-xl shadow-sm transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
                 selectedAsset
                   ? 'text-white bg-clay-600 hover:bg-clay-700'
                   : 'text-stone-400 bg-stone-200 cursor-not-allowed'
               }`}
-              style={selectedAsset ? { boxShadow: '0 4px 14px rgba(166,95,60,0.30)' } : undefined}
             >
               <Printer className="h-4 w-4" strokeWidth={2.2} />
               พิมพ์เอกสาร / บันทึก PDF

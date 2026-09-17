@@ -8,10 +8,10 @@ import { formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
-  'รอดำเนินการ': { bar: 'bg-clay-400',   badge: 'bg-ochre-50 text-ochre-700 border-ochre-200',     icon: Clock },
-  'อนุมัติแล้ว':  { bar: 'bg-olive-400', badge: 'bg-olive-50 text-olive-700 border-olive-200', icon: CheckCircle2 },
-  'ปฏิเสธคำขอ':  { bar: 'bg-rose-400',    badge: 'bg-rose-50 text-rose-700 border-rose-200',         icon: XCircle },
-  'คืนแล้ว':     { bar: 'bg-stone-400',   badge: 'bg-stone-50 text-stone-700 border-stone-200',      icon: RotateCcw },
+  'รอดำเนินการ': { bar: 'bg-ochre-600/70',   badge: 'bg-ochre-50 text-ochre-700',     icon: Clock },
+  'อนุมัติแล้ว':  { bar: 'bg-olive-600/70', badge: 'bg-olive-50 text-olive-700', icon: CheckCircle2 },
+  'ปฏิเสธคำขอ':  { bar: 'bg-brick-600/70',    badge: 'bg-rose-50 text-rose-700',         icon: XCircle },
+  'คืนแล้ว':     { bar: 'bg-stone-500/60',   badge: 'bg-sand-100 text-stone-600',      icon: RotateCcw },
 };
 
 /* ─── Request type config ─── */
@@ -184,7 +184,7 @@ export default function AccessoryRequestTable({
                   </span>
 
                   {/* Status badge */}
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border ${status.badge} shrink-0`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${status.badge} shrink-0`}>
                     <StatusIcon className="h-3 w-3" strokeWidth={2.4} />
                     <span className="hidden sm:inline">{req.status}</span>
                   </span>

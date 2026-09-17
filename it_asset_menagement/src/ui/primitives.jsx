@@ -140,13 +140,15 @@ export function ModalFooter({ children, className = '' }) {
 }
 
 /* Badge — colored pill (kind: success/warning/danger/info/neutral) */
+/* โทนเดียวกับ TONE ใน src/ui/earth.js — v3 ไม่มีขอบ
+   (border-* เดิมเป็นคลาสตาย เพราะไม่มี utility `border` คู่กัน) */
 const BADGE_CLS = {
-  success: 'bg-olive-50 text-olive-700 border-olive-200',
-  warning: 'bg-ochre-50 text-ochre-700 border-ochre-200',
-  danger:  'bg-rose-50 text-rose-700 border-rose-200',
-  info:    'bg-stone-50 text-stone-700 border-stone-200',
-  neutral: 'bg-stone-50 text-stone-600 border-stone-200',
-  brand:   'bg-[#F3E7DF] text-clay-600 border-clay-600/20',
+  success: 'bg-olive-50 text-olive-700',
+  warning: 'bg-ochre-50 text-ochre-700',
+  danger:  'bg-rose-50 text-rose-700',
+  info:    'bg-sand-100 text-stone-600',
+  neutral: 'bg-sand-100 text-stone-600',
+  brand:   'bg-clay-100 text-clay-600',
 };
 export function Badge({ kind = 'neutral', dot = false, children, className = '' }) {
   return (

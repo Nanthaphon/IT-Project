@@ -98,6 +98,7 @@ localhost:5173/dashboard-preview.html   แดชบอร์ด
 localhost:5173/list-preview.html        License / อุปกรณ์เสริม / พนักงาน / อุปกรณ์สำนักงาน
 localhost:5173/assets-preview.html      ทรัพย์สิน (128 รายการ)
 localhost:5173/modal-preview.html       AssetDetailsModal
+localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุปกรณ์เสริม (sub-modal)
 localhost:5173/form-preview.html        primitives กลาง + CheckoutModal
 localhost:5173/preview-test.html        IT Report
 ```

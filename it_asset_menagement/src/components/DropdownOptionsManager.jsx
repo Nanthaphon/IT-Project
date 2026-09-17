@@ -134,7 +134,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           type="button"
           onClick={handleAdd}
           disabled={!input.trim()}
-          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-[14px] font-semibold transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-stone-200 cursor-not-allowed text-stone-400'}`}
+          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-medium transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-stone-200 cursor-not-allowed text-stone-400'}`}
         >
           <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่ม
         </button>

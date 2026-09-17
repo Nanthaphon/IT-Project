@@ -850,8 +850,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
             <button
               onClick={confirmUpload}
               disabled={docType === 'other' && !otherLabel.trim()}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[12.5px] font-semibold text-white rounded-lg shadow-sm transition disabled:opacity-50"
-              style={{ background: '#A65F3C' }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-clay-600 hover:bg-clay-700 text-white rounded-xl transition-colors disabled:opacity-50"
             >
               <Upload className="h-3.5 w-3.5" strokeWidth={2.2} />
               บันทึก
@@ -1472,8 +1471,7 @@ function EditPeriodModal({ period, onClose }) {
             ยกเลิก
           </button>
           <button onClick={handleSave} disabled={saving || overHard}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[13.5px] font-semibold text-white rounded-xl shadow-sm transition disabled:opacity-60"
-            style={{ background: '#A65F3C' }}>
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-clay-600 hover:bg-clay-700 text-white rounded-xl transition-colors disabled:opacity-60">
             {saving ? (
               <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
             ) : (

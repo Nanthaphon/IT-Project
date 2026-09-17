@@ -152,7 +152,7 @@ export default function SatisfactionSurveyModal({
           {/* comment */}
           <div className="border-t border-stone-100 pt-5">
             <label className="block">
-              <span className="flex items-center gap-1.5 text-[14px] font-semibold text-stone-700 mb-2">
+              <span className="flex items-center gap-1.5 text-sm font-medium text-stone-700 mb-2">
                 <MessageSquare className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.9} />
                 ความคิดเห็นเพิ่มเติม
                 <span className="text-[11.5px] text-stone-400 font-normal"></span>

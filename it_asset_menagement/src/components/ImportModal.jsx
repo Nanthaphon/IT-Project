@@ -152,8 +152,7 @@ export default function ImportModal({
               style={{ marginLeft: '2.5rem' }}
             />
             <div
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-clay-600 hover:bg-clay-700 text-white rounded-lg font-semibold text-[14.5px] transition-colors shadow-sm cursor-pointer"
-              style={{ boxShadow: '0 4px 12px rgba(166,95,60,0.25)' }}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-clay-600 hover:bg-clay-700 text-white rounded-xl font-medium text-sm transition-colors cursor-pointer"
             >
               <Upload className="h-4 w-4" strokeWidth={2.2} />
               เลือกไฟล์เพื่อนำเข้า

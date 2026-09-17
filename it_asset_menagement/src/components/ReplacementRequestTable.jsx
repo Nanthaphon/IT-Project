@@ -12,9 +12,9 @@ const LABEL = 'text-[11px] font-semibold text-stone-400';
 
 /* ─── Status config ──────────────────────────────────────── */
 const STATUS = {
-  'รอดำเนินการ': { badge: 'bg-ochre-50 text-ochre-700 border-ochre-200',       dot: 'bg-clay-400',   icon: Clock        },
-  'อนุมัติแล้ว':  { badge: 'bg-olive-50 text-olive-700 border-olive-200', dot: 'bg-olive-400', icon: CheckCircle2 },
-  'ปฏิเสธคำขอ':  { badge: 'bg-rose-50 text-rose-700 border-rose-200',          dot: 'bg-rose-400',    icon: XCircle      },
+  'รอดำเนินการ': { badge: 'bg-ochre-50 text-ochre-700',       dot: 'bg-ochre-600',   icon: Clock        },
+  'อนุมัติแล้ว':  { badge: 'bg-olive-50 text-olive-700', dot: 'bg-olive-600', icon: CheckCircle2 },
+  'ปฏิเสธคำขอ':  { badge: 'bg-rose-50 text-rose-700',          dot: 'bg-brick-500',    icon: XCircle      },
 };
 
 /* ─── Main component ─────────────────────────────────────── */
@@ -141,7 +141,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             </p>
           </div>
           {/* status badge — สไตล์เดียวกับฝั่ง user */}
-          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border shrink-0 ${cfg.badge}`}>
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 ${cfg.badge}`}>
             <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
             {req.status}
           </span>
@@ -261,7 +261,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             <select
               value={req.status}
               onChange={(e) => onUpdateStatus(req.id, e.target.value)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border outline-none cursor-pointer transition-colors ${cfg.badge}`}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium outline-none cursor-pointer transition-colors ${cfg.badge}`}
             >
               <option value="รอดำเนินการ">รอดำเนินการ</option>
               <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>

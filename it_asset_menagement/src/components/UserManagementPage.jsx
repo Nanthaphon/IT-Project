@@ -373,9 +373,9 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                   {/* เมนูที่เข้าถึง */}
                   <td className="px-5 py-3.5 text-center">
                     {user.isSuperAdmin ? (
-                      <span className="text-[14px] font-semibold text-clay-600">ทั้งหมด ({ALL_MENU_IDS.length})</span>
+                      <span className="text-sm font-medium text-clay-600">ทั้งหมด ({ALL_MENU_IDS.length})</span>
                     ) : (
-                      <span className="text-[14px] font-semibold text-stone-700">
+                      <span className="text-sm font-medium text-stone-700">
                         {(user.permissions?.menus || []).length} / {ALL_MENU_IDS.length}
                       </span>
                     )}
@@ -586,7 +586,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                     className="w-4 h-4 mt-0.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600 focus:ring-offset-0"
                   />
                   <div>
-                    <p className="text-[14px] font-semibold text-stone-700">อนุญาตให้รีเซ็ตรหัสผ่านผู้ใช้อื่น</p>
+                    <p className="text-sm font-medium text-stone-700">อนุญาตให้รีเซ็ตรหัสผ่านผู้ใช้อื่น</p>
                     <p className="text-[12.5px] text-stone-400 mt-0.5">
                       ผู้ใช้คนนี้จะเข้าหน้าจัดการผู้ใช้ และตั้งรหัสผ่านใหม่ให้บัญชีอื่นได้
                     </p>

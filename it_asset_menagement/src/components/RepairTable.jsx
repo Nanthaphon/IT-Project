@@ -13,10 +13,10 @@ const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounde
 
 /* ─── Status config ──────────────────────────────────────── */
 const STATUS = {
-  'รอดำเนินการ':    { bar: 'bg-clay-400',   badge: 'bg-ochre-50 text-ochre-700 border-ochre-200',     icon: Clock,       },
-  'กำลังดำเนินการ': { bar: 'bg-stone-400',    badge: 'bg-ochre-50 text-ochre-700 border-ochre-200',        icon: Loader2,     },
-  'ซ่อมเสร็จสิ้น':  { bar: 'bg-olive-400', badge: 'bg-olive-50 text-olive-700 border-olive-200', icon: CheckCircle2 },
-  'ยกเลิก':         { bar: 'bg-stone-300',   badge: 'bg-stone-50 text-stone-500 border-stone-200',     icon: XCircle,     },
+  'รอดำเนินการ':    { bar: 'bg-ochre-600/70',   badge: 'bg-ochre-50 text-ochre-700',     icon: Clock,       },
+  'กำลังดำเนินการ': { bar: 'bg-ochre-600/70',    badge: 'bg-ochre-50 text-ochre-700',        icon: Loader2,     },
+  'ซ่อมเสร็จสิ้น':  { bar: 'bg-olive-600/70', badge: 'bg-olive-50 text-olive-700', icon: CheckCircle2 },
+  'ยกเลิก':         { bar: 'bg-sand-300',   badge: 'bg-sand-100 text-stone-400',     icon: XCircle,     },
 };
 
 /* ─── Main component ─────────────────────────────────────── */
@@ -289,7 +289,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
         </div>
 
         {/* Status badge */}
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border ${cfg.badge} shrink-0`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cfg.badge} shrink-0`}>
           <StatusIcon className={`h-3 w-3 ${isInProgress ? 'animate-spin' : ''}`} strokeWidth={2.2} />
           <span className="hidden sm:inline">{req.status}</span>
         </span>
@@ -358,7 +358,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
             <select
               value={req.status}
               onChange={(e) => onUpdateStatus(req.id, e.target.value)}
-              className={`px-2 py-1 rounded-lg text-[11.5px] font-semibold border outline-none cursor-pointer ${cfg.badge}`}
+              className={`px-2 py-1 rounded-lg text-xs font-medium outline-none cursor-pointer ${cfg.badge}`}
             >
               <option value="รอดำเนินการ">รอดำเนินการ</option>
               <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>

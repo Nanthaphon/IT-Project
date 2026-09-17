@@ -51,11 +51,10 @@ export default function TopHeader({
         {/* User badge — แสดงชื่อ user ที่ login */}
         {badgeLabel && (
           <span
-            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border mr-1"
+            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium mr-1"
             style={{
               backgroundColor: `${BRAND.primary}10`,
               color: BRAND.primary,
-              borderColor: `${BRAND.primary}25`,
             }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />

@@ -14,18 +14,18 @@ const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounde
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
   'รอดำเนินการ': {
-    bar:   'bg-clay-400',
-    badge: 'bg-ochre-50 text-ochre-700 border-ochre-200',
+    bar:   'bg-ochre-600/70',
+    badge: 'bg-ochre-50 text-ochre-700',
     icon:  Clock,
   },
   'อนุมัติแล้ว': {
-    bar:   'bg-olive-400',
-    badge: 'bg-olive-50 text-olive-700 border-olive-200',
+    bar:   'bg-olive-600/70',
+    badge: 'bg-olive-50 text-olive-700',
     icon:  CheckCircle2,
   },
   'ปฏิเสธคำขอ': {
-    bar:   'bg-rose-400',
-    badge: 'bg-rose-50 text-rose-700 border-rose-200',
+    bar:   'bg-brick-600/70',
+    badge: 'bg-rose-50 text-rose-700',
     icon:  XCircle,
   },
 };
@@ -666,7 +666,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
       </div>
 
       {/* status */}
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border ${cfg.badge} shrink-0`}>
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cfg.badge} shrink-0`}>
         <StatusIcon className="h-3 w-3" strokeWidth={2.2} />
         <span className="hidden sm:inline">{req.status}</span>
       </span>
@@ -694,7 +694,7 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <select
             value={req.status}
             onChange={(e) => onUpdateStatus(req, e.target.value)}
-            className={`px-2 py-1 rounded-lg text-[11.5px] font-semibold border outline-none cursor-pointer ${cfg.badge}`}
+            className={`px-2 py-1 rounded-lg text-xs font-medium outline-none cursor-pointer ${cfg.badge}`}
           >
             <option value="รอดำเนินการ">รอดำเนินการ</option>
             <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>

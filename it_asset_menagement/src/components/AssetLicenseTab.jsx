@@ -114,7 +114,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
         <div className="bg-white border border-clay-600/30 rounded-xl p-5 space-y-4">
           {/* Panel header */}
           <div className="flex items-center justify-between">
-            <p className="text-[14px] font-semibold text-stone-800 flex items-center gap-2">
+            <p className="text-sm font-medium text-stone-800 flex items-center gap-2">
               <Monitor className="h-4 w-4 text-clay-600" strokeWidth={2} />
               เลือก License ที่ต้องการผูกกับเครื่องนี้
             </p>
@@ -239,8 +239,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
               type="button"
               onClick={handleAssign}
               disabled={!selectedLicId || saving}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-white rounded-lg shadow-sm transition disabled:opacity-50"
-              style={{ background: '#A65F3C' }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-clay-600 hover:bg-clay-700 text-white rounded-xl transition-colors disabled:opacity-50"
             >
               {saving ? (
                 <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> กำลังบันทึก...</>
@@ -258,7 +257,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
           <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-stone-100 flex items-center justify-center text-stone-300">
             <Package className="h-6 w-6" strokeWidth={1.5} />
           </div>
-          <p className="text-[14px] font-semibold text-stone-500">ยังไม่มี License ที่ผูกกับเครื่องนี้</p>
+          <p className="text-sm font-medium text-stone-500">ยังไม่มี License ที่ผูกกับเครื่องนี้</p>
           <p className="text-[12.5px] text-stone-400 mt-1">
             กดปุ่ม "เพิ่ม License" เพื่อผูก License กับทรัพย์สินนี้
           </p>

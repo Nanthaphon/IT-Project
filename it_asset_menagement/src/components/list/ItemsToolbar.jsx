@@ -13,7 +13,7 @@ import { Search, X, Plus, Upload, MoreHorizontal, Trash2 } from 'lucide-react';
    แถว 2 ขึ้นเฉพาะตอนมีของมากพอให้ต้องกรอง/ค้นหาจริง ๆ
    และถ้าเลือกอยู่ แถว 2 จะกลายเป็นแถบ "เลือก n รายการ" แทน */
 
-const MIN_FOR_TOOLS = 4;   // น้อยกว่านี้กวาดตาดูเองเร็วกว่าใช้ตัวกรอง
+const MIN_FOR_TOOLS = 2;   // มีชิ้นเดียวค้นหา/กรองไม่มีความหมาย
 
 export default function ItemsToolbar({
   title,

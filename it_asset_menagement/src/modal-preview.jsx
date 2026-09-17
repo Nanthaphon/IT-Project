@@ -87,10 +87,27 @@ const LICENSE_DEMO = {
   ],
 };
 
+
+/* เคสที่ผู้ใช้เจอบั๊ก: 2 สิทธิ์ และ seatLabel เป็นชื่อแพ็กเกจยาวมาก */
+const LICENSE_LONG = {
+  id: 'lic-long', name: 'Sketchup Pro', supplier: 'Trimble',
+  quantity: 2, expirationDate: '2027-02-12',
+  assignees: [
+    { checkoutId: 'L1', empId: 'e1', empName: 'นางสาวมณฑิตา กันนิกา (Tangmoo)',
+      checkoutDate: '18/06/2569', seatExpirationDate: '2026-10-31',
+      seatLabel: 'SketchUp Pro Single User Annual Subscription Renewal (1 Year)',
+      productKey: 'Yuwadee.P@globesyndicate.co.th' },
+    { checkoutId: 'L2', empId: 'e2', empName: 'นางสาวสุนันทา หัสดีธรรม (Nuss)',
+      checkoutDate: '18/06/2569', seatExpirationDate: '2027-02-12',
+      seatLabel: 'SketchUp Pro 2026 Commercial Windows/Mac Single User' },
+  ],
+};
+
 function Harness() {
   const [detail, setDetail] = useState(ASSET);
   const [cat, setCat] = useState('assets');
   const showLicense = () => { setDetail(LICENSE_DEMO); setCat('licenses'); };
+  const showLong = () => { setDetail(LICENSE_LONG); setCat('licenses'); };
   const showAsset = () => { setDetail(ASSET); setCat('assets'); };
   if (!detail) {
     return (
@@ -105,7 +122,8 @@ function Harness() {
     <>
     <div className="fixed left-4 top-4 z-[200] flex gap-2 rounded-xl border border-stone-200/60 bg-white p-2 shadow-sm">
       <button onClick={showAsset} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${cat === 'assets' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ทรัพย์สิน</button>
-      <button onClick={showLicense} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${cat === 'licenses' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>License</button>
+      <button onClick={showLicense} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id==='lic-demo' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>License</button>
+      <button onClick={showLong} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id==='lic-long' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ชื่อยาว 2 สิทธิ์</button>
     </div>
     <AssetDetailsModal
       selectedAssetDetail={detail}

@@ -10,21 +10,21 @@ import { statusTone } from '../../ui/earth.js';
    จอแคบกว่า md กลับไปเป็นการ์ดเหมือนเดิม (ตารางอ่านไม่ได้บนมือถือ) */
 
 const COLS = [
-  { key: 'seat',   label: '#',              w: 'w-[64px]'  },
+  { key: 'seat',   label: '#',              w: 'w-[52px]'  },
   { key: 'holder', label: 'ผู้ถือครอง',      w: ''          },
-  { key: 'key',    label: 'Product Key',    w: 'w-[30%]'   },
-  { key: 'date',   label: 'เบิกเมื่อ',       w: 'w-[104px]' },
-  { key: 'exp',    label: 'หมดอายุ',         w: 'w-[104px]' },
-  { key: 'status', label: 'สถานะ',           w: 'w-[132px]' },
+  { key: 'key',    label: 'Product Key',    w: 'w-[22%]'   },
+  { key: 'date',   label: 'เบิกเมื่อ',       w: 'w-[96px]' },
+  { key: 'exp',    label: 'หมดอายุ',         w: 'w-[96px]' },
+  { key: 'status', label: 'สถานะ',           w: 'w-[118px]' },
 ];
 
 /** ข้อมูลที่แถวหนึ่งต้องใช้ — รวมตรรกะ 3 แบบ (ว่าง / คนถือ / ผูกเครื่อง) ไว้ที่เดียว */
 function readSeat(seat, index) {
   if (seat.type === 'available') {
     return {
-      n: seat.seatLabel || `#${index + 1}`,
+      n: `#${index + 1}`,
       holder: null,
-      holderHint: 'ยังไม่จ่ายสิทธิ์',
+      holderHint: seat.seatLabel || 'ยังไม่จ่ายสิทธิ์',
       icon: null,
       date: '',
       status: 'พร้อมใช้งาน',
@@ -33,18 +33,18 @@ function readSeat(seat, index) {
   const a = seat.assignee || {};
   if (a.isAssetBound) {
     return {
-      n: seat.seatLabel || `#${index + 1}`,
+      n: `#${index + 1}`,
       holder: a.assignedAssetName || 'ทรัพย์สิน',
-      holderHint: a.empName || 'ผูกกับเครื่อง',
+      holderHint: a.empName || seat.seatLabel || 'ผูกกับเครื่อง',
       icon: Monitor,
       date: a.checkoutDate || '',
       status: a.empId ? 'ถูกใช้งาน' : 'ติดตั้งบนเครื่อง',
     };
   }
   return {
-    n: seat.seatLabel || `#${index + 1}`,
+    n: `#${index + 1}`,
     holder: a.empName || '—',
-    holderHint: a.department || '',
+    holderHint: a.department || seat.seatLabel || '',
     icon: User,
     date: a.checkoutDate || '',
     status: 'ถูกใช้งาน',
@@ -124,15 +124,15 @@ export default function SeatTable({
                     />
                   </td>
 
-                  <td className="py-3 pr-4 text-[13px] tabular-nums text-stone-400">{r.n}</td>
+                  <td className="py-3 pr-4 text-[13px] tabular-nums text-stone-400 whitespace-nowrap">{r.n}</td>
 
                   <td className="py-3 pr-4">
                     {r.holder ? (
                       <div className="flex items-center gap-2 overflow-hidden">
                         {Icon && <Icon className="size-3.5 shrink-0 text-stone-400" strokeWidth={2} />}
                         <div className="min-w-0">
-                          <p className="truncate text-[13px] font-medium text-stone-800">{r.holder}</p>
-                          {r.holderHint && <p className="truncate text-[11px] text-stone-400">{r.holderHint}</p>}
+                          <p className="truncate text-[13px] font-medium text-stone-800" title={r.holder}>{r.holder}</p>
+                          {r.holderHint && <p className="truncate text-[11px] text-stone-400" title={r.holderHint}>{r.holderHint}</p>}
                         </div>
                       </div>
                     ) : (

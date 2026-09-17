@@ -89,10 +89,10 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           <Icon className={`h-5 w-5 ${c.icon}`} strokeWidth={1.8} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-stone-900 text-[15px] leading-tight tracking-tight">{category.label}</h3>
+          <h3 className="font-medium text-stone-900 text-[15px] leading-tight tracking-tight">{category.label}</h3>
           <p className="text-xs text-stone-500 mt-0.5">{category.description}</p>
         </div>
-        <span className="text-xs font-semibold text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full shrink-0">
+        <span className="text-xs font-medium text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full shrink-0">
           {values.length} รายการ
         </span>
       </div>
@@ -190,7 +190,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {savedAt && !dirty && (
-            <span className="text-[13px] text-olive-600 font-semibold flex items-center gap-1">
+            <span className="text-[13px] text-olive-600 font-medium flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
               บันทึกแล้ว
             </span>
@@ -198,7 +198,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
           <button
             onClick={handleSave}
             disabled={!dirty || saving}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
             style={dirty && !saving ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
             onMouseEnter={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primary)}
@@ -221,7 +221,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
       <div className="mb-6 bg-stone-50/60 border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-[13px] leading-relaxed flex items-start gap-2">
         <Info className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
         <div>
-          <span className="font-semibold">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด{' '}
+          <span className="font-medium">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด{' '}
           <kbd className="bg-white border border-stone-300 px-1.5 py-0.5 rounded font-mono text-xs">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
           — ตัวเลือกจะปรากฏใน Dropdown ของฟอร์มเพิ่ม/แก้ไขรายการ (ยังพิมพ์เองได้เสมอ)
         </div>

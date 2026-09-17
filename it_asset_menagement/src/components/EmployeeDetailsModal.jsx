@@ -180,7 +180,7 @@ export default function EmployeeDetailsModal({
             </div>
             <div className="min-w-0">
               <div className="flex items-baseline gap-2 flex-wrap">
-                <h3 className="text-base font-semibold text-stone-900 leading-tight">
+                <h3 className="text-base font-medium text-stone-900 leading-tight">
                   {selectedEmployee.fullName}
                 </h3>
                 {selectedEmployee.nickname && (
@@ -219,7 +219,7 @@ export default function EmployeeDetailsModal({
             >
               {tab.label}
               {tab.count !== undefined && (
-                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-lg ${
+                <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-lg ${
                   empModalTab === tab.id ? 'bg-clay-600/10 text-clay-600' : 'bg-stone-100 text-stone-400'
                 }`}>
                   {tab.count}
@@ -319,11 +319,11 @@ export default function EmployeeDetailsModal({
                             : <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 border ${catColor}`}>{icon}</div>
                           }
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-stone-800 truncate group-hover:text-clay-600 transition-colors">
+                            <p className="text-sm font-medium text-stone-800 truncate group-hover:text-clay-600 transition-colors">
                               {item.name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-lg border ${catColor}`}>
+                              <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-lg border ${catColor}`}>
                                 {catLabel}
                               </span>
                               {item.type && (
@@ -360,7 +360,7 @@ export default function EmployeeDetailsModal({
                                 handleCheckin(item.id, category, selectedEmployee.id);
                               }
                             }}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-olive-200 text-olive-700 bg-olive-50 hover:bg-olive-500 hover:text-white hover:border-olive-500 transition-colors flex items-center gap-1.5"
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-olive-200 text-olive-700 bg-olive-50 hover:bg-olive-500 hover:text-white hover:border-olive-500 transition-colors flex items-center gap-1.5"
                           >
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -491,7 +491,7 @@ export default function EmployeeDetailsModal({
                   className="w-full flex items-center justify-between gap-3 px-3 py-2.5 border border-stone-200 rounded-xl hover:border-olive-400 hover:bg-olive-50 transition text-left"
                 >
                   <div className="overflow-hidden">
-                    <p className="text-sm font-semibold text-stone-800 truncate">{asset.name || '-'}</p>
+                    <p className="text-sm font-medium text-stone-800 truncate">{asset.name || '-'}</p>
                     <p className="text-xs text-stone-500 truncate">
                       {asset.model || '-'} · {asset.sn || asset.assetTag || '-'}
                     </p>
@@ -552,7 +552,7 @@ function InfoItem({ label, value, accent, span2, mono }) {
   return (
     <div className={`px-4 py-2.5 ${span2 ? 'sm:col-span-2' : ''} border-b border-stone-100 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0`}>
       <span className="block text-[11px] text-stone-400 mb-0.5">{label}</span>
-      <span className={`block text-[13px] ${accent ? 'text-clay-600 font-semibold' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
+      <span className={`block text-[13px] ${accent ? 'text-clay-600 font-medium' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
         {value || <span className="text-stone-300">—</span>}
       </span>
     </div>
@@ -668,15 +668,15 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
       {/* Status badges */}
       <div className="flex flex-wrap items-center gap-2">
         {isUnset ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-[11px] font-medium">
             ยังไม่เคยตั้งรหัสผ่าน
           </span>
         ) : isDefault ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-clay-100 text-clay-600 border border-clay-200 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-clay-100 text-clay-600 border border-clay-200 text-[11px] font-medium">
             🔓 ใช้รหัสพนักงานเป็นรหัสผ่าน
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200 text-[11px] font-medium">
             🔐 ตั้งรหัสผ่านส่วนตัว
           </span>
         )}
@@ -687,7 +687,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
 
       {/* Password input */}
       <div>
-        <label className="block text-[11px] font-semibold text-stone-500 mb-1.5">
+        <label className="block text-[11px] font-medium text-stone-500 mb-1.5">
           รหัสผ่าน (Staff Portal)
         </label>
         <div className="relative">
@@ -735,7 +735,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleResetToEmpId}
           disabled={resetting || saving || !empId || (isDefault && !isDirty)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-clay-600 bg-white border border-stone-200 hover:bg-clay-100 hover:border-clay-300 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-clay-600 bg-white border border-stone-200 hover:bg-clay-100 hover:border-clay-300 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
         >
           <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -745,7 +745,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleSave}
           disabled={saving || resetting || !isDirty}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
@@ -781,7 +781,7 @@ function PasswordReveal({ label, value }) {
 
   return (
     <div className="flex flex-col px-4 py-3 border-b border-stone-100 last:border-b-0">
-      <span className="text-[11px] font-semibold text-stone-400 mb-0.5">{label}</span>
+      <span className="text-[11px] font-medium text-stone-400 mb-0.5">{label}</span>
       {!hasValue ? (
         <span className="text-sm text-stone-300">—</span>
       ) : (
@@ -819,7 +819,7 @@ function PasswordReveal({ label, value }) {
 
 function Th({ children, center }) {
   return (
-    <th className={`px-4 py-2.5 text-[11px] font-semibold text-stone-400 ${center ? 'text-center' : 'text-left'}`}>
+    <th className={`px-4 py-2.5 text-[11px] font-medium text-stone-400 ${center ? 'text-center' : 'text-left'}`}>
       {children}
     </th>
   );
@@ -897,7 +897,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     {/* 🆕 License category — แสดงชื่อ License แทนชื่อทรัพย์สินที่ผูก */}
-                    <span className="text-[13px] font-semibold text-stone-800 truncate">
+                    <span className="text-[13px] font-medium text-stone-800 truncate">
                       {(rec.category === 'licenses' || rec.category === 'license')
                         ? (rec.licenseName || rec.assetName)
                         : rec.assetName}

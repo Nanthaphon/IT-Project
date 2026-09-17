@@ -336,7 +336,7 @@ function ThankYouSlide({ company, month, year }) {
 
 /* ════════════════ EDIT PANEL PRIMITIVES ════════════════ */
 const fld = 'w-full bg-white border border-stone-200 rounded-lg px-2.5 py-1.5 text-[13px] text-stone-800 outline-none transition focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600';
-const lbl = 'block text-[11px] font-semibold text-stone-500 mb-1';
+const lbl = 'block text-[11px] font-medium text-stone-500 mb-1';
 
 function Fld({ label, children }) {
   return <div><label className={lbl}>{label}</label>{children}</div>;
@@ -378,7 +378,7 @@ function RowsEditor({ rows, setRows, columns, makeEmpty, addLabel, itemLabel }) 
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> {addLabel}
       </button>
     </div>
@@ -532,7 +532,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 shrink-0">
         <div className="flex items-center gap-3 text-white">
-          <span className="text-[15px] font-semibold">ตัวอย่าง PowerPoint</span>
+          <span className="text-[15px] font-medium">ตัวอย่าง PowerPoint</span>
           <span className="text-[13px] text-stone-300">สไลด์ {idx + 1} / {total} · {labels[idx]}</span>
         </div>
         <button onClick={onClose} className="text-stone-300 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-colors" aria-label="ปิด">
@@ -569,7 +569,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
             ปิด
           </button>
           <button onClick={() => onExport()} disabled={exporting}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${exporting ? 'bg-stone-500 text-stone-300 cursor-not-allowed' : 'bg-white text-clay-600 hover:bg-stone-100'}`}>
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors ${exporting ? 'bg-stone-500 text-stone-300 cursor-not-allowed' : 'bg-white text-clay-600 hover:bg-stone-100'}`}>
             {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้างไฟล์...</> : <><FileDown className="h-4 w-4" strokeWidth={2} /> Export .pptx</>}
           </button>
         </div>

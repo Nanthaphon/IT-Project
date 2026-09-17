@@ -125,7 +125,7 @@ export default function SatisfactionSurveyModal({
         {/* ── Repair info ── */}
         <div className="px-6 py-3 bg-stone-50/40 border-b border-stone-100/60 flex items-center gap-3 text-[13px]">
           <Wrench className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
-          <span className="font-semibold text-stone-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
+          <span className="font-medium text-stone-700 truncate">{repair.assetName || '(ไม่ระบุอุปกรณ์)'}</span>
           <span className="text-stone-300">·</span>
           <CalendarDays className="h-3.5 w-3.5 text-stone-400 shrink-0" strokeWidth={1.8} />
           <span className="text-stone-500 shrink-0">{dateStr}</span>
@@ -238,7 +238,7 @@ function RatingQuestion({ index, label, desc, value, hoverValue, onChange, onHov
           {index}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-stone-800 leading-snug">{label}</p>
+          <p className="text-sm font-medium text-stone-800 leading-snug">{label}</p>
           <p className="text-xs text-stone-400 mt-0.5 leading-snug">{desc}</p>
         </div>
       </div>

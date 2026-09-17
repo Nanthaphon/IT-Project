@@ -237,7 +237,7 @@ export default function FieldOptionSelect({
                   className={`
                     w-full px-3 py-2 text-sm text-left flex items-center justify-between gap-2 transition-colors
                     ${isHighlighted ? 'bg-stone-50/70' : ''}
-                    ${isSelected ? 'text-clay-600 font-semibold' : 'text-stone-700'}
+                    ${isSelected ? 'text-clay-600 font-medium' : 'text-stone-700'}
                   `}
                 >
                   <span className="truncate">{opt}</span>
@@ -260,7 +260,7 @@ export default function FieldOptionSelect({
                   <Plus className="h-3 w-3 text-olive-600" strokeWidth={2.5} />
                 </div>
                 <span className="truncate">
-                  สร้างใหม่: <span className="font-semibold">"{query.trim()}"</span>
+                  สร้างใหม่: <span className="font-medium">"{query.trim()}"</span>
                 </span>
               </button>
             )}

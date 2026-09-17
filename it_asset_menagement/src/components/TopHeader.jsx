@@ -96,7 +96,7 @@ function NotifItem({ label, count, kind, Icon, onClick }) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-stone-800 truncate">{label}</p>
       </div>
-      <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${kindCls.badge} shrink-0`}>
+      <span className={`text-xs font-medium px-2 py-0.5 rounded-lg border ${kindCls.badge} shrink-0`}>
         {count}
       </span>
       <ChevronRight className="h-3.5 w-3.5 text-stone-300 group-hover:text-stone-500 transition-colors shrink-0" />

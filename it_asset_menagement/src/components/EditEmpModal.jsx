@@ -145,7 +145,7 @@ export default function EditEmpModal({
           <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
             <div className="flex items-center gap-2 text-clay-600">
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
-              <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
+              <p className="text-[13px] font-medium tracking-wide">บัญชี Microsoft 365</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="อีเมล Microsoft 365">
@@ -160,7 +160,7 @@ export default function EditEmpModal({
           <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
             <div className="flex items-center gap-2 text-stone-700">
               <Link2 className="h-4 w-4" strokeWidth={2} />
-              <p className="text-[13px] font-semibold tracking-wide">ลิงก์ / เว็บไซต์</p>
+              <p className="text-[13px] font-medium tracking-wide">ลิงก์ / เว็บไซต์</p>
             </div>
             <p className="text-xs text-stone-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
             <EmpLinksEditor
@@ -203,7 +203,7 @@ function EmpLinksEditor({ links, setLinks }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-clay-600 hover:text-[#153a63] transition-colors">
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:text-[#153a63] transition-colors">
         <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
       </button>
     </div>

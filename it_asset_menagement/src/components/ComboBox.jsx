@@ -108,7 +108,7 @@ export default function ComboBox({
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 transition-colors ${
                     opt === value
-                      ? 'bg-clay-600/[.07] text-clay-600 font-semibold'
+                      ? 'bg-clay-600/[.07] text-clay-600 font-medium'
                       : 'text-stone-700 hover:bg-stone-50'
                   }`}
                 >

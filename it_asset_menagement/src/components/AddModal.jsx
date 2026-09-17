@@ -178,7 +178,7 @@ export default function AddModal({
             <section className="rounded-lg border border-stone-200 bg-stone-50/40 p-4 space-y-3">
               <div className="flex items-center gap-2 text-clay-600">
                 <ShieldCheck className="h-4 w-4" strokeWidth={2} />
-                <p className="text-[13px] font-semibold tracking-wide">บัญชี Microsoft 365</p>
+                <p className="text-[13px] font-medium tracking-wide">บัญชี Microsoft 365</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="อีเมล Microsoft 365">

@@ -147,7 +147,7 @@ export default function Sidebar({
                       onMouseLeave={() => setHoveredId(null)}
                       className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-colors group
                         ${active
-                          ? 'font-semibold text-white bg-white/15 border border-white/15'
+                          ? 'font-medium text-white bg-white/15 border border-white/15'
                           : hovered
                             ? 'font-medium text-white bg-white/8'
                             : 'font-medium text-stone-100/85 hover:text-white'

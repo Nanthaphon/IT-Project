@@ -167,9 +167,9 @@ export default function CheckoutModal({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[13px] font-semibold text-stone-700">{slot.label}</span>
+                          <span className="text-[13px] font-medium text-stone-700">{slot.label}</span>
                           {slot.cost && (
-                            <span className="text-xs font-semibold text-olive-700 bg-olive-50 border border-olive-200 px-2 py-0.5 rounded-lg tabular-nums">
+                            <span className="text-xs font-medium text-olive-700 bg-olive-50 border border-olive-200 px-2 py-0.5 rounded-lg tabular-nums">
                               ฿{Number(slot.cost).toLocaleString()}
                             </span>
                           )}
@@ -228,7 +228,7 @@ export default function CheckoutModal({
                           setIsDropdownOpen(false);
                         }}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-stone-100 text-clay-600 flex items-center justify-center font-semibold text-[15px] shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-stone-100 text-clay-600 flex items-center justify-center font-medium text-[15px] shrink-0">
                           {emp.fullName?.charAt(0) || '?'}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -284,7 +284,7 @@ export default function CheckoutModal({
           <button
             type="submit"
             disabled={!canSubmit}
-            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 ${
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 ${
               canSubmit
                 ? 'bg-clay-600 hover:bg-clay-700 text-white shadow-sm focus:ring-clay-600/30'
                 : 'bg-stone-200 text-stone-400 cursor-not-allowed'

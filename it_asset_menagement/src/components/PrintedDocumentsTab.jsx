@@ -149,7 +149,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-1 h-4 rounded-full bg-clay-600" />
-          <h4 className="text-[13px] font-semibold text-stone-600">เอกสารที่พิมพ์แล้ว ({docs.length})</h4>
+          <h4 className="text-[13px] font-medium text-stone-600">เอกสารที่พิมพ์แล้ว ({docs.length})</h4>
         </div>
         <button
           onClick={reload}
@@ -183,7 +183,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                     <span className={`text-[11px] font-medium ${typeCls} px-1.5 py-0.5 rounded-lg border`}>
                       {typeLabel}
                     </span>
-                    <span className="text-[13px] font-semibold text-stone-800 font-mono truncate">
+                    <span className="text-[13px] font-medium text-stone-800 font-mono truncate">
                       {d.docNumber || d.id}
                     </span>
                     {hasSigned && (
@@ -206,7 +206,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                   <button
                     onClick={() => handleReprint(d.id)}
                     disabled={reprinting === d.id}
-                    className="inline-flex items-center gap-1 text-xs font-semibold bg-clay-600 hover:bg-clay-700 text-white px-3 py-1.5 rounded-lg shadow-sm disabled:opacity-50"
+                    className="inline-flex items-center gap-1 text-xs font-medium bg-clay-600 hover:bg-clay-700 text-white px-3 py-1.5 rounded-lg shadow-sm disabled:opacity-50"
                     title="พิมพ์ซ้ำ"
                   >
                     {reprinting === d.id ? (
@@ -242,7 +242,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                     <button
                       onClick={() => handleDownloadSigned(d.id)}
                       disabled={downloadingFor === d.id}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-olive-700 hover:text-olive-900 hover:bg-olive-100 px-2 py-1 rounded-lg disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-olive-700 hover:text-olive-900 hover:bg-olive-100 px-2 py-1 rounded-lg disabled:opacity-50"
                       title="ดาวน์โหลดไฟล์เซ็น"
                     >
                       {downloadingFor === d.id ? (
@@ -255,7 +255,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                     <button
                       onClick={() => fileInputRefs.current[d.id]?.click()}
                       disabled={uploadingFor === d.id}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-clay-600 hover:text-white hover:bg-clay-600 px-2 py-1 rounded-lg disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 hover:text-white hover:bg-clay-600 px-2 py-1 rounded-lg disabled:opacity-50"
                       title="อัปโหลดใหม่ทับ"
                     >
                       <Upload className="h-3 w-3" strokeWidth={2.2} />
@@ -273,7 +273,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                   <button
                     onClick={() => fileInputRefs.current[d.id]?.click()}
                     disabled={uploadingFor === d.id}
-                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-clay-600 bg-white border border-dashed border-clay-600/40 hover:border-clay-600 hover:bg-stone-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-medium text-clay-600 bg-white border border-dashed border-clay-600/40 hover:border-clay-600 hover:bg-stone-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {uploadingFor === d.id ? (
                       <>

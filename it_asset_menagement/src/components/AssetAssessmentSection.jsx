@@ -97,8 +97,8 @@ export default function AssetAssessmentSection({
               <div key={sec.title} className="border border-stone-200 rounded-xl overflow-hidden bg-white">
                 <div className="flex items-center justify-between gap-2 bg-stone-50 px-3 py-2 border-b border-stone-200">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-[13px] font-semibold text-clay-600 truncate">{sec.title}</span>
-                    <span className="text-[11px] font-semibold text-stone-500 bg-white px-1.5 py-0.5 rounded-lg border border-stone-200 shrink-0">
+                    <span className="text-[13px] font-medium text-clay-600 truncate">{sec.title}</span>
+                    <span className="text-[11px] font-medium text-stone-500 bg-white px-1.5 py-0.5 rounded-lg border border-stone-200 shrink-0">
                       {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)}/{sec.max}
                     </span>
                   </div>
@@ -115,7 +115,7 @@ export default function AssetAssessmentSection({
                       <div key={no} className="flex items-center gap-2 px-3 py-2 hover:bg-stone-50/60">
                         <span className="text-[11px] font-mono text-stone-400 shrink-0 w-7">{no}</span>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-stone-700 truncate">{name}</div>
+                          <div className="text-xs font-medium text-stone-700 truncate">{name}</div>
                           <div className="text-[10px] text-stone-500 truncate">{criteria}</div>
                         </div>
                         <div className="flex gap-1 shrink-0">
@@ -126,7 +126,7 @@ export default function AssetAssessmentSection({
                                 key={opt.value}
                                 type="button"
                                 onClick={() => setItemStatus(no, opt.value, si)}
-                                className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
+                                className={`text-[11px] font-medium px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
                                   selected
                                     ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
                                     : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
@@ -196,7 +196,7 @@ function QuickFillBtn({ onClick, color, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
+      className={`text-[10px] font-medium px-1.5 py-0.5 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
     >
       {children}
     </button>
@@ -226,7 +226,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
   return (
     <div className="rounded-lg border border-stone-200 bg-white overflow-hidden">
       <div className="px-2 py-1.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-stone-700 truncate">{label}</span>
+        <span className="text-[11px] font-medium text-stone-700 truncate">{label}</span>
         {src && (
           <button
             type="button"

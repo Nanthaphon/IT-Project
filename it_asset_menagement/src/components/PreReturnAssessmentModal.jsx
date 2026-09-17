@@ -170,7 +170,7 @@ export default function PreReturnAssessmentModal({
             <div className="min-w-0">
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
               <p className="text-[13px] text-stone-500 mt-0.5 truncate">
-                ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-semibold text-stone-700">{employee?.fullName}</span>
+                ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-medium text-stone-700">{employee?.fullName}</span>
               </p>
             </div>
           </div>
@@ -241,10 +241,10 @@ export default function PreReturnAssessmentModal({
               className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-stone-50 transition text-left"
             >
               <div>
-                <p className="text-[13px] font-semibold text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
+                <p className="text-[13px] font-medium text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
                 <p className="text-[11px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
               </div>
-              <span className="text-xs font-semibold text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
+              <span className="text-xs font-medium text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
             </button>
             {showHandover && (
               <div className="px-4 pb-4 border-t border-stone-100">
@@ -440,7 +440,7 @@ function QuickFillBtn({ onClick, color, children }) {
   }[color];
   return (
     <button type="button" onClick={onClick}
-      className={`text-[11px] font-semibold px-2 py-1 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
+      className={`text-[11px] font-medium px-2 py-1 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
     >
       {children}
     </button>
@@ -458,7 +458,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
             <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm font-medium text-clay-600 truncate">{sec.title}</span>
-                <span className="text-xs font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
+                <span className="text-xs font-medium text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                   {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                 </span>
               </div>
@@ -475,7 +475,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                   <div key={no} className="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-50/60">
                     <span className="text-xs font-mono text-stone-400 shrink-0 w-8">{no}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-semibold text-stone-700 truncate">{name}</div>
+                      <div className="text-[13px] font-medium text-stone-700 truncate">{name}</div>
                       <div className="text-[11px] text-stone-500 truncate">{criteria}</div>
                     </div>
                     <div className="flex gap-1 shrink-0">
@@ -486,7 +486,7 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
                             key={opt.value}
                             type="button"
                             onClick={() => setItemStatus(no, opt.value, si)}
-                            className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
+                            className={`text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
                               selected
                                 ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
                                 : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
@@ -538,7 +538,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
       <div className="px-3 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-stone-700 truncate">{label}</span>
+        <span className="text-xs font-medium text-stone-700 truncate">{label}</span>
         {src && (
           <button type="button" onClick={onRemove}
             className="text-rose-500 hover:text-rose-600 p-1 rounded transition" title="ลบรูป">

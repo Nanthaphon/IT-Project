@@ -1235,7 +1235,7 @@ export default function AssetDetailsModal({
 
         <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] max-w-md w-full overflow-hidden flex flex-col border border-stone-200/60 print:border-none print:shadow-none print:bg-transparent">
           <div className="bg-stone-50 border-b border-stone-200 px-5 py-4 flex justify-between items-center print:hidden">
-            <h3 className="font-semibold text-stone-800">ตัวอย่างป้าย (Label Preview)</h3>
+            <h3 className="font-medium text-stone-800">ตัวอย่างป้าย (Label Preview)</h3>
             <button onClick={() => setShowLabelPreview(false)} className="text-stone-400 hover:text-stone-600 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -1324,7 +1324,7 @@ export default function AssetDetailsModal({
             <h2 className="text-[16px] font-medium text-clay-600 leading-[1.5] truncate mb-1">{currentAssetDetail.name}</h2>
             <div className="flex flex-wrap items-center gap-2">
               {currentAssetDetail.type && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-50 text-stone-600 border border-stone-200">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-stone-50 text-stone-600 border border-stone-200">
                   {currentAssetDetail.type}
                 </span>
               )}
@@ -1417,7 +1417,7 @@ export default function AssetDetailsModal({
                     </div>
                     <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-lg border border-stone-200">
                       <span className="w-1.5 h-1.5 rounded-full bg-olive-500 shrink-0" />
-                      <span className="text-xs font-semibold text-stone-600 whitespace-nowrap">กำลังถูกใช้งาน</span>
+                      <span className="text-xs font-medium text-stone-600 whitespace-nowrap">กำลังถูกใช้งาน</span>
                     </div>
                   </div>
                 </div>
@@ -1460,7 +1460,7 @@ export default function AssetDetailsModal({
               <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
                 <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
-                  <h4 className="text-[13px] font-semibold text-stone-600">ข้อมูลจำเพาะ</h4>
+                  <h4 className="text-[13px] font-medium text-stone-600">ข้อมูลจำเพาะ</h4>
                 </div>
                 <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
                   {selectedAssetCategory === 'licenses' ? (
@@ -1559,12 +1559,12 @@ export default function AssetDetailsModal({
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 rounded-full bg-clay-600" />
-                        <h4 className="text-[13px] font-semibold text-stone-600">
+                        <h4 className="text-[13px] font-medium text-stone-600">
                           รูปภาพประกอบ PDF
                           {gallery.length > 0 && <span className="ml-1.5 text-xs font-normal text-stone-400">({gallery.length} รูป)</span>}
                         </h4>
                       </div>
-                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? "border-stone-200 bg-stone-50 text-stone-400" : "border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200"}`}>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? "border-stone-200 bg-stone-50 text-stone-400" : "border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200"}`}>
                         {isSavingItem ? (
                           <><div className="w-3 h-3 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                         ) : (
@@ -1581,7 +1581,7 @@ export default function AssetDetailsModal({
                         <svg className="w-8 h-8 mx-auto mb-2 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
-                        <p className="text-[13px] font-semibold text-stone-500">ยังไม่มีรูปในคลัง</p>
+                        <p className="text-[13px] font-medium text-stone-500">ยังไม่มีรูปในคลัง</p>
                         <p className="text-[11px] text-stone-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
                       </div>
                     ) : (
@@ -1590,7 +1590,7 @@ export default function AssetDetailsModal({
                           <div key={idx} className="relative group rounded-lg overflow-hidden border border-stone-200 aspect-square bg-stone-50">
                             <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                              <a href={src} target="_blank" rel="noreferrer" className="bg-white/90 text-stone-800 text-[11px] font-semibold px-2 py-1 rounded-lg hover:bg-white shadow-sm">ดู</a>
+                              <a href={src} target="_blank" rel="noreferrer" className="bg-white/90 text-stone-800 text-[11px] font-medium px-2 py-1 rounded-lg hover:bg-white shadow-sm">ดู</a>
                             </div>
                             <button
                               onClick={() => handleRemovePhotoGallery(idx)}
@@ -1614,7 +1614,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13px] font-semibold text-stone-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
+                      <h4 className="text-[13px] font-medium text-stone-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {licenseSeats.length > 0 && (
@@ -1624,14 +1624,14 @@ export default function AssetDetailsModal({
                         </label>
                       )}
                       {selectedLicenseSeatsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-semibold text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
+                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
                           ลบ ({selectedLicenseSeatsForDelete.length})
                         </button>
                       )}
-                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-semibold text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-lg transition-colors">
                         นำเข้า CSV
                       </button>
-                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors">
                         + เพิ่มสิทธิ์
                       </button>
                     </div>
@@ -1672,11 +1672,11 @@ export default function AssetDetailsModal({
                     <div className="bg-stone-50 p-4 rounded-lg border border-stone-200 mb-4 animate-in fade-in">
                       <div className="flex flex-col sm:flex-row gap-4 mb-3">
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
-                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-semibold rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors">ดาวน์โหลด .csv</button>
+                          <p className="text-xs font-medium text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
+                          <button onClick={handleDownloadLicenseSeatTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors">ดาวน์โหลด .csv</button>
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
+                          <p className="text-xs font-medium text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
                           <input type="file" accept=".csv" onChange={handleUploadLicenseSeatCSV} className="block w-full text-xs text-stone-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-stone-200 file:text-stone-700 cursor-pointer" />
                         </div>
                       </div>
@@ -1736,8 +1736,8 @@ export default function AssetDetailsModal({
                         </Field>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold text-stone-500">ไฟล์แนบ</span>
-                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                            <span className="text-xs font-medium text-stone-500">ไฟล์แนบ</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                               <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                               <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleNewSeatDocUpload} disabled={isSavingItem} className="hidden" />
                             </label>
@@ -1768,7 +1768,7 @@ export default function AssetDetailsModal({
                     {visibleLicenseSeats.length === 0 && seatSearchQ && (
                       <div className="py-10 text-center text-stone-400">
                         <p className="text-[13px] font-medium">ไม่พบรายการย่อยที่ตรงกับ “{seatSearch}”</p>
-                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-xs font-semibold text-clay-600 hover:underline">ล้างคำค้นหา</button>
+                        <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-xs font-medium text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
                     {visibleLicenseSeats.map((seat, index) => (
@@ -1781,7 +1781,7 @@ export default function AssetDetailsModal({
                               <div className="flex items-center gap-2 overflow-hidden">
                                 {/* 🆕 ชื่อรายการย่อย — default เป็นชื่อ license หลัก */}
                                 <div className="overflow-hidden">
-                                  <p className="text-xs font-semibold text-stone-800 truncate">
+                                  <p className="text-xs font-medium text-stone-800 truncate">
                                     {seat.seatLabel || currentAssetDetail.name || 'รายการย่อย'}
                                   </p>
                                   <p className="text-[11px] text-stone-400 truncate">สิทธิ์ว่าง</p>
@@ -1798,13 +1798,13 @@ export default function AssetDetailsModal({
                                     </p>
                                   )}
                                 </div>
-                                <span className="text-[11px] bg-olive-50 text-olive-700 border border-olive-200 px-2 py-0.5 rounded-lg font-semibold shrink-0">พร้อมใช้งาน</span>
+                                <span className="text-[11px] bg-olive-50 text-olive-700 border border-olive-200 px-2 py-0.5 rounded-lg font-medium shrink-0">พร้อมใช้งาน</span>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}
                                 {(() => {
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
                                   return ex.isExpiring ? (
                                     <span
-                                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
+                                      className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
                                       title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
@@ -1819,7 +1819,7 @@ export default function AssetDetailsModal({
                                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
                                 </div>
                                 <div className="overflow-hidden">
-                                  <p className="text-xs font-semibold text-stone-800 truncate">{seat.assignee.assignedAssetName || 'ทรัพย์สิน'}</p>
+                                  <p className="text-xs font-medium text-stone-800 truncate">{seat.assignee.assignedAssetName || 'ทรัพย์สิน'}</p>
                                   {seat.assignee.empId ? (
                                     <p className="text-[11px] text-stone-500 font-medium truncate flex items-center gap-1">
                                       <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -1846,7 +1846,7 @@ export default function AssetDetailsModal({
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
                                   return ex.isExpiring ? (
                                     <span
-                                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
+                                      className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
                                       title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
@@ -1860,7 +1860,7 @@ export default function AssetDetailsModal({
                                   {seat.assignee.empName?.charAt(0) || '?'}
                                 </div>
                                 <div className="overflow-hidden">
-                                  <p className="text-xs font-semibold text-stone-800 truncate">{seat.assignee.empName}</p>
+                                  <p className="text-xs font-medium text-stone-800 truncate">{seat.assignee.empName}</p>
                                   {/* 🆕 ชื่อรายการย่อย (label) หรือ checkoutDate */}
                                   {seat.seatLabel ? (
                                     <p className="text-[11px] text-stone-500 truncate font-medium">{seat.seatLabel}</p>
@@ -1885,7 +1885,7 @@ export default function AssetDetailsModal({
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
                                   return ex.isExpiring ? (
                                     <span
-                                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
+                                      className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
                                       title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
                                     >
                                       ⚠ {ex.statusText}
@@ -1898,12 +1898,12 @@ export default function AssetDetailsModal({
                           <div className="flex items-center gap-2 shrink-0">
                             {seat.type === 'available' ? null : seat.assignee.isAssetBound ? (
                               seat.assignee.empId ? (
-                                <span className="text-[10px] font-semibold bg-stone-50 text-stone-600 border border-stone-200 px-2 py-1 rounded-lg whitespace-nowrap">กำลังใช้งาน</span>
+                                <span className="text-[10px] font-medium bg-stone-50 text-stone-600 border border-stone-200 px-2 py-1 rounded-lg whitespace-nowrap">กำลังใช้งาน</span>
                               ) : (
-                                <span className="text-[10px] font-semibold bg-clay-100 text-clay-600 border border-clay-200 px-2 py-1 rounded-lg">ติดตั้งบนเครื่อง</span>
+                                <span className="text-[10px] font-medium bg-clay-100 text-clay-600 border border-clay-200 px-2 py-1 rounded-lg">ติดตั้งบนเครื่อง</span>
                               )
                             ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-semibold bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
+                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
                             )}
                             <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
@@ -1927,7 +1927,7 @@ export default function AssetDetailsModal({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13px] font-semibold text-stone-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
+                      <h4 className="text-[13px] font-medium text-stone-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {individualItems.length > 0 && (
@@ -1937,14 +1937,14 @@ export default function AssetDetailsModal({
                         </label>
                       )}
                       {selectedItemsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-semibold text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
+                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
                           ลบ ({selectedItemsForDelete.length})
                         </button>
                       )}
-                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-semibold text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-lg transition-colors">
                         นำเข้า CSV
                       </button>
-                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors">
+                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors">
                         + เพิ่มชิ้นใหม่
                       </button>
                     </div>
@@ -1980,13 +1980,13 @@ export default function AssetDetailsModal({
                     <div className="bg-stone-50 p-4 rounded-lg border border-stone-200 mb-4 animate-in fade-in">
                       <div className="flex flex-col sm:flex-row gap-4 mb-3">
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
-                          <button onClick={handleDownloadPieceTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-semibold rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors">
+                          <p className="text-xs font-medium text-stone-700 mb-2">1. ดาวน์โหลด Template</p>
+                          <button onClick={handleDownloadPieceTemplate} className="w-full py-1.5 bg-white border border-stone-200 text-stone-600 text-xs font-medium rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors">
                             ดาวน์โหลด .csv
                           </button>
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
+                          <p className="text-xs font-medium text-stone-700 mb-2">2. อัปโหลดข้อมูล</p>
                           <input type="file" accept=".csv" onChange={handleUploadPieceCSV} className="block w-full text-xs text-stone-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-stone-200 file:text-stone-700 cursor-pointer" />
                         </div>
                       </div>
@@ -2025,8 +2025,8 @@ export default function AssetDetailsModal({
                         <SectionHeader>ไฟล์แนบ</SectionHeader>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
-                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                            <span className="text-xs font-medium text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                            <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                               <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                               <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'new')} disabled={isSavingItem} className="hidden" />
                             </label>
@@ -2057,7 +2057,7 @@ export default function AssetDetailsModal({
                     {visibleIndividualItems.length === 0 && accSearchQ && (
                       <div className="py-10 text-center text-stone-400">
                         <p className="text-[13px] font-medium">ไม่พบชิ้นย่อยที่ตรงกับ “{accItemSearch}”</p>
-                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-xs font-semibold text-clay-600 hover:underline">ล้างคำค้นหา</button>
+                        <button type="button" onClick={() => setAccItemSearch('')} className="mt-1.5 text-xs font-medium text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
                     {visibleIndividualItems.map((item) => (
@@ -2068,12 +2068,12 @@ export default function AssetDetailsModal({
                             <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-olive-500' : item.type === 'assigned' ? 'bg-stone-500' : 'bg-brick-500'}`}></span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-xs font-semibold text-stone-800 truncate">
+                                <span className="text-xs font-medium text-stone-800 truncate">
                                   {item.type === 'assigned'
                                     ? `${currentAssetDetail.name} — ${item.assignee.empName}`
                                     : currentAssetDetail.name}
                                 </span>
-                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-lg border shrink-0 ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
+                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-lg border shrink-0 ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
                               </div>
                               {(item.sn || item.model) && (
                                 <p className="text-[10px] text-stone-400 truncate mt-0.5 flex items-center gap-2">
@@ -2087,9 +2087,9 @@ export default function AssetDetailsModal({
                           <div className="flex items-center gap-2 shrink-0">
                             {item.type === 'available' ? null
                               : item.type === 'assigned' ? (
-                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-semibold bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
+                                <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: item.assignee.checkoutId, empId: item.assignee.empId, empName: item.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'accessories' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-lg transition-colors">รับคืน</button>
                               ) : (
-                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-semibold bg-white border border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50 px-2.5 py-1 rounded-lg transition-colors">เข้าคลัง</button>
+                                <button onClick={(e) => { e.stopPropagation(); setRepairModal({ isOpen: true, assetId: currentAssetDetail.id, assetName: `${currentAssetDetail.name} (SN: ${item.sn || '-'})`, maxRepair: 1, brokenIndex: item.originalIndex, brokenSN: item.sn, brokenModel: item.model, brokenCost: item.itemCost, brokenPurchaseDate: item.purchaseDate, brokenWarrantyDate: item.warrantyDate }); setRepairQuantity(1); setRepairRemarks(''); }} className="text-[11px] font-medium bg-white border border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50 px-2.5 py-1 rounded-lg transition-colors">เข้าคลัง</button>
                               )}
                             <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                           </div>
@@ -2130,7 +2130,7 @@ export default function AssetDetailsModal({
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13px] font-semibold text-stone-600">ประวัติการจัดซื้อ ({purchaseHistory.length} ครั้ง)</h4>
+                      <h4 className="text-[13px] font-medium text-stone-600">ประวัติการจัดซื้อ ({purchaseHistory.length} ครั้ง)</h4>
                     </div>
                     <button
                       onClick={() => {
@@ -2138,7 +2138,7 @@ export default function AssetDetailsModal({
                         setPendingPurchaseDocs([]);
                         setHistoryForm({ purchaseDate: '', cost: '', vendor: '', model: currentAssetDetail.model || '', note: '', documents: [] });
                       }}
-                      className="inline-flex items-center gap-1.5 text-[13px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
+                      className="inline-flex items-center gap-1.5 text-[13px] font-medium bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                       เพิ่มประวัติจัดซื้อ
@@ -2283,7 +2283,7 @@ export default function AssetDetailsModal({
                         </div>
                       )}
 
-                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-semibold py-2 px-3.5 rounded-lg border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
+                      <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-medium py-2 px-3.5 rounded-lg border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
                         {isSavingItem ? 'กำลังอัปโหลด...' : (
                           <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>แนบไฟล์</>
                         )}
@@ -2292,8 +2292,8 @@ export default function AssetDetailsModal({
                     </div>
 
                     <div className="flex gap-3 pt-4 border-t border-stone-100">
-                      <button type="button" onClick={() => { setIsAddingHistory(false); setEditingHistoryId(null); setPendingPurchaseDocs([]); }} className="flex-1 py-2.5 bg-stone-100 text-stone-700 rounded-xl hover:bg-stone-200 text-sm font-semibold transition-colors">ยกเลิก</button>
-                      <button type="submit" disabled={isSavingItem} className="flex-1 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-semibold transition-colors shadow-sm disabled:opacity-50">บันทึกประวัติ</button>
+                      <button type="button" onClick={() => { setIsAddingHistory(false); setEditingHistoryId(null); setPendingPurchaseDocs([]); }} className="flex-1 py-2.5 bg-stone-100 text-stone-700 rounded-xl hover:bg-stone-200 text-sm font-medium transition-colors">ยกเลิก</button>
+                      <button type="submit" disabled={isSavingItem} className="flex-1 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors shadow-sm disabled:opacity-50">บันทึกประวัติ</button>
                     </div>
                   </form>
                 </div>
@@ -2318,7 +2318,7 @@ export default function AssetDetailsModal({
               <div className="bg-white p-4 rounded-xl border border-stone-200/70 shadow-[0_1px_2px_rgba(74,43,41,0.04)]">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
-                  <h4 className="text-[13px] font-semibold text-stone-600">จัดการเอกสารแนบ</h4>
+                  <h4 className="text-[13px] font-medium text-stone-600">จัดการเอกสารแนบ</h4>
                 </div>
                 
                 <div className="flex flex-col gap-4">
@@ -2368,7 +2368,7 @@ export default function AssetDetailsModal({
                   })()}
 
                   <div className="mt-3 flex justify-center">
-                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-semibold py-2.5 px-5 rounded-xl border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
+                    <label className={`cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-medium py-2.5 px-5 rounded-xl border transition-colors ${isSavingItem ? 'border-stone-200 bg-stone-50 text-stone-400' : 'border-stone-200 bg-white text-clay-600 hover:bg-stone-50 hover:border-stone-200'}`}>
                       {isSavingItem ? (
                         <><div className="w-3.5 h-3.5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin"></div>กำลังอัปโหลด...</>
                       ) : (
@@ -2664,8 +2664,8 @@ export function SeatDetailModal({
                 </Field>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-stone-500">ไฟล์แนบ</span>
-                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                    <span className="text-xs font-medium text-stone-500">ไฟล์แนบ</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                       <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={handleLicenseSeatDocUpload} disabled={isSavingItem} className="hidden" />
                     </label>
@@ -2898,8 +2898,8 @@ export function AccessoryItemDetailModal({
                 <SectionHeader>ไฟล์แนบ</SectionHeader>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
-                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
+                    <span className="text-xs font-medium text-stone-500">ใบเสร็จ / รูป / ใบรับประกัน</span>
+                    <label className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium py-1.5 px-3 rounded-lg border transition-colors ${isSavingItem ? 'bg-stone-100 text-stone-400 border-stone-200' : 'bg-white text-clay-600 border-stone-200 hover:bg-stone-50'}`}>
                       <Paperclip className="h-3.5 w-3.5" strokeWidth={2} /> แนบไฟล์
                       <input type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => handleAccItemDocUpload(e, 'edit')} disabled={isSavingItem} className="hidden" />
                     </label>

@@ -162,7 +162,7 @@ export default function ConditionCapture({
       <div className="flex items-center justify-between gap-2 pb-2 border-b border-stone-200">
         <div className="flex items-center gap-2">
           <Camera className="h-4 w-4 text-clay-600" strokeWidth={2} />
-          <p className="text-sm font-semibold text-stone-700">
+          <p className="text-sm font-medium text-stone-700">
             {isCheckout ? 'ตรวจสภาพอุปกรณ์ตอนส่งมอบ' : 'ตรวจสภาพอุปกรณ์ตอนรับคืน'}
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function ConditionCapture({
           <span className="inline-flex items-center justify-center align-middle mx-1 w-5 h-5 rounded-lg bg-white border border-stone-300 text-stone-600">
             <ImagePlus className="h-3 w-3" strokeWidth={2.2} />
           </span>
-          ที่ท้ายแถวเพื่อแนบรูป <span className="font-semibold">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
+          ที่ท้ายแถวเพื่อแนบรูป <span className="font-medium">หรือลากไฟล์รูปมาวางในแถวนั้นได้เลย</span> (สูงสุด {MAX_PHOTOS_PER_FIELD} รูป/จุด)
         </p>
       </div>
 
@@ -335,7 +335,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
       )}
       {/* Single row: label + status pills + photo button */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[13px] font-semibold text-stone-700 flex-1 min-w-[120px] truncate">
+        <span className="text-[13px] font-medium text-stone-700 flex-1 min-w-[120px] truncate">
           {field.label}
         </span>
 
@@ -349,7 +349,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                 key={value}
                 type="button"
                 onClick={() => onStatusChange(value)}
-                className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
+                className={`text-[11px] font-medium px-2 py-0.5 rounded-lg border transition-colors whitespace-nowrap ${
                   selected
                     ? STATUS_COLOR_CLS[color] + ' border shadow-sm'
                     : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'

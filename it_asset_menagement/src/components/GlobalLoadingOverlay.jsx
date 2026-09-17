@@ -29,7 +29,7 @@ export default function GlobalLoadingOverlay({ show, message }) {
             borderTopColor: '#A65F3C',
           }}
         />
-        <p className="text-sm font-semibold text-stone-700 tracking-tight">
+        <p className="text-sm font-medium text-stone-700 tracking-tight">
           {message || 'กำลังประมวลผล...'}
         </p>
       </div>

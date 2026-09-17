@@ -8,7 +8,7 @@ import { formatDateTimeShort, formatDateShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
-const LABEL = 'text-[11px] font-semibold text-stone-400';
+const LABEL = 'text-[11px] font-medium text-stone-400';
 const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 
 /* ─── Status config ─────────────────────────────────────── */
@@ -324,7 +324,7 @@ export default function SupplyRequestTable({
             >
               <div className="flex items-center gap-2.5">
                 <BarChart3 className="h-4 w-4 text-clay-600" strokeWidth={2} />
-                <span className="text-[13px] font-semibold text-stone-700">Dashboard วิเคราะห์คำขอ</span>
+                <span className="text-[13px] font-medium text-stone-700">Dashboard วิเคราะห์คำขอ</span>
                 <span className="text-[11px] text-stone-400 hidden sm:inline">
                   อนุมัติแล้ว {insights.approvedCount} รายการ · {insights.totalApprovedQty.toLocaleString()} ชิ้น
                 </span>
@@ -337,7 +337,7 @@ export default function SupplyRequestTable({
             <button
               onClick={handleExportCSV}
               disabled={currentSupplyRequests.length === 0}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-clay-600 hover:bg-clay-700 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white rounded-lg text-[13px] font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-clay-600 hover:bg-clay-700 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white rounded-lg text-[13px] font-medium transition-colors"
               title="ส่งออกรายงาน CSV สำหรับเสนอผู้บริหาร"
             >
               <Download className="h-4 w-4" strokeWidth={2.2} />
@@ -399,7 +399,7 @@ export default function SupplyRequestTable({
                         return (
                           <div key={item.supplyId || item.name} className="flex items-center gap-2 min-w-0">
                             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                            <span className="text-xs font-semibold text-stone-700 truncate flex-1">{item.name}</span>
+                            <span className="text-xs font-medium text-stone-700 truncate flex-1">{item.name}</span>
                             <span className="text-[11px] font-medium tabular-nums shrink-0" style={{ color }}>{pct.toFixed(0)}%</span>
                           </div>
                         );
@@ -439,7 +439,7 @@ export default function SupplyRequestTable({
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-semibold text-stone-700 truncate">{item.name}</p>
+                              <p className="text-[13px] font-medium text-stone-700 truncate">{item.name}</p>
                               <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden mt-1">
                                 <div className="h-full bg-clay-600 rounded-full" style={{ width: `${pct}%` }} />
                               </div>
@@ -483,7 +483,7 @@ export default function SupplyRequestTable({
                               {(emp.name || '?').charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-semibold text-stone-700 truncate">{emp.name}</p>
+                              <p className="text-[13px] font-medium text-stone-700 truncate">{emp.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 {emp.dept && (
                                   <span className="text-[10px] text-stone-400 truncate">{emp.dept}</span>
@@ -542,7 +542,7 @@ export default function SupplyRequestTable({
           /* empty state */
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
-            <p className="font-semibold text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
+            <p className="font-medium text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
             <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
@@ -585,7 +585,7 @@ export default function SupplyRequestTable({
                         )}
                         <button
                           onClick={() => setCurrentPage(p)}
-                          className={`min-w-[32px] px-2 py-1.5 text-xs font-semibold rounded-lg transition ${
+                          className={`min-w-[32px] px-2 py-1.5 text-xs font-medium rounded-lg transition ${
                             p === currentPage
                               ? 'bg-clay-600 text-white'
                               : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
@@ -642,15 +642,15 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
       {/* main info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[13px] font-semibold text-stone-800 truncate">{req.empName}</span>
+          <span className="text-[13px] font-medium text-stone-800 truncate">{req.empName}</span>
           <span className="text-[11px] text-stone-400">·</span>
           <span className="text-[11px] text-stone-500 truncate">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
         </div>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-xs text-stone-700 truncate">{req.supplyName}</span>
-          <span className="text-[11px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
+          <span className="text-[11px] font-medium text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
           {(req.supplyCompany || supply?.company) && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
               <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2.4} />
               {req.supplyCompany || supply?.company}
             </span>
@@ -677,14 +677,14 @@ function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) 
           <>
             <button
               onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
               <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">อนุมัติ</span>
             </button>
             <button
               onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-white border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 bg-white border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.4} />
               <span className="hidden sm:inline">ปฏิเสธ</span>

@@ -3158,7 +3158,7 @@ function App() {
               if (!routeAsset) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/assets')} className="text-[13px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
+                    <button onClick={() => navigate('/assets')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าทรัพย์สิน</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบทรัพย์สินนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
@@ -3206,7 +3206,7 @@ function App() {
               if (!routeLicense) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/licenses')} className="text-[13px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
+                    <button onClick={() => navigate('/licenses')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าโปรแกรม / License</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบโปรแกรมนี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
@@ -3254,7 +3254,7 @@ function App() {
               if (!routeAccessory) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/accessories')} className="text-[13px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
+                    <button onClick={() => navigate('/accessories')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าอุปกรณ์เสริม</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบอุปกรณ์นี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );
@@ -3302,7 +3302,7 @@ function App() {
               if (!routeFurniture) {
                 return (
                   <div className="p-5">
-                    <button onClick={() => navigate('/furniture')} className="text-[13px] font-semibold text-clay-600 hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
+                    <button onClick={() => navigate('/furniture')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าครุภัณฑ์สำนักงาน</button>
                     <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบครุภัณฑ์นี้ (อาจถูกลบไปแล้ว)</div>
                   </div>
                 );

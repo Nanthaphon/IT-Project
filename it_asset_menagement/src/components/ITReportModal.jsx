@@ -73,7 +73,7 @@ function BigIssuesEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่ม Issue
       </button>
     </div>
@@ -129,7 +129,7 @@ function RDEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มโปรเจค
       </button>
     </div>
@@ -179,7 +179,7 @@ function FollowupEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มวาระ
       </button>
     </div>
@@ -222,7 +222,7 @@ function StatInput({ label, value, onChange, color = '#A65F3C' }) {
         className="w-full bg-transparent text-center text-2xl font-medium tabular-nums outline-none"
         style={{ color }}
       />
-      <div className="text-[11px] font-semibold text-stone-500 mt-0.5">{label}</div>
+      <div className="text-[11px] font-medium text-stone-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -231,7 +231,7 @@ function StatInput({ label, value, onChange, color = '#A65F3C' }) {
 function RefreshBtn({ onClick }) {
   return (
     <button type="button" onClick={onClick}
-      className="flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-clay-600 transition-colors shrink-0">
+      className="flex items-center gap-1 text-xs font-medium text-stone-400 hover:text-clay-600 transition-colors shrink-0">
       <RotateCcw className="h-3.5 w-3.5" /> ดึงจากระบบ
     </button>
   );
@@ -267,7 +267,7 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-semibold text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> {addLabel}
       </button>
     </div>
@@ -277,7 +277,7 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
 /* ── Count badge ── */
 function CountBadge({ n }) {
   return (
-    <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${n > 0 ? 'bg-clay-600/8 text-clay-600' : 'bg-stone-100 text-stone-400'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-lg ${n > 0 ? 'bg-clay-600/8 text-clay-600' : 'bg-stone-100 text-stone-400'}`}>
       {n} รายการ
     </span>
   );
@@ -292,7 +292,7 @@ function PanelCard({ icon: Icon, tint = '#EFF6FF', color = '#A65F3C', title, des
           <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold text-stone-800 leading-tight">{title}</h3>
+          <h3 className="text-[15px] font-medium text-stone-800 leading-tight">{title}</h3>
           {desc && <p className="text-xs text-stone-400 mt-0.5 truncate">{desc}</p>}
         </div>
         {right}
@@ -453,20 +453,20 @@ export default function ITReportPage({
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={handleSave}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
           >
             {saved ? <><Check className="h-4 w-4" strokeWidth={2.5} /> บันทึกแล้ว</> : <><Save className="h-4 w-4" strokeWidth={2} /> บันทึก</>}
           </button>
           <button
             onClick={() => setShowPreview(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-lg hover:bg-stone-50 hover:border-clay-600/40 font-semibold text-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-lg hover:bg-stone-50 hover:border-clay-600/40 font-medium text-sm transition-colors"
           >
             <Eye className="h-4 w-4" strokeWidth={2} /> ดูตัวอย่าง
           </button>
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
           >
             {generating
               ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้าง...</>
@@ -558,7 +558,7 @@ export default function ITReportPage({
 
           <div className="flex items-center justify-between px-1">
             <span className="text-xs text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
-            <button onClick={clearDraft} className="text-xs font-semibold text-stone-500 hover:text-rose-600 transition-colors">
+            <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors">
               ล้างข้อมูลที่กรอก
             </button>
           </div>

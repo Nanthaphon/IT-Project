@@ -94,14 +94,14 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-1 h-4 rounded-full bg-clay-600" />
-          <h4 className="text-[13px] font-semibold text-stone-600">
+          <h4 className="text-[13px] font-medium text-stone-600">
             ซอฟต์แวร์ / License ที่ติดตั้ง ({boundSeats.length})
           </h4>
         </div>
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             เพิ่ม License
@@ -170,7 +170,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold text-stone-800 truncate">{lic.name}</p>
+                      <p className="text-[13px] font-medium text-stone-800 truncate">{lic.name}</p>
                       <p className="text-[11px] text-stone-400">
                         ว่าง {avail}/{total} สิทธิ์
                         {lic.expirationDate && ` · หมดอายุ ${formatDateShort(lic.expirationDate)}`}
@@ -208,7 +208,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
               {selectedLicense.availableKeys?.[selectedSeatIdx] && (
                 <div className="bg-stone-50 rounded-lg px-3 py-2">
                   <p className="text-[11px] text-stone-400 mb-0.5">Product Key ที่จะใช้</p>
-                  <p className="font-mono text-[13px] font-semibold text-stone-800">
+                  <p className="font-mono text-[13px] font-medium text-stone-800">
                     {selectedLicense.availableKeys[selectedSeatIdx]}
                   </p>
                 </div>
@@ -277,7 +277,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-stone-800 truncate">{seat.licenseName}</p>
+                    <p className="text-[13px] font-medium text-stone-800 truncate">{seat.licenseName}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-clay-600 bg-clay-100 px-1.5 py-0.5 rounded-lg border border-clay-200">
                         <Monitor className="h-2.5 w-2.5" strokeWidth={2.5} />
@@ -307,7 +307,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     <button
                       onClick={() => handleRevoke(seat.licenseId, seat.checkoutId)}
                       disabled={revoking === seat.checkoutId}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-white border border-stone-200 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 bg-white border border-stone-200 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-60"
                       title="ยกเลิกการผูก License"
                     >
                       {revoking === seat.checkoutId
@@ -326,7 +326,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                       {seat.productKey && (
                         <div className="col-span-2 md:col-span-3">
                           <p className="text-[11px] text-stone-400 mb-0.5">Product Key</p>
-                          <p className="font-mono font-semibold text-stone-800 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 inline-block break-all">
+                          <p className="font-mono font-medium text-stone-800 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 inline-block break-all">
                             {seat.productKey}
                           </p>
                         </div>

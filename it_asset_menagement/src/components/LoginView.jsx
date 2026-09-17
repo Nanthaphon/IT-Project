@@ -41,7 +41,7 @@ export default function LoginView({
           {/* Logo + title */}
           <div className="text-center mb-10">
             <Logo />
-            <h1 className="text-[34px] font-semibold text-stone-900 mb-2 tracking-tight">
+            <h1 className="text-[34px] font-medium text-stone-900 mb-2 tracking-tight">
               ระบบจัดการทรัพย์สิน IT
             </h1>
             <p className="text-stone-500 text-[15px]">เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ</p>
@@ -78,7 +78,7 @@ export default function LoginView({
         <div className="w-full max-w-md mx-auto relative z-10">
           <div className="text-center mb-7">
             <Logo />
-            <h2 className="text-[25px] font-semibold text-stone-900 tracking-tight">IT Administrator</h2>
+            <h2 className="text-[25px] font-medium text-stone-900 tracking-tight">IT Administrator</h2>
             <p className="text-stone-500 text-sm mt-1">เข้าสู่ระบบการจัดการทรัพย์สินส่วนกลาง</p>
           </div>
 
@@ -116,7 +116,7 @@ export default function LoginView({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3.5 bg-clay-600 text-white font-semibold rounded-lg hover:bg-clay-700 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
+                className="w-full py-3.5 bg-clay-600 text-white font-medium rounded-lg hover:bg-clay-700 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm transition-colors"
               >
                 {loginLoading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -224,7 +224,7 @@ function RoleCard({ icon: Icon, title, description, hintIcon: HintIcon, hint, on
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <h2 className="text-[18px] font-semibold text-stone-900 group-hover:text-clay-600 transition-colors leading-tight">
+        <h2 className="text-[18px] font-medium text-stone-900 group-hover:text-clay-600 transition-colors leading-tight">
           {title}
         </h2>
         <p className="text-stone-500 text-sm mt-1 leading-snug">{description}</p>

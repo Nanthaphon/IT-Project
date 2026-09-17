@@ -8,7 +8,7 @@ import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens (ให้ตรงกับฝั่ง user) ─────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
-const LABEL = 'text-[11px] font-semibold text-stone-400';
+const LABEL = 'text-[11px] font-medium text-stone-400';
 
 /* ─── Status config ──────────────────────────────────────── */
 const STATUS = {
@@ -89,7 +89,7 @@ export default function ReplacementRequestTable({
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
-            <p className="font-semibold text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
+            <p className="font-medium text-stone-500 text-sm">ไม่มีคำขอในสถานะนี้</p>
             <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
@@ -133,7 +133,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-stone-800 text-sm truncate">
+            <p className="font-medium text-stone-800 text-sm truncate">
               {req.empName}
             </p>
             <p className="text-[11px] text-stone-400 truncate">
@@ -156,7 +156,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className={LABEL}>สถานะเครื่องปัจจุบัน</p>
-            <p className="font-semibold text-stone-800 text-[13px] truncate">
+            <p className="font-medium text-stone-800 text-[13px] truncate">
               {req.currentStatus || '(ไม่ระบุ)'}
             </p>
           </div>
@@ -173,7 +173,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
               {req.reason}
             </p>
             {req.reason.length > 80 && (
-              <p className="text-[11px] text-clay-600 font-semibold mt-1 text-right">
+              <p className="text-[11px] text-clay-600 font-medium mt-1 text-right">
                 {expanded ? 'ย่อ ▲' : 'อ่านเพิ่ม ▼'}
               </p>
             )}
@@ -212,7 +212,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className={LABEL}>หัวหน้างาน</p>
-            <p className="font-semibold text-stone-700 text-[13px] truncate">
+            <p className="font-medium text-stone-700 text-[13px] truncate">
               {req.managerName || '(ไม่ระบุ)'}
             </p>
             {req.managerEmail ? (
@@ -244,14 +244,14 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
             <>
               <button
                 onClick={() => onUpdateStatus(req.id, 'อนุมัติแล้ว')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-clay-600 text-white hover:bg-clay-700 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-clay-600 text-white hover:bg-clay-700 transition-colors"
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                 อนุมัติ
               </button>
               <button
                 onClick={() => onUpdateStatus(req.id, 'ปฏิเสธคำขอ')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-rose-600 border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-rose-600 border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                 ปฏิเสธ

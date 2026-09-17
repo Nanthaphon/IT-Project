@@ -86,7 +86,7 @@ export default function ImportModal({
           <div className="flex items-start gap-2.5">
             <Info className="h-4 w-4 text-clay-600 mt-0.5 shrink-0" strokeWidth={2.2} />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-clay-600 mb-1.5">
+              <p className="text-[13px] font-medium text-clay-600 mb-1.5">
                 คอลัมน์ที่ระบบจะนำเข้า ({meta.fields.length} คอลัมน์):
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -113,10 +113,10 @@ export default function ImportModal({
         {/* Step 1 */}
         <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-stone-100 text-clay-600 w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13px] border border-stone-200/60">
+            <span className="bg-stone-100 text-clay-600 w-7 h-7 rounded-full flex items-center justify-center font-medium text-[13px] border border-stone-200/60">
               1
             </span>
-            <h4 className="font-semibold text-stone-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
+            <h4 className="font-medium text-stone-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
           </div>
           <p className="text-[13px] text-stone-500 mb-3.5 pl-10">
             โหลดไฟล์ CSV (.csv) ที่มีหัวคอลัมน์ถูกต้อง เพื่อนำไปกรอกข้อมูล{title}
@@ -124,7 +124,7 @@ export default function ImportModal({
           <div className="pl-10">
             <button
               onClick={handleDownloadTemplate}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-clay-600/30 text-clay-600 rounded-lg font-semibold text-sm hover:bg-stone-50/60 hover:border-clay-600/50 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-clay-600/30 text-clay-600 rounded-lg font-medium text-sm hover:bg-stone-50/60 hover:border-clay-600/50 transition-colors"
             >
               <Download className="h-4 w-4" strokeWidth={2} />
               โหลด Template.csv
@@ -135,10 +135,10 @@ export default function ImportModal({
         {/* Step 2 */}
         <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
           <div className="flex items-center gap-3 mb-1.5">
-            <span className="bg-stone-100 text-clay-600 w-7 h-7 rounded-full flex items-center justify-center font-semibold text-[13px] border border-stone-200/60">
+            <span className="bg-stone-100 text-clay-600 w-7 h-7 rounded-full flex items-center justify-center font-medium text-[13px] border border-stone-200/60">
               2
             </span>
-            <h4 className="font-semibold text-stone-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>
+            <h4 className="font-medium text-stone-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>
           </div>
           <p className="text-[13px] text-stone-500 mb-3.5 pl-10">
             เลือกไฟล์ CSV ที่กรอกข้อมูลเสร็จแล้ว ระบบจะนำเข้าข้อมูลทันที

@@ -8,7 +8,7 @@ import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(74,43,41,0.04),0_10px_28px_-16px_rgba(74,43,41,0.12)]';
-const LABEL = 'text-[11px] font-semibold text-stone-400';
+const LABEL = 'text-[11px] font-medium text-stone-400';
 const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounded-lg text-[13px] font-medium outline-none cursor-pointer hover:border-stone-300 focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 transition-colors';
 
 /* ─── Status config ──────────────────────────────────────── */
@@ -176,7 +176,7 @@ export default function RepairTable({
         {currentRepairRequests.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={1.5} />
-            <p className="font-semibold text-stone-500 text-sm">ไม่มีคิวงานในสถานะนี้</p>
+            <p className="font-medium text-stone-500 text-sm">ไม่มีคิวงานในสถานะนี้</p>
             <p className="text-xs text-stone-400 mt-1">ลองเปลี่ยนตัวกรองด้านบน</p>
           </div>
         ) : (
@@ -217,7 +217,7 @@ export default function RepairTable({
                         )}
                         <button
                           onClick={() => setCurrentPage(p)}
-                          className={`min-w-[32px] px-2 py-1.5 text-xs font-semibold rounded-lg transition ${
+                          className={`min-w-[32px] px-2 py-1.5 text-xs font-medium rounded-lg transition ${
                             p === currentPage
                               ? 'bg-clay-600 text-white'
                               : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
@@ -262,14 +262,14 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
         <div className={`w-1 h-10 rounded-full ${cfg.bar} shrink-0`} />
 
         {/* Avatar */}
-        <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-[13px] font-semibold shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-[13px] font-medium shrink-0">
           {initial}
         </div>
 
         {/* Main info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[13px] font-semibold text-stone-800 truncate">{req.empName}</span>
+            <span className="text-[13px] font-medium text-stone-800 truncate">{req.empName}</span>
             <span className="text-[11px] text-stone-400 hidden sm:inline">·</span>
             <span className="text-[11px] text-stone-500 truncate hidden sm:inline">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
           </div>
@@ -296,7 +296,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
 
         {/* Evaluation star */}
         {req.evaluation && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-clay-100 text-clay-600 border border-clay-200 shrink-0">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-clay-100 text-clay-600 border border-clay-200 shrink-0">
             <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={1.6} />
             {Number(req.evaluation.overallRating || 0).toFixed(1)}
           </span>
@@ -318,7 +318,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
           {canEdit && isPending && (
             <button
               onClick={() => onUpdateStatus(req.id, 'กำลังดำเนินการ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 transition-colors"
             >
               <Play className="h-3 w-3" strokeWidth={2.4} />
               <span className="hidden sm:inline">เริ่มซ่อม</span>
@@ -327,7 +327,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
           {canEdit && isInProgress && (
             <button
               onClick={() => onUpdateStatus(req.id, 'ซ่อมเสร็จสิ้น')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-olive-600 bg-white border border-stone-200 hover:border-olive-300 hover:bg-olive-50 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-olive-600 bg-white border border-stone-200 hover:border-olive-300 hover:bg-olive-50 transition-colors"
             >
               <Check className="h-3 w-3" strokeWidth={2.4} />
               <span className="hidden sm:inline">ซ่อมเสร็จ</span>
@@ -350,7 +350,7 @@ function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
         <div className="px-4 pb-4 pt-1 space-y-2 border-t border-stone-100 bg-stone-50/40">
           {req.issue && (
             <p className="text-xs text-stone-700 leading-relaxed">
-              <span className="font-semibold text-stone-500">ปัญหา:</span> {req.issue}
+              <span className="font-medium text-stone-500">ปัญหา:</span> {req.issue}
             </p>
           )}
           {req.evaluation && <EvaluationDetail evaluation={req.evaluation} />}

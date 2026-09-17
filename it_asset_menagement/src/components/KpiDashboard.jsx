@@ -274,7 +274,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
               {/* คะแนนรวม (ขนาดใหญ่) */}
               <div className="lg:col-span-1 bg-clay-50 border border-clay-200/60 rounded-2xl p-5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <p className="text-[13px] font-semibold text-clay-600/80 tracking-wide">คะแนนเฉลี่ยรวม</p>
+                  <p className="text-[13px] font-medium text-clay-600/80 tracking-wide">คะแนนเฉลี่ยรวม</p>
                   <div className="w-9 h-9 rounded-lg bg-white/70 flex items-center justify-center">
                     <Award className="h-4.5 w-4.5 text-clay-500" strokeWidth={2.2} />
                   </div>
@@ -301,7 +301,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
               {/* คะแนนแยกหมวด */}
               <div className="lg:col-span-2 bg-white border border-stone-200/60 rounded-2xl p-5">
-                <p className="text-[13px] font-semibold text-stone-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
+                <p className="text-[13px] font-medium text-stone-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
                 <div className="space-y-3">
                   <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#3B82F6" />
                   <RatingBar label="คุณภาพการแก้ปัญหา" value={k.avgQuality} color="#10B981" />
@@ -355,7 +355,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                           style={{ width: `${pct}%`, background: starColor(star) }}
                         />
                       </div>
-                      <span className="text-xs text-stone-500 font-semibold tabular-nums w-10 text-right">
+                      <span className="text-xs text-stone-500 font-medium tabular-nums w-10 text-right">
                         {d.count}
                       </span>
                     </div>
@@ -385,7 +385,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                         <span className="text-xs font-medium text-stone-400 w-5">#{idx + 1}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[13px] font-semibold text-stone-700 truncate">{dept}</span>
+                            <span className="text-[13px] font-medium text-stone-700 truncate">{dept}</span>
                             <span className="text-[13px] font-medium text-stone-600 tabular-nums">{count}</span>
                           </div>
                           <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
@@ -422,7 +422,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
                   {k.recentComments.map((r, idx) => (
                     <div key={idx} className="bg-stone-50 border border-stone-200/60 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-semibold text-stone-600 truncate">
+                        <span className="text-xs font-medium text-stone-600 truncate">
                           {r.evaluation.evaluatedByName || r.empName || 'ไม่ระบุ'}
                         </span>
                         <div className="flex items-center gap-0.5 shrink-0">
@@ -453,7 +453,7 @@ function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
   return (
     <div className="bg-white border border-stone-200/60 rounded-2xl p-4 flex flex-col gap-2.5 transition-colors">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-stone-500 tracking-wide">{label}</p>
+        <p className="text-xs font-medium text-stone-500 tracking-wide">{label}</p>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: tint }}>
           <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2.2} />
         </div>
@@ -474,7 +474,7 @@ function RatingBar({ label, value, color }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[13px] font-semibold text-stone-600">{label}</span>
+        <span className="text-[13px] font-medium text-stone-600">{label}</span>
         <span className="text-[13px] font-medium tabular-nums" style={{ color }}>
           {value.toFixed(2)}
           <span className="text-stone-400 font-normal text-[11px]"> / 5.00</span>

@@ -163,7 +163,7 @@ export default function PreHandoverAssessmentModal({
             <div>
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
               <p className="text-[13px] text-stone-500 mt-0.5">
-                ติ๊กผลประเมินสภาพอุปกรณ์ + แนบรูปก่อนส่งมอบให้ <span className="font-semibold text-stone-700">{employee?.fullName}</span>
+                ติ๊กผลประเมินสภาพอุปกรณ์ + แนบรูปก่อนส่งมอบให้ <span className="font-medium text-stone-700">{employee?.fullName}</span>
               </p>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function PreHandoverAssessmentModal({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-stone-800 truncate">{a.name}</p>
+                          <p className="text-[13px] font-medium text-stone-800 truncate">{a.name}</p>
                           <p className="text-[11px] text-stone-500 truncate">
                             {[a.assetTag, a.sn].filter(Boolean).join(' · ') || (a.type || '-')}
                           </p>
@@ -234,7 +234,7 @@ export default function PreHandoverAssessmentModal({
             />
             {selectedAsset && (
               <p className="mt-2 text-xs text-stone-500">
-                📄 พิมพ์สำหรับ: <span className="font-semibold text-stone-700">{selectedAsset.name}</span>
+                📄 พิมพ์สำหรับ: <span className="font-medium text-stone-700">{selectedAsset.name}</span>
                 {selectedCheckout ? (
                   <span className="ml-1.5 text-olive-700 font-medium">· ✓ pre-fill จาก transaction</span>
                 ) : (
@@ -272,7 +272,7 @@ export default function PreHandoverAssessmentModal({
                     <div className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5 border-b border-stone-200">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-sm font-medium text-clay-600 truncate">{sec.title}</span>
-                        <span className="text-xs font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
+                        <span className="text-xs font-medium text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200 shrink-0">
                           {sectionScore % 1 === 0 ? sectionScore : sectionScore.toFixed(1)} / {sec.max}
                         </span>
                       </div>
@@ -289,7 +289,7 @@ export default function PreHandoverAssessmentModal({
                           <div key={no} className="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-50/60">
                             <span className="text-xs font-mono text-stone-400 shrink-0 w-8">{no}</span>
                             <div className="flex-1 min-w-0">
-                              <div className="text-[13px] font-semibold text-stone-700 truncate">{name}</div>
+                              <div className="text-[13px] font-medium text-stone-700 truncate">{name}</div>
                               <div className="text-[11px] text-stone-500 truncate">{criteria}</div>
                             </div>
                             <div className="flex gap-1 shrink-0">
@@ -300,7 +300,7 @@ export default function PreHandoverAssessmentModal({
                                     key={opt.value}
                                     type="button"
                                     onClick={() => setItemStatus(no, opt.value, si)}
-                                    className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
+                                    className={`text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors whitespace-nowrap ${
                                       selected
                                         ? STATUS_COLOR_CLS[opt.color] + ' ring-2 ring-current/30'
                                         : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
@@ -387,8 +387,8 @@ export default function PreHandoverAssessmentModal({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[13px] font-semibold text-stone-800 truncate">{item.name}</span>
-                            <span className="text-[11px] font-semibold bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded">{item.type || 'อื่นๆ'}</span>
+                            <span className="text-[13px] font-medium text-stone-800 truncate">{item.name}</span>
+                            <span className="text-[11px] font-medium bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded">{item.type || 'อื่นๆ'}</span>
                           </div>
                           {(item.model || item.note) && (
                             <div className="mt-0.5 text-xs text-stone-500 truncate">
@@ -468,7 +468,7 @@ export default function PreHandoverAssessmentModal({
                       type="button"
                       onClick={handleSaveNewBundle}
                       disabled={!newBundle.name.trim() || savingBundle}
-                      className="px-3 py-1.5 text-xs font-semibold text-white bg-clay-600 hover:bg-clay-700 rounded-lg disabled:opacity-50"
+                      className="px-3 py-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg disabled:opacity-50"
                     >
                       {savingBundle ? 'กำลังเพิ่ม...' : 'เพิ่มเข้า Catalog + เลือก'}
                     </button>
@@ -486,7 +486,7 @@ export default function PreHandoverAssessmentModal({
 
               {selectedBundles.length > 0 && (
                 <div className="text-xs text-stone-600 bg-olive-50/60 border border-olive-200 rounded-lg px-3 py-2">
-                  <span className="font-semibold text-olive-700">เลือกแล้ว {selectedBundles.length} รายการ</span> — จะแสดงในส่วนที่ 4.1 ของใบส่งมอบ
+                  <span className="font-medium text-olive-700">เลือกแล้ว {selectedBundles.length} รายการ</span> — จะแสดงในส่วนที่ 4.1 ของใบส่งมอบ
                 </div>
               )}
             </div>
@@ -497,8 +497,8 @@ export default function PreHandoverAssessmentModal({
         <div className="flex items-center justify-between px-7 py-4 border-t border-stone-100 bg-white shrink-0 gap-3 flex-wrap">
           <div className="flex flex-col gap-1.5">
             <div className="text-xs text-stone-500">
-              แนบรูปแล้ว <span className="font-semibold text-stone-700">{Object.keys(photos).length}/6</span> รูป
-              · คะแนนรวม <span className="font-semibold text-clay-600">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
+              แนบรูปแล้ว <span className="font-medium text-stone-700">{Object.keys(photos).length}/6</span> รูป
+              · คะแนนรวม <span className="font-medium text-clay-600">{grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1)}</span>/100
             </div>
             {/* 🆕 Toggle รวม License + อุปกรณ์เสริม */}
             {(empLicenses?.length > 0 || empAccessories?.length > 0) && (
@@ -562,7 +562,7 @@ function QuickFillBtn({ onClick, color, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={`text-[11px] font-semibold px-2 py-1 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
+      className={`text-[11px] font-medium px-2 py-1 rounded-lg border bg-white transition whitespace-nowrap ${cls}`}
     >
       {children}
     </button>
@@ -592,7 +592,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
       <div className="px-3 py-2 bg-stone-50 border-b border-stone-200 flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-stone-700 truncate">{label}</span>
+        <span className="text-xs font-medium text-stone-700 truncate">{label}</span>
         {src && (
           <button
             type="button"

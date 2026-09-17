@@ -98,7 +98,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors"
+            className="absolute top-4 right-4 w-8 h-8 rounded-xl hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors"
           >
             <X className="h-4 w-4" strokeWidth={2} />
           </button>

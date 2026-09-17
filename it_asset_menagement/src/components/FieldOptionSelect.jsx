@@ -137,7 +137,7 @@ export default function FieldOptionSelect({
         disabled={disabled}
         onClick={() => !disabled && setOpen(o => !o)}
         className={`
-          group w-full bg-white border rounded-lg px-3.5 py-2.5 text-sm text-left
+          group w-full bg-white border rounded-xl px-3.5 py-2.5 text-sm text-left
           transition-colors flex items-center gap-2
           ${disabled ? 'bg-stone-50 text-stone-400 cursor-not-allowed border-stone-200' :
             open

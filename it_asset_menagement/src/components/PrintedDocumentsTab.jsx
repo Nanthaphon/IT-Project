@@ -219,7 +219,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                   <button
                     onClick={() => handleDelete(d.id, d.docNumber || d.id)}
                     disabled={deleting === d.id}
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-xl text-rose-500 hover:bg-rose-50 transition-colors disabled:opacity-50"
                     title="ลบเอกสารทั้งหมด"
                   >
                     {deleting === d.id ? (

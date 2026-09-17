@@ -12,7 +12,7 @@ const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸
 
 const DEFAULT_COMPANY = 'Globe Syndicate (Thailand) Company Limited';
 
-const inputCls = 'w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600';
+const inputCls = 'w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600';
 // select เพิ่ม pr-8 ให้ไม่ทับลูกศร native ของ browser
 const selectCls = inputCls + ' pr-8 truncate';
 const labelCls = 'block text-[13px] font-medium text-stone-600 mb-1';
@@ -73,7 +73,7 @@ function BigIssuesEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่ม Issue
       </button>
     </div>
@@ -129,7 +129,7 @@ function RDEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มโปรเจค
       </button>
     </div>
@@ -179,7 +179,7 @@ function FollowupEditor({ value, onChange }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> เพิ่มวาระ
       </button>
     </div>
@@ -267,7 +267,7 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
         </div>
       ))}
       <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2 rounded-lg transition-colors w-full justify-center">
+        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
         <Plus className="h-3.5 w-3.5" /> {addLabel}
       </button>
     </div>
@@ -453,20 +453,20 @@ export default function ITReportPage({
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={handleSave}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
           >
             {saved ? <><Check className="h-4 w-4" strokeWidth={2.5} /> บันทึกแล้ว</> : <><Save className="h-4 w-4" strokeWidth={2} /> บันทึก</>}
           </button>
           <button
             onClick={() => setShowPreview(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-lg hover:bg-stone-50 hover:border-clay-600/40 font-medium text-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-clay-600 rounded-xl hover:bg-stone-50 hover:border-clay-600/40 font-medium text-sm transition-colors"
           >
             <Eye className="h-4 w-4" strokeWidth={2} /> ดูตัวอย่าง
           </button>
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm text-white transition-colors ${generating ? 'bg-stone-300 cursor-not-allowed' : 'bg-clay-600 hover:bg-clay-700'}`}
           >
             {generating
               ? <><Loader2 className="h-4 w-4 animate-spin" /> กำลังสร้าง...</>

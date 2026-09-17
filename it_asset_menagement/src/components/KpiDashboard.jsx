@@ -454,7 +454,7 @@ function KpiCard({ icon: Icon, label, value, unit, sub, accent, tint }) {
     <div className="bg-white border border-stone-200/60 rounded-2xl p-4 flex flex-col gap-2.5 transition-colors">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-stone-500 tracking-wide">{label}</p>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: tint }}>
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: tint }}>
           <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2.2} />
         </div>
       </div>

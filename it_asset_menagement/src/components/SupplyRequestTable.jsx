@@ -432,9 +432,9 @@ export default function SupplyRequestTable({
                               'bg-stone-100 text-stone-500'
                             }`}>{i + 1}</div>
                             {item.image ? (
-                              <img src={item.image} alt={item.name} className="w-8 h-8 rounded-lg object-cover border border-stone-200 shrink-0" />
+                              <img src={item.image} alt={item.name} className="w-8 h-8 rounded-xl object-cover border border-stone-200 shrink-0" />
                             ) : (
-                              <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                              <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center shrink-0">
                                 <Package className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.8} />
                               </div>
                             )}

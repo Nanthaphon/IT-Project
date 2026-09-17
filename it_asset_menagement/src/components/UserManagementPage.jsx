@@ -445,7 +445,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
               >
                 <X className="h-4 w-4" strokeWidth={2} />
               </button>
@@ -543,7 +543,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                       <CheckSquare className="h-3 w-3" strokeWidth={2} />
                       เลือกทั้งหมด
                     </button>
-                    <span className="text-stone-300">|</span>
+                    <span className="text-sm text-stone-300">|</span>
                     <button
                       type="button"
                       onClick={clearAll}
@@ -677,7 +677,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
               </div>
               <button
                 onClick={() => setPwUser(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
               >
                 <X className="h-4 w-4" strokeWidth={2} />
               </button>

@@ -826,7 +826,7 @@ export default function StaffView({
         <div className="px-5 py-5 flex items-center justify-between bg-gradient-to-br from-clay-600 to-clay-800 relative overflow-hidden">
           <div className="pointer-events-none absolute -top-8 -right-6 w-28 h-28 rounded-full bg-white/[0.06] blur-2xl" />
           <div className="flex items-center gap-2.5 relative">
-            <div className="w-8 h-8 rounded-lg bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0 backdrop-blur-sm">
+            <div className="w-8 h-8 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0 backdrop-blur-sm">
               <img src="/gb_icon.svg" alt="Logo" className="w-4 h-4 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
             <p className="text-[15px] font-medium text-white tracking-tight">ระบบพนักงาน</p>

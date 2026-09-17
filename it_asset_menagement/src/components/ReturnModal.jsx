@@ -35,7 +35,7 @@ export default function ReturnModal({
           {/* Asset card */}
           <div className="bg-stone-50/70 border border-stone-200 p-5 rounded-xl">
             <p className="text-xs text-stone-500 font-medium mb-1">อุปกรณ์ที่รับคืน</p>
-            <p className="text-[16px] font-medium text-stone-900">{returnModal.assetName}</p>
+            <p className="text-[15px] font-medium text-stone-900">{returnModal.assetName}</p>
 
             <div className="mt-3 pt-3 border-t border-stone-200">
               <p className="text-xs text-stone-500 font-medium mb-1">รับคืนจาก</p>

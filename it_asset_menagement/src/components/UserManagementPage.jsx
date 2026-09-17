@@ -439,7 +439,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}>
                   <Users className="h-4 w-4" strokeWidth={1.8} />
                 </div>
-                <h2 className="text-[16px] font-medium text-stone-800">
+                <h2 className="text-[15px] font-medium text-stone-800">
                   {editingUser ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
                 </h2>
               </div>
@@ -638,7 +638,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
               <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
               </div>
-              <h3 className="text-[16px] font-medium text-stone-800 text-center mb-1">ยืนยันการลบผู้ใช้</h3>
+              <h3 className="text-[15px] font-medium text-stone-800 text-center mb-1">ยืนยันการลบผู้ใช้</h3>
               <p className="text-sm text-stone-500 text-center">
                 คุณต้องการลบ <span className="font-medium text-stone-700">{confirmDelete.displayName}</span> ออกจากระบบใช่หรือไม่?
                 ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้อีกต่อไป
@@ -673,7 +673,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${BRAND.primary}15`, color: BRAND.primary }}>
                   <KeyRound className="h-4 w-4" strokeWidth={1.8} />
                 </div>
-                <h2 className="text-[16px] font-medium text-stone-800">รีเซ็ตรหัสผ่าน</h2>
+                <h2 className="text-[15px] font-medium text-stone-800">รีเซ็ตรหัสผ่าน</h2>
               </div>
               <button
                 onClick={() => setPwUser(null)}
@@ -763,7 +763,7 @@ function IconBtn({ onClick, title, children, kind }) {
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center justify-center w-7 h-7 bg-white border border-stone-200 rounded-lg transition-colors ${map}`}
+      className={`inline-flex items-center justify-center w-7 h-7 bg-white border border-stone-200/60 rounded-xl transition-colors ${map}`}
     >
       {children}
     </button>

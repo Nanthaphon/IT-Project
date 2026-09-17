@@ -175,12 +175,12 @@ export default function EmployeeDetailsModal({
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-clay-600 text-white flex items-center justify-center text-base font-medium shrink-0 select-none">
+            <div className="w-10 h-10 rounded-xl bg-clay-600 text-white flex items-center justify-center text-[15px] font-medium shrink-0 select-none">
               {initial}
             </div>
             <div className="min-w-0">
               <div className="flex items-baseline gap-2 flex-wrap">
-                <h3 className="text-base font-medium text-stone-900 leading-tight">
+                <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">
                   {selectedEmployee.fullName}
                 </h3>
                 {selectedEmployee.nickname && (
@@ -197,7 +197,7 @@ export default function EmployeeDetailsModal({
 
           <button
             onClick={() => setSelectedEmployee(null)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition shrink-0"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -360,7 +360,7 @@ export default function EmployeeDetailsModal({
                                 handleCheckin(item.id, category, selectedEmployee.id);
                               }
                             }}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-olive-200 text-olive-700 bg-olive-50 hover:bg-olive-500 hover:text-white hover:border-olive-500 transition-colors flex items-center gap-1.5"
+                            className="text-xs font-medium px-3 py-1.5 rounded-xl border border-olive-200 text-olive-700 bg-olive-50 hover:bg-olive-500 hover:text-white hover:border-olive-500 transition-colors flex items-center gap-1.5"
                           >
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -400,7 +400,7 @@ export default function EmployeeDetailsModal({
               onClick={handlePrint}
               disabled={!hasNotebook}
               title={!hasNotebook ? 'พนักงานไม่มีโน๊ตบุ๊คในครอบครอง' : `${empNotebooks.length} เครื่อง`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบส่งมอบ
@@ -410,7 +410,7 @@ export default function EmployeeDetailsModal({
               onClick={handlePrintReturn}
               disabled={allHeld.length === 0}
               title={allHeld.length === 0 ? 'พนักงานไม่มีทรัพย์สิน' : `${allHeld.length} รายการ`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               ใบรับคืน
@@ -428,7 +428,7 @@ export default function EmployeeDetailsModal({
                 });
               }}
               title="พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium rounded-lg transition-colors text-white bg-clay-600 hover:bg-clay-700"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors text-white bg-clay-600 hover:bg-clay-700"
             >
               <Printer className="h-3.5 w-3.5" strokeWidth={2} />
               พิมพ์ PDF
@@ -439,7 +439,7 @@ export default function EmployeeDetailsModal({
             {!selectedEmployee.deletedAt && (
               <button
                 onClick={() => openEditEmpModal(selectedEmployee)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-stone-600 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -449,7 +449,7 @@ export default function EmployeeDetailsModal({
             )}
             <button
               onClick={() => setSelectedEmployee(null)}
-              className="px-4 py-2 text-[13px] font-medium text-white bg-stone-800 hover:bg-stone-900 rounded-lg transition"
+              className="px-5 py-2.5 text-sm font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl transition-colors"
             >
               ปิด
             </button>
@@ -660,7 +660,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
       <div className="bg-stone-50/40 border border-stone-200 rounded-lg px-3 py-2 flex items-start gap-2">
         <Shield className="h-3.5 w-3.5 text-clay-600 shrink-0 mt-0.5" strokeWidth={2.2} />
         <p className="text-[11px] text-stone-900/85 leading-relaxed">
-          ระบบเก็บทั้ง <strong>hash + salt</strong> (สำหรับ login) และ <strong>plaintext</strong> (visibility สำหรับ admin) —
+          ระบบเก็บทั้ง <span className="font-medium text-stone-700">hash + salt</span> (สำหรับ login) และ <span className="font-medium text-stone-700">plaintext</span> (visibility สำหรับ admin) —
           Firestore rules จำกัดให้เฉพาะ admin เท่านั้นที่อ่านได้
         </p>
       </div>
@@ -696,7 +696,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
             value={pwd}
             onChange={e => handleChange(e.target.value)}
             placeholder={isUnset ? 'พนักงานยังไม่เคย login — รหัสจะเป็นรหัสพนักงานอัตโนมัติ' : 'รหัสผ่าน'}
-            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
+            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2.5 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
             autoComplete="new-password"
             spellCheck={false}
           />
@@ -735,7 +735,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleResetToEmpId}
           disabled={resetting || saving || !empId || (isDefault && !isDirty)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-clay-600 bg-white border border-stone-200 hover:bg-clay-100 hover:border-clay-300 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-clay-600 bg-white border border-stone-200/60 hover:bg-clay-100 hover:border-clay-300 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
         >
           <RotateCcw className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -745,7 +745,7 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           type="button"
           onClick={handleSave}
           disabled={saving || resetting || !isDirty}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Key className="h-3.5 w-3.5" strokeWidth={2.2} />
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
@@ -866,7 +866,7 @@ function HistoryTimeline({ empHistory, historyFilter, setHistoryFilter, openPrin
           <button
             key={f.id}
             onClick={() => setHistoryFilter(f.id)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+            className={`text-xs font-medium px-3 py-1.5 rounded-xl transition-colors ${
               historyFilter === f.id
                 ? 'bg-stone-900 text-white'
                 : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 hover:border-stone-300'

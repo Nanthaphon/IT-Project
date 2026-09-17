@@ -101,7 +101,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium bg-clay-600 text-white px-3.5 py-2 rounded-lg hover:bg-clay-700 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 text-sm font-medium bg-clay-600 text-white px-4 py-2.5 rounded-xl hover:bg-clay-700 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             เพิ่ม License
@@ -299,7 +299,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => setExpanded(isExp ? null : seat.checkoutId)}
-                      className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-lg transition"
+                      className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-xl transition"
                       title={isExp ? 'ย่อ' : 'ดูรายละเอียด'}
                     >
                       {isExp ? <ChevronUp className="h-4 w-4" strokeWidth={2} /> : <ChevronDown className="h-4 w-4" strokeWidth={2} />}

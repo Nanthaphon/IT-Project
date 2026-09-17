@@ -48,7 +48,7 @@ export function Button({
 
   const sizeCls =
     size === 'sm' ? 'px-3 py-1.5 text-sm' :
-    size === 'lg' ? 'px-5 py-3 text-[16px]' : '';
+    size === 'lg' ? 'px-5 py-3 text-[15px]' : '';
 
   return (
     <button type={type} className={`${variantCls} ${sizeCls} ${className}`} {...rest}>

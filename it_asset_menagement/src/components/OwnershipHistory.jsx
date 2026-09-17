@@ -114,7 +114,7 @@ export default function OwnershipHistory({
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={2.4} /> เพิ่มประวัติ
         </button>
@@ -1036,7 +1036,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
               {PHOTO_SLOTS.map(slot => slots[slot.key] ? (
                 <button key={slot.key} type="button" onClick={() => onPhotoClick?.(slots[slot.key])}
-                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors"
+                  className="aspect-square rounded-xl overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors"
                   title={slot.label}>
                   <img src={slots[slot.key]} alt={slot.label} className="w-full h-full object-cover" />
                 </button>
@@ -1229,7 +1229,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-3">
               {photos.map((src, i) => (
                 <button key={i} type="button" onClick={() => onPhotoClick(src)}
-                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors">
+                  className="aspect-square rounded-xl overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors">
                   <img src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -1356,7 +1356,7 @@ function EditPeriodModal({ period, onClose }) {
               <Pencil className="h-4 w-4" strokeWidth={2} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[16px] font-medium text-stone-900">แก้ไขประวัติการครอบครอง</h3>
+              <h3 className="text-[15px] font-medium text-stone-900">แก้ไขประวัติการครอบครอง</h3>
               <p className="text-xs text-stone-500 truncate">{checkout.empName || '-'}</p>
             </div>
           </div>

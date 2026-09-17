@@ -193,7 +193,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
                   key={i}
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setViewPhoto(p.data); }}
-                  className="aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors bg-white"
+                  className="aspect-square rounded-xl overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors bg-white"
                   title="คลิกเพื่อขยาย"
                 >
                   <img src={p.data} alt={p.name || `รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
@@ -272,7 +272,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
 
         <button
           onClick={() => onDelete(req.id)}
-          className="inline-flex items-center justify-center w-7 h-7 text-stone-400 hover:text-rose-500 hover:bg-rose-50 border border-stone-200 hover:border-rose-200 rounded-lg transition-colors"
+          className="inline-flex items-center justify-center w-7 h-7 text-stone-400 hover:text-rose-500 hover:bg-rose-50 border border-stone-200/60 hover:border-rose-200 rounded-xl transition-colors"
           title="ลบ"
         >
           <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />

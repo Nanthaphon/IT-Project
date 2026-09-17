@@ -134,7 +134,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
           type="button"
           onClick={handleAdd}
           disabled={!input.trim()}
-          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-medium transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-stone-200 cursor-not-allowed text-stone-400'}`}
+          className={`inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${input.trim() ? `${c.btn} shadow-sm` : 'bg-stone-200 cursor-not-allowed text-stone-400'}`}
         >
           <Plus className="h-4 w-4" strokeWidth={2.2} /> เพิ่ม
         </button>
@@ -198,7 +198,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
           <button
             onClick={handleSave}
             disabled={!dirty || saving}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
             style={dirty && !saving ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
             onMouseEnter={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primaryDark)}
             onMouseLeave={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primary)}

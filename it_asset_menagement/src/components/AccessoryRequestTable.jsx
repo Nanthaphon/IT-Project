@@ -102,7 +102,7 @@ export default function AccessoryRequestTable({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/25"
+            className="bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/25"
           >
             <option value="ทั้งหมด">ทุกประเภท</option>
             <option value="pending">รอ IT พิจารณา</option>
@@ -193,7 +193,7 @@ export default function AccessoryRequestTable({
                   {hasDetails && (
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : req.id)}
-                      className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-lg transition shrink-0"
+                      className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-xl transition shrink-0"
                       title={isExpanded ? 'ย่อ' : 'ดูรายละเอียด'}
                     >
                       <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -222,7 +222,7 @@ export default function AccessoryRequestTable({
                     ) : !isPending && canEdit ? (
                       <button
                         onClick={() => handleDeleteAccessoryRequest(req.id)}
-                        className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
                         title="ลบรายการ"
                       >
                         <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
@@ -291,7 +291,7 @@ export default function AccessoryRequestTable({
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-xl hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ‹
             </button>
@@ -304,7 +304,7 @@ export default function AccessoryRequestTable({
                   )}
                   <button
                     onClick={() => setCurrentPage(p)}
-                    className={`min-w-[32px] px-2 py-1.5 text-xs font-medium rounded-lg transition ${
+                    className={`min-w-[32px] px-2 py-1.5 text-xs font-medium rounded-xl transition ${
                       p === currentPage
                         ? 'bg-clay-600 text-white'
                         : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
@@ -317,7 +317,7 @@ export default function AccessoryRequestTable({
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-lg hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-2.5 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-200/60 rounded-xl hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ›
             </button>
@@ -347,7 +347,7 @@ export default function AccessoryRequestTable({
         <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] max-w-md w-full overflow-hidden">
             <div className="px-6 py-5 border-b border-stone-100">
-              <h3 className="text-[16px] font-medium text-stone-800">เหตุผลในการปฏิเสธคำขอ</h3>
+              <h3 className="text-[15px] font-medium text-stone-800">เหตุผลในการปฏิเสธคำขอ</h3>
               <p className="text-xs text-stone-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>
             </div>
             <div className="px-6 py-5">

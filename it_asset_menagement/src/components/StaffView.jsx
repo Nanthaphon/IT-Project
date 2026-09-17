@@ -636,7 +636,7 @@ export default function StaffView({
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] p-7">
-            <h2 className="text-[16px] font-medium text-stone-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
+            <h2 className="text-[15px] font-medium text-stone-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
             <p className="text-xs text-stone-500 mb-5 leading-relaxed">
               💡 รหัสผ่านเริ่มต้น = <span className="font-medium text-clay-600">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
             </p>
@@ -1202,7 +1202,7 @@ export default function StaffView({
                   {replaceDamagePhotos.length > 0 && (
                     <div className="grid grid-cols-3 gap-2 mb-2">
                       {replaceDamagePhotos.map((p, i) => (
-                        <div key={i} className="relative group/photo aspect-square rounded-lg overflow-hidden ring-1 ring-stone-200 bg-stone-50">
+                        <div key={i} className="relative group/photo aspect-square rounded-xl overflow-hidden ring-1 ring-stone-200 bg-stone-50">
                           <img src={p.data} alt={p.name} className="w-full h-full object-cover" />
                           <button
                             type="button"
@@ -1632,7 +1632,7 @@ export default function StaffView({
               <h3 className="text-sm font-medium text-stone-800">แก้ไขรายการแจ้งปัญหา</h3>
               <button
                 onClick={() => setEditStaffRepairModal({ isOpen: false, data: null })}
-                className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition"
+                className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1979,7 +1979,7 @@ function IconBtn({ children, onClick, label, danger }) {
     <button
       onClick={onClick}
       title={label}
-      className={`w-7 h-7 flex items-center justify-center rounded-lg border transition ${
+      className={`w-7 h-7 flex items-center justify-center rounded-xl border transition ${
         danger
           ? 'text-rose-400 border-stone-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500'
           : 'text-stone-400 border-stone-200 hover:border-clay-200 hover:bg-clay-100 hover:text-clay-500'

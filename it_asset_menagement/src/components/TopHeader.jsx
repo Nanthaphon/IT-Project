@@ -65,7 +65,7 @@ export default function TopHeader({
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-[13px] font-medium text-stone-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+          className="flex items-center gap-1.5 text-[13px] font-medium text-stone-600 hover:text-rose-600 px-2 md:px-3 py-2 rounded-xl hover:bg-rose-50 transition-colors"
           aria-label="ออกจากระบบ"
         >
           <LogOut className="h-[15px] w-[15px]" strokeWidth={1.8} />

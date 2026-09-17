@@ -9,6 +9,7 @@ import DateField from './DateField.jsx';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeader } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
 import Timeline from './timeline/Timeline.jsx';
+import ImageViewer from '../ui/ImageViewer.jsx';
 import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
 
 /* ── Purchase-history document storage helpers ── */
@@ -56,6 +57,8 @@ export default function AssetDetailsModal({
   // 🆕 ให้ชิ้นย่อยอุปกรณ์เสริมทำงานเหมือน License (ค้นหา + modal รายละเอียด)
   const [accItemSearch, setAccItemSearch] = useState('');
   const [accItemDetailModal, setAccItemDetailModal] = useState(null);
+  // 🆕 ดูรูปเต็มจอในแอป — เปิด data: URL เป็นแท็บใหม่ไม่ได้ (Chrome บล็อก)
+  const [viewerImage, setViewerImage] = useState(null);
   const [tempSNValue, setTempSNValue] = useState('');
   const [tempModelValue, setTempModelValue] = useState('');
   const [tempCostValue, setTempCostValue] = useState('');
@@ -1605,11 +1608,16 @@ export default function AssetDetailsModal({
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                         {gallery.map((src, idx) => (
-                          <div key={idx} className="relative group rounded-lg overflow-hidden border border-stone-200 aspect-square bg-stone-50">
+                          <div key={idx} className="relative group rounded-xl overflow-hidden border border-stone-200/60 aspect-square bg-stone-50">
                             <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                              <a href={src} target="_blank" rel="noreferrer" className="bg-white/90 text-stone-800 text-[11px] font-medium px-2 py-1 rounded-lg hover:bg-white shadow-sm">ดู</a>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setViewerImage({ src, name: `รูปที่ ${idx + 1}` })}
+                              className="absolute inset-0 flex items-center justify-center bg-stone-950/0 opacity-0 transition-all group-hover:bg-stone-950/30 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
+                              title="ดูรูปขนาดเต็ม"
+                            >
+                              <span className="rounded-lg bg-white/90 px-2 py-1 text-[11px] font-medium text-stone-800">ดู</span>
+                            </button>
                             <button
                               onClick={() => handleRemovePhotoGallery(idx)}
                               disabled={isSavingItem}
@@ -2565,6 +2573,15 @@ export default function AssetDetailsModal({
           isSavingItem={isSavingItem}
         />
       )}
+
+      {/* 🆕 ดูรูปเต็มจอ — z สูงกว่า sub-modal (z-[95]) */}
+      <ImageViewer
+        src={viewerImage?.src}
+        alt={viewerImage?.name}
+        filename={viewerImage?.name}
+        onClose={() => setViewerImage(null)}
+        z={130}
+      />
     </div>
   );
 }

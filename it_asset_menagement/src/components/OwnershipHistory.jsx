@@ -4,6 +4,7 @@ import {
   X, Clock, Pencil, Trash2, Save, Printer, Paperclip, Upload, Download,
   FileText, Image, File, ChevronDown, ChevronUp, Plus,
 } from 'lucide-react';
+import ImageViewer from '../ui/ImageViewer.jsx';
 import { doc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { formatDateShort } from '../utils/formatDate.js';
@@ -158,25 +159,11 @@ export default function OwnershipHistory({
       )}
 
       {/* Image viewer modal */}
-      {viewerImage && (
-        <div
-          onClick={() => setViewerImage(null)}
-          className="fixed inset-0 bg-black/85 z-[100] flex items-center justify-center p-4"
-        >
-          <button
-            onClick={() => setViewerImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-          >
-            <X className="h-5 w-5" strokeWidth={2} />
-          </button>
-          <img
-            src={viewerImage}
-            alt="preview"
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-full max-h-full object-contain rounded-lg"
-          />
-        </div>
-      )}
+      <ImageViewer
+        src={viewerImage}
+        onClose={() => setViewerImage(null)}
+        z={100}
+      />
 
       {/* Edit modal */}
       {editPeriod && (

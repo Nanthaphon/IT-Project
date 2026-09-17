@@ -4,6 +4,7 @@ import {
   Clock, XCircle, CalendarDays,
   Check, X, Monitor, User, Camera,
 } from 'lucide-react';
+import ImageViewer from '../ui/ImageViewer.jsx';
 import { formatDateTimeShort } from '../utils/formatDate.js';
 
 /* ─── Staff-theme tokens (ให้ตรงกับฝั่ง user) ─────────────── */
@@ -280,21 +281,12 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
       </div>
     </div>
 
-    {/* ── Lightbox ── */}
-    {viewPhoto && (
-      <div
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 cursor-zoom-out"
-        onClick={() => setViewPhoto(null)}
-      >
-        <img src={viewPhoto} alt="damage preview" className="max-w-full max-h-full object-contain rounded-lg" />
-        <button
-          onClick={() => setViewPhoto(null)}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-colors"
-        >
-          ✕
-        </button>
-      </div>
-    )}
+    <ImageViewer
+      src={viewPhoto}
+      alt="รูปหลักฐานสภาพชำรุด"
+      onClose={() => setViewPhoto(null)}
+      z={200}
+    />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, X, Plus, AlertCircle, ImagePlus } from 'lucide-react';
+import ImageViewer from '../ui/ImageViewer.jsx';
 import { compressAndUploadPhotos } from '../utils/uploadPhoto.js';
 
 /* ════════════════════════════════════════════════════════════════
@@ -216,25 +217,11 @@ export default function ConditionCapture({
       </div>
 
       {/* Fullscreen image viewer */}
-      {viewerImage && (
-        <div
-          onClick={() => setViewerImage(null)}
-          className="fixed inset-0 bg-black/85 z-[120] flex items-center justify-center p-4"
-        >
-          <button
-            onClick={() => setViewerImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-          >
-            <X className="h-5 w-5" strokeWidth={2} />
-          </button>
-          <img
-            src={viewerImage}
-            alt="preview"
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-full max-h-full object-contain rounded-lg"
-          />
-        </div>
-      )}
+      <ImageViewer
+        src={viewerImage}
+        onClose={() => setViewerImage(null)}
+        z={120}
+      />
     </div>
   );
 }

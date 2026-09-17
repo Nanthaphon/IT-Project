@@ -30,6 +30,7 @@ const ASSET = {
   remark: 'เครื่องสำรองของฝ่าย',
   documents: [],
   items: [],
+  photoGallery: ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHElEQVQI12P4z8DwHwwZGBgYmBgYGBgYGBgYAAA5ZgQVAAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHElEQVQI12P4z8DwHwwZGBgYmBgYGBgYGBgYAAA5ZgQVAAAAAElFTkSuQmCC"],
 };
 
 

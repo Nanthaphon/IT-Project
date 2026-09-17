@@ -226,7 +226,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
         <>
           {/* ── Row 1: KPI Cards (งานซ่อม) ── */}
           <div>
-            <h3 className="text-[13px] font-medium text-stone-400 mb-3 px-1">🔧 งานแจ้งซ่อม</h3>
+            <h3 className="text-[13px] font-medium text-stone-400 mb-3 px-1">งานแจ้งซ่อม</h3>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
                 icon={Wrench}

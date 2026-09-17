@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  User, ArrowRight, ArrowLeft, Calendar, Camera, AlertTriangle, CheckCircle2,
-  X, Clock, Pencil, Trash2, Save, Printer, Paperclip, Upload, Download,
-  FileText, Image, File, ChevronDown, ChevronUp, Plus,
-} from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, Calendar, Camera, CheckCircle2, ChevronDown, ChevronUp, Clock, Download, File, FileText, Image, MessageSquare, Paperclip, Pencil, Plus, Printer, Save, Trash2, TriangleAlert, Upload, User, X } from 'lucide-react';
 import ImageViewer from '../ui/ImageViewer.jsx';
 import { doc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase.js';
@@ -1243,7 +1239,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
 
       {notes && (
         <p className="text-xs text-stone-600 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 mt-1">
-          💬 {notes}
+          <MessageSquare className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> {notes}
         </p>
       )}
     </div>
@@ -1435,7 +1431,7 @@ function EditPeriodModal({ period, onClose }) {
           {(overSoftCO || overSoftR) && (
             <div className={`text-xs rounded-lg px-3 py-2 border ${overHard ? 'text-rose-700 bg-rose-50 border-rose-200' : 'text-clay-600 bg-clay-100 border-clay-200'}`}>
               <div className="font-medium mb-0.5">
-                {overHard ? '⛔ ขนาดข้อมูลเกิน 1 MB — บันทึกไม่ได้' : '⚠️ ข้อมูลรูปภาพใกล้เต็มขีดจำกัด'}
+                <TriangleAlert className="inline h-3.5 w-3.5 -mt-0.5 mr-1" strokeWidth={2} />{overHard ? 'ขนาดข้อมูลเกิน 1 MB — บันทึกไม่ได้' : 'ข้อมูลรูปภาพใกล้เต็มขีดจำกัด'}
               </div>
               <div>
                 ตอนส่งมอบ: {(coBytes / 1024).toFixed(0)} KB

@@ -1,7 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  Printer, X, AlertCircle, ImagePlus, ClipboardCheck, Trash2, Plus,
-} from 'lucide-react';
+import { AlertCircle, ClipboardCheck, ClipboardList, ImagePlus, Plus, Printer, Trash2, X } from 'lucide-react';
 import {
   ASSESSMENT_SECTIONS, itemMaxScore, scoreFromStatus, buildEmptyAssessment,
 } from '../utils/printHandoverForm.js';
@@ -241,7 +239,7 @@ export default function PreReturnAssessmentModal({
               className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-stone-50 transition text-left"
             >
               <div>
-                <p className="text-[13px] font-medium text-stone-700">📋 กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
+                <p className="text-[13px] font-medium text-stone-700"><ClipboardList className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
                 <p className="text-[11px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
               </div>
               <span className="text-xs font-medium text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>

@@ -1,4 +1,4 @@
-import { Image, SquarePen, X } from 'lucide-react';
+import { Image, Recycle, Sparkles, SquarePen, X } from 'lucide-react';
 import React from 'react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import DateField from './DateField.jsx';
@@ -252,7 +252,7 @@ export default function EditAssetModal({
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="new" checked={(editAssetModal.data.purchaseCondition || 'new') === 'new'} onChange={handleEditAssetChange} className="sr-only" />
-                          <span>✨ เครื่องใหม่</span>
+                          <span className="inline-flex items-center gap-1.5"><Sparkles className="h-4 w-4" strokeWidth={2} /> เครื่องใหม่</span>
                         </label>
                         <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors border text-sm font-medium ${
                           editAssetModal.data.purchaseCondition === 'used'
@@ -260,7 +260,7 @@ export default function EditAssetModal({
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="used" checked={editAssetModal.data.purchaseCondition === 'used'} onChange={handleEditAssetChange} className="sr-only" />
-                          <span>♻️ เครื่องเก่า / มือสอง</span>
+                          <span className="inline-flex items-center gap-1.5"><Recycle className="h-4 w-4" strokeWidth={2} /> เครื่องเก่า / มือสอง</span>
                         </label>
                       </div>
                     </Field>

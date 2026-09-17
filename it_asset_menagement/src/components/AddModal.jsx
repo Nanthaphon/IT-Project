@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Image as ImageIcon, X as XIcon, ShieldCheck } from 'lucide-react';
+import { Image as ImageIcon, Plus, Recycle, ShieldCheck, Sparkles, X as XIcon } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
@@ -331,7 +331,7 @@ export default function AddModal({
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="new" checked={purchaseCondition === 'new'} onChange={() => setPurchaseCondition?.('new')} className="sr-only" />
-                          <span>✨ เครื่องใหม่</span>
+                          <span className="inline-flex items-center gap-1.5"><Sparkles className="h-4 w-4" strokeWidth={2} /> เครื่องใหม่</span>
                         </label>
                         <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border text-sm font-medium ${
                           purchaseCondition === 'used'
@@ -339,7 +339,7 @@ export default function AddModal({
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <input type="radio" name="purchaseCondition" value="used" checked={purchaseCondition === 'used'} onChange={() => setPurchaseCondition?.('used')} className="sr-only" />
-                          <span>♻️ เครื่องเก่า / มือสอง</span>
+                          <span className="inline-flex items-center gap-1.5"><Recycle className="h-4 w-4" strokeWidth={2} /> เครื่องเก่า / มือสอง</span>
                         </label>
                       </div>
                     </Field>

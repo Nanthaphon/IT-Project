@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Camera, X, Plus, AlertCircle, ImagePlus } from 'lucide-react';
+import { AlertCircle, Camera, ImagePlus, NotebookPen, Plus, X } from 'lucide-react';
 import ImageViewer from '../ui/ImageViewer.jsx';
 import { compressAndUploadPhotos } from '../utils/uploadPhoto.js';
 
@@ -205,7 +205,7 @@ export default function ConditionCapture({
       {/* ── Notes ── */}
       <div>
         <label className="block text-[13px] font-medium text-stone-600 mb-1.5">
-          📝 หมายเหตุเพิ่มเติม
+          <NotebookPen className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> หมายเหตุเพิ่มเติม
         </label>
         <textarea
           value={notes}

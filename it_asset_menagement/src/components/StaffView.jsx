@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ArrowRight, Building2, Check, Copy, Download, ExternalLink, Eye, EyeOff, FilePlus, FileText, ImageIcon, KeyRound, Laptop, LogOut, Menu, Monitor, Package, Pencil, PlusCircle, Printer, RefreshCw, Repeat, RotateCcw, Save, Search, Sparkles, SquarePen, Star, Trash2, User, Wrench, X } from 'lucide-react';
+import { ArrowRight, Building2, Check, Copy, Download, ExternalLink, Eye, EyeOff, FilePlus, FileText, ImageIcon, KeyRound, Laptop, Lightbulb, LogOut, Menu, Monitor, Mouse, Package, Pencil, PlusCircle, Printer, RefreshCw, Repeat, RotateCcw, Save, Search, Sparkles, SquarePen, Star, Trash2, User, Wrench, X } from 'lucide-react';
 import { useActiveTab } from '../hooks/useActiveTab.js';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
@@ -104,7 +104,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
   <button class="no-print" onclick="window.print()"
     style="display:block;margin:0 auto 20px;padding:8px 32px;background:#2B6777;color:#fff;
     border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-    🖨️ พิมพ์ / บันทึก PDF
+    <Printer className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> พิมพ์ / บันทึก PDF
   </button>
 
   <!-- Header with company logo + title + date (compact one-line layout) -->
@@ -630,7 +630,7 @@ export default function StaffView({
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] p-7">
             <h2 className="text-[15px] font-medium text-stone-800 mb-2 tracking-tight">เข้าสู่ระบบ</h2>
             <p className="text-xs text-stone-500 mb-5 leading-relaxed">
-              💡 รหัสผ่านเริ่มต้น = <span className="font-medium text-clay-600">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
+              <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> รหัสผ่านเริ่มต้น = <span className="font-medium text-clay-600">รหัสพนักงาน</span> ของคุณ — เปลี่ยนรหัสเองได้ภายในระบบ
             </p>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -775,7 +775,7 @@ export default function StaffView({
       {/* ── Toast ── */}
       {setPwdToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-olive-600 text-white px-4 py-2.5 rounded-lg font-medium text-[13px]">
-          ✓ {setPwdToast}
+          <Check className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> {setPwdToast}
         </div>
       )}
 
@@ -1233,7 +1233,7 @@ export default function StaffView({
                     </label>
                   )}
                   <p className="text-[11px] text-stone-400 mt-1.5">
-                    💡 ถ่ายรูปจุดที่ชำรุด จอ คีย์บอร์ด หรือส่วนที่เสียหาย — รูปจะถูกใส่ลงในฟอร์ม PDF
+                    <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ถ่ายรูปจุดที่ชำรุด จอ คีย์บอร์ด หรือส่วนที่เสียหาย — รูปจะถูกใส่ลงในฟอร์ม PDF
                   </p>
                 </div>
 
@@ -1567,14 +1567,14 @@ export default function StaffView({
                   const isAsset = assets.some(a => a.id === item.id);
                   const isAccessory = accessories.some(a => a.id === item.id);
                   const catText = isAsset ? 'ทรัพย์สินหลัก' : isAccessory ? 'อุปกรณ์เสริม' : 'License';
-                  const icon = isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑';
+                  const ItemIcon = isAsset ? Monitor : isAccessory ? Mouse : KeyRound;
 
                   return (
                     <div key={item.uniqueKey || item.id} className="border border-stone-200 rounded-xl p-4 hover:border-clay-600/30 transition-colors flex flex-col gap-3">
                       <div className="flex items-start gap-3">
                         {item.image
                           ? <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0" />
-                          : <div className="w-12 h-12 rounded-xl bg-stone-50 flex items-center justify-center text-xl shrink-0 border border-stone-200">{icon}</div>
+                          : <div className="w-12 h-12 rounded-xl bg-stone-50 flex items-center justify-center shrink-0 border border-stone-200 text-stone-400"><ItemIcon className="h-5 w-5" strokeWidth={2} /></div>
                         }
                         <div className="flex-1 min-w-0 pt-0.5">
                           <p className="font-medium text-stone-800 text-sm truncate" title={item.name}>{item.name}</p>

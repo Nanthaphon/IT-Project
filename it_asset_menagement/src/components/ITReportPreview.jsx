@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, FileDown, Loader2, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CircleAlert, Eye, FileDown, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 
 /* ══════════════════════════════════════════════════════════════
    IT Report Preview + Edit — ตัวอย่าง + แก้ไขสไลด์ก่อน Export
@@ -418,7 +418,7 @@ function EditPanel({ idx, edit, set }) {
           <Fld label="ไม่สำเร็จ"><input type="number" value={stats.closedLose} onChange={e => set.stat('closedLose', toNum(e.target.value))} className={fld} /></Fld>
         </div>
         <div>
-          <p className="text-xs font-medium text-stone-600 mb-1.5">🔴 ประเด็นสำคัญ (Big Issues)</p>
+          <p className="text-xs font-medium text-stone-600 mb-1.5"><CircleAlert className="inline h-3.5 w-3.5 -mt-0.5 text-brick-600" strokeWidth={2} /> ประเด็นสำคัญ (Big Issues)</p>
           <RowsEditor rows={edit.bigIssues} setRows={set.bigIssues} itemLabel="Issue" addLabel="เพิ่ม Issue"
             makeEmpty={() => ({ issue: '', raiseBy: 'All', status: '⏳ In Progress', due: '' })}
             columns={[

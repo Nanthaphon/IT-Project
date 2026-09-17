@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Download, FileSpreadsheet, Info } from 'lucide-react';
+import { Download, FileSpreadsheet, Info, Lightbulb, Upload } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '../ui/primitives.jsx';
 
 /* ── รายการ field ที่แต่ละ entity import ได้ — แสดงเป็น preview ในกล่อง info ── */
@@ -104,7 +104,7 @@ export default function ImportModal({
                 ))}
               </div>
               <p className="text-[11px] text-stone-500 mt-2 leading-snug">
-                💡 Template มีแถวตัวอย่าง 1 แถว ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
+                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> Template มีแถวตัวอย่าง 1 แถว ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
               </p>
             </div>
           </div>

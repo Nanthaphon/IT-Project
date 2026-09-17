@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { AlertCircle, Camera, Check, ClipboardCheck, ImagePlus, Printer, Trash2, X } from 'lucide-react';
+import { AlertCircle, Camera, Check, ClipboardCheck, ImagePlus, Printer, Trash2, TriangleAlert, X } from 'lucide-react';
 import {
   ASSESSMENT_SECTIONS,
   PHOTO_SLOTS,
@@ -232,11 +232,11 @@ export default function PreHandoverAssessmentModal({
             />
             {selectedAsset && (
               <p className="mt-2 text-xs text-stone-500">
-                📄 พิมพ์สำหรับ: <span className="font-medium text-stone-700">{selectedAsset.name}</span>
+                <Printer className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> พิมพ์สำหรับ: <span className="font-medium text-stone-700">{selectedAsset.name}</span>
                 {selectedCheckout ? (
                   <span className="ml-1.5 text-olive-700 font-medium">· ✓ pre-fill จาก transaction</span>
                 ) : (
-                  <span className="ml-1.5 text-clay-600 font-medium">· ⚠ ไม่มี transaction — เริ่มประเมินใหม่</span>
+                  <span className="ml-1.5 text-clay-600 font-medium">· <TriangleAlert className="inline h-3 w-3 -mt-0.5" strokeWidth={2} /> ไม่มี transaction — เริ่มประเมินใหม่</span>
                 )}
               </p>
             )}

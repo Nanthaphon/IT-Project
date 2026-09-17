@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, CheckCircle2, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Key, Printer, RotateCcw, Shield, SquarePen, X } from 'lucide-react';
+import { Check, CheckCircle2, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Unlock, X } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
@@ -288,7 +288,7 @@ export default function EmployeeDetailsModal({
                     const isAccessory = accessories.some(a => a.id === item.id);
                     const isLicense   = !isAsset && !isAccessory;
                     const category    = isAsset ? 'assets' : isAccessory ? 'accessories' : 'licenses';
-                    const icon        = isAsset ? '🖥️' : isAccessory ? '🖱️' : '🔑';
+                    const ItemIcon    = isAsset ? Monitor : isAccessory ? Mouse : KeyRound;
                     const catLabel    = isAsset ? 'ทรัพย์สิน' : isAccessory ? 'อุปกรณ์เสริม' : 'License';
                     const catColor    = isAsset
                       ? 'bg-stone-50 text-stone-600 border-stone-100'
@@ -314,7 +314,7 @@ export default function EmployeeDetailsModal({
                         <div className="flex items-center gap-3 min-w-0">
                           {item.image
                             ? <img src={item.image} alt={item.name} className="w-9 h-9 rounded-lg object-cover border border-stone-200 shrink-0" />
-                            : <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 border ${catColor}`}>{icon}</div>
+                            : <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${catColor}`}><ItemIcon className="h-4 w-4" strokeWidth={2} /></div>
                           }
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-stone-800 truncate group-hover:text-clay-600 transition-colors">
@@ -663,11 +663,11 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
           </span>
         ) : isDefault ? (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-clay-100 text-clay-600 border border-clay-200 text-[11px] font-medium">
-            🔓 ใช้รหัสพนักงานเป็นรหัสผ่าน
+            <Unlock className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ใช้รหัสพนักงานเป็นรหัสผ่าน
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200 text-[11px] font-medium">
-            🔐 ตั้งรหัสผ่านส่วนตัว
+            <Lock className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ตั้งรหัสผ่านส่วนตัว
           </span>
         )}
         {updatedAt && (

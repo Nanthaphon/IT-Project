@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
-import { Banknote, Briefcase, Building2, Calendar, Check, ChevronRight, CircleCheck, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, User, X } from 'lucide-react';
+import { Banknote, Briefcase, Building2, Calendar, Check, ChevronRight, CircleCheck, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
@@ -2240,7 +2240,7 @@ export default function AssetDetailsModal({
                           {pendingPurchaseDocs.map((pd, idx) => (
                             <div key={idx} className="flex items-center justify-between bg-clay-100 border border-clay-200 p-2.5 rounded-lg">
                               <span className="text-[13px] font-medium text-clay-600 truncate max-w-[180px]">
-                                🕐 {pd.name}
+                                <Clock className="inline h-3 w-3 -mt-0.5" strokeWidth={2} /> {pd.name}
                               </span>
                               <button type="button" onClick={() => handleRemoveHistoryDoc(idx, 'pending')} className="text-clay-400 hover:text-rose-500 bg-white border border-clay-200 w-6 h-6 rounded-xl flex items-center justify-center transition-colors">
                                 <X className="w-3 h-3" strokeWidth={2} />
@@ -2594,7 +2594,7 @@ export function SeatDetailModal({
                   )}
                   {expCheck?.isExpiring && (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${expCheck.colorClass}`}>
-                      ⚠ {expCheck.statusText}
+                      <TriangleAlert className="inline h-3 w-3 -mt-0.5" strokeWidth={2} /> {expCheck.statusText}
                     </span>
                   )}
                 </div>
@@ -3050,7 +3050,7 @@ function DItem({ label, value, badge, span, alwaysShow = false }) {
         <span className="text-[15px] font-medium text-stone-900 break-words">{value}</span>
         {badge && (
           <span className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-lg border ${badge.cls}`}>
-            ⚠ {badge.text}
+            <TriangleAlert className="inline h-3 w-3 -mt-0.5" strokeWidth={2} /> {badge.text}
           </span>
         )}
       </dd>

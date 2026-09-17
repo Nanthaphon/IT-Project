@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, RotateCcw, X, ShieldCheck } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eye, EyeOff, KeyRound, Lightbulb, RotateCcw, ShieldCheck, X } from 'lucide-react';
 import { BRAND, cls } from '../ui/theme.js';
 
 /**
@@ -161,7 +161,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
           ) : (
             <div className="bg-stone-50/40 border border-stone-200 rounded-xl p-3.5">
               <p className="text-xs text-stone-900/85 leading-relaxed">
-                💡 ตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัยเพิ่มเติม — ระบบจะใช้รหัสที่ตั้งนี้แทนรหัสพนักงานในการ login
+                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัยเพิ่มเติม — ระบบจะใช้รหัสที่ตั้งนี้แทนรหัสพนักงานในการ login
               </p>
             </div>
           )}

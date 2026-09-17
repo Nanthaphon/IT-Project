@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Upload, CheckCircle2, AlertTriangle, FileSpreadsheet, Layers, Eye, Package, Loader2 } from 'lucide-react';
+import { AlertTriangle, Banknote, Building2, Calendar, CheckCircle2, CircleSlash, ClipboardList, Eye, FileSpreadsheet, Layers, Loader2, Package, Upload, X } from 'lucide-react';
 import { db } from '../firebase.js';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -513,11 +513,11 @@ function LicenseRow({ lic }) {
             )}
           </div>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-stone-500 ml-5">
-            {lic._meta?.manufacturer && <span>🏢 {lic._meta.manufacturer}</span>}
-            {lic.expirationDate && <span>📅 หมด: {lic.expirationDate}</span>}
-            {lic.terminationDate && <span>⛔ ยกเลิก: {lic.terminationDate}</span>}
-            {lic.purchaseOrderNumber && <span>📋 PO: {lic.purchaseOrderNumber}</span>}
-            {lic.cost > 0 && <span>💰 ฿{lic.cost.toLocaleString()}</span>}
+            {lic._meta?.manufacturer && <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" strokeWidth={2} />{lic._meta.manufacturer}</span>}
+            {lic.expirationDate && <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" strokeWidth={2} />หมด: {lic.expirationDate}</span>}
+            {lic.terminationDate && <span className="inline-flex items-center gap-1"><CircleSlash className="h-3 w-3" strokeWidth={2} />ยกเลิก: {lic.terminationDate}</span>}
+            {lic.purchaseOrderNumber && <span className="inline-flex items-center gap-1"><ClipboardList className="h-3 w-3" strokeWidth={2} />PO: {lic.purchaseOrderNumber}</span>}
+            {lic.cost > 0 && <span className="inline-flex items-center gap-1"><Banknote className="h-3 w-3" strokeWidth={2} />฿{lic.cost.toLocaleString()}</span>}
           </div>
           {allKeys.length > 0 && (
             <div className="ml-5 mt-1.5">

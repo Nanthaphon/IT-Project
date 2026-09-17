@@ -10,6 +10,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeade
 import { cls } from '../ui/theme.js';
 import Timeline from './timeline/Timeline.jsx';
 import ImageViewer from '../ui/ImageViewer.jsx';
+import SeatTable from './licenses/SeatTable.jsx';
 import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
 
 /* ── Purchase-history document storage helpers ── */
@@ -1871,147 +1872,24 @@ export default function AssetDetailsModal({
                         <button type="button" onClick={() => setSeatSearch('')} className="mt-1.5 text-xs font-medium text-clay-600 hover:underline">ล้างคำค้นหา</button>
                       </div>
                     )}
-                    {visibleLicenseSeats.map((seat, index) => (
-                      <div key={seat.id} className="bg-white transition-colors hover:bg-stone-50">
-                        <div onClick={() => setSeatDetailModal(seat)} className="p-3 flex items-center justify-between cursor-pointer gap-2">
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <input type="checkbox" checked={selectedLicenseSeatsForDelete.includes(seat.id)} onChange={(e) => { e.stopPropagation(); handleSelectLicenseSeat(seat.id); }} onClick={(e) => e.stopPropagation()} className="w-3.5 h-3.5 text-clay-600 rounded border-stone-300 shrink-0" />
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${seat.type === 'available' ? 'bg-olive-500' : 'bg-stone-500'}`} />
-                            {seat.type === 'available' ? (
-                              <div className="flex items-center gap-2 overflow-hidden">
-                                <div className="overflow-hidden">
-                                  <p className="text-[13px] font-medium text-stone-800 truncate">
-                                    {seat.seatLabel || `สิทธิ์ว่าง #${index + 1}`}
-                                  </p>
-                                  {/* ข้อมูลย่อยรวมบรรทัดเดียว — เดิมซ้อนกัน 3 บรรทัด */}
-                                  <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
-                                    {seat.productKey && (
-                                      <span className="inline-flex items-center gap-1 truncate font-mono" title={seat.productKey}>
-                                        <KeyRound className="size-2.5 shrink-0" strokeWidth={2.2} />
-                                        {seat.productKey}
-                                      </span>
-                                    )}
-                                    {seat.seatExpirationDate && (
-                                      <span className="inline-flex shrink-0 items-center gap-1">
-                                        <Calendar className="size-2.5 shrink-0" strokeWidth={2.2} />
-                                        หมดอายุ {formatDateShort(seat.seatExpirationDate)}
-                                      </span>
-                                    )}
-                                  </p>
-                                </div>
-                                <span className="shrink-0 rounded-lg bg-olive-50 px-2 py-0.5 text-[11px] font-medium text-olive-700">พร้อมใช้งาน</span>
-                                {/* 🆕 Badge ใกล้หมดอายุ */}
-                                {(() => {
-                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
-                                  return ex.isExpiring ? (
-                                    <span
-                                      className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
-                                    >
-                                      ⚠ {ex.statusText}
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </div>
-                            ) : seat.assignee.isAssetBound ? (
-                              /* ── Device-bound seat ── */
-                              <div className="flex items-center gap-2.5 overflow-hidden">
-                                <div className="w-7 h-7 rounded-lg bg-clay-100 text-clay-600 flex items-center justify-center text-xs border border-clay-200 shrink-0">
-                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                                </div>
-                                <div className="overflow-hidden">
-                                  <p className="text-xs font-medium text-stone-800 truncate">{seat.assignee.assignedAssetName || 'ทรัพย์สิน'}</p>
-                                  {seat.assignee.empId ? (
-                                    <p className="text-[11px] text-stone-500 font-medium truncate flex items-center gap-1">
-                                      <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                      {seat.assignee.empName}
-                                    </p>
-                                  ) : (
-                                    <p className="text-[11px] text-clay-500 font-medium">ผูกกับทรัพย์สิน</p>
-                                  )}
-                                  {seat.productKey && (
-                                    <p className="text-[10px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
-                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      {seat.productKey}
-                                    </p>
-                                  )}
-                                  {seat.seatExpirationDate && (
-                                    <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
-                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate)}
-                                    </p>
-                                  )}
-                                </div>
-                                {/* 🆕 Badge ใกล้หมดอายุ */}
-                                {(() => {
-                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
-                                  return ex.isExpiring ? (
-                                    <span
-                                      className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
-                                    >
-                                      ⚠ {ex.statusText}
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2.5 overflow-hidden">
-                                <div className="w-7 h-7 rounded-full bg-stone-100 text-clay-600 flex items-center justify-center font-medium text-xs border border-stone-200 shrink-0">
-                                  {seat.assignee.empName?.charAt(0) || '?'}
-                                </div>
-                                <div className="overflow-hidden">
-                                  <p className="text-xs font-medium text-stone-800 truncate">{seat.assignee.empName}</p>
-                                  {/* 🆕 ชื่อรายการย่อย (label) หรือ checkoutDate */}
-                                  {seat.seatLabel ? (
-                                    <p className="text-[11px] text-stone-500 truncate font-medium">{seat.seatLabel}</p>
-                                  ) : seat.assignee.checkoutDate && (
-                                    <p className="text-[11px] text-stone-400">เบิกเมื่อ {seat.assignee.checkoutDate}</p>
-                                  )}
-                                  {seat.productKey && (
-                                    <p className="text-[10px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
-                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      {seat.productKey}
-                                    </p>
-                                  )}
-                                  {seat.seatExpirationDate && (
-                                    <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
-                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate)}
-                                    </p>
-                                  )}
-                                </div>
-                                {/* 🆕 Badge ใกล้หมดอายุ */}
-                                {(() => {
-                                  const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
-                                  return ex.isExpiring ? (
-                                    <span
-                                      className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-lg border shrink-0 ${ex.colorClass}`}
-                                      title={`หมดอายุ ${formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}`}
-                                    >
-                                      ⚠ {ex.statusText}
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {seat.type === 'available' ? null : seat.assignee.isAssetBound ? (
-                              seat.assignee.empId ? (
-                                <span className="text-[10px] font-medium bg-stone-50 text-stone-600 border border-stone-200 px-2 py-1 rounded-lg whitespace-nowrap">กำลังใช้งาน</span>
-                              ) : (
-                                <span className="text-[10px] font-medium bg-clay-100 text-clay-600 border border-clay-200 px-2 py-1 rounded-lg">ติดตั้งบนเครื่อง</span>
-                              )
-                            ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, checkoutId: seat.assignee.checkoutId, empId: seat.assignee.empId, empName: seat.assignee.empName, assetName: currentAssetDetail.name, collectionName: 'licenses' }); }} className="text-[11px] font-medium bg-white border border-stone-200 text-olive-600 hover:border-olive-300 hover:bg-olive-50 px-2.5 py-1 rounded-xl transition-colors">รับคืน</button>
-                            )}
-                            <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                          </div>
-                        </div>
-
-                      </div>
-                    ))}
+                    <SeatTable
+                      seats={visibleLicenseSeats}
+                      licenseExpiry={currentAssetDetail.expirationDate}
+                      selectedIds={selectedLicenseSeatsForDelete}
+                      onToggleSelect={handleSelectLicenseSeat}
+                      onOpen={setSeatDetailModal}
+                      onReturn={(seat) => setReturnModal({
+                        isOpen: true,
+                        assetId: currentAssetDetail.id,
+                        checkoutId: seat.assignee.checkoutId,
+                        empId: seat.assignee.empId,
+                        empName: seat.assignee.empName,
+                        assetName: currentAssetDetail.name,
+                        collectionName: 'licenses',
+                      })}
+                      checkExpiration={checkLicenseExpiration}
+                      formatDate={formatDateShort}
+                    />
                     {licenseSeats.length === 0 && (
                       <div className="py-8 text-center text-[13px] text-stone-400 bg-stone-50 rounded-xl">
                         ไม่มีข้อมูลสิทธิ์ กรุณาตั้งค่าจำนวนสิทธิ์ก่อน

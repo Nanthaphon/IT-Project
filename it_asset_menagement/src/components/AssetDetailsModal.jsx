@@ -11,6 +11,7 @@ import { cls } from '../ui/theme.js';
 import Timeline from './timeline/Timeline.jsx';
 import ImageViewer from '../ui/ImageViewer.jsx';
 import SeatTable from './licenses/SeatTable.jsx';
+import ItemsToolbar from './list/ItemsToolbar.jsx';
 import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
 
 /* ── Purchase-history document storage helpers ── */
@@ -1683,78 +1684,30 @@ export default function AssetDetailsModal({
               {/* รายการสิทธิ์ผู้ถือครอง (เฉพาะ licenses) */}
               {selectedAssetCategory === 'licenses' && (
                 <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13px] font-medium text-stone-600">รายการผู้ถือสิทธิ์ ({seatSearchQ ? `${visibleLicenseSeats.length}/${licenseSeats.length}` : licenseSeats.length})</h4>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {licenseSeats.length > 0 && (
-                        <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer mr-2">
-                          <input type="checkbox" checked={selectedLicenseSeatsForDelete.length === licenseSeats.length && licenseSeats.length > 0} onChange={handleSelectAllLicenseSeats} className="w-3.5 h-3.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
-                          เลือกทั้งหมด
-                        </label>
-                      )}
-                      {selectedLicenseSeatsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedLicenseSeats} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
-                          ลบ ({selectedLicenseSeatsForDelete.length})
-                        </button>
-                      )}
-                      <button onClick={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-xl transition-colors">
-                        นำเข้า CSV
-                      </button>
-                      <button onClick={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors">
-                        + เพิ่มสิทธิ์
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 🆕 กรองตามสถานะ + ช่องค้นหา */}
-                  {licenseSeats.length > 0 && (
-                    <div className="space-y-2.5 border-b border-stone-100 px-5 py-2.5">
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          { k: 'all',       label: 'ทั้งหมด' },
-                          { k: 'available', label: 'ว่าง' },
-                          { k: 'assigned',  label: 'พนักงานถือ' },
-                          { k: 'bound',     label: 'ผูกกับเครื่อง' },
-                        ].filter(o => o.k === 'all' || seatCounts[o.k] > 0).map(o => (
-                          <button
-                            key={o.k}
-                            type="button"
-                            onClick={() => setSeatFilter(o.k)}
-                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                              seatFilter === o.k
-                                ? 'bg-clay-600 text-white'
-                                : 'bg-sand-100 text-stone-600 hover:bg-sand-200'
-                            }`}
-                          >
-                            {o.label} <span className="tabular-nums opacity-70">{seatCounts[o.k]}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" strokeWidth={2} />
-                        <input
-                          type="text"
-                          value={seatSearch}
-                          onChange={(e) => setSeatSearch(e.target.value)}
-                          placeholder="ค้นหารายการย่อย (ชื่อ, ผู้ถือ, Product Key, Supplier, สถานะ...)"
-                          className="w-full bg-stone-50 border border-stone-200/60 rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
-                        />
-                        {seatSearch && (
-                          <button
-                            type="button"
-                            onClick={() => setSeatSearch('')}
-                            title="ล้างคำค้นหา"
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors"
-                          >
-                            <X className="h-3.5 w-3.5" strokeWidth={2} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <ItemsToolbar
+                    title="รายการผู้ถือสิทธิ์"
+                    total={licenseSeats.length}
+                    shown={seatSearchQ || seatFilter !== 'all' ? visibleLicenseSeats.length : null}
+                    filters={[
+                      { key: 'all',       label: 'ทั้งหมด',      count: seatCounts.all },
+                      { key: 'available', label: 'ว่าง',         count: seatCounts.available },
+                      { key: 'assigned',  label: 'พนักงานถือ',   count: seatCounts.assigned },
+                      { key: 'bound',     label: 'ผูกกับเครื่อง', count: seatCounts.bound },
+                    ]}
+                    activeFilter={seatFilter}
+                    onFilterChange={setSeatFilter}
+                    search={seatSearch}
+                    onSearchChange={setSeatSearch}
+                    searchPlaceholder="ค้นหาสิทธิ์ (ผู้ถือ, Product Key…)"
+                    selectedCount={selectedLicenseSeatsForDelete.length}
+                    onSelectAll={handleSelectAllLicenseSeats}
+                    onClearSelection={() => setSelectedLicenseSeatsForDelete([])}
+                    onDeleteSelected={handleDeleteSelectedLicenseSeats}
+                    onImport={() => { setIsImportingLicenseCSV(!isImportingLicenseCSV); setIsAddingNewLicenseSeat(false); }}
+                    onAdd={() => { setIsAddingNewLicenseSeat(!isAddingNewLicenseSeat); setIsImportingLicenseCSV(false); }}
+                    addLabel="เพิ่มสิทธิ์"
+                    disabled={isSavingItem}
+                  />
 
                   <div className="p-4">
                   {isImportingLicenseCSV && (
@@ -1891,52 +1844,22 @@ export default function AssetDetailsModal({
               {/* ส่วนจัดการชิ้นย่อย (เฉพาะอุปกรณ์เสริม) */}
               {selectedAssetCategory === 'accessories' && (
                 <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 border-b border-stone-100 gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13px] font-medium text-stone-600">รายการชิ้นย่อย ({accSearchQ ? `${visibleIndividualItems.length}/${individualItems.length}` : individualItems.length})</h4>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {individualItems.length > 0 && (
-                        <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer mr-2">
-                          <input type="checkbox" checked={selectedItemsForDelete.length === individualItems.length && individualItems.length > 0} onChange={handleSelectAllItems} className="w-3.5 h-3.5 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
-                          เลือกทั้งหมด
-                        </label>
-                      )}
-                      {selectedItemsForDelete.length > 0 && (
-                        <button onClick={handleDeleteSelectedItems} disabled={isSavingItem} className="text-xs font-medium text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-rose-300 transition-colors disabled:opacity-50">
-                          ลบ ({selectedItemsForDelete.length})
-                        </button>
-                      )}
-                      <button onClick={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }} className="text-xs font-medium text-stone-600 bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-xl transition-colors">
-                        นำเข้า CSV
-                      </button>
-                      <button onClick={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }} className="text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 px-3 py-1.5 rounded-xl transition-colors">
-                        + เพิ่มชิ้นใหม่
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 🆕 ช่องค้นหาในรายการชิ้นย่อย */}
-                  {individualItems.length > 0 && (
-                    <div className="px-5 py-2.5 border-b border-stone-100">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" strokeWidth={2} />
-                        <input
-                          type="text"
-                          value={accItemSearch}
-                          onChange={(e) => setAccItemSearch(e.target.value)}
-                          placeholder="ค้นหาชิ้นย่อย (SN, รุ่น, ผู้ถือ, สถานะ...)"
-                          className="w-full bg-stone-50 border border-stone-200/60 rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
-                        />
-                        {accItemSearch && (
-                          <button type="button" onClick={() => setAccItemSearch('')} title="ล้างคำค้นหา" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors">
-                            <X className="h-3.5 w-3.5" strokeWidth={2} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <ItemsToolbar
+                    title="รายการชิ้นย่อย"
+                    total={individualItems.length}
+                    shown={accSearchQ ? visibleIndividualItems.length : null}
+                    search={accItemSearch}
+                    onSearchChange={setAccItemSearch}
+                    searchPlaceholder="ค้นหาชิ้นย่อย (SN, รุ่น, ผู้ถือ…)"
+                    selectedCount={selectedItemsForDelete.length}
+                    onSelectAll={handleSelectAllItems}
+                    onClearSelection={() => setSelectedItemsForDelete([])}
+                    onDeleteSelected={handleDeleteSelectedItems}
+                    onImport={() => { setIsImportingCSV(!isImportingCSV); setIsAddingNew(false); }}
+                    onAdd={() => { setIsAddingNew(!isAddingNew); setIsImportingCSV(false); }}
+                    addLabel="เพิ่มชิ้นใหม่"
+                    disabled={isSavingItem}
+                  />
 
                   <div className="p-4">
                   {isImportingCSV && (

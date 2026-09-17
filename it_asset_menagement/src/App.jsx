@@ -210,7 +210,7 @@ function App() {
     if (routeAssetEdit && routeAssetId) {
       if (editPopulatedRef.current !== routeAssetId) {
         const a = assets.find(x => x.id === routeAssetId);
-        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'assets' }); editPopulatedRef.current = routeAssetId; }
+        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'assets', fromRoute: true }); editPopulatedRef.current = routeAssetId; }
       }
     } else {
       editPopulatedRef.current = null;
@@ -223,7 +223,7 @@ function App() {
     if (routeLicenseEdit && routeLicenseId) {
       if (editLicensePopulatedRef.current !== routeLicenseId) {
         const l = licenses.find(x => x.id === routeLicenseId);
-        if (l) { setEditLicenseModal({ isOpen: true, data: { ...l } }); editLicensePopulatedRef.current = routeLicenseId; }
+        if (l) { setEditLicenseModal({ isOpen: true, data: { ...l }, fromRoute: true }); editLicensePopulatedRef.current = routeLicenseId; }
       }
     } else {
       editLicensePopulatedRef.current = null;
@@ -236,7 +236,7 @@ function App() {
     if (routeAccessoryEdit && routeAccessoryId) {
       if (editAccessoryPopulatedRef.current !== routeAccessoryId) {
         const a = accessories.find(x => x.id === routeAccessoryId);
-        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'accessories' }); editAccessoryPopulatedRef.current = routeAccessoryId; }
+        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'accessories', fromRoute: true }); editAccessoryPopulatedRef.current = routeAccessoryId; }
       }
     } else {
       editAccessoryPopulatedRef.current = null;
@@ -249,12 +249,31 @@ function App() {
     if (routeFurnitureEdit && routeFurnitureId) {
       if (editFurniturePopulatedRef.current !== routeFurnitureId) {
         const a = assets.find(x => x.id === routeFurnitureId);
-        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'assets' }); editFurniturePopulatedRef.current = routeFurnitureId; }
+        if (a) { setEditAssetModal({ isOpen: true, data: { ...a }, collectionName: 'assets', fromRoute: true }); editFurniturePopulatedRef.current = routeFurnitureId; }
       }
     } else {
       editFurniturePopulatedRef.current = null;
     }
   }, [routeFurnitureEdit, routeFurnitureId, assets]);
+  /* 🆕 ออกจาก route แก้ไขแล้วต้องล้าง state ของฟอร์มด้วย
+     ModalsContainer เรนเดอร์ EditAssetModal/EditLicenseModal แบบ global
+     และซ่อนไว้เฉพาะตอนอยู่บน route แก้ไข (suppressEditAssetModal)
+     พอเปลี่ยนหน้า การซ่อนหลุดทันที แต่ isOpen ยังค้างเป็น true
+     -> modal เด้งทับหน้าที่เพิ่งเข้าไป
+     ปิดเฉพาะตัวที่เปิดมาจาก route เพื่อไม่ให้กระทบปุ่มแก้ไขในตาราง */
+  const onAssetEditRoute = routeAssetEdit || routeAccessoryEdit || routeFurnitureEdit;
+  useEffect(() => {
+    if (onAssetEditRoute) return;
+    setEditAssetModal(prev => (prev.isOpen && prev.fromRoute
+      ? { isOpen: false, data: null, collectionName: '' } : prev));
+  }, [onAssetEditRoute]);
+
+  useEffect(() => {
+    if (routeLicenseEdit) return;
+    setEditLicenseModal(prev => (prev.isOpen && prev.fromRoute
+      ? { isOpen: false, data: null } : prev));
+  }, [routeLicenseEdit]);
+
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isHistoryImportOpen, setIsHistoryImportOpen] = useState(false); // 🆕 นำเข้าประวัติถือครอง
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);

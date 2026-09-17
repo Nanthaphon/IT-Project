@@ -365,6 +365,16 @@ export default function ITReportPage({
   const hw    = hwEdit ?? autoHw;
   const sw    = swEdit ?? autoSw;
 
+  /* 🆕 ค่าบนหน้าจอตอนนี้เป็นของร่างเดือนไหน (null = ยังไม่ได้โหลด)
+     ใช้กันไม่ให้ autosave เขียนทับร่างด้วยค่าว่าง
+
+     บั๊กเดิม: ตอน mount เอฟเฟกต์ autosave ทำงานต่อจากเอฟเฟกต์โหลดร่าง "ในคอมมิตเดียวกัน"
+     จึงยังเห็นค่าเริ่มต้น (ว่าง) ของเรนเดอร์แรก แล้วเขียนทับ localStorage ทันที
+     พอ StrictMode รันเอฟเฟกต์ซ้ำรอบสอง เอฟเฟกต์โหลดร่างก็อ่านได้แต่ค่าว่างที่เพิ่งถูกทับ
+     -> ทุกอย่างที่กรอกไว้ (รวมช่องหมายเหตุ) หายทุกครั้งที่เปิดหน้านี้ใหม่
+     กรณีเปลี่ยนเดือนก็กันด้วยตัวเดียวกัน ไม่ให้ข้อมูลเดือนเก่าไหลไปทับคีย์เดือนใหม่ */
+  const [loadedKey, setLoadedKey] = useState(null);
+
   // โหลดร่างของเดือนที่เลือก (รวมตัวเลขที่เคยแก้เอง) ทุกครั้งที่เปลี่ยนเดือน/ปี
   useEffect(() => {
     const d = readDraft(month, year);
@@ -376,6 +386,7 @@ export default function ITReportPage({
     setHwEdit(d.hw ?? null);
     setSwEdit(d.sw ?? null);
     setSaved(false);
+    setLoadedKey(draftKey(month, year));
   }, [month, year]); // eslint-disable-line
 
   // ร่างที่จะเขียนลง localStorage — ทุกอย่างที่หน้านี้แก้ได้ ต้องอยู่ในนี้ครบ
@@ -386,9 +397,11 @@ export default function ITReportPage({
 
   // บันทึกร่างอัตโนมัติ กันข้อมูลหายระหว่างพิมพ์
   useEffect(() => {
+    // เขียนเฉพาะเมื่อค่าบนหน้าจอเป็นของเดือนนี้จริง ๆ แล้วเท่านั้น
+    if (loadedKey !== draftKey(month, year)) return;
     try { localStorage.setItem(draftKey(month, year), JSON.stringify(buildDraft())); }
     catch { /* ข้าม */ }
-  }, [month, year, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit]); // eslint-disable-line
+  }, [loadedKey, month, year, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit]); // eslint-disable-line
 
   const reportDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 

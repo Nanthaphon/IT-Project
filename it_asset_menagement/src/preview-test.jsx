@@ -1,5 +1,5 @@
 import './index.css';
-import React from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import ITReportPage from './components/ITReportModal.jsx';
 const assets = [
@@ -16,8 +16,12 @@ const licenses = [
 ];
 const employees = Array.from({length:61},(_,i)=>({ id:i, fullName:'พนักงาน '+i }));
 const repairRequests = [];
+/* StrictMode ให้เหมือน main.jsx จริง — เอฟเฟกต์รันซ้ำสองรอบ
+   บั๊กเรื่องร่างหายของหน้านี้โผล่เฉพาะตอนมี StrictMode เท่านั้น */
 createRoot(document.getElementById('root')).render(
+  <StrictMode>
   <div style={{ background:'#F7F9FA', minHeight:'100vh', padding:'24px' }}>
     <ITReportPage employees={employees} repairRequests={repairRequests} assets={assets} accessories={accessories} licenses={licenses} />
   </div>
+  </StrictMode>
 );

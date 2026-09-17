@@ -149,7 +149,7 @@ function App() {
     fieldOptions, bundledItems,
   } = useFirebaseData(authRole);
 
-  const { isSuperAdmin, adminPermissions, displayName: adminDisplayName, permLoading } = useAdminPermissions(currentUid, authRole);
+  const { isSuperAdmin, adminPermissions, displayName: adminDisplayName, permLoading, permError } = useAdminPermissions(currentUid, authRole);
   const canEdit = isSuperAdmin || adminPermissions?.level === 'full';
 
   // ── Global loading overlay (สำหรับ async operations ทั้งระบบ) ──
@@ -3150,6 +3150,22 @@ function App() {
 
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent min-w-0">
         <TopHeader menuTitle={menuTitle} notifRef={notifRef} isNotifOpen={isNotifOpen} setIsNotifOpen={setIsNotifOpen} totalPendingCount={totalPendingCount} pendingRepairsCount={pendingRepairsCount} pendingSuppliesCount={pendingSuppliesCount} pendingReplacementsCount={pendingReplacementsCount} pendingAccessoryReqCount={pendingAccessoryReqCount} expiringLicensesCount={expiringLicensesCount} setActiveMenu={setActiveMenu} activeMenu={activeMenu} totalSystemItems={totalSystemItems} currentDataLength={currentDataLength} handleLogout={handleLogout} authRole={authRole} isSuperAdmin={isSuperAdmin} userName={adminDisplayName} onOpenSidebar={() => setSidebarOpen(true)} />
+        {permError && (
+          /* อ่าน admin_users ไม่สำเร็จ = ระบบลดสิทธิ์เป็นดูอย่างเดียวเงียบ ๆ
+             ปุ่มเพิ่ม/แก้ไข/ลบจะหายหมด ต้องบอกผู้ใช้ว่าเกิดอะไรขึ้น */
+          <div className="border-b border-ochre-200 bg-ochre-50 px-6 py-2.5">
+            <p className="text-[13px] text-ochre-700">
+              โหลดสิทธิ์การใช้งานไม่สำเร็จ ({permError}) — ตอนนี้ใช้ได้เฉพาะโหมดดูอย่างเดียว ปุ่มเพิ่ม/แก้ไข/ลบจึงไม่ขึ้น{' '}
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="font-medium underline underline-offset-2"
+              >
+                ลองใหม่
+              </button>
+            </p>
+          </div>
+        )}
 
         <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || routeFurnitureId || isFullBleedMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
           {routeAssetEdit ? (

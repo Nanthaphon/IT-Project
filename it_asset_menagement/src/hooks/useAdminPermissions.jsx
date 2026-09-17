@@ -15,6 +15,8 @@ export default function useAdminPermissions(uid, authRole) {
   const [adminPermissions, setAdminPermissions] = useState(null);
   const [displayName, setDisplayName] = useState('');
   const [permLoading, setPermLoading] = useState(true);
+  // 🆕 อ่านสิทธิ์ไม่สำเร็จ ≠ ไม่มีสิทธิ์ — ต้องแยกสองกรณีนี้ออกจากกัน
+  const [permError, setPermError] = useState(null);
 
   useEffect(() => {
     if (authRole !== 'admin') {
@@ -35,6 +37,7 @@ export default function useAdminPermissions(uid, authRole) {
     async function load() {
       try {
         setPermLoading(true);
+        setPermError(null);
         const docRef = doc(db, 'admin_users', uid);
         const snap = await getDoc(docRef);
 
@@ -77,6 +80,7 @@ export default function useAdminPermissions(uid, authRole) {
         if (!cancelled) {
           setIsSuperAdmin(false);
           setAdminPermissions({ menus: [], level: 'view' });
+          setPermError(err?.code || err?.message || 'อ่านสิทธิ์ไม่สำเร็จ');
         }
       } finally {
         if (!cancelled) setPermLoading(false);
@@ -87,5 +91,5 @@ export default function useAdminPermissions(uid, authRole) {
     return () => { cancelled = true; };
   }, [uid, authRole]);
 
-  return { isSuperAdmin, adminPermissions, displayName, permLoading };
+  return { isSuperAdmin, adminPermissions, displayName, permLoading, permError };
 }

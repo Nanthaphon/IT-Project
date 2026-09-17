@@ -84,7 +84,7 @@ export default function EditAssetModal({
         : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
         <div className="px-7 py-5 border-b border-stone-100">
-          <div className={`flex items-start justify-between ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
+          <div className={`flex items-start justify-between ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
             <div className="flex items-start gap-3.5">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -109,7 +109,7 @@ export default function EditAssetModal({
 
         {/* Body */}
         <form onSubmit={handleUpdateAsset} className="overflow-y-auto flex-1">
-          <div className={`px-7 py-6 space-y-7 ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
+          <div className={`px-7 py-6 space-y-7 ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
 
             {/* รูปภาพ */}
             <section className="space-y-3">
@@ -150,35 +150,35 @@ export default function EditAssetModal({
             {/* ข้อมูลทั่วไป */}
             <section className="space-y-4">
               <SectionHeader>ข้อมูลทั่วไป</SectionHeader>
-
-              <Field label="ชื่ออุปกรณ์ / รุ่น" required>
-                <input
-                  type="text"
-                  name="name"
-                  value={editAssetModal.data.name || ''}
-                  onChange={handleEditAssetChange}
-                  required
-                  className={inputCls}
-                  placeholder="เช่น Dell Latitude 5520"
-                />
-              </Field>
-
-              <Field label="ประเภท">
-                <FieldOptionSelect
-                  name="type"
-                  value={editAssetModal.data.type || ''}
-                  onChange={handleEditAssetChange}
-                  options={
-                    isAssets
-                      ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'ทีวี', 'ปริ้นเตอร์', 'อุปกรณ์ IT', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
-                      : isSupplies
-                        ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
-                        : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
-                  }
-                  placeholder="เลือกประเภท..."
-                  allowCustom={false}
-                />
-              </Field>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Field label="ชื่ออุปกรณ์ / รุ่น" required>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editAssetModal.data.name || ''}
+                    onChange={handleEditAssetChange}
+                    required
+                    className={inputCls}
+                    placeholder="เช่น Dell Latitude 5520"
+                  />
+                </Field>
+                <Field label="ประเภท">
+                  <FieldOptionSelect
+                    name="type"
+                    value={editAssetModal.data.type || ''}
+                    onChange={handleEditAssetChange}
+                    options={
+                      isAssets
+                        ? ['คอมพิวเตอร์', 'โน๊ตบุ๊ค', 'หน้าจอ', 'แท็บเล็ต/มือถือ', 'ทีวี', 'ปริ้นเตอร์', 'อุปกรณ์ IT', 'อุปกรณ์สำนักงาน', 'อุปกรณ์เครือข่าย', 'อื่นๆ']
+                        : isSupplies
+                          ? ['เครื่องเขียน', 'กระดาษ', 'แฟ้มและอุปกรณ์จัดเก็บ', 'เบ็ดเตล็ด']
+                          : ['เมาส์ (Mouse)', 'คีย์บอร์ด (Keyboard)', 'สายชาร์จ (Adapter)', 'หูฟัง (Headset)', 'กระเป๋า (Bag)', 'อื่นๆ']
+                    }
+                    placeholder="เลือกประเภท..."
+                    allowCustom={false}
+                  />
+                </Field>
+              </div>
             </section>
 
             {/* รายละเอียดทะเบียน (assets only) */}
@@ -497,7 +497,7 @@ export default function EditAssetModal({
 
           {/* Footer */}
           <div className="px-7 py-4 border-t border-stone-100 bg-white">
-            <div className={`flex justify-end gap-2.5 ${asPage ? 'max-w-5xl mx-auto w-full' : ''}`}>
+            <div className={`flex justify-end gap-2.5 ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
               <button
                 type="button"
                 onClick={close}

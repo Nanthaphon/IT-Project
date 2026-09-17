@@ -39,7 +39,7 @@ export default function EditLicenseModal({
         onClose={close}
       />
       <form onSubmit={handleUpdateLicense} className="flex flex-col flex-1 overflow-hidden">
-        <ModalBody className={`space-y-7 ${asPage ? 'max-w-3xl mx-auto w-full' : ''}`}>
+        <ModalBody className={`space-y-7 ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
           <section className="space-y-3">
             <SectionHeader>รูปภาพ</SectionHeader>
             <div className="flex items-center gap-4">
@@ -71,24 +71,26 @@ export default function EditLicenseModal({
 
           <section className="space-y-4">
             <SectionHeader>ข้อมูลใบอนุญาต</SectionHeader>
-            <Field label="ชื่อโปรแกรม" required>
-              <input type="text" name="name" value={editLicenseModal.data.name || ''} onChange={handleEditLicenseChange} required className={cls.input} />
-            </Field>
-            <Field label="Product Key License">
-              <input type="text" name="productKey" value={editLicenseModal.data.productKey || ''} onChange={handleEditLicenseChange} className={cls.inputMono} />
-            </Field>
-            <Field label="รหัสของ Product Key">
-              <input type="text" name="keyCode" value={editLicenseModal.data.keyCode || ''} onChange={handleEditLicenseChange} className={cls.input} />
-            </Field>
-            <Field label="ผู้จัดจำหน่าย (Vendor)">
-              <FieldOptionSelect
-                name="supplier"
-                value={editLicenseModal.data.supplier || ''}
-                onChange={handleEditLicenseChange}
-                options={fieldOptions.vendors || []}
-                placeholder="เลือกหรือพิมพ์ใหม่"
-              />
-            </Field>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field label="ชื่อโปรแกรม" required>
+                <input type="text" name="name" value={editLicenseModal.data.name || ''} onChange={handleEditLicenseChange} required className={cls.input} />
+              </Field>
+              <Field label="Product Key License">
+                <input type="text" name="productKey" value={editLicenseModal.data.productKey || ''} onChange={handleEditLicenseChange} className={cls.inputMono} />
+              </Field>
+              <Field label="รหัสของ Product Key">
+                <input type="text" name="keyCode" value={editLicenseModal.data.keyCode || ''} onChange={handleEditLicenseChange} className={cls.input} />
+              </Field>
+              <Field label="ผู้จัดจำหน่าย (Vendor)">
+                <FieldOptionSelect
+                  name="supplier"
+                  value={editLicenseModal.data.supplier || ''}
+                  onChange={handleEditLicenseChange}
+                  options={fieldOptions.vendors || []}
+                  placeholder="เลือกหรือพิมพ์ใหม่"
+                />
+              </Field>
+            </div>
           </section>
 
           <section className="space-y-4">

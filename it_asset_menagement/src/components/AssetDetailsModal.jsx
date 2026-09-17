@@ -1286,14 +1286,46 @@ export default function AssetDetailsModal({
     );
   }
 
-  const DetailItem = ({ label, value, isMono = false }) => (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">{label}</span>
-      <span className={`text-sm font-medium text-stone-800 leading-[1.6] ${isMono ? 'font-mono bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 w-fit text-xs' : ''}`}>
-        {value || '-'}
-      </span>
-    </div>
-  );
+  const UsageBar = ({ used, total, unit }) => {
+    const t = Math.max(0, Number(total) || 0);
+    const u = Math.min(Math.max(0, Number(used) || 0), t);
+    const left = Math.max(0, t - u);
+    const pct = t ? Math.round((u / t) * 100) : 0;
+    const tone = left === 0 ? 'bg-brick-500' : pct >= 80 ? 'bg-ochre-500' : 'bg-olive-500';
+    return (
+      <div className="col-span-2 md:col-span-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-medium text-stone-400">การใช้งาน</p>
+            <p className="mt-0.5 text-[19px] font-medium tabular-nums text-stone-900">
+              {u} <span className="text-sm font-normal text-stone-400">/ {t} {unit}</span>
+            </p>
+          </div>
+          <p className="text-[13px] text-stone-500">
+            {left > 0
+              ? <>เหลือ <span className="font-medium text-stone-800 tabular-nums">{left}</span> {unit}</>
+              : <span className="font-medium text-brick-600">ใช้ครบแล้ว</span>}
+          </p>
+        </div>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-sand-200">
+          <div className={`h-full rounded-full transition-all ${tone}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    );
+  };
+
+  const DetailItem = ({ label, value, isMono = false, alwaysShow = false }) => {
+    const empty = value == null || value === '' || value === '-';
+    if (empty && !alwaysShow) return null;
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">{label}</span>
+        <span className={`text-sm font-medium text-stone-800 leading-[1.6] ${isMono ? 'font-mono bg-sand-100 px-1.5 py-0.5 rounded-lg w-fit text-xs' : ''}`}>
+          {empty ? '—' : value}
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div data-modal="asset-detail" className={asPage
@@ -1487,10 +1519,12 @@ export default function AssetDetailsModal({
                   {selectedAssetCategory === 'licenses' ? (
                     <>
                       <div className="col-span-2 md:col-span-4"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
+                      <UsageBar
+                        used={currentAssetDetail.assignees?.length || 0}
+                        total={currentAssetDetail.quantity || 0}
+                        unit="สิทธิ์"
+                      />
                       <DetailItem label="รหัสอ้างอิง Key" value={currentAssetDetail.keyCode} />
-                      <DetailItem label="สิทธิ์ทั้งหมด" value={`${currentAssetDetail.quantity || 0} สิทธิ์`} />
-                      <DetailItem label="กำลังใช้งาน" value={`${currentAssetDetail.assignees?.length || 0} สิทธิ์`} />
-                      <DetailItem label="คงเหลือ" value={`${Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0))} สิทธิ์`} />
                       <DetailItem label="Supplier ที่ซื้อ" value={currentAssetDetail.supplier} />
                       <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       <DetailItem label="วันที่หมดอายุ" value={formatDateShort(currentAssetDetail.expirationDate)} />
@@ -1534,8 +1568,11 @@ export default function AssetDetailsModal({
                     </>
                   ) : (
                     <>
-                      <DetailItem label="จำนวนทั้งหมด" value={`${currentAssetDetail.quantity || 0} ชิ้น`} />
-                      <DetailItem label="คงเหลือ (เบิกได้)" value={`${currentAssetDetail.quantity ? (Number(currentAssetDetail.quantity) - (currentAssetDetail.assignees?.length || 0)) : 0} ชิ้น`} />
+                      <UsageBar
+                        used={currentAssetDetail.assignees?.length || 0}
+                        total={currentAssetDetail.quantity || 0}
+                        unit="ชิ้น"
+                      />
                       <DetailItem label="ผู้จัดจำหน่าย (Vendor)" value={currentAssetDetail.vendor} />
                       <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       {currentAssetDetail.note && (
@@ -1548,18 +1585,20 @@ export default function AssetDetailsModal({
                       )}
                     </>
                   )}
-                  <div className="col-span-2 md:col-span-4 pt-3 border-t border-stone-100 flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-stone-500 leading-[1.5]">
-                      {selectedAssetCategory === 'accessories' ? 'มูลค่ารวม' : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาจัดซื้อ'}
-                    </span>
-                    <span className="text-[15px] font-medium text-stone-800">
-                      {selectedAssetCategory === 'accessories'
-                        ? (totalAccessoriesCost > 0 ? `฿${totalAccessoriesCost.toLocaleString()}` : '-')
-                        : selectedAssetCategory === 'licenses'
-                          ? (totalLicenseCost > 0 ? `฿${totalLicenseCost.toLocaleString()}` : '-')
-                          : (currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-')}
-                    </span>
-                  </div>
+                  {(() => {
+                    const total = selectedAssetCategory === 'accessories' ? totalAccessoriesCost
+                      : selectedAssetCategory === 'licenses' ? totalLicenseCost
+                      : Number(currentAssetDetail.cost) || 0;
+                    if (!total) return null;   /* ยังไม่ได้กรอกราคา — ไม่ต้องขึ้นแถบเปล่า */
+                    const label = selectedAssetCategory === 'accessories' ? 'มูลค่ารวม'
+                      : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาซื้อ';
+                    return (
+                      <div className="col-span-2 flex items-center justify-between border-t border-stone-100 pt-3 md:col-span-4">
+                        <span className="text-[13px] font-medium text-stone-500">{label}</span>
+                        <span className="text-[15px] font-medium tabular-nums text-stone-800">฿{total.toLocaleString()}</span>
+                      </div>
+                    );
+                  })()}
                   {/* 🆕 ราคาปัจจุบัน — เฉพาะ asset */}
                   {selectedAssetCategory === 'assets' && (
                     <div className="col-span-2 md:col-span-4 pt-2 flex items-center justify-between">
@@ -1675,7 +1714,7 @@ export default function AssetDetailsModal({
                           value={seatSearch}
                           onChange={(e) => setSeatSearch(e.target.value)}
                           placeholder="ค้นหารายการย่อย (ชื่อ, ผู้ถือ, Product Key, Supplier, สถานะ...)"
-                          className="w-full bg-stone-50 border border-stone-200 rounded-lg pl-9 pr-9 py-2 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
+                          className="w-full bg-stone-50 border border-stone-200/60 rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
                         />
                         {seatSearch && (
                           <button
@@ -1805,26 +1844,27 @@ export default function AssetDetailsModal({
                             <span className={`w-2 h-2 rounded-full shrink-0 ${seat.type === 'available' ? 'bg-olive-500' : 'bg-stone-500'}`} />
                             {seat.type === 'available' ? (
                               <div className="flex items-center gap-2 overflow-hidden">
-                                {/* 🆕 ชื่อรายการย่อย — default เป็นชื่อ license หลัก */}
                                 <div className="overflow-hidden">
-                                  <p className="text-xs font-medium text-stone-800 truncate">
-                                    {seat.seatLabel || currentAssetDetail.name || 'รายการย่อย'}
+                                  <p className="text-[13px] font-medium text-stone-800 truncate">
+                                    {seat.seatLabel || `สิทธิ์ว่าง #${index + 1}`}
                                   </p>
-                                  <p className="text-[11px] text-stone-400 truncate">สิทธิ์ว่าง</p>
-                                  {seat.productKey && (
-                                    <p className="text-[10px] text-stone-400 font-mono truncate flex items-center gap-1 mt-0.5" title={seat.productKey}>
-                                      <KeyRound className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      {seat.productKey}
-                                    </p>
-                                  )}
-                                  {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
-                                    <p className="text-[10px] text-stone-400 truncate flex items-center gap-1 mt-0.5">
-                                      <Calendar className="h-2.5 w-2.5 shrink-0 text-stone-300" strokeWidth={2.2} />
-                                      หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
-                                    </p>
-                                  )}
+                                  {/* ข้อมูลย่อยรวมบรรทัดเดียว — เดิมซ้อนกัน 3 บรรทัด */}
+                                  <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
+                                    {seat.productKey && (
+                                      <span className="inline-flex items-center gap-1 truncate font-mono" title={seat.productKey}>
+                                        <KeyRound className="size-2.5 shrink-0" strokeWidth={2.2} />
+                                        {seat.productKey}
+                                      </span>
+                                    )}
+                                    {(seat.seatExpirationDate || currentAssetDetail.expirationDate) && (
+                                      <span className="inline-flex shrink-0 items-center gap-1">
+                                        <Calendar className="size-2.5 shrink-0" strokeWidth={2.2} />
+                                        หมดอายุ {formatDateShort(seat.seatExpirationDate || currentAssetDetail.expirationDate)}
+                                      </span>
+                                    )}
+                                  </p>
                                 </div>
-                                <span className="text-[11px] bg-olive-50 text-olive-700 border border-olive-200 px-2 py-0.5 rounded-lg font-medium shrink-0">พร้อมใช้งาน</span>
+                                <span className="shrink-0 rounded-lg bg-olive-50 px-2 py-0.5 text-[11px] font-medium text-olive-700">พร้อมใช้งาน</span>
                                 {/* 🆕 Badge ใกล้หมดอายุ */}
                                 {(() => {
                                   const ex = checkLicenseExpiration(seat.seatExpirationDate || currentAssetDetail.expirationDate);
@@ -1988,7 +2028,7 @@ export default function AssetDetailsModal({
                           value={accItemSearch}
                           onChange={(e) => setAccItemSearch(e.target.value)}
                           placeholder="ค้นหาชิ้นย่อย (SN, รุ่น, ผู้ถือ, สถานะ...)"
-                          className="w-full bg-stone-50 border border-stone-200 rounded-lg pl-9 pr-9 py-2 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
+                          className="w-full bg-stone-50 border border-stone-200/60 rounded-xl pl-9 pr-9 py-2.5 text-[13px] text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-clay-600/20 focus:border-clay-600 focus:bg-white transition"
                         />
                         {accItemSearch && (
                           <button type="button" onClick={() => setAccItemSearch('')} title="ล้างคำค้นหา" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 w-5 h-5 flex items-center justify-center rounded transition-colors">
@@ -2094,19 +2134,23 @@ export default function AssetDetailsModal({
                             <span className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'available' ? 'bg-olive-500' : item.type === 'assigned' ? 'bg-stone-500' : 'bg-brick-500'}`}></span>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-xs font-medium text-stone-800 truncate">
+                                <span className="truncate text-[13px] font-medium text-stone-800">
                                   {item.type === 'assigned'
-                                    ? `${currentAssetDetail.name} — ${item.assignee.empName}`
-                                    : currentAssetDetail.name}
+                                    ? item.assignee.empName
+                                    : (item.sn || `ชิ้นที่ ${(item.originalIndex ?? 0) + 1}`)}
                                 </span>
-                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-lg border shrink-0 ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
+                                <span className={`shrink-0 rounded-lg px-2 py-0.5 text-[11px] font-medium ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
                               </div>
-                              {(item.sn || item.model) && (
-                                <p className="text-[10px] text-stone-400 truncate mt-0.5 flex items-center gap-2">
-                                  {item.sn && <span className="font-mono">SN: {item.sn}</span>}
-                                  {item.model && <span className="truncate">· {item.model}</span>}
-                                </p>
-                              )}
+                              {(() => {
+                                const showSn = item.sn && item.type === 'assigned';
+                                if (!showSn && !item.model) return null;
+                                return (
+                                  <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
+                                    {showSn && <span className="font-mono">SN: {item.sn}</span>}
+                                    {item.model && <span className="truncate">{showSn ? '· ' : ''}{item.model}</span>}
+                                  </p>
+                                );
+                              })()}
                             </div>
                           </div>
 
@@ -2635,7 +2679,10 @@ export function SeatDetailModal({
                   รายการย่อย · {license.name}
                 </p>
                 <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">
-                  {seat.seatLabel || license.name || 'รายการย่อย'}
+                  {seat.seatLabel
+                    || seat.assignee?.empName
+                    || seat.assignee?.assignedAssetName
+                    || 'สิทธิ์ว่าง'}
                 </h3>
                 {/* Status row */}
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap">
@@ -2769,20 +2816,21 @@ export function SeatDetailModal({
                 </Section>
               )}
 
-              {/* ── Product Key / รหัสอ้างอิง (แสดงเสมอ) ── */}
-              <Section icon={KeyRound} title="Product Key / รหัสอ้างอิง">
-                <div className="space-y-1">
-                  <KeyRow label="Product Key" value={seat.productKey} />
-                  <KeyRow label="รหัสอ้างอิง Key" value={seat.keyCode} />
-                </div>
-              </Section>
+              {/* Product Key — แสดงเมื่อมีค่าจริงเท่านั้น */}
+              {(seat.productKey || seat.keyCode) && (
+                <Section icon={KeyRound} title="Product Key / รหัสอ้างอิง">
+                  <div className="space-y-1">
+                    {seat.productKey && <KeyRow label="Product Key" value={seat.productKey} />}
+                    {seat.keyCode && <KeyRow label="รหัสอ้างอิง Key" value={seat.keyCode} />}
+                  </div>
+                </Section>
+              )}
 
               {/* ── ข้อมูลสิทธิ์ ── */}
               <Section icon={FileText} title="ข้อมูลสิทธิ์">
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
                   <DItem label="Supplier" value={seatSupplier} span={2} />
-                  <DItem label="สถานะ" value={statusBadge.label} />
-                  <DItem label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : '-'} />
+                  <DItem label="ราคา / สิทธิ์" value={seat.seatCost ? `฿${Number(seat.seatCost).toLocaleString()}` : ''} />
                   <DItem label="วันที่ซื้อ" value={seatPDate} />
                   <DItem label="อายุการใช้งาน" value={age} />
                   <DItem
@@ -2898,13 +2946,17 @@ export function AccessoryItemDetailModal({
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-stone-400 mb-0.5">รายการชิ้นย่อย · {accessoryName}</p>
-                <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">{item.sn ? `SN: ${item.sn}` : accessoryName}</h3>
+                <h3 className="text-[19px] font-medium text-stone-900 leading-tight break-words">
+                  {item.sn
+                    ? `SN: ${item.sn}`
+                    : item.assignee?.empName || `ชิ้นที่ ${(item.originalIndex ?? 0) + 1}`}
+                </h3>
                 <div className="mt-2.5 flex items-center gap-2 flex-wrap">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${statusBadge.cls}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
                     {statusBadge.label}
                   </span>
-                  {item.type === 'assigned' && item.assignee?.empName && (
+                  {item.type === 'assigned' && item.assignee?.empName && item.sn && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sand-100 text-stone-600 text-xs font-medium">
                       <User className="h-3 w-3" strokeWidth={2.2} /> {item.assignee.empName}
                     </span>
@@ -2969,7 +3021,8 @@ export function AccessoryItemDetailModal({
             </div>
           ) : (
             <div className="px-6 sm:px-7 divide-y divide-stone-100">
-              {item.type === 'assigned' && item.assignee && (
+              {item.type === 'assigned' && item.assignee
+                && (item.sn || item.assignee.department || item.assignee.checkoutDate) && (
                 <Section icon={User} title="ผู้ถือครอง / การใช้งาน">
                   <div className="flex items-start gap-3.5 rounded-xl bg-stone-50 border border-stone-100 p-4">
                     <div className="w-11 h-11 rounded-xl flex items-center justify-center font-medium text-[15px] shrink-0 bg-stone-100 text-clay-600">
@@ -2986,17 +3039,18 @@ export function AccessoryItemDetailModal({
                 </Section>
               )}
 
+              {(item.sn || item.model || item.itemCost || item.purchaseDate || item.warrantyDate) && (
               <Section icon={FileText} title="ข้อมูลชิ้น">
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
-                  <DItem label="Serial Number" value={item.sn || '-'} span={2} />
-                  <DItem label="สถานะ" value={statusBadge.label} />
-                  <DItem label="รุ่น / โมเดล" value={item.model || '-'} />
-                  <DItem label="ราคา / ชิ้น" value={item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : '-'} />
-                  <DItem label="อายุการใช้งาน" value={age ? age.text : '-'} />
+                  <DItem label="Serial Number" value={item.sn} span={2} />
+                  <DItem label="รุ่น / โมเดล" value={item.model} />
+                  <DItem label="ราคา / ชิ้น" value={item.itemCost ? `฿${Number(item.itemCost).toLocaleString()}` : ''} />
+                  <DItem label="อายุการใช้งาน" value={age ? age.text : ''} />
                   <DItem label="วันที่ซื้อ" value={formatDateShort(item.purchaseDate)} />
                   <DItem label="วันหมดประกัน" value={formatDateShort(item.warrantyDate)} span={2} />
                 </dl>
               </Section>
+              )}
 
               <Section icon={Paperclip} title={`ไฟล์แนบ${docs.length ? ` (${docs.length})` : ''}`}>
                 {docs.length > 0 ? (
@@ -3090,7 +3144,9 @@ function KeyRow({ label, value }) {
 /* ════════════════════════════════════════════════
    DItem — รายการ definition (label เล็ก + value) แบบไม่มีกล่อง
 ════════════════════════════════════════════════ */
-function DItem({ label, value, badge, span }) {
+function DItem({ label, value, badge, span, alwaysShow = false }) {
+  const empty = value == null || value === '' || value === '-';
+  if (empty && !alwaysShow) return null;
   const spanCls = span === 3 ? 'col-span-2 sm:col-span-3' : span === 2 ? 'col-span-2' : '';
   return (
     <div className={`min-w-0 ${spanCls}`}>

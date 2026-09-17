@@ -77,17 +77,17 @@ function ContentSlide({ titleTh, titleEn, page, company, month, year, children }
       <div style={{ position: 'absolute', top: 8, left: 43, right: 43 }}>
         <div style={{ fontSize: 34, fontWeight: 800, color: '#fff', lineHeight: 1.1 }}>{titleTh}</div>
         {titleEn && (
-          <div style={{ fontSize: 18, fontStyle: 'italic', color: '#B0C8E0', marginTop: 2 }}>{titleEn}</div>
+          <div style={{ fontSize: 18, fontStyle: 'italic', color: TINT_LIGHT, marginTop: 2 }}>{titleEn}</div>
         )}
       </div>
       <div style={{ position: 'absolute', top: 118, left: 38, right: 38, bottom: 46 }}>
         {children}
       </div>
       <div style={{ position: 'absolute', bottom: 34, left: 0, right: 0, height: 6, background: CLAY }} />
-      <div style={{ position: 'absolute', bottom: 8, right: 38, fontSize: 11, color: '#AAAAAA', textAlign: 'right' }}>
+      <div style={{ position: 'absolute', bottom: 8, right: 38, fontSize: 11, color: GRAY_TEXT, textAlign: 'right' }}>
         {company}&nbsp;&nbsp;|&nbsp;&nbsp;รายงานผล IT – {TH_MONTHS[month]} {year + 543}
         <span style={{ color: CLAY, fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;{page}</span>
-        <span style={{ color: '#CCCCCC' }}>&nbsp;&nbsp;(v2)</span>
+        <span style={{ color: GRAY_BORDER }}>&nbsp;&nbsp;(v2)</span>
       </div>
     </>
   );
@@ -107,7 +107,7 @@ function SlideTable({ columns, rows, empty }) {
             {columns.map((c, i) => (
               <th key={i} style={{
                 background: CLAY, color: c.headColor || '#fff', fontSize: 14, fontWeight: 700,
-                textAlign: c.align || 'center', padding: '8px 10px', border: `1px solid #2E5F9A`,
+                textAlign: c.align || 'center', padding: '8px 10px', border: `1px solid ${CLAY_BAND}`,
                 whiteSpace: 'nowrap',
               }}>{c.label}</th>
             ))}
@@ -128,7 +128,7 @@ function SlideTable({ columns, rows, empty }) {
                 return (
                   <td key={ci} style={{
                     fontSize: cellNode.size || 14, fontWeight: cellNode.bold ? 700 : 400,
-                    color: cellNode.color || '#1e293b', textAlign: cellNode.align || col.align || 'center',
+                    color: cellNode.color || '#4A2B29', textAlign: cellNode.align || col.align || 'center',
                     padding: '7px 10px', border: `1px solid ${GRAY_BORDER}`,
                     verticalAlign: 'middle', wordBreak: 'break-word',
                   }}>{cellNode.text}</td>
@@ -154,7 +154,7 @@ function CoverSlide({ company, month, year, reportDate }) {
         <div style={{ width: 340, height: 4, background: TINT_LIGHT, margin: '26px auto' }} />
         <div style={{ fontSize: 52, fontWeight: 800, color: '#fff', marginTop: 8 }}>รายงานผลการดำเนินงาน IT</div>
         <div style={{ fontSize: 40, fontWeight: 800, color: TINT_LIGHT, marginTop: 22 }}>เดือน{TH_MONTHS[month]} {year + 543}</div>
-        <div style={{ fontSize: 18, color: '#90B4CC', marginTop: 26 }}>{reportDate}</div>
+        <div style={{ fontSize: 18, color: TINT_LIGHT, marginTop: 26 }}>{reportDate}</div>
       </div>
       <div style={{ position: 'absolute', top: 600, left: 80, right: 80, textAlign: 'center', fontSize: 16, fontStyle: 'italic', color: TINT_LIGHT }}>
         รายงานผลการดำเนินงานฝ่าย IT ประจำเดือน
@@ -265,8 +265,8 @@ function SoftwareSlide({ swSummary, ...props }) {
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.6 }, { label: 'ซอฟต์แวร์', w: 3.4, align: 'left' },
-          { label: 'จำนวน', w: 0.9 }, { label: 'ใช้งาน', w: 0.9, headColor: '#A8FFB0' },
-          { label: 'คงเหลือ', w: 1.0, headColor: '#FFD0D0' }, { label: 'หมายเหตุ', w: 4.73, align: 'left' },
+          { label: 'จำนวน', w: 0.9 }, { label: 'ใช้งาน', w: 0.9, headColor: '#EEF1E9' },
+          { label: 'คงเหลือ', w: 1.0, headColor: '#F9E9E4' }, { label: 'หมายเหตุ', w: 4.73, align: 'left' },
         ]}
         rows={rows} empty="ไม่มีข้อมูล"
       />
@@ -328,7 +328,7 @@ function ThankYouSlide({ company, month, year }) {
       </div>
       <div style={{ position: 'absolute', top: 548, left: 80, right: 80, textAlign: 'center' }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: TINT_LIGHT }}>{company.toUpperCase()}</div>
-        <div style={{ fontSize: 16, color: '#90B4CC', marginTop: 10 }}>รายงานผล IT – {TH_MONTHS[month]} {year + 543}</div>
+        <div style={{ fontSize: 16, color: TINT_LIGHT, marginTop: 10 }}>รายงานผล IT – {TH_MONTHS[month]} {year + 543}</div>
       </div>
     </div>
   );

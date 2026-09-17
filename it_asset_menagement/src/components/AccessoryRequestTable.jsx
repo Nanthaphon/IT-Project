@@ -17,11 +17,11 @@ const STATUS = {
 /* ─── Request type config ─── */
 const REQUEST_TYPE = {
   pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#78716C', bg: '#F5F5F4' },
-  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
+  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#F3E7DF' },
   // legacy aliases
-  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
-  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#EFF6FF' },
-  replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#B45309', bg: '#FBF4E6' },
+  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#F3E7DF' },
+  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#A65F3C', bg: '#F3E7DF' },
+  replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#A87A2C', bg: '#FBF4E6' },
   borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#8E4E30', bg: '#F3E7DF' },
 };
 

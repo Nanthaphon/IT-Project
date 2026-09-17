@@ -58,7 +58,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
     const diffMs = w.getTime() - today.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     const dateText = fmtThaiDate(warrantyStr);
-    if (diffDays < 0) return { date: dateText, badge: 'หมดแล้ว', color: '#b91c1c' };
+    if (diffDays < 0) return { date: dateText, badge: 'หมดแล้ว', color: '#9A4231' };
     if (diffDays <= 30) return { date: dateText, badge: `เหลือ ${diffDays} วัน`, color: '#b45309' };
     return { date: dateText, badge: '', color: '#000' };
   };
@@ -613,7 +613,7 @@ export default function StaffView({
     `w-full py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
       disabled
         ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-        : 'bg-gradient-to-b from-[#22518A] to-clay-600 hover:from-clay-600 hover:to-clay-700 text-white shadow-md shadow-clay-600/25 hover:shadow-lg hover:shadow-clay-600/30 active:scale-[0.98]'
+        : 'bg-clay-600 hover:bg-clay-700 text-white active:scale-[0.98]'
     }`;
 
   /* ========================================

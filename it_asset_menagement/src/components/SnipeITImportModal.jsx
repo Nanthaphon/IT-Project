@@ -309,7 +309,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
 
         {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#EFF6FF', color: '#A65F3C' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#F3E7DF', color: '#A65F3C' }}>
             <FileSpreadsheet className="h-5 w-5" strokeWidth={2} />
           </div>
           <div className="flex-1">
@@ -450,7 +450,7 @@ function PreviewSection({ parsed }) {
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
         <StatBox label="แถวใน CSV" value={rows.length} color="#78716C" bg="#F5F5F4" />
-        <StatBox label="License (หลัง group)" value={grouped.length} color="#A65F3C" bg="#EFF6FF" />
+        <StatBox label="License (หลัง group)" value={grouped.length} color="#A65F3C" bg="#F3E7DF" />
         <StatBox label="Seats รวม" value={totalSeats} color="#47513B" bg="#EEF1E9" />
       </div>
 

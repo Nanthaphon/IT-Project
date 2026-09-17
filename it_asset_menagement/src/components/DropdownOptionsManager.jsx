@@ -54,11 +54,11 @@ const CATEGORIES = [
 ];
 
 const COLOR_MAP = {
-  blue:    { tint: '#EFF6FF', icon: 'text-stone-600',    chip: 'bg-stone-50 text-stone-700 border-stone-200',       btn: 'bg-stone-600 hover:bg-stone-700' },
-  violet:  { tint: '#F5F3FF', icon: 'text-clay-600',  chip: 'bg-ochre-50 text-ochre-700 border-ochre-200', btn: 'bg-clay-600 hover:bg-clay-600' },
-  emerald: { tint: '#ECFDF5', icon: 'text-olive-600', chip: 'bg-olive-50 text-olive-700 border-olive-200', btn: 'bg-olive-600 hover:bg-olive-700' },
-  amber:   { tint: '#FFFBEB', icon: 'text-clay-600',   chip: 'bg-ochre-50 text-ochre-700 border-ochre-200',    btn: 'bg-clay-600 hover:bg-clay-600' },
-  rose:    { tint: '#FFF1F2', icon: 'text-rose-600',    chip: 'bg-rose-50 text-rose-700 border-rose-200',       btn: 'bg-brick-600 hover:bg-brick-700' },
+  blue:    { tint: '#F3E7DF', icon: 'text-stone-600',    chip: 'bg-stone-50 text-stone-700 border-stone-200',       btn: 'bg-stone-600 hover:bg-stone-700' },
+  violet:  { tint: '#FBF4E6', icon: 'text-clay-600',  chip: 'bg-ochre-50 text-ochre-700 border-ochre-200', btn: 'bg-clay-600 hover:bg-clay-600' },
+  emerald: { tint: '#EEF1E9', icon: 'text-olive-600', chip: 'bg-olive-50 text-olive-700 border-olive-200', btn: 'bg-olive-600 hover:bg-olive-700' },
+  amber:   { tint: '#FBF4E6', icon: 'text-clay-600',   chip: 'bg-ochre-50 text-ochre-700 border-ochre-200',    btn: 'bg-clay-600 hover:bg-clay-600' },
+  rose:    { tint: '#F9E9E4', icon: 'text-rose-600',    chip: 'bg-rose-50 text-rose-700 border-rose-200',       btn: 'bg-brick-600 hover:bg-brick-700' },
 };
 
 function CategoryCard({ category, values, onAdd, onRemove, saving }) {

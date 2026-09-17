@@ -243,8 +243,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 value={k.done}
                 unit="เคส"
                 sub={`อัตราการปิด ${k.closureRate.toFixed(1)}%`}
-                accent="#10B981"
-                tint="#ECFDF5"
+                accent="#47513B"
+                tint="#EEF1E9"
               />
               <KpiCard
                 icon={Clock}
@@ -252,8 +252,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 value={k.avgResponse > 0 ? k.avgResponse.toFixed(1) : '-'}
                 unit="ชั่วโมง"
                 sub="แจ้ง → เริ่มซ่อม"
-                accent="#F59E0B"
-                tint="#FEF3C7"
+                accent="#A87A2C"
+                tint="#FBF4E6"
               />
               <KpiCard
                 icon={Activity}
@@ -261,8 +261,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
                 value={k.avgRepair > 0 ? k.avgRepair.toFixed(1) : '-'}
                 unit="ชั่วโมง"
                 sub="เริ่ม → เสร็จ"
-                accent="#8B5CF6"
-                tint="#F3E8FF"
+                accent="#A65F3C"
+                tint="#F3E7DF"
               />
             </div>
           </div>
@@ -303,9 +303,9 @@ export default function KpiDashboard({ repairRequests = [] }) {
               <div className="lg:col-span-2 bg-white border border-stone-200/60 rounded-2xl p-5">
                 <p className="text-[13px] font-medium text-stone-500 tracking-wide mb-4">คะแนนแยกหมวด</p>
                 <div className="space-y-3">
-                  <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#3B82F6" />
-                  <RatingBar label="คุณภาพการแก้ปัญหา" value={k.avgQuality} color="#10B981" />
-                  <RatingBar label="การบริการ &amp; มารยาท" value={k.avgService} color="#8B5CF6" />
+                  <RatingBar label="ความรวดเร็ว" value={k.avgSpeed} color="#A65F3C" />
+                  <RatingBar label="คุณภาพการแก้ปัญหา" value={k.avgQuality} color="#47513B" />
+                  <RatingBar label="การบริการ &amp; มารยาท" value={k.avgService} color="#A87A2C" />
                 </div>
                 <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -539,9 +539,9 @@ function MonthlyTrend({ data }) {
 }
 
 function starColor(star) {
-  if (star >= 5) return '#10B981'; // emerald
-  if (star >= 4) return '#84CC16'; // lime
-  if (star >= 3) return '#F59E0B'; // amber
-  if (star >= 2) return '#F97316'; // orange
-  return '#EF4444';                // rose
+  if (star >= 5) return '#47513B'; // olive
+  if (star >= 4) return '#5A6749'; // olive อ่อน
+  if (star >= 3) return '#A87A2C'; // ochre
+  if (star >= 2) return '#B06844'; // terracotta
+  return '#9A4231';                // brick
 }

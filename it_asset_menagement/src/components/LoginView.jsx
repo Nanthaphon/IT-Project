@@ -21,7 +21,7 @@ export default function LoginView({
       className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{
         background:
-          'radial-gradient(60% 50% at 50% 0%, rgba(166,95,60,0.10) 0%, rgba(166,95,60,0) 60%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F8 100%)',
+          'radial-gradient(60% 50% at 50% 0%, rgba(166,95,60,0.10) 0%, rgba(166,95,60,0) 60%), linear-gradient(180deg, #F7F2EF 0%, #F3E7DF 100%)',
       }}
     >
       {/* Subtle decoration */}

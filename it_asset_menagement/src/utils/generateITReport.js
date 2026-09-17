@@ -214,7 +214,7 @@ function slide1(pptx, { month, year, company, reportDate }) {
 
   s.addShape(pptx.ShapeType.rect, { x:0, y:0, w:13.33, h:7.5, fill:{ color: C.blue }, line:{ color: C.blue } });
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.6, w:13.33, h:0.12, fill:{ color: C.blueLight }, line:{ color: C.blueLight } });
-  s.addShape(pptx.ShapeType.rect, { x:0, y:5.72, w:13.33, h:1.78, fill:{ color: '163860' }, line:{ color: '163860' } });
+  s.addShape(pptx.ShapeType.rect, { x:0, y:5.72, w:13.33, h:1.78, fill:{ color: '8E4E30' }, line:{ color: '8E4E30' } });
 
   s.addText(company.toUpperCase(), {
     x:0.8, y:1.6, w:11.73, h:0.9,
@@ -613,7 +613,7 @@ function slide8(pptx, { month, year, company }) {
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.4, w:13.33, h:0.12,
     fill:{ color:C.blueLight }, line:{ color:C.blueLight } });
   s.addShape(pptx.ShapeType.rect, { x:0, y:5.52, w:13.33, h:1.98,
-    fill:{ color:'163860' }, line:{ color:'163860' } });
+    fill:{ color:'8E4E30' }, line:{ color:'8E4E30' } });
 
   s.addText('ขอบคุณครับ', { x:0.8, y:1.6, w:11.73, h:1.6,
     fontSize:64, bold:true, color:C.white, align:'center', fontFace:F, charSpacing:0 });

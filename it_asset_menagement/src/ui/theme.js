@@ -14,9 +14,9 @@ export const BRAND = {
 
 // Status colors — used sparingly for badges/indicators
 export const STATUS = {
-  success: { bg: '#ECFDF5', text: '#047857', ring: '#A7F3D0' },  // emerald
-  warning: { bg: '#FFFBEB', text: '#B45309', ring: '#FCD34D' },  // amber
-  danger:  { bg: '#FEF2F2', text: '#B91C1C', ring: '#FCA5A5' },  // rose
+  success: { bg: '#EEF1E9', text: '#47513B', ring: '#C3CBB4' },  // emerald
+  warning: { bg: '#FBF4E6', text: '#A87A2C', ring: '#E3CB9A' },  // amber
+  danger:  { bg: '#F9E9E4', text: '#9A4231', ring: '#E0B3A4' },  // rose
   info:    { bg: '#F5F5F4', text: '#57534E', ring: '#D6D3D1' },  // blue
   neutral: { bg: '#F5F5F4', text: '#57534E', ring: '#D6D3D1' },  // slate
 };

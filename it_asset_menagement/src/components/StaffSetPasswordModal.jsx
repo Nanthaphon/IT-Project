@@ -250,8 +250,7 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
             disabled={submitting || !currentPassword || (mode === 'set' && (!passedAll || !matchOk))}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: mode === 'reset' ? '#F59E0B' : BRAND.primary,
-              boxShadow: `0 4px 12px ${mode === 'reset' ? '#F59E0B40' : `${BRAND.primary}40`}`,
+              background: mode === 'reset' ? '#A87A2C' : BRAND.primary,
             }}
           >
             {submitting ? (

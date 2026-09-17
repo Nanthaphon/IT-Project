@@ -10,7 +10,7 @@ const formatDate = formatDateMedium;
 
 /* ── สไตล์ Excel (xlsx-js-style) — โทนเดียวกับระบบ (navy #A65F3C) ── */
 const FONT = 'Tahoma';
-const NAVY = '1E487A', NAVY2 = '3A5A85', TINT = 'E8EFF8', GREY = '6B7280', LINE = 'E2E8F0', ZEBRA = 'F7F9FC';
+const NAVY = 'A65F3C', NAVY2 = 'C08761', TINT = 'F3E7DF', GREY = '78716C', LINE = 'D3C7BA', ZEBRA = 'FAF4F0';
 const thin = { style: 'thin', color: { rgb: LINE } };
 const BORDER = { top: thin, bottom: thin, left: thin, right: thin };
 const ST = {

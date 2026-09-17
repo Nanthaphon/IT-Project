@@ -203,7 +203,7 @@ function EmpLinksEditor({ links, setLinks }) {
         </div>
       ))}
       <button type="button" onClick={add}
-        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:text-[#153a63] transition-colors">
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-clay-600 hover:text-clay-700 transition-colors">
         <PlusCircle className="h-4 w-4" strokeWidth={2} /> เพิ่มลิงก์
       </button>
     </div>

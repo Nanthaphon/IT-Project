@@ -284,7 +284,7 @@ function CountBadge({ n }) {
 }
 
 /* ── Panel card (v2 minimal) ── */
-function PanelCard({ icon: Icon, tint = '#EFF6FF', color = '#A65F3C', title, desc, right, children }) {
+function PanelCard({ icon: Icon, tint = '#F3E7DF', color = '#A65F3C', title, desc, right, children }) {
   return (
     <section className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(74,43,41,0.20)] overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-stone-100">
@@ -506,11 +506,11 @@ export default function ITReportPage({
               <StatInput label="พนักงานทั้งหมด" value={stats.employees}  onChange={v => editStat('employees', v)} />
               <StatInput label="เคสทั้งหมด"      value={stats.monthly}    onChange={v => editStat('monthly', v)} />
               <StatInput label="ปิดสำเร็จ"       value={stats.closedWon}  onChange={v => editStat('closedWon', v)}  color="#47513b" />
-              <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#dc2626" />
+              <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#9A4231" />
             </div>
           </PanelCard>
 
-          <PanelCard icon={AlertCircle} tint="#FEF2F2" color="#DC2626" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
+          <PanelCard icon={AlertCircle} tint="#F9E9E4" color="#9A4231" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
             <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
           </PanelCard>
 

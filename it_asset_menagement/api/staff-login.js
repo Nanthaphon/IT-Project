@@ -61,16 +61,19 @@ export default async function handler(req, res) {
     const dbRef = admin.firestore();
     const inputEmpId = String(empId).trim();
 
-    // หา employee — ลองแบบ query ตรงก่อน (เร็ว, ใช้ index) แล้วค่อย fallback
-    // เป็น full-scan case-insensitive เฉพาะกรณีที่พิมพ์ตัวพิมพ์เล็ก/ใหญ่ไม่ตรง (พบน้อย)
+    /* หา employee — query ตรงตัวก่อน แล้วลองรูปแบบตัวพิมพ์เล็ก/ใหญ่
+       เดิมตรงนี้ fallback เป็น .get() ทั้ง collection ทำให้ "พิมพ์รหัสผิด 1 ครั้ง
+       = อ่าน Firestore เท่าจำนวนพนักงานทั้งบริษัท" ซึ่งกินโควตาโดยไม่จำเป็น
+       และเปิดช่องให้ยิง login รัว ๆ เพื่อถล่มโควตาได้
+       ตอนนี้จำกัดไว้ที่ไม่เกิน 3 reads เสมอ ไม่ว่าจะมีพนักงานกี่คน */
     let empDoc = null;
-    const exactSnap = await dbRef.collection('employees')
-      .where('empId', '==', inputEmpId).limit(1).get();
-    if (!exactSnap.empty) {
-      empDoc = exactSnap.docs[0];
-    } else {
-      const allSnap = await dbRef.collection('employees').get();
-      empDoc = allSnap.docs.find(d => (d.data().empId || '').toLowerCase() === inputEmpId.toLowerCase()) || null;
+    const seen = new Set();
+    for (const candidate of [inputEmpId, inputEmpId.toLowerCase(), inputEmpId.toUpperCase()]) {
+      if (seen.has(candidate)) continue;
+      seen.add(candidate);
+      const snap = await dbRef.collection('employees')
+        .where('empId', '==', candidate).limit(1).get();
+      if (!snap.empty) { empDoc = snap.docs[0]; break; }
     }
     if (!empDoc) return res.status(404).json({ error: 'ไม่พบรหัสพนักงานนี้ในระบบ' });
 

@@ -91,8 +91,6 @@ const COLUMN_META = {
                    render: (a) => e(a.note) || '<span style="color:#94a3b8">-</span>' },
   remark:        { label: 'Remark', flex: 22, align: 'left',
                    render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
-  remark:        { label: 'Remark', flex: 22, align: 'left',
-                   render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
   age:           { label: 'อายุการใช้งาน', flex: 8, align: 'center',
                    render: (a) => `<span style="white-space:nowrap">${e(calcAge(a.purchaseDate))}</span>` },
   status:        { label: 'สถานะ', flex: 9, align: 'center',

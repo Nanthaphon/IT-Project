@@ -28,4 +28,18 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]' }],
     },
   },
+
+  /* โค้ดฝั่ง Node — Vercel functions, Firebase functions และสคริปต์
+     เดิมถูก lint ด้วย globals.browser อย่างเดียว ทำให้ process/Buffer/console
+     ขึ้น no-undef 22 จุด = lint ไม่ได้ช่วยตรวจส่วนที่จัดการรหัสผ่านและ token เลย */
+  {
+    files: ['api/**/*.js', 'functions/**/*.js', 'scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: { ...globals.node },
+      parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+    },
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

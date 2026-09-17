@@ -173,7 +173,7 @@ export default function AssetDetailsModal({
   const timelineEvents = currentAssetDetail
     ? (isLicense
         ? buildLicenseTimeline(currentAssetDetail, transactions)
-        : buildAssetTimeline(currentAssetDetail, transactions, repairRequests))
+        : buildAssetTimeline(currentAssetDetail, transactions, repairRequests, licenses))
     : [];
 
   // 🟢 ฟังก์ชันบันทึก ประวัติการจัดซื้อ (สร้างใหม่ / แก้ไข)

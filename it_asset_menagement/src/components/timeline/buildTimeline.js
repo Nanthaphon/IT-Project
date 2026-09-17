@@ -72,8 +72,20 @@ export function spanLabel(fromMs, toMs) {
    @param {array}   transactions  transactions ทั้งหมดที่โหลดมา
    @param {array}   repairs       repair_requests ทั้งหมด
    @returns {array} เหตุการณ์ เรียงใหม่ -> เก่า                     */
-export function buildAssetTimeline(asset, transactions = [], repairs = []) {
+export function buildAssetTimeline(asset, transactions = [], repairs = [], licenses = []) {
   if (!asset?.id) return [];
+
+  /* Product Key ของสิทธิ์ที่ "ยังผูกอยู่" กับเครื่องนี้ ณ ตอนนี้
+     ใช้เติมให้รายการเก่าที่บันทึกไว้ก่อนระบบจะเริ่มเก็บ key
+     (รายการถอดออกไปแล้วเติมให้ไม่ได้ — key ถูกคืนเข้ากองว่างไปแล้ว) */
+  const boundKeyOf = (licenseId, licenseName) => {
+    const lic = licenses.find((l) =>
+      (licenseId && l.id === licenseId) ||
+      (!licenseId && String(l.name || '').trim() === String(licenseName || '').trim()));
+    const seat = (lic?.assignees || []).find(
+      (a) => a.isAssetBound && a.assignedAssetId === asset.id);
+    return seat ? { productKey: seat.productKey || '', keyCode: seat.keyCode || '' } : null;
+  };
   const out = [];
   const push = (kind, ms, data) => {
     if (ms == null) return;
@@ -132,9 +144,19 @@ export function buildAssetTimeline(asset, transactions = [], repairs = []) {
       const ms = toMillis(t.timestamp);
       const name = t.licenseName || t.assetName || 'License';
       if (t.action === 'เบิกจ่าย') {
-        push('licOn', ms, { title: 'ผูก License กับเครื่อง', by: name, detail: t.empName || '' });
+        /* รายการเก่าไม่มี key — ถ้าสิทธิ์ยังผูกอยู่ ดึงจากของจริงมาแสดง */
+        const fb = t.productKey ? null : boundKeyOf(t.licenseId, name);
+        push('licOn', ms, {
+          title: 'ผูก License กับเครื่อง', by: name, detail: t.empName || '',
+          productKey: t.productKey || fb?.productKey || '',
+          keyCode: t.keyCode || fb?.keyCode || '',
+          keyFromCurrent: !t.productKey && !!fb?.productKey,
+        });
       } else {
-        push('licOff', ms, { title: 'ถอด License ออกจากเครื่อง', by: name, detail: '' });
+        push('licOff', ms, {
+          title: 'ถอด License ออกจากเครื่อง', by: name, detail: '',
+          productKey: t.productKey || '', keyCode: t.keyCode || '',
+        });
       }
     });
 
@@ -195,6 +217,7 @@ export function buildLicenseTimeline(license, transactions = []) {
         title: t.action === 'เบิกจ่าย' ? 'ผูกกับเครื่อง' : 'ถอดออกจากเครื่อง',
         by: t.assetName || '—',
         detail: t.empName ? `ผู้ถือเครื่อง: ${t.empName}` : '',
+        productKey: t.productKey || '', keyCode: t.keyCode || '',
         note: t.remarks && t.remarks !== '-' ? t.remarks : '',
       });
     } else {
@@ -204,6 +227,7 @@ export function buildLicenseTimeline(license, transactions = []) {
         title: t.action === 'เบิกจ่าย' ? 'จ่ายสิทธิ์ให้พนักงาน' : 'คืนสิทธิ์',
         by: t.empName || t.empId || '—',
         detail: '',
+        productKey: t.productKey || '', keyCode: t.keyCode || '',
         note: t.remarks && t.remarks !== '-' ? t.remarks : '',
       });
     }

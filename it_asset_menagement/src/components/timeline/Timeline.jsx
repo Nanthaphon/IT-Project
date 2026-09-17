@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import {
-  ShoppingCart, ArrowUpRight, ArrowDownLeft, KeyRound, Unlink, Wrench, Info,
+  ShoppingCart, ArrowUpRight, ArrowDownLeft, KeyRound, Unlink, Wrench, Info, Copy, Check,
 } from 'lucide-react';
 import { EVENT_KIND, thaiDate, thaiTime, spanLabel, summarize } from './buildTimeline.js';
 
@@ -40,6 +41,53 @@ function Summary({ events, holderLabel, holderKinds, assignLabel }) {
           <p className="mt-1 text-[19px] font-medium text-stone-900 tabular-nums leading-tight">{c.value}</p>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ── ชิป Product Key — บอกว่า "สิทธิ์ตัวไหน" ที่ผูก/ถอด
+      รูปแบบเดียวกับที่ AssetLicenseTab ใช้อยู่ (font-mono + ไอคอนกุญแจ)
+      คีย์ยาวเกินจะย่อ แต่กดคัดลอกได้ค่าเต็มเสมอ */
+function KeyChip({ value, keyCode, fromCurrent }) {
+  const [copied, setCopied] = useState(false);
+  const short = value.length > 29 ? value.slice(0, 29) + '…' : value;
+  const copy = async (e) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch { /* เบราว์เซอร์ไม่อนุญาต — ปล่อยผ่าน */ }
+  };
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <span className="inline-flex items-center gap-1.5 rounded-lg bg-sand-100 px-2 py-1 font-mono text-[11px] text-stone-700">
+        <KeyRound className="size-3 shrink-0 text-stone-400" strokeWidth={2} />
+        <span title={value}>{short}</span>
+      </span>
+      {keyCode && (
+        <span className="inline-flex items-center rounded-lg bg-sand-100 px-2 py-1 font-mono text-[11px] text-stone-500">
+          รหัส {keyCode}
+        </span>
+      )}
+      {fromCurrent && (
+        <span
+          className="text-[11px] text-stone-400"
+          title="รายการนี้บันทึกไว้ก่อนระบบจะเก็บ Product Key — ค่าที่เห็นดึงจากสิทธิ์ที่ยังผูกกับเครื่องนี้อยู่"
+        >
+          (จากสิทธิ์ที่ผูกอยู่)
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={copy}
+        className="inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[11px] font-medium text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700"
+        title="คัดลอก Product Key"
+      >
+        {copied
+          ? <><Check className="size-3" strokeWidth={2.4} /> คัดลอกแล้ว</>
+          : <><Copy className="size-3" strokeWidth={2} /> คัดลอก</>}
+      </button>
     </div>
   );
 }
@@ -88,6 +136,10 @@ function Row({ event, nextMs, isLast }) {
             {event.by && event.detail ? <span className="text-stone-300"> · </span> : null}
             {event.detail && <span className="text-stone-500">{event.detail}</span>}
           </p>
+        )}
+
+        {event.productKey && (
+          <KeyChip value={event.productKey} keyCode={event.keyCode} fromCurrent={event.keyFromCurrent} />
         )}
 
         {event.note && <p className="mt-1 text-[13px] text-stone-500">{event.note}</p>}

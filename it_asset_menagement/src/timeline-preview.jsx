@@ -41,11 +41,14 @@ const TRANSACTIONS = [
     remarks: '-', timestamp: ago(90), checkoutId: 'co3' },
   // License ที่ผูกกับเครื่องนี้
   { assetId: 'asset1', isAssetBound: true, category: 'licenses', action: 'เบิกจ่าย',
-    licenseName: 'Microsoft 365 Business', empName: 'ณัฐธิดา เพชรแก้ว', timestamp: ago(370) },
+    licenseName: 'Microsoft 365 Business', empName: 'ณัฐธิดา เพชรแก้ว', timestamp: ago(370),
+    productKey: 'NKGV4-7W2XT-B7K2M-QQ8YT-PGKW9', keyCode: 'MS-0042' },
   { assetId: 'asset1', isAssetBound: true, category: 'licenses', action: 'รับคืน',
-    licenseName: 'Microsoft 365 Business', timestamp: ago(121) },
+    licenseName: 'Microsoft 365 Business', timestamp: ago(121),
+    productKey: 'NKGV4-7W2XT-B7K2M-QQ8YT-PGKW9', keyCode: 'MS-0042' },
   { assetId: 'asset1', isAssetBound: true, category: 'licenses', action: 'เบิกจ่าย',
-    licenseName: 'Adobe Acrobat Pro', empName: 'วัฒนา มีเย็น (มอส)', timestamp: ago(88) },
+    licenseName: 'Adobe Acrobat Pro', empName: 'วัฒนา มีเย็น (มอส)', timestamp: ago(88),
+    productKey: 'ADBE-2024-PRO-77213' },
 ];
 
 const REPAIRS = [
@@ -77,6 +80,20 @@ const LIC_TX = [
     empName: 'ธณกร น้อยหมอ', timestamp: ago(800) },
 ];
 
+
+/* เคสจริงที่เจอบ่อย: รายการเก่าไม่ได้บันทึก productKey ไว้
+   แต่สิทธิ์ยังผูกกับเครื่องนี้อยู่ -> ต้องดึงจากของจริงมาแสดง
+   พร้อมบอกว่า (จากสิทธิ์ที่ผูกอยู่) */
+const OLD_TX = [
+  { assetId: 'asset1', isAssetBound: true, category: 'licenses', action: 'เบิกจ่าย',
+    licenseId: 'licX', licenseName: 'Corona Solo Chaos', timestamp: ago(200) },
+];
+const LIC_BOUND = [
+  { id: 'licX', name: 'Corona Solo Chaos',
+    assignees: [{ isAssetBound: true, assignedAssetId: 'asset1',
+      productKey: 'CRNA-SOLO-2024-88431', keyCode: 'CR-11' }] },
+];
+
 const TABS = {
   'ทรัพย์สิน — มีประวัติครบ': () => (
     <Timeline events={buildAssetTimeline(ASSET, TRANSACTIONS, REPAIRS)} />
@@ -89,6 +106,9 @@ const TABS = {
       assignLabel="จ่ายสิทธิ์ไปแล้ว"
       emptyHint="ยังไม่มีประวัติการใช้สิทธิ์ของ License นี้"
     />
+  ),
+  'รายการเก่า — ดึง key จากสิทธิ์ที่ผูกอยู่': () => (
+    <Timeline events={buildAssetTimeline(ASSET, OLD_TX, [], LIC_BOUND)} />
   ),
   'ยังไม่มีประวัติ': () => (
     <Timeline events={buildAssetTimeline({ id: 'x' }, [], [])} />

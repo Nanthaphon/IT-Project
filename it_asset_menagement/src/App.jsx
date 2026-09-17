@@ -2195,6 +2195,7 @@ function App() {
         await addDoc(collection(db, 'licenses_transactions'), {
           empId: emp.id, assetName: item.name,
           licenseId: item.id, licenseName: item.name,
+          productKey: seatProductKey || '', keyCode: seatKeyCode || '',
           category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
         });
       } else {
@@ -2316,6 +2317,7 @@ function App() {
         // 🆕 ใส่ empId ของผู้ถือเครื่อง ณ ตอนผูก เพื่อให้ขึ้นใน history พนักงาน
         empId: currentEmpId, empName: currentEmpName,
         assetId, assetName, licenseId: item.id, licenseName: item.name,
+        productKey: seatProductKey || '', keyCode: seatKeyCode || '',
         category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ',
         remarks: remarks.trim() || '-', timestamp: Date.now(), isAssetBound: true,
       });
@@ -2359,6 +2361,7 @@ function App() {
       });
       await addDoc(collection(db, 'licenses_transactions'), {
         empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName,
+        productKey: seat.productKey || '', keyCode: seat.keyCode || '',
         licenseId: item.id, licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
         remarks: '-', timestamp: Date.now(), isAssetBound: true,
       });
@@ -2416,6 +2419,7 @@ function App() {
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
               licenseId: item.id, licenseName: item.name,
+              productKey: a.productKey || '', keyCode: a.keyCode || '',
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
             });
@@ -2425,6 +2429,7 @@ function App() {
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
               licenseId: item.id, licenseName: item.name,
+              productKey: a.productKey || '', keyCode: a.keyCode || '',
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
               isAssetBound: true,

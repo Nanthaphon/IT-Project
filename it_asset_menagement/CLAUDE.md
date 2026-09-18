@@ -198,6 +198,7 @@ localhost:5173/preview-test.html        IT Report
 localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
 localhost:5173/login-preview.html       หน้าเข้าสู่ระบบ (ไม่ต้อง logout ของจริง)
 localhost:5173/edit-preview.html        หน้าแก้ไข License / ทรัพย์สิน (โหมดหน้าเต็ม)
+localhost:5173/emp-preview.html         รายละเอียดพนักงาน (modal ทุกแท็บ)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 

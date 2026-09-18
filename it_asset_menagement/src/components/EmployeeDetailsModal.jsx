@@ -9,7 +9,7 @@ import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
 import Timeline from './timeline/Timeline.jsx';
-import { buildEmployeeTimeline } from './timeline/buildTimeline.js';
+import { buildEmployeeTimeline, spanLabel, toMillis } from './timeline/buildTimeline.js';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -116,6 +116,15 @@ export default function EmployeeDetailsModal({
   ];
 
   const initial = selectedEmployee.fullName?.charAt(0) || '?';
+
+  /* ชื่ออังกฤษรวมเป็นบรรทัดเดียว — เดิมแยกเป็นช่อง "ชื่อจริง"/"นามสกุล" สองช่อง
+     ทั้งที่อ่านคู่กันเสมอ */
+  const engParts = resolveName(selectedEmployee.firstNameEng, selectedEmployee.lastNameEng, selectedEmployee.fullNameEng);
+  const engFullName = [engParts.first, engParts.last].filter(Boolean).join(' ');
+
+  /* อายุงาน — เดิมต้องเอาวันที่เริ่มงานไปคิดเองทุกครั้ง */
+  const startMs = toMillis(selectedEmployee.startDate);
+  const tenure = startMs ? `ทำงานมาแล้ว ${spanLabel(startMs, Date.now())}` : '';
 
   // เปิด modal ให้ติ๊ก checklist + แนบรูปก่อนพิมพ์ (modal จะเรียก printHandoverForm เองเมื่อ submit)
   // 🆕 นับ Notebook ที่พนักงานถือ — เฉพาะ notebook ที่ต้องประเมิน 100 คะแนน
@@ -228,50 +237,46 @@ export default function EmployeeDetailsModal({
         {/* ── Body ── */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
 
-          {/* ======= TAB: ข้อมูลทั่วไป ======= */}
+          {/* ======= TAB: ข้อมูลทั่วไป =======
+              ของเดิมไล่ช่องมีกรอบทีละช่องในกริด 2 คอลัมน์ 11 ช่อง
+              กรอบเยอะจนตัวข้อมูลจม ช่องคี่ก็เหลือช่องว่างเปล่า
+              และ 6 ใน 7 ช่องของบล็อกแรก (ชื่อ TH/EN · ตำแหน่ง · แผนก)
+              ซ้ำกับหัว modal ที่แสดงอยู่แล้ว — ตัดออก เหลือเฉพาะที่ยังไม่เห็น */}
           {empModalTab === 'info' && (
-            <div className="space-y-6">
-              <Section title="ข้อมูลส่วนตัวและตำแหน่ง">
-                <InfoGrid>
-                  <InfoItem label="ชื่อจริง (TH)" value={resolveName(selectedEmployee.firstName, selectedEmployee.lastName, selectedEmployee.fullName).first} />
-                  <InfoItem label="นามสกุล (TH)" value={resolveName(selectedEmployee.firstName, selectedEmployee.lastName, selectedEmployee.fullName).last || '-'} />
-                  <InfoItem label="ชื่อจริง (EN)" value={resolveName(selectedEmployee.firstNameEng, selectedEmployee.lastNameEng, selectedEmployee.fullNameEng).first} />
-                  <InfoItem label="นามสกุล (EN)" value={resolveName(selectedEmployee.firstNameEng, selectedEmployee.lastNameEng, selectedEmployee.fullNameEng).last || '-'} />
-                  <InfoItem label="ตำแหน่ง"            value={selectedEmployee.position} />
-                  <InfoItem label="แผนก"               value={selectedEmployee.department} />
-                  <InfoItem label="บริษัท"             value={selectedEmployee.company} />
-                </InfoGrid>
-              </Section>
+            <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
 
-              <Section title="ข้อมูลการติดต่อ">
-                <InfoGrid>
-                  <InfoItem label="เบอร์โทรศัพท์" value={selectedEmployee.phone} />
-                  <InfoItem label="หัวหน้างาน"   value={selectedEmployee.manager} />
-                  <InfoItem label="วันที่เริ่มงาน" value={selectedEmployee.startDate
-                    ? formatDateShort(selectedEmployee.startDate)
-                    : ''} />
-                </InfoGrid>
-              </Section>
-
-              {(selectedEmployee.m365Email || selectedEmployee.m365Password) && (
-                <Section title="บัญชี Microsoft 365">
-                  <InfoGrid>
-                    <InfoItem label="อีเมล Microsoft 365" value={selectedEmployee.m365Email} accent />
-                    <PasswordReveal
-                      label="รหัสผ่าน Microsoft 365"
-                      value={selectedEmployee.m365Password}
-                    />
-                  </InfoGrid>
-                </Section>
-              )}
-
-              <Section title="รหัสผ่านเข้าใช้ระบบ (Staff Portal)">
-                <SetStaffPasswordForm
-                  empDocId={selectedEmployee.id}
-                  empName={selectedEmployee.fullName}
-                  empId={selectedEmployee.empId}
+              <DetailCard title="ข้อมูลพนักงาน" className="lg:col-span-2">
+                <DetailRow label="ชื่อ-นามสกุล (EN)" value={engFullName} />
+                <DetailRow label="บริษัท"           value={selectedEmployee.company} />
+                <DetailRow label="แผนก"             value={selectedEmployee.department} />
+                <DetailRow label="ตำแหน่ง"          value={selectedEmployee.position} />
+                <DetailRow label="เบอร์โทรศัพท์"     value={selectedEmployee.phone} copy />
+                <DetailRow label="หัวหน้างาน"       value={selectedEmployee.manager} />
+                <DetailRow
+                  label="วันที่เริ่มงาน"
+                  value={selectedEmployee.startDate ? formatDateShort(selectedEmployee.startDate) : ''}
+                  hint={tenure}
                 />
-              </Section>
+              </DetailCard>
+
+              <div className="space-y-5">
+                {(selectedEmployee.m365Email || selectedEmployee.m365Password) && (
+                  <DetailCard title="บัญชี Microsoft 365">
+                    <DetailRow label="อีเมล" value={selectedEmployee.m365Email} accent copy />
+                    <PasswordReveal label="รหัสผ่าน" value={selectedEmployee.m365Password} />
+                  </DetailCard>
+                )}
+
+                <DetailCard title="รหัสผ่านเข้าใช้ระบบ" desc="Staff Portal">
+                  <div className="p-4">
+                    <SetStaffPasswordForm
+                      empDocId={selectedEmployee.id}
+                      empName={selectedEmployee.fullName}
+                      empId={selectedEmployee.empId}
+                    />
+                  </div>
+                </DetailCard>
+              </div>
             </div>
           )}
 
@@ -524,26 +529,59 @@ export default function EmployeeDetailsModal({
 }
 
 /* ── Helper components ── */
-function Section({ title, children }) {
+/* ── การ์ดข้อมูล — หัวเรื่องบาง ๆ แล้วไล่แถวลงมา ── */
+function DetailCard({ title, desc, className = '', children }) {
   return (
-    <div>
-      <p className="text-xs font-medium text-stone-500 mb-2 px-1">{title}</p>
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">{children}</div>
-    </div>
+    <section className={`overflow-hidden rounded-2xl border border-stone-200/60 bg-white ${className}`}>
+      <div className="flex items-baseline gap-2 border-b border-stone-100 px-4 py-3">
+        <div className="h-3.5 w-1 shrink-0 self-center rounded-full bg-clay-600" />
+        <h4 className="text-[13px] font-medium text-stone-600">{title}</h4>
+        {desc && <span className="text-[11px] text-stone-400">{desc}</span>}
+      </div>
+      {children}
+    </section>
   );
 }
 
-function InfoGrid({ children }) {
-  return <div className="grid grid-cols-1 sm:grid-cols-2">{children}</div>;
-}
+/* แถวป้าย/ค่า — ป้ายซ้ายกว้างคงที่ ค่าจึงเรียงตรงกันทุกแถว กวาดตาอ่านลงมาได้
+   ต่างจากของเดิมที่เป็นช่องมีกรอบเรียงในกริด ซึ่งกรอบดังกว่าตัวข้อมูลเอง */
+function DetailRow({ label, value, hint, accent, mono, copy }) {
+  const [copied, setCopied] = useState(false);
+  const text = value == null || value === '' ? '' : String(value);
 
-function InfoItem({ label, value, accent, span2, mono }) {
+  const doCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* เบราว์เซอร์ไม่อนุญาต — ปล่อยผ่าน */ }
+  };
+
   return (
-    <div className={`px-4 py-2.5 ${span2 ? 'sm:col-span-2' : ''} border-b border-stone-100 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0`}>
-      <span className="block text-[11px] text-stone-400 mb-0.5">{label}</span>
-      <span className={`block text-[13px] ${accent ? 'text-clay-600 font-medium' : 'text-stone-800 font-medium'} ${mono ? 'font-mono' : ''}`}>
-        {value || <span className="text-stone-300">—</span>}
-      </span>
+    <div className="flex items-start gap-4 border-b border-stone-100 px-4 py-2.5 last:border-b-0">
+      <span className="w-[132px] shrink-0 pt-px text-[13px] text-stone-400">{label}</span>
+      <div className="min-w-0 flex-1">
+        {text ? (
+          <div className="flex items-center gap-1.5">
+            <span className={`break-words text-[13px] font-medium ${accent ? 'text-clay-600' : 'text-stone-800'} ${mono ? 'font-mono' : ''}`}>
+              {text}
+            </span>
+            {copy && (
+              <button
+                type="button"
+                onClick={doCopy}
+                className="shrink-0 rounded-lg p-1 text-stone-300 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                title={`คัดลอก${label}`}
+              >
+                {copied ? <Check className="size-3" strokeWidth={2} /> : <Copy className="size-3" strokeWidth={2} />}
+              </button>
+            )}
+          </div>
+        ) : (
+          <span className="text-[13px] text-stone-300">—</span>
+        )}
+        {hint && <p className="mt-0.5 text-[11px] text-stone-400">{hint}</p>}
+      </div>
     </div>
   );
 }
@@ -769,13 +807,13 @@ function PasswordReveal({ label, value }) {
   };
 
   return (
-    <div className="flex flex-col px-4 py-3 border-b border-stone-100 last:border-b-0">
-      <span className="text-[11px] font-medium text-stone-400 mb-0.5">{label}</span>
+    <div className="flex items-start gap-4 border-b border-stone-100 px-4 py-2.5 last:border-b-0">
+      <span className="w-[132px] shrink-0 pt-px text-[13px] text-stone-400">{label}</span>
       {!hasValue ? (
-        <span className="text-sm text-stone-300">—</span>
+        <span className="text-[13px] text-stone-300">—</span>
       ) : (
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-stone-800 font-mono select-all">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="select-all font-mono text-[13px] font-medium text-stone-800">
             {show ? value : '•'.repeat(Math.min(String(value).length, 12))}
           </span>
           <button

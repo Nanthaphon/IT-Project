@@ -31,11 +31,16 @@ export default function EmployeeDetailsModal({
   repairRequests = [],   // 🆕 ใช้ประกอบไทม์ไลน์ (งานแจ้งซ่อมที่พนักงานคนนี้แจ้ง)
   setSelectedAssetDetail, setSelectedAssetCategory,
   bundledItems = [], handleAddBundledItem, handleDeleteBundledItem,
+  asPage = false,        // true = แสดงเป็นหน้าเต็ม (URL /employees/:id) ไม่ใช่ modal
+  onClosePage,           // callback ตอนกดปิดในโหมดหน้าเต็ม (navigate กลับ)
 }) {
   const [historyFilter, setHistoryFilter] = useState('all');
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
   const [returnPickerOpen, setReturnPickerOpen] = useState(false); // เลือกเครื่องเมื่อมีหลายตัว
+
+  /* โหมดหน้าเต็มไม่มี state ให้ล้าง — ต้องถอยกลับด้วย router แทน */
+  const closeView = () => { if (asPage) { onClosePage?.(); return; } setSelectedEmployee(null); };
 
   // 🔒 ล็อก scroll — ใช้ global observer ใน App.jsx แทนแล้ว
 
@@ -175,9 +180,13 @@ export default function EmployeeDetailsModal({
   return (
     <div
       data-modal="employee-detail"
-      className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[60]"
+      className={asPage
+        ? 'h-full'
+        : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[60]'}
     >
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden">
+      <div className={asPage
+        ? 'bg-white w-full h-full flex flex-col overflow-hidden'
+        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden'}>
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
@@ -203,7 +212,7 @@ export default function EmployeeDetailsModal({
           </div>
 
           <button
-            onClick={() => setSelectedEmployee(null)}
+            onClick={closeView}
             className="w-8 h-8 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition shrink-0"
           >
             <X className="h-4 w-4" strokeWidth={2} />
@@ -444,10 +453,10 @@ export default function EmployeeDetailsModal({
               </button>
             )}
             <button
-              onClick={() => setSelectedEmployee(null)}
+              onClick={closeView}
               className="px-5 py-2.5 text-sm font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl transition-colors"
             >
-              ปิด
+              {asPage ? 'กลับ' : 'ปิด'}
             </button>
           </div>
         </div>

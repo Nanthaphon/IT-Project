@@ -21,12 +21,13 @@ function parseRoute(pathname) {
   const assetEdit = !!(assetId && seg[2] === 'edit');   // /assets/:id/edit
   const licenseId = (first === 'licenses' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const licenseEdit = !!(licenseId && seg[2] === 'edit'); // /licenses/:id/edit
+  const employeeId = (first === 'employees' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const accessoryId = (first === 'accessories' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const accessoryEdit = !!(accessoryId && seg[2] === 'edit'); // /accessories/:id/edit
   // 🆕 ครุภัณฑ์สำนักงาน — ใช้ระบบเดียวกับ assets (เก็บใน collection assets, assetGroup='office')
   const furnitureId = (first === 'furniture' && seg[1]) ? decodeURIComponent(seg[1]) : null;
   const furnitureEdit = !!(furnitureId && seg[2] === 'edit'); // /furniture/:id/edit
-  return { menu, assetId, assetEdit, licenseId, licenseEdit, accessoryId, accessoryEdit, furnitureId, furnitureEdit };
+  return { menu, assetId, assetEdit, employeeId, licenseId, licenseEdit, accessoryId, accessoryEdit, furnitureId, furnitureEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
@@ -72,6 +73,7 @@ import DashboardPage from './components/dashboard/DashboardPage.jsx';   // ธ�
 import CustomAlert from './components/CustomAlert.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
 import AssetDetailsModal from './components/AssetDetailsModal.jsx';
+import EmployeeDetailsModal from './components/EmployeeDetailsModal.jsx';
 import EditAssetModal from './components/EditAssetModal.jsx';
 import EditLicenseModal from './components/EditLicenseModal.jsx';
 import LoginView from './components/LoginView.jsx';
@@ -123,7 +125,7 @@ function App() {
   // 🆕 activeMenu มาจาก URL (แทน useState) — แถบ URL บอกว่าอยู่หน้าไหน
   const location = useLocation();
   const navigate = useNavigate();
-  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit, accessoryId: routeAccessoryId, accessoryEdit: routeAccessoryEdit, furnitureId: routeFurnitureId, furnitureEdit: routeFurnitureEdit } = parseRoute(location.pathname);
+  const { menu: activeMenu, assetId: routeAssetId, assetEdit: routeAssetEdit, employeeId: routeEmployeeId, licenseId: routeLicenseId, licenseEdit: routeLicenseEdit, accessoryId: routeAccessoryId, accessoryEdit: routeAccessoryEdit, furnitureId: routeFurnitureId, furnitureEdit: routeFurnitureEdit } = parseRoute(location.pathname);
   const setActiveMenu = useCallback((id) => navigate(MENU_PATH[id] || '/'), [navigate]);
   const openAssetPage = useCallback((asset) => navigate(`/assets/${encodeURIComponent(asset.id)}`), [navigate]);
   const openFurniturePage = useCallback((asset) => navigate(`/furniture/${encodeURIComponent(asset.id)}`), [navigate]);
@@ -3186,8 +3188,43 @@ function App() {
           </div>
         )}
 
-        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeLicenseId || routeAccessoryId || routeFurnitureId || isFullBleedMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
-          {routeAssetEdit ? (
+        <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeEmployeeId || routeLicenseId || routeAccessoryId || routeFurnitureId || isFullBleedMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+          {routeEmployeeId ? (
+            /* 🆕 หน้าเต็มรายละเอียดพนักงาน (URL /employees/:id)
+               เดิมเป็น modal ป๊อปอัพ ต่างจากทรัพย์สิน/License ที่เป็นหน้าเต็มไปแล้ว
+               และกด back ของเบราว์เซอร์ไม่ได้ เพราะ URL ไม่เคยเปลี่ยน */
+            (() => {
+              const routeEmp = [...employees, ...deletedEmployees].find(e => e.id === routeEmployeeId);
+              if (!routeEmp) {
+                return (
+                  <div className="p-5">
+                    <button onClick={() => navigate('/employees')} className="text-[13px] font-medium text-clay-600 hover:underline mb-4">← กลับไปหน้าพนักงาน</button>
+                    <div className="bg-white rounded-2xl border border-dashed border-stone-200 py-20 text-center text-stone-400">ไม่พบพนักงานคนนี้ (อาจถูกลบไปแล้ว)</div>
+                  </div>
+                );
+              }
+              return (
+                <div className="h-full">
+                  <EmployeeDetailsModal
+                    asPage
+                    onClosePage={() => navigate('/employees')}
+                    selectedEmployee={routeEmp}
+                    setSelectedEmployee={setSelectedEmployee}
+                    empModalTab={empModalTab} setEmpModalTab={setEmpModalTab}
+                    assets={assets} licenses={licenses} accessories={accessories}
+                    transactions={transactions} repairRequests={repairRequests}
+                    openEditEmpModal={openEditEmpModal}
+                    handleCheckin={handleCheckin} setReturnModal={setReturnModal}
+                    setSelectedAssetDetail={setSelectedAssetDetail}
+                    setSelectedAssetCategory={setSelectedAssetCategory}
+                    bundledItems={bundledItems}
+                    handleAddBundledItem={handleAddBundledItem}
+                    handleDeleteBundledItem={handleDeleteBundledItem}
+                  />
+                </div>
+              );
+            })()
+          ) : routeAssetEdit ? (
             /* 🆕 หน้าเต็มแก้ไขทรัพย์สิน (URL /assets/:id/edit) */
             <div className="h-full">
               <EditAssetModal
@@ -3542,7 +3579,7 @@ function App() {
               onToggleDeleted={(on) => { setShowDeletedEmployees(on); setTablePage(1); }}
               onRestore={handleRestoreEmployee}
               onPermanentDelete={handlePermanentDeleteEmployee}
-              onOpen={(emp) => { setSelectedEmployee(emp); setEmpModalTab('info'); }}
+              onOpen={(emp) => { setEmpModalTab('info'); navigate(`/employees/${encodeURIComponent(emp.id)}`); }}
               onEdit={openEditEmpModal}
               onDelete={(emp) => setConfirmDeleteModal({ isOpen: true, id: emp.id, collectionName: 'employees' })}
             />

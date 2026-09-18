@@ -59,15 +59,28 @@ const repairRequests = [
 function Harness() {
   const [emp, setEmp] = useState(EMP);
   const [tab, setTab] = useState('info');
+  /* สลับดูได้ทั้งโหมดหน้าเต็ม (URL /employees/:id) และ modal เดิม */
+  const [asPage, setAsPage] = useState(true);
   return (
-    <div className="min-h-screen bg-sand-50">
+    <div className="h-screen bg-sand-50">
+      <div className="flex gap-2 border-b border-stone-200/60 bg-white p-2">
+        {[['หน้าเต็ม', true], ['modal (ของเดิม)', false]].map(([label, v]) => (
+          <button key={label} onClick={() => { setAsPage(v); setEmp(EMP); }}
+            className={`rounded-xl px-3 py-1.5 text-[13px] font-medium ${asPage === v ? 'bg-clay-600 text-white' : 'text-stone-600 hover:bg-stone-100'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
       {!emp && (
         <button onClick={() => setEmp(EMP)}
           className="m-8 rounded-xl bg-clay-600 px-4 py-2.5 text-sm font-medium text-white">
           เปิด modal อีกครั้ง
         </button>
       )}
+      <div className="h-[calc(100vh-49px)]">
       <EmployeeDetailsModal
+        asPage={asPage}
+        onClosePage={() => setEmp(null)}
         selectedEmployee={emp} setSelectedEmployee={setEmp}
         empModalTab={tab} setEmpModalTab={setTab}
         assets={assets} licenses={licenses} accessories={accessories}
@@ -76,6 +89,7 @@ function Harness() {
         handleCheckin={() => {}} setReturnModal={() => {}}
         setSelectedAssetDetail={() => {}} setSelectedAssetCategory={() => {}}
       />
+      </div>
     </div>
   );
 }

@@ -88,9 +88,6 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
             เปลี่ยนรหัสผ่าน
           </h3>
-          <p className="text-[13px] text-stone-500 mt-1">
-            ยืนยันด้วยรหัสผ่านปัจจุบัน เพื่อความปลอดภัยของบัญชี
-          </p>
         </div>
 
         {/* ── form ── */}

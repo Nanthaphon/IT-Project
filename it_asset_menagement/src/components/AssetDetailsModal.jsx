@@ -1643,14 +1643,10 @@ export default function AssetDetailsModal({
                         <input type="file" multiple accept="image/*" onChange={handlePhotoGalleryUpload} disabled={isSavingItem} className="hidden" />
                       </label>
                     </div>
-                    <p className="text-[11px] text-stone-400 mb-3 leading-relaxed">
-                      รูปที่เพิ่มที่นี่จะถูกใช้ประกอบในไฟล์ PDF ที่พิมพ์จากปุ่ม "พิมพ์ PDF" และรายงานทรัพย์สิน
-                    </p>
                     {gallery.length === 0 ? (
                       <div className="py-8 text-center bg-white border border-dashed border-stone-200 rounded-xl">
                         <Image className="w-8 h-8 mx-auto mb-2 text-stone-300" strokeWidth={2} />
                         <p className="text-[13px] font-medium text-stone-500">ยังไม่มีรูปในคลัง</p>
-                        <p className="text-[11px] text-stone-400 mt-0.5">กด "เพิ่มรูป" เพื่ออัปโหลด</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
@@ -1731,7 +1727,6 @@ export default function AssetDetailsModal({
                     <ModalHeader
                       icon={KeyRound}
                       title="เพิ่มสิทธิ์ผู้ถือครอง"
-                      subtitle="กรอกรายละเอียดของสิทธิ์ใหม่ที่ต้องการเพิ่ม"
                       onClose={() => setIsAddingNewLicenseSeat(false)}
                     />
                     <ModalBody className="space-y-7">
@@ -1882,7 +1877,7 @@ export default function AssetDetailsModal({
 
                   {/* 🆕 Modal เพิ่มชิ้นใหม่ — ธีมเดียวกับฟอร์มอื่นในระบบ */}
                   <Modal open={isAddingNew} onClose={() => setIsAddingNew(false)} size="lg">
-                    <ModalHeader icon={Tag} title="เพิ่มชิ้นใหม่" subtitle="กรอกรายละเอียดของชิ้นใหม่ที่ต้องการเพิ่ม" onClose={() => setIsAddingNew(false)} />
+                    <ModalHeader icon={Tag} title="เพิ่มชิ้นใหม่" onClose={() => setIsAddingNew(false)} />
                     <ModalBody className="space-y-7">
                       <section className="space-y-4">
                         <SectionHeader>ข้อมูลชิ้น</SectionHeader>
@@ -2041,7 +2036,6 @@ export default function AssetDetailsModal({
                         <ClipboardList className="w-6 h-6" strokeWidth={2} />
                       </div>
                       <p className="text-sm font-medium text-stone-500">ยังไม่มีประวัติการจัดซื้อที่บันทึกไว้</p>
-                      <p className="text-xs text-stone-400 mt-1">กดปุ่มด้านบนเพื่อเพิ่มประวัติการจัดซื้อ</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -2265,7 +2259,6 @@ export default function AssetDetailsModal({
                           <Paperclip className="w-5 h-5" strokeWidth={2} />
                         </div>
                         <p className="text-sm font-medium text-stone-500 mb-0.5">ยังไม่มีเอกสารแนบ</p>
-                        <p className="text-xs text-stone-400">อัปโหลดใบเสนอราคา ใบเสร็จ หรือรูปภาพเพิ่มเติมได้ที่นี่</p>
                       </div>
                     );
                   })()}

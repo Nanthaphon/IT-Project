@@ -113,7 +113,6 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
                 จัดการรหัสผ่าน
               </h3>
-              <p className="text-xs text-stone-500 mt-0.5">ตั้งรหัสผ่านส่วนตัว หรือใช้รหัสพนักงานเป็นรหัสผ่าน</p>
             </div>
           </div>
         </div>
@@ -156,7 +155,6 @@ export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelAp
               <p className="text-xs text-clay-600/90 leading-relaxed">
                 รหัสผ่านจะถูกตั้งกลับเป็นรหัสพนักงาน: <code className="px-1.5 py-0.5 bg-white/80 rounded font-mono font-medium">{empId}</code>
               </p>
-              <p className="text-xs text-clay-600/80">หลังรีเซ็ตแล้ว Login ครั้งถัดไป — ใช้รหัสพนักงานเป็นทั้ง username และ password</p>
             </div>
           ) : (
             <div className="bg-stone-50/40 border border-stone-200 rounded-xl p-3.5">

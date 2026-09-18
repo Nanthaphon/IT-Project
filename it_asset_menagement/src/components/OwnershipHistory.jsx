@@ -121,7 +121,6 @@ export default function OwnershipHistory({
         <div className="flex flex-col items-center justify-center py-12 text-stone-400 bg-stone-50/60 rounded-xl border border-dashed border-stone-200">
           <User className="h-10 w-10 mb-3 opacity-40" />
           <p className="text-sm font-medium">ยังไม่มีประวัติการครอบครอง</p>
-          <p className="text-xs text-stone-400 mt-1">กด “เพิ่มประวัติ” เพื่อบันทึกย้อนหลังได้</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -254,7 +253,6 @@ function AddPeriodModal({ category, assetId, assetName, employees = [], onClose 
             </div>
             <div>
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เพิ่มประวัติการครอบครอง</h3>
-              <p className="text-[13px] text-stone-500 mt-0.5">บันทึกช่วงการถือครองย้อนหลัง</p>
             </div>
           </div>
           <button onClick={onClose} className="w-9 h-9 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 flex items-center justify-center shrink-0 transition-colors">
@@ -857,9 +855,6 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
         <div className="flex flex-col items-center justify-center py-5 rounded-lg bg-white border border-dashed border-stone-200">
           <Paperclip className="h-6 w-6 mb-1.5 text-stone-300" strokeWidth={2} />
           <p className="text-xs font-medium text-stone-400">ยังไม่มีเอกสารแนบ</p>
-          <p className="text-[11px] text-stone-300 mt-0.5">
-            กด "แนบไฟล์" เพื่อแนบใบส่งมอบ / ใบรับคืน ฉบับลงนามแล้ว
-          </p>
         </div>
       ) : (
         <div className="space-y-2">

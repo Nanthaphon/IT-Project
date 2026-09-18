@@ -25,7 +25,6 @@ export default function RepairModal({
       <ModalHeader
         icon={Wrench}
         title="บันทึกนำอุปกรณ์กลับเข้าคลัง"
-        subtitle="ซ่อมเสร็จแล้ว — ระบุจำนวนและรายละเอียดการซ่อม"
         onClose={close}
       />
       <form onSubmit={handleConfirmRepair} className="flex flex-col flex-1 overflow-hidden">

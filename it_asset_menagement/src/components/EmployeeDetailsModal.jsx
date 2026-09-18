@@ -683,14 +683,6 @@ function SetStaffPasswordForm({ empDocId, empName, empId }) {
   return (
     <div className="px-4 py-3 space-y-3">
 
-      {/* Info banner */}
-      <div className="bg-stone-50/40 border border-stone-200 rounded-lg px-3 py-2 flex items-start gap-2">
-        <Shield className="h-3.5 w-3.5 text-clay-600 shrink-0 mt-0.5" strokeWidth={2} />
-        <p className="text-[11px] text-stone-900/85 leading-relaxed">
-          ระบบเก็บทั้ง <span className="font-medium text-stone-700">hash + salt</span> (สำหรับ login) และ <span className="font-medium text-stone-700">plaintext</span> (visibility สำหรับ admin) —
-          Firestore rules จำกัดให้เฉพาะ admin เท่านั้นที่อ่านได้
-        </p>
-      </div>
 
       {/* Status badges */}
       <div className="flex flex-wrap items-center gap-2">

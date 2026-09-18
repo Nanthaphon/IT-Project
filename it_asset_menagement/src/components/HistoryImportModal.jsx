@@ -13,7 +13,6 @@ export default function HistoryImportModal({ isOpen, onClose, onDownloadTemplate
       <ModalHeader
         icon={History}
         title="นำเข้าประวัติการถือครอง"
-        subtitle="ย้ายประวัติเบิก-คืนของทรัพย์สินจากระบบเก่า (CSV)"
         onClose={onClose}
       />
       <ModalBody className="space-y-4">

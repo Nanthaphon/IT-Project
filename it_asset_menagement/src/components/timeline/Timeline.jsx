@@ -188,9 +188,6 @@ export default function Timeline({
           <Info className="size-5" strokeWidth={2} />
         </div>
         <p className="text-sm font-medium text-stone-500">{emptyHint}</p>
-        <p className="mt-1 text-[13px] text-stone-400">
-          ประวัติจะถูกบันทึกอัตโนมัติเมื่อมีการเบิกจ่าย รับคืน หรือผูก License
-        </p>
       </div>
     );
   }

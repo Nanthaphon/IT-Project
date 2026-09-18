@@ -163,7 +163,7 @@ export default function PreHandoverAssessmentModal({
             <div>
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบส่งมอบ</h3>
               <p className="text-[13px] text-stone-500 mt-0.5">
-                ติ๊กผลประเมินสภาพอุปกรณ์ + แนบรูปก่อนส่งมอบให้ <span className="font-medium text-stone-700">{employee?.fullName}</span>
+ส่งมอบให้ <span className="font-medium text-stone-700">{employee?.fullName}</span>
               </p>
             </div>
           </div>
@@ -349,12 +349,6 @@ export default function PreHandoverAssessmentModal({
                 />
               ))}
             </div>
-            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-stone-50/60 border border-stone-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
-              <p className="text-xs text-stone-700 leading-relaxed">
-                แนะนำให้แนบครบทั้ง 6 มุม รูปจะถูกฝังลงในเอกสาร PDF ที่พิมพ์ออก
-              </p>
-            </div>
           </Section>
 
           {/* ── Section: ของแถม (กระเป๋า / สายชาร์จ / ฯลฯ) ── */}
@@ -362,7 +356,7 @@ export default function PreHandoverAssessmentModal({
             <div className="space-y-3">
               {bundledItems.length === 0 && !showAddBundleForm ? (
                 <div className="text-center py-6 px-4 bg-stone-50 rounded-xl border border-dashed border-stone-300">
-                  <p className="text-[13px] text-stone-500 mb-2.5">ยังไม่มีของแถมในระบบ — กดปุ่มด้านล่างเพื่อเพิ่มเป็นรายการแรก</p>
+                  <p className="text-[13px] text-stone-500 mb-2.5">ยังไม่มีของแถมในระบบ</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -319,7 +319,6 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
   if (rows.length === 0) {
     return (
       <div className="space-y-2.5">
-        <p className="py-3 text-center text-[13px] text-stone-400">ยังไม่มีข้อมูล — กดปุ่มด้านล่างเพื่อเพิ่ม</p>
         {addBtn}
       </div>
     );
@@ -580,9 +579,6 @@ export default function ITReportPage({
           </div>
           <div>
             <h1 className="text-[22px] font-medium tracking-tight text-stone-900">สร้าง IT Monthly Report</h1>
-            <p className="text-stone-500 text-[13px] mt-1">
-              แก้ไขข้อมูลทุกสไลด์ได้ในหน้านี้ · กด <span className="font-medium text-stone-600">บันทึก</span> เพื่อจำข้อมูล แล้ว Export เป็น <span className="font-medium text-stone-600">.pptx</span>
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
@@ -618,7 +614,7 @@ export default function ITReportPage({
 
         {/* ตั้งค่า + ตัวเลขภาพรวม — สั้นทั้งคู่ */}
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-2">
-          <PanelCard icon={Settings} title="ตั้งค่ารายงาน" desc="เดือน / ปี / ชื่อบริษัทที่แสดงในไฟล์ (ปก + ทุกสไลด์)">
+          <PanelCard icon={Settings} title="ตั้งค่ารายงาน" desc="สไลด์ 1">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className={labelCls}>เดือน</label>
@@ -637,7 +633,7 @@ export default function ITReportPage({
             </div>
           </PanelCard>
 
-          <PanelCard icon={BarChart3} title="สรุปฝ่ายสนับสนุน" desc="สไลด์ 3 — ตัวเลขภาพรวม (แก้ไขได้)"
+          <PanelCard icon={BarChart3} title="สรุปฝ่ายสนับสนุน" desc="สไลด์ 3"
             right={<RefreshBtn onClick={() => { setStatsEdit(null); setSaved(false); }} />}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <StatInput label="พนักงานทั้งหมด" value={stats.employees}  onChange={v => editStat('employees', v)} />
@@ -649,7 +645,7 @@ export default function ITReportPage({
         </div>
 
         {/* ตารางฮาร์ดแวร์ / ซอฟต์แวร์ — เต็มความกว้าง ตารางจึงไม่ถูกบีบ */}
-        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
+        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4"
           right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
           <DataRowsEditor
             rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
@@ -665,7 +661,7 @@ export default function ITReportPage({
           />
         </PanelCard>
 
-        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
+        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5"
           right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
           <DataRowsEditor
             rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
@@ -682,21 +678,20 @@ export default function ITReportPage({
 
         {/* สามรายการที่เป็นข้อความยาว — ปกติมีไม่กี่แถว วางเรียงกัน */}
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
-          <PanelCard icon={AlertCircle} tint="#FBEAE8" color="#B0453C" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
+          <PanelCard icon={AlertCircle} tint="#FBEAE8" color="#B0453C" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3" right={<CountBadge n={bigIssues.length} />}>
             <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
           </PanelCard>
 
-          <PanelCard icon={FlaskConical} tint="#DFEAEF" color="#225462" title="R&D Projects" desc="สไลด์ 6 — สถานะโปรเจค" right={<CountBadge n={rdProjects.length} />}>
+          <PanelCard icon={FlaskConical} tint="#DFEAEF" color="#225462" title="R&D Projects" desc="สไลด์ 6" right={<CountBadge n={rdProjects.length} />}>
             <RDEditor value={rdProjects} onChange={setRdProjects} />
           </PanelCard>
 
-          <PanelCard icon={Pin} tint="#FBF4E6" color="#A87A2C" title="วาระติดตาม (Follow-up)" desc="สไลด์ 7 — รายการติดตามงาน" right={<CountBadge n={followUps.length} />}>
+          <PanelCard icon={Pin} tint="#FBF4E6" color="#A87A2C" title="วาระติดตาม (Follow-up)" desc="สไลด์ 7" right={<CountBadge n={followUps.length} />}>
             <FollowupEditor value={followUps} onChange={setFollowUps} />
           </PanelCard>
         </div>
 
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
+        <div className="flex items-center justify-end px-1">
           <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors">
             ล้างข้อมูลที่กรอก
           </button>

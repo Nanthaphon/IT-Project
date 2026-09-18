@@ -1897,7 +1897,7 @@ function LinksEditor({ links, setLinks }) {
     <div>
       <label className="block text-[11px] text-stone-500 font-medium mb-2">ลิงก์ / เว็บไซต์</label>
       {rows.length === 0 && (
-        <p className="text-xs text-stone-400 mb-1">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์” เพื่อแปะเว็บไซต์ที่ต้องการ</p>
+        <p className="text-xs text-stone-400 mb-1">ยังไม่มีลิงก์</p>
       )}
       <div className="space-y-2">
         {rows.map((r, i) => (

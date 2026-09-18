@@ -458,7 +458,6 @@ function EditPanel({ idx, edit, set }) {
             <input type="number" value={year} onChange={e => set.year(Number(e.target.value))} className={fld} />
           </Fld>
         </div>
-        <p className="text-[11px] text-stone-400">* ชื่อบริษัท / เดือน / ปี มีผลกับทุกสไลด์</p>
       </div>
     );
   }

@@ -258,9 +258,6 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
             <Package className="h-6 w-6" strokeWidth={2} />
           </div>
           <p className="text-sm font-medium text-stone-500">ยังไม่มี License ที่ผูกกับเครื่องนี้</p>
-          <p className="text-xs text-stone-400 mt-1">
-            กดปุ่ม "เพิ่ม License" เพื่อผูก License กับทรัพย์สินนี้
-          </p>
         </div>
       ) : (
         <div className="space-y-2">

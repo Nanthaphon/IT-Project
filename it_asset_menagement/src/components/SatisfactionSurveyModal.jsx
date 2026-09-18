@@ -116,7 +116,7 @@ export default function SatisfactionSurveyModal({
             <div className="min-w-0 flex-1">
               <h3 className="text-[19px] font-medium tracking-tight">ประเมินความพึงพอใจ</h3>
               <p className="text-[13px] text-stone-100/90 mt-0.5">
-                หลังการแก้ไขปัญหา IT — ใช้เวลาเพียงไม่กี่วินาที 🙏
+                ใช้เวลาไม่กี่วินาที
               </p>
             </div>
           </div>

@@ -33,7 +33,6 @@ export default function EditEmpModal({
       <ModalHeader
         icon={Pencil}
         title="แก้ไขข้อมูลพนักงาน"
-        subtitle="อัปเดตข้อมูลส่วนตัว สังกัด และบัญชี Microsoft 365"
         onClose={close}
       />
       <form onSubmit={handleUpdateEmployee} className="flex flex-col flex-1 overflow-hidden">
@@ -162,7 +161,6 @@ export default function EditEmpModal({
               <Link2 className="h-4 w-4" strokeWidth={2} />
               <p className="text-[13px] font-medium tracking-wide">ลิงก์ / เว็บไซต์</p>
             </div>
-            <p className="text-xs text-stone-400 -mt-1">แปะลิงก์เว็บไซต์ให้พนักงานกดเข้าใช้งาน (เช่น Microsoft 365, SharePoint) — ตั้งชื่อลิงก์ได้อิสระ</p>
             <EmpLinksEditor
               links={data.links}
               setLinks={(next) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, links: next } }))}
@@ -188,7 +186,7 @@ function EmpLinksEditor({ links, setLinks }) {
   return (
     <div className="space-y-2">
       {rows.length === 0 && (
-        <p className="text-xs text-stone-400">ยังไม่มีลิงก์ — กด “เพิ่มลิงก์”</p>
+        <p className="text-xs text-stone-400">ยังไม่มีลิงก์</p>
       )}
       {rows.map((r, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center">

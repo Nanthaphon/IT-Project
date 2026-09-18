@@ -100,7 +100,7 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
       {/* Chips */}
       <div className="flex flex-wrap gap-1.5 min-h-[36px]">
         {values.length === 0 && (
-          <p className="text-[13px] text-stone-400 italic">ยังไม่มีตัวเลือก กรอกด้านล่างเพื่อเพิ่ม</p>
+          <p className="text-[13px] text-stone-400 italic">ยังไม่มีตัวเลือก</p>
         )}
         {values.map((val) => (
           <span
@@ -186,7 +186,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-medium tracking-tight text-stone-900">ตั้งค่าตัวเลือกฟิลด์</h1>
-          <p className="mt-1 text-sm text-stone-500">จัดการรายการตัวเลือกที่จะแสดงใน Dropdown ของฟอร์มต่างๆ</p>
+          <p className="mt-1 text-sm text-stone-500">ตัวเลือกใน Dropdown ของฟอร์ม</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {savedAt && !dirty && (

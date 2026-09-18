@@ -139,7 +139,6 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
           <FileText className="h-6 w-6" strokeWidth={2} />
         </div>
         <p className="text-sm font-medium text-stone-600">ยังไม่มีเอกสารที่พิมพ์</p>
-        <p className="text-xs text-stone-400 mt-1">เอกสารใบส่งมอบ / ใบรับคืน ที่พิมพ์ผ่านระบบจะถูกบันทึกที่นี่อัตโนมัติ</p>
       </div>
     );
   }

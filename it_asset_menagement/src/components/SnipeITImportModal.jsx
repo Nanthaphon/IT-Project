@@ -314,7 +314,6 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
           </div>
           <div className="flex-1">
             <h2 className="text-[19px] font-medium text-stone-800">Smart Import จาก Snipe-IT</h2>
-            <p className="text-xs text-stone-500 mt-0.5">อัปโหลด CSV → ระบบ auto-group เป็น license พร้อม preview ก่อน import</p>
           </div>
           <button onClick={close} className="w-9 h-9 rounded-xl hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-700">
             <X className="h-4.5 w-4.5" strokeWidth={2} />
@@ -415,22 +414,8 @@ function UploadArea({ onFile }) {
         </div>
         <p className="text-[15px] font-medium text-stone-800 mb-1">ลาก CSV จาก Snipe-IT มาวาง</p>
         <p className="text-[13px] text-stone-500">หรือคลิกเพื่อเลือกไฟล์</p>
-        <p className="text-[11px] text-stone-400 mt-3">รองรับไฟล์ .csv ที่ export จาก Snipe-IT</p>
       </label>
 
-      {/* Info */}
-      <div className="bg-stone-50/50 border border-stone-200 rounded-xl p-4 space-y-2">
-        <p className="text-xs font-medium text-stone-900 flex items-center gap-1.5">
-          <Layers className="h-3.5 w-3.5" strokeWidth={2} />
-          ระบบจะทำอะไรให้:
-        </p>
-        <ul className="text-xs text-stone-900/85 space-y-1 pl-5 list-disc">
-          <li>อ่าน CSV ทุก row → group ตามชื่อโปรแกรม</li>
-          <li>1 ชื่อโปรแกรม = 1 license หลัก + เก็บ Product Key ทุก row เป็น seats</li>
-          <li>Map columns: Name / Product Key / Expiration Date / Manufacturer / Purchase Date / Notes</li>
-          <li>แสดง preview ก่อน import — ตรวจสอบได้</li>
-        </ul>
-      </div>
     </div>
   );
 }

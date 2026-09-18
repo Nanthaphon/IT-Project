@@ -168,7 +168,7 @@ export default function PreReturnAssessmentModal({
             <div className="min-w-0">
               <h3 className="text-[19px] font-medium text-stone-900 leading-tight">เตรียมข้อมูลก่อนพิมพ์ใบรับคืน</h3>
               <p className="text-[13px] text-stone-500 mt-0.5 truncate">
-                ติ๊กผลประเมิน + แนบรูป + ระบุค่าปรับ ก่อนพิมพ์เอกสารให้ <span className="font-medium text-stone-700">{employee?.fullName}</span>
+รับคืนจาก <span className="font-medium text-stone-700">{employee?.fullName}</span>
               </p>
             </div>
           </div>
@@ -240,7 +240,6 @@ export default function PreReturnAssessmentModal({
             >
               <div>
                 <p className="text-[13px] font-medium text-stone-700"><ClipboardList className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> กรอกคะแนนตอนส่งมอบ (ขา 1) เพื่อเปรียบเทียบ</p>
-                <p className="text-[11px] text-stone-500 mt-0.5">ถ้ามี IT-FORM-001 ฉบับเดิม ก็คัดลอกคะแนนมาเพื่อให้ตารางเปรียบเทียบในเอกสารแสดงครบ</p>
               </div>
               <span className="text-xs font-medium text-clay-600">{showHandover ? 'ซ่อน' : 'แสดง'}</span>
             </button>
@@ -370,12 +369,6 @@ export default function PreReturnAssessmentModal({
                   onUpload={(s) => setPhotosDamage(prev => ({ ...prev, [slot.key]: s }))}
                   onRemove={() => setPhotosDamage(prev => { const n = { ...prev }; delete n[slot.key]; return n; })}/>
               ))}
-            </div>
-            <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-stone-50/60 border border-stone-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-stone-600 mt-0.5 shrink-0" strokeWidth={2} />
-              <p className="text-xs text-stone-700 leading-relaxed">
-                แนบรูปได้ถึง 4 รูป — ใช้ถ่ายความเสียหายเป็นหลักฐาน ภาพจะถูกฝังลง PDF ที่พิมพ์ออก
-              </p>
             </div>
           </Section>
         </div>

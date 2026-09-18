@@ -35,7 +35,6 @@ export default function EditLicenseModal({
       <ModalHeader
         icon={Pencil}
         title="แก้ไขข้อมูลโปรแกรม / License"
-        subtitle="อัปเดต Product Key, Supplier และวันที่หมดอายุ"
         onClose={close}
       />
       <form onSubmit={handleUpdateLicense} className="flex flex-col flex-1 overflow-hidden">

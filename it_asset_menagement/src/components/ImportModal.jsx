@@ -77,7 +77,6 @@ export default function ImportModal({
       <ModalHeader
         icon={FileSpreadsheet}
         title={`นำเข้าข้อมูล${title}`}
-        subtitle="ดาวน์โหลดไฟล์ต้นแบบ กรอกข้อมูล แล้วอัปโหลดกลับ"
         onClose={close}
       />
       <ModalBody className="space-y-4">
@@ -118,9 +117,6 @@ export default function ImportModal({
             </span>
             <h4 className="font-medium text-stone-800 text-[15px]">ดาวน์โหลดไฟล์ต้นแบบ</h4>
           </div>
-          <p className="text-[13px] text-stone-500 mb-3.5 pl-10">
-            โหลดไฟล์ CSV (.csv) ที่มีหัวคอลัมน์ถูกต้อง เพื่อนำไปกรอกข้อมูล{title}
-          </p>
           <div className="pl-10">
             <button
               onClick={handleDownloadTemplate}
@@ -140,9 +136,6 @@ export default function ImportModal({
             </span>
             <h4 className="font-medium text-stone-800 text-[15px]">อัปโหลดไฟล์ข้อมูล</h4>
           </div>
-          <p className="text-[13px] text-stone-500 mb-3.5 pl-10">
-            เลือกไฟล์ CSV ที่กรอกข้อมูลเสร็จแล้ว ระบบจะนำเข้าข้อมูลทันที
-          </p>
           <div className="pl-10 relative">
             <input
               type="file"

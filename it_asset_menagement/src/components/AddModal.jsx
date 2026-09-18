@@ -371,7 +371,7 @@ export default function AddModal({
                       <CostInput value={cost} onChange={(e) => setCost(e.target.value)} />
                     </Field>
                     {/* 🆕 ราคาปัจจุบัน — เฉพาะทรัพย์สินหลัก */}
-                    <Field label="ราคาปัจจุบัน (บาท)" hint="มูลค่าปัจจุบันของทรัพย์สิน">
+                    <Field label="ราคาปัจจุบัน (บาท)">
                       <CostInput value={scrapValue} onChange={(e) => setScrapValue?.(e.target.value)} />
                     </Field>
                   </div>
@@ -432,11 +432,11 @@ export default function AddModal({
             {/* ── หมายเหตุ — แสดงทั้ง assets และ accessories ── */}
             {(menu === 'assets' || activeMenu === 'accessories') && (
               <section className="space-y-4">
-                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, สภาพเครื่อง, ผู้ติดต่อ ฯลฯ">
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม">
                   <textarea value={note || ''} onChange={(e) => setNote(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่รายละเอียดที่ต้องการบันทึก..." />
                 </Field>
                 {menu === 'assets' && (
-                  <Field label="Remark" hint="หมายเหตุเพิ่มเติม (แสดงในรายงาน PDF)">
+                  <Field label="Remark">
                     <textarea value={remark || ''} onChange={(e) => setRemark(e.target.value)} rows={3} className={cls.input + ' resize-none'} placeholder="ใส่ Remark..." />
                   </Field>
                 )}

@@ -115,7 +115,6 @@ export default function AccessoryRequestTable({
         <div className="bg-white rounded-2xl border border-stone-200/60 p-12 text-center">
           <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={2} />
           <p className="text-sm font-medium text-stone-500">ไม่มีคำขอ</p>
-          <p className="text-xs text-stone-400 mt-1">รายการคำขออุปกรณ์เสริมจะปรากฏที่นี่</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)] overflow-hidden">

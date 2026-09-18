@@ -419,7 +419,7 @@ export default function EditAssetModal({
               <section className="space-y-4">
                 <SectionHeader>ข้อมูลผู้จัดจำหน่ายและหมายเหตุ</SectionHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="ผู้จัดจำหน่าย (Vendor)" hint="ชื่อร้านค้าหรือบริษัทที่ซื้อมา">
+                  <Field label="ผู้จัดจำหน่าย (Vendor)">
                     <FieldOptionSelect
                       name="vendor"
                       value={editAssetModal.data.vendor || ''}
@@ -436,7 +436,7 @@ export default function EditAssetModal({
                     />
                   </Field>
                 </div>
-                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, เงื่อนไขพิเศษ, ผู้ติดต่อ ฯลฯ">
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม">
                   <textarea
                     name="note"
                     value={editAssetModal.data.note || ''}
@@ -459,8 +459,7 @@ export default function EditAssetModal({
                   <div className="flex-1">
                     <p className="text-[13px] font-medium text-stone-800">ปิดการเบิก (ไม่ให้พนักงานขอเบิก)</p>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      เปิดใช้เมื่อต้องการกันของให้พนักงานบางคน หรือเก็บไว้สำหรับเหตุการณ์พิเศษ
-                      — ฝั่งพนักงานจะไม่เห็นอุปกรณ์นี้ใน catalog แม้จะมีของเหลือก็ตาม
+                      ฝั่งพนักงานจะไม่เห็นอุปกรณ์นี้ใน catalog แม้จะมีของเหลือ
                     </p>
                   </div>
                 </label>
@@ -471,7 +470,7 @@ export default function EditAssetModal({
             {isAssets && (
               <section className="space-y-4">
                 <SectionHeader>หมายเหตุ</SectionHeader>
-                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม" hint="เช่น ข้อมูลการรับประกัน, สภาพเครื่อง, ผู้ติดต่อ ฯลฯ">
+                <Field label="หมายเหตุ / รายละเอียดเพิ่มเติม">
                   <textarea
                     name="note"
                     value={editAssetModal.data.note || ''}
@@ -481,7 +480,7 @@ export default function EditAssetModal({
                     placeholder="ใส่รายละเอียดที่ต้องการบันทึก..."
                   />
                 </Field>
-                <Field label="Remark" hint="หมายเหตุเพิ่มเติม (แสดงในรายงาน PDF)">
+                <Field label="Remark">
                   <textarea
                     name="remark"
                     value={editAssetModal.data.remark || ''}

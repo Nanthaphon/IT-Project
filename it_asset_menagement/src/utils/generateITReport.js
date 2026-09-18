@@ -28,7 +28,7 @@ const TH_MONTHS = [
 
 const F  = 'Sarabun';    // Thai font
 const FE = 'Arial';      // EN/number font — universal install + tight Latin spacing
-const REPORT_VERSION = 'v2';  // bump when changing report layout — appears in footer to verify rebuild
+const REPORT_VERSION = 'v3';  // bump when changing report layout — appears in footer to verify rebuild
 
 /* ─── Language-aware font picker
    Sarabun has Latin glyphs but PowerPoint renders them with extra kerning,
@@ -71,6 +71,18 @@ const cellH  = (text, opts = {}) => cell(text, {
 
 /* ─── Alternating row fill ─── */
 const rowFill = (i) => ({ fill: { color: i % 2 === 0 ? C.white : C.blueRow } });
+
+/* แถว "รวม" ท้ายตาราง — หัวหน้าอ่านบรรทัดเดียวก็เห็นยอดรวม
+   ไม่ต้องบวกเลขในหัวเองจากหลายสิบแถว
+   cells = [{ text, align }] เรียงตามคอลัมน์ */
+const totalRow = (cells) => cells.map((c) => ({
+  text: String(c.text ?? ''),
+  options: {
+    fontSize: 14, bold: true, fontFace: c.align === 'left' ? fontFor(c.text) : FE,
+    align: c.align || 'center', valign: 'middle', color: C.blue,
+    fill: { color: C.blueLight }, border: bdr(C.blueMid, 1), charSpacing: 0,
+  },
+}));
 
 /* ─── Status color helper ─── */
 const statusOpts = (s = '') => {
@@ -252,26 +264,28 @@ function slide2(pptx, { month, year, company, reportDate }) {
 
   const items = [
     { num:'01', th:'สรุปผลการดำเนินงานฝ่ายสนับสนุน',  en:'ภาพรวมงานสนับสนุน' },
-    { num:'02', th:'สรุปผลฮาร์ดแวร์และซอฟต์แวร์',      en:'รายการทรัพย์สินในระบบ' },
-    { num:'03', th:'สรุปภาพรวมสถานะโปรเจค R&D',       en:'สถานะโปรเจควิจัยและพัฒนา' },
-    { num:'04', th:'วาระติดตาม',                       en:'รายการติดตามงาน' },
+    { num:'02', th:'เคสแจ้งซ่อม / แจ้งปัญหา',          en:'เคสที่รับแจ้งในเดือนนี้' },
+    { num:'03', th:'สรุปผลฮาร์ดแวร์และซอฟต์แวร์',      en:'รายการทรัพย์สินในระบบ' },
+    { num:'04', th:'สรุปภาพรวมสถานะโปรเจค R&D',       en:'สถานะโปรเจควิจัยและพัฒนา' },
+    { num:'05', th:'วาระติดตาม',                       en:'รายการติดตามงาน' },
   ];
 
+  /* 5 หัวข้อ -> 2 คอลัมน์ 3 แถว การ์ดเตี้ยลงจาก 2.35 เป็น 1.78 */
   items.forEach((it, i) => {
     const col = i % 2, row = Math.floor(i / 2);
-    const x = 0.4 + col * 6.5, y = 1.25 + row * 2.65, w = 6.1, h = 2.35;
+    const x = 0.4 + col * 6.5, y = 1.25 + row * 1.98, w = 6.1, h = 1.78;
 
     s.addShape('roundRect', { x, y, w, h,
       fill:{ color: 'EEF4FB' }, line:{ color: C.blueLight, width: 2 }, rectRadius: 0.1 });
     s.addShape(pptx.ShapeType.rect, { x, y, w:0.15, h,
       fill:{ color: C.blue }, line:{ color: C.blue } });
 
-    s.addText(it.num, { x:x+0.3, y:y+0.15, w:1.5, h:0.8,
-      fontSize: 42, bold: true, color: C.blue, fontFace: FE, charSpacing: 0 });
-    s.addText(it.th,  { x:x+0.3, y:y+0.9,  w:w-0.5, h:0.65,
-      fontSize: 17, bold: true, color: C.blue, fontFace: F, charSpacing: 0 });
-    s.addText(it.en,  { x:x+0.3, y:y+1.58, w:w-0.5, h:0.45,
-      fontSize: 12, italic: true, color: C.grayText, fontFace: F, charSpacing: 0 });
+    s.addText(it.num, { x:x+0.3, y:y+0.1, w:1.5, h:0.6,
+      fontSize: 32, bold: true, color: C.blue, fontFace: FE, charSpacing: 0 });
+    s.addText(it.th,  { x:x+0.3, y:y+0.68, w:w-0.5, h:0.55,
+      fontSize: 15, bold: true, color: C.blue, fontFace: F, charSpacing: 0 });
+    s.addText(it.en,  { x:x+0.3, y:y+1.2,  w:w-0.5, h:0.42,
+      fontSize: 11, italic: true, color: C.grayText, fontFace: F, charSpacing: 0 });
   });
 
   s.addText(`อัพเดท: ${reportDate}`, {
@@ -363,6 +377,183 @@ function slide3(pptx, { month, year, company, employees, repairRequests, bigIssu
 }
 
 /* ═══════════════════════════════════
+   SLIDE – REPAIR CASES  (ดึงจากระบบทั้งหมด ไม่ต้องกรอกเอง)
+
+   เดิมเคสแจ้งซ่อมปรากฏในรายงานแค่ตัวเลขรวม 4 ตัวบนสไลด์ 3
+   หัวหน้าเห็นแต่ "เคสทั้งหมด 10" แต่ไม่รู้ว่าเคสอะไร แผนกไหน ค้างอยู่กี่เคส
+   สไลด์ชุดนี้ดึง repair_requests ของเดือนนั้นมาแสดงให้ครบ
+═══════════════════════════════════ */
+const DASH = String.fromCharCode(0x2013);
+
+const REPAIR_STATUS = [
+  { key: 'รอดำเนินการ',    label: 'รอดำเนินการ',    color: C.amber,    bg: C.amberBg },
+  { key: 'กำลังดำเนินการ', label: 'กำลังดำเนินการ', color: C.blue,     bg: 'EEF4FB'  },
+  { key: 'ซ่อมเสร็จสิ้น',  label: 'เสร็จสิ้น',      color: C.green,    bg: C.greenBg },
+  { key: 'ยกเลิก',         label: 'ยกเลิก',         color: C.grayText, bg: C.grayBg  },
+];
+
+/* สรุปเคสแจ้งซ่อมของเดือนที่เลือก — pure ใช้ร่วมกับ preview ในแอปได้ */
+export function getRepairSummary(repairRequests = [], month, year) {
+  const inMonth = (repairRequests || []).filter((r) => {
+    if (!r?.timestamp) return false;
+    const d = new Date(r.timestamp);
+    return d.getMonth() === month && d.getFullYear() === year;
+  });
+
+  /* นับตามค่าใดค่าหนึ่ง แล้วเรียงมาก -> น้อย */
+  const tally = (pick) => {
+    const m = new Map();
+    inMonth.forEach((r) => {
+      const k = String(pick(r) || '').trim() || 'ไม่ระบุ';
+      m.set(k, (m.get(k) || 0) + 1);
+    });
+    return [...m.entries()].map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n);
+  };
+
+  const byStatus = REPAIR_STATUS.map((s) => ({
+    ...s,
+    n: inMonth.filter((r) => (r.status || 'รอดำเนินการ') === s.key).length,
+  }));
+
+  return {
+    total: inMonth.length,
+    open: byStatus[0].n + byStatus[1].n,          // ยังไม่ปิด
+    done: byStatus[2].n,
+    byStatus,
+    byDept: tally((r) => r.department),
+    byAsset: tally((r) => r.assetName),
+    cases: [...inMonth].sort((a, b) => b.timestamp - a.timestamp),
+  };
+}
+
+/* แถบเทียบสัดส่วนแบบวาดเอง — ไม่ใช้ addChart เพราะ label ไทยใน chart
+   ของ PowerPoint เลือกฟอนต์เองไม่ได้ ตัวอักษรจะกระจาย */
+function drawBars(pptx, s, { x, y, w, title, items, max = 5, color = C.blue }) {
+  s.addText(title, { x, y, w, h: 0.3, fontSize: 13, bold: true, color: C.blue,
+    fontFace: F, charSpacing: 0 });
+
+  const top = items.slice(0, max);
+  if (top.length === 0) {
+    s.addText('ไม่มีข้อมูลในเดือนนี้', { x, y: y + 0.4, w, h: 0.3,
+      fontSize: 11, italic: true, color: C.grayText, fontFace: F, charSpacing: 0 });
+    return;
+  }
+
+  const peak = Math.max(...top.map((t) => t.n)) || 1;
+  const labelW = w * 0.42;          // ชื่อ
+  const trackX = x + labelW + 0.1;
+  const trackW = w - labelW - 0.55; // เว้นที่ให้ตัวเลขท้ายแถบ
+  const rowH = 0.42;
+
+  top.forEach((t, i) => {
+    const ry = y + 0.42 + i * rowH;
+    s.addText(t.name, { x, y: ry, w: labelW, h: rowH - 0.06,
+      fontSize: 11, color: C.grayText, fontFace: fontFor(t.name),
+      valign: 'middle', charSpacing: 0 });
+    s.addShape(pptx.ShapeType.rect, { x: trackX, y: ry + 0.09, w: trackW, h: 0.16,
+      fill: { color: C.grayBg }, line: { color: C.grayBg } });
+    s.addShape(pptx.ShapeType.rect, {
+      x: trackX, y: ry + 0.09, w: Math.max(0.04, trackW * (t.n / peak)), h: 0.16,
+      fill: { color }, line: { color } });
+    s.addText(String(t.n), { x: trackX + trackW + 0.06, y: ry, w: 0.4, h: rowH - 0.06,
+      fontSize: 11, bold: true, color, fontFace: FE, valign: 'middle', charSpacing: 0 });
+  });
+}
+
+function slideRepair(pptx, ctx, startPageNum) {
+  const { month, year, company, repairRequests } = ctx;
+  const R = getRepairSummary(repairRequests, month, year);
+
+  /* ── สไลด์ภาพรวม ── */
+  const s = pptx.addSlide();
+  s.background = { color: C.white };
+  addHeader(pptx, s, 'เคสแจ้งซ่อม / แจ้งปัญหา', `รวม ${R.total} เคสในเดือนนี้`);
+
+  R.byStatus.forEach((st, i) => {
+    const bx = 0.4 + i * 3.13, by = 1.25, bw = 2.9, bh = 1.15;
+    s.addShape('roundRect', { x: bx, y: by, w: bw, h: bh,
+      fill: { color: st.bg }, line: { color: st.bg }, rectRadius: 0.08 });
+    s.addShape(pptx.ShapeType.rect, { x: bx, y: by, w: 0.1, h: bh,
+      fill: { color: st.color }, line: { color: st.color } });
+    s.addText(String(st.n), { x: bx + 0.25, y: by + 0.08, w: bw - 0.4, h: 0.62,
+      fontSize: 34, bold: true, color: st.color, fontFace: FE, valign: 'middle', charSpacing: 0 });
+    s.addText(st.label, { x: bx + 0.25, y: by + 0.7, w: bw - 0.4, h: 0.34,
+      fontSize: 12, bold: true, color: C.grayText, fontFace: F, valign: 'middle', charSpacing: 0 });
+  });
+
+  drawBars(pptx, s, { x: 0.4,  y: 2.75, w: 6.1,  title: 'แจ้งซ่อมแยกตามแผนก',      items: R.byDept });
+  drawBars(pptx, s, { x: 6.83, y: 2.75, w: 6.1,  title: 'อุปกรณ์ที่แจ้งซ่อมบ่อย',  items: R.byAsset, color: C.blueMid });
+
+  /* บรรทัดสรุปให้อ่านจบในประโยคเดียว */
+  const rate = R.total > 0 ? Math.round((R.done / R.total) * 100) : 0;
+  s.addShape('roundRect', { x: 0.4, y: 5.35, w: 12.53, h: 0.72,
+    fill: { color: C.grayBg }, line: { color: C.grayBorder }, rectRadius: 0.08 });
+  s.addText(
+    [
+      { text: 'เดือนนี้รับแจ้งทั้งหมด ', options: { fontFace: F, color: C.grayText } },
+      { text: String(R.total),           options: { fontFace: FE, bold: true, color: C.blue } },
+      { text: ' เคส · ปิดได้ ',          options: { fontFace: F, color: C.grayText } },
+      { text: String(R.done),            options: { fontFace: FE, bold: true, color: C.green } },
+      { text: ` เคส (${rate}%) · คงค้าง `, options: { fontFace: F, color: C.grayText } },
+      { text: String(R.open),            options: { fontFace: FE, bold: true, color: R.open > 0 ? C.amber : C.green } },
+      { text: ' เคส',                    options: { fontFace: F, color: C.grayText } },
+    ],
+    { x: 0.6, y: 5.35, w: 12.13, h: 0.72, fontSize: 14, valign: 'middle', charSpacing: 0 },
+  );
+
+  addFooter(pptx, s, startPageNum, month, year, company);
+
+  /* ── สไลด์รายการเคส (แบ่งหน้าอัตโนมัติ) ── */
+  const hdr = [
+    cellH('ลำดับ',   {}),
+    cellH('วันที่',   {}),
+    cellH('ผู้แจ้ง',  { align: 'left' }),
+    cellH('แผนก',    { align: 'left' }),
+    cellH('อุปกรณ์',  { align: 'left' }),
+    cellH('อาการที่แจ้ง', { align: 'left' }),
+    cellH('สถานะ',   {}),
+  ];
+
+  const COL_W = [0.85, 1.15, 1.75, 1.85, 2.3, 3.33, 1.3];
+  const rows = R.cases.map((r, i) => {
+    const f = rowFill(i);
+    const issue = String(r.issue || DASH);
+    const st = REPAIR_STATUS.find((x) => x.key === (r.status || 'รอดำเนินการ')) || REPAIR_STATUS[0];
+    const c = (text, opts = {}) => ({
+      text: String(text ?? DASH),
+      options: { fontSize: 11, fontFace: fontFor(text), align: 'left', valign: 'middle',
+        border: bdr(), charSpacing: 0, ...f, ...opts },
+    });
+    return [
+      c(i + 1, { align: 'center', fontFace: FE }),
+      c(formatDateShort(r.timestamp), { align: 'center', fontFace: FE }),
+      c(r.empName || DASH),
+      c(r.department || DASH),
+      c(r.assetName || DASH),
+      c(issue),
+      c(st.label, { align: 'center', bold: true, color: st.color }),
+    ];
+  });
+
+  const rowHeights = R.cases.map((r) => estimateRowH(String(r.issue || ''), COL_W[5], 11, 0.5));
+
+  const n = addPaginatedTableSlides(pptx, ctx, {
+    titleTh: 'รายการเคสแจ้งซ่อม', titleEn: 'รายละเอียดเคสที่รับแจ้งในเดือนนี้',
+    startPageNum: startPageNum + 1,
+    hdr, rows, colW: COL_W, rowH: 0.5,
+    rowHeights,
+    emptyRow: [
+      cellC(DASH), cellC(DASH),
+      cell('ไม่มีเคสแจ้งซ่อมในเดือนนี้', { align: 'left', color: C.grayText, italic: true }),
+      cell(DASH, { align: 'left' }), cell(DASH, { align: 'left' }), cell(DASH, { align: 'left' }),
+      cellC(DASH),
+    ],
+  });
+
+  return 1 + n;
+}
+
+/* ═══════════════════════════════════
    SLIDE 4 – HARDWARE
 ═══════════════════════════════════ */
 /* 🆕 สรุปจำนวน Hardware ต่อประเภท — ใช้ร่วมกันทั้ง PPTX และ Preview
@@ -393,12 +584,15 @@ export function getHardwareSummary(assets = [], accessories = []) {
     const g = ensure(t);
     g.total += qty; g.inUse += inUse; g.avail += avail; g.broken += broken;
   });
-  return Object.values(groups).map(g => {
-    const notes = [];
-    if (g.reserve > 0) notes.push(`สำรอง ${g.reserve}`);
-    if (g.disposed > 0) notes.push(`ตัดจำหน่าย ${g.disposed}`);
-    return { ...g, note: notes.join(' · ') || '–' };
-  });
+  return Object.values(groups)
+    .map(g => {
+      const notes = [];
+      if (g.reserve > 0) notes.push(`สำรอง ${g.reserve}`);
+      if (g.disposed > 0) notes.push(`ตัดจำหน่าย ${g.disposed}`);
+      return { ...g, note: notes.join(' · ') || '' };
+    })
+    /* มาก -> น้อย ให้ประเภทที่มีของเยอะสุดอยู่บน */
+    .sort((a, b) => b.total - a.total);
 }
 
 function slide4(pptx, ctx, startPageNum) {
@@ -437,11 +631,22 @@ function slide4(pptx, ctx, startPageNum) {
     cellC('–'), cellC('–'), cellC('–'), cellC('–'), cell('–',{ align:'left' }),
   ];
 
+  /* แถวรวมท้ายตาราง */
+  const sum = (k) => summary.reduce((n, g) => n + Number(g[k] || 0), 0);
+  if (summary.length > 0) {
+    rows.push(totalRow([
+      { text: '' }, { text: 'รวมทั้งหมด', align: 'left' },
+      { text: sum('total') }, { text: sum('inUse') },
+      { text: sum('avail') }, { text: sum('broken') },
+      { text: `${summary.length} ประเภท`, align: 'left' },
+    ]));
+  }
+
   return addPaginatedTableSlides(pptx, ctx, {
     titleTh: 'สรุปผลฮาร์ดแวร์', titleEn: 'รายการฮาร์ดแวร์ในระบบ',
     startPageNum,
     hdr, rows,
-    colW: [0.6, 3.0, 0.9, 0.9, 1.3, 0.9, 3.93],
+    colW: [0.85, 3.0, 0.9, 0.9, 1.3, 0.9, 3.68],
     rowH: 0.62,
     emptyRow,
   });
@@ -471,7 +676,7 @@ export function getSoftwareSummary(licenses = []) {
       else if (minD <= 90) note = `ใกล้หมดอายุ (${minD} วัน)`;
       else if (lic.expirationDate) note = `หมดอายุ ${formatDateShort(lic.expirationDate)}`;
     }
-    return { name: lic.name || '–', stock, active, inactive, note };
+    return { name: lic.name || '–', stock, active, inactive, note: note === '–' ? '' : note };
   });
 }
 
@@ -507,11 +712,20 @@ function slide5(pptx, ctx, startPageNum) {
     cellC('–'), cellC('–'), cellC('–'), cell('–',{ align:'left' }),
   ];
 
+  const sum = (k) => summary.reduce((n, g) => n + Number(g[k] || 0), 0);
+  if (summary.length > 0) {
+    rows.push(totalRow([
+      { text: '' }, { text: 'รวมทั้งหมด', align: 'left' },
+      { text: sum('stock') }, { text: sum('active') }, { text: sum('inactive') },
+      { text: `${summary.length} รายการ`, align: 'left' },
+    ]));
+  }
+
   return addPaginatedTableSlides(pptx, ctx, {
     titleTh: 'สรุปผลซอฟต์แวร์ / ลิขสิทธิ์', titleEn: 'รายการซอฟต์แวร์ในระบบ',
     startPageNum,
     hdr, rows,
-    colW: [0.6, 3.4, 0.9, 0.9, 1.0, 4.73],
+    colW: [0.85, 3.4, 0.9, 0.9, 1.0, 4.48],
     rowH: 0.62,
     emptyRow,
   });
@@ -662,6 +876,7 @@ export async function generateITReport({
   let page = 3;
   slide3(pptx, ctx);
   page = 4;
+  page += slideRepair(pptx, ctx, page);   // 🆕 เคสแจ้งซ่อม — ดึงจากระบบ
   page += slide4(pptx, ctx, page);
   page += slide5(pptx, ctx, page);
   page += slide6(pptx, ctx, page);

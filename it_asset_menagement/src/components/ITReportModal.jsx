@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { generateITReport, getHardwareSummary, getSoftwareSummary } from '../utils/generateITReport.js';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { generateITReport, getHardwareSummary, getSoftwareSummary, getRepairSummary } from '../utils/generateITReport.js';
 import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
@@ -237,6 +237,44 @@ function RefreshBtn({ onClick }) {
   );
 }
 
+/* ── ช่องข้อความยาวในตาราง (หมายเหตุ) ──────────────────────────────
+   ปกติสูงบรรทัดเดียวให้แถวเตี้ย แต่ค่าจริงยาวหลายสิบตัวอักษร
+   เช่น "ทีวีห้องประชุม : 1. LG ห้องพี่แมน 2.Sharp ..." กรอกแล้วมองไม่เห็นว่าพิมพ์อะไรไป
+
+   ทำเป็น textarea ที่โฟกัสแล้วสูงขึ้นตามเนื้อหา (ตัดคำลงบรรทัดใหม่ให้เห็นครบ)
+   แล้วยุบกลับเป็นบรรทัดเดียวตอนออกจากช่อง
+   ไม่ใช้กล่องลอยทับ เพราะ PanelCard เป็น overflow-hidden กล่องลอยจะถูกตัด */
+function GrowCell({ value, onChange, placeholder, className }) {
+  const ref = useRef(null);
+  const [open, setOpen] = useState(false);
+
+  /* ปรับความสูงตามเนื้อหา — จำกัดไว้ 5 บรรทัด กันแถวสูงเกินจอ */
+  const fit = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 5 * 22 + 12) + 'px';
+  };
+
+  useEffect(() => { if (open) fit(); }, [open, value]);
+
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value ?? ''}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => { setOpen(false); if (ref.current) ref.current.style.height = ''; }}
+      className={`${className} resize-none leading-[22px] ${
+        open ? 'relative z-10 whitespace-pre-wrap shadow-[0_2px_8px_rgba(22,32,36,0.10)]'
+             : 'h-[34px] overflow-hidden whitespace-nowrap'
+      }`}
+    />
+  );
+}
+
 /* ── ตัวแก้ไขตาราง — ใช้กับ ฮาร์ดแวร์ / ซอฟต์แวร์ ──────────────────
 
    ของเดิมทำเป็น "การ์ดใบใหญ่ต่อ 1 รายการ" ช่องกรอกเรียงลงมา 6 ช่อง
@@ -256,11 +294,20 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
      โฟกัสแล้วค่อยขึ้นพื้นขาว + ring ให้รู้ว่าอยู่ช่องไหน */
   const cellInput = 'w-full rounded-lg bg-transparent px-2 py-1.5 text-sm text-stone-800 outline-none transition-colors hover:bg-white focus:bg-white focus:ring-2 focus:ring-clay-600/20';
 
-  const field = (r, i, c) => (c.type === 'number'
-    ? <input type="number" value={r[c.key] ?? 0} onChange={e => update(i, c.key, num(e.target.value))}
-        className={`${cellInput} text-center tabular-nums`} />
-    : <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)}
-        placeholder={c.ph} className={cellInput} />);
+  const field = (r, i, c) => {
+    if (c.type === 'number') {
+      return <input type="number" value={r[c.key] ?? 0}
+        onChange={e => update(i, c.key, num(e.target.value))}
+        className={`${cellInput} text-center tabular-nums`} />;
+    }
+    /* ช่องข้อความยาว — โฟกัสแล้วขยายให้เห็นค่าทั้งหมด */
+    if (c.grow) {
+      return <GrowCell value={r[c.key]} onChange={v => update(i, c.key, v)}
+        placeholder={c.ph} className={cellInput} />;
+    }
+    return <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)}
+      placeholder={c.ph} className={cellInput} />;
+  };
 
   const addBtn = (
     <button type="button" onClick={add}
@@ -299,9 +346,9 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
           <tbody>
             {rows.map((r, i) => (
               <tr key={i} className="border-b border-stone-100 last:border-0">
-                <td className="pl-1 text-center text-xs tabular-nums text-stone-400">{i + 1}</td>
-                {columns.map(c => <td key={c.key} className="px-1 py-1">{field(r, i, c)}</td>)}
-                <td className="py-1 text-center">
+                <td className="pl-1 pt-3 align-top text-center text-xs tabular-nums text-stone-400">{i + 1}</td>
+                {columns.map(c => <td key={c.key} className="px-1 py-1 align-top">{field(r, i, c)}</td>)}
+                <td className="py-1 pt-2 align-top text-center">
                   <button type="button" onClick={() => remove(i)}
                     className="rounded-lg p-1 text-stone-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
                     title={`ลบ${itemLabel}นี้`}>
@@ -480,9 +527,14 @@ export default function ITReportPage({
   const editSw   = (rows) => { setSwEdit(rows); setSaved(false); };
 
   // ข้อมูลที่ส่งให้ preview + generator (แหล่งเดียว)
+  /* 🆕 สรุปเคสแจ้งซ่อมของเดือนนั้น — ดึงจากระบบตรง ๆ ไม่มีช่องให้กรอก */
+  const repair = useMemo(() => getRepairSummary(repairRequests, month, year),
+    [repairRequests, month, year]);
+
   const previewData = {
     company: companyName, month, year, reportDate,
     stats, hwSummary: hw, swSummary: sw, bigIssues, rdProjects, followUps,
+    repair,
   };
 
   const handleGenerate = async () => {
@@ -608,7 +660,7 @@ export default function ITReportPage({
               { key: 'inUse', label: 'ใช้งาน', type: 'number' },
               { key: 'avail', label: 'พร้อมส่งมอบ', type: 'number' },
               { key: 'broken', label: 'ชำรุด', type: 'number' },
-              { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
+              { key: 'note', label: 'หมายเหตุ', span: 'full', grow: true, ph: '–' },
             ]}
           />
         </PanelCard>
@@ -623,7 +675,7 @@ export default function ITReportPage({
               { key: 'stock', label: 'จำนวน', type: 'number' },
               { key: 'active', label: 'ใช้งาน', type: 'number' },
               { key: 'inactive', label: 'คงเหลือ', type: 'number' },
-              { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
+              { key: 'note', label: 'หมายเหตุ', span: 'full', grow: true, ph: '–' },
             ]}
           />
         </PanelCard>

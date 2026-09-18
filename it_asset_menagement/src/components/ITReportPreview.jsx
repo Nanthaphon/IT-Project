@@ -87,7 +87,7 @@ function ContentSlide({ titleTh, titleEn, page, company, month, year, children }
       <div style={{ position: 'absolute', bottom: 8, right: 38, fontSize: 11, color: GRAY_TEXT, textAlign: 'right' }}>
         {company}&nbsp;&nbsp;|&nbsp;&nbsp;รายงานผล IT – {TH_MONTHS[month]} {year + 543}
         <span style={{ color: CLAY, fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;{page}</span>
-        <span style={{ color: GRAY_BORDER }}>&nbsp;&nbsp;(v2)</span>
+        <span style={{ color: GRAY_BORDER }}>&nbsp;&nbsp;(v3)</span>
       </div>
     </>
   );
@@ -227,6 +227,60 @@ function SupportSlide({ stats, bigIssues, ...props }) {
   );
 }
 
+/* ─── สไลด์เคสแจ้งซ่อม — ดึงจากระบบทั้งหมด ไม่มีช่องให้แก้ ─── */
+function RepairBars({ title, items, color, max = 5 }) {
+  const top = (items || []).slice(0, max);
+  const peak = Math.max(1, ...top.map(t => t.n));
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: CLAY, marginBottom: 8 }}>{title}</div>
+      {top.length === 0 ? (
+        <div style={{ fontSize: 12, fontStyle: 'italic', color: GRAY_TEXT }}>ไม่มีข้อมูลในเดือนนี้</div>
+      ) : top.map((t, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, height: 30 }}>
+          <div style={{ width: '42%', fontSize: 12, color: GRAY_TEXT, overflow: 'hidden',
+                        textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
+          <div style={{ flex: 1, height: 12, background: CARD_BG, borderRadius: 2 }}>
+            <div style={{ width: `${Math.max(3, (t.n / peak) * 100)}%`, height: 12,
+                          background: color, borderRadius: 2 }} />
+          </div>
+          <div style={{ width: 24, fontSize: 12, fontWeight: 700, color, textAlign: 'right' }}>{t.n}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RepairSlide({ repair, ...props }) {
+  const R = repair || { total: 0, open: 0, done: 0, byStatus: [], byDept: [], byAsset: [] };
+  const rate = R.total > 0 ? Math.round((R.done / R.total) * 100) : 0;
+  return (
+    <ContentSlide titleTh="เคสแจ้งซ่อม / แจ้งปัญหา" titleEn={`รวม ${R.total} เคสในเดือนนี้`} page={4} {...props}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+        {R.byStatus.map((st, i) => (
+          <div key={i} style={{ background: st.bg, borderRadius: 10, padding: '10px 14px',
+                                borderLeft: `6px solid ${st.color}` }}>
+            <div style={{ fontSize: 34, fontWeight: 800, color: st.color, lineHeight: 1.15 }}>{st.n}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: GRAY_TEXT }}>{st.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 34, marginTop: 24 }}>
+        <RepairBars title="แจ้งซ่อมแยกตามแผนก"     items={R.byDept}  color={CLAY} />
+        <RepairBars title="อุปกรณ์ที่แจ้งซ่อมบ่อย" items={R.byAsset} color="#6E97A9" />
+      </div>
+
+      <div style={{ marginTop: 22, background: CARD_BG, border: `1px solid ${GRAY_BORDER}`,
+                    borderRadius: 10, padding: '14px 18px', fontSize: 15, color: GRAY_TEXT }}>
+        เดือนนี้รับแจ้งทั้งหมด <b style={{ color: CLAY }}>{R.total}</b> เคส
+        {' · '}ปิดได้ <b style={{ color: GREEN }}>{R.done}</b> เคส ({rate}%)
+        {' · '}คงค้าง <b style={{ color: R.open > 0 ? AMBER : GREEN }}>{R.open}</b> เคส
+      </div>
+    </ContentSlide>
+  );
+}
+
 function HardwareSlide({ hwSummary, ...props }) {
   const rows = (hwSummary || []).map((g, i) => ([
     { text: i + 1 },
@@ -238,7 +292,7 @@ function HardwareSlide({ hwSummary, ...props }) {
     { text: g.note, align: 'left', color: GRAY_TEXT, size: 12 },
   ]));
   return (
-    <ContentSlide titleTh="สรุปผลฮาร์ดแวร์" titleEn="รายการฮาร์ดแวร์ในระบบ" page={4} {...props}>
+    <ContentSlide titleTh="สรุปผลฮาร์ดแวร์" titleEn="รายการฮาร์ดแวร์ในระบบ" page={5} {...props}>
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.6 }, { label: 'ประเภทอุปกรณ์', w: 3.0, align: 'left' },
@@ -261,7 +315,7 @@ function SoftwareSlide({ swSummary, ...props }) {
     { text: s.note, align: 'left', color: GRAY_TEXT, size: 12 },
   ]));
   return (
-    <ContentSlide titleTh="สรุปผลซอฟต์แวร์ / ลิขสิทธิ์" titleEn="รายการซอฟต์แวร์ในระบบ" page={5} {...props}>
+    <ContentSlide titleTh="สรุปผลซอฟต์แวร์ / ลิขสิทธิ์" titleEn="รายการซอฟต์แวร์ในระบบ" page={6} {...props}>
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.6 }, { label: 'ซอฟต์แวร์', w: 3.4, align: 'left' },
@@ -284,7 +338,7 @@ function RDSlide({ rdProjects, ...props }) {
     { text: p.remarks || '', align: 'left', color: GRAY_TEXT },
   ]));
   return (
-    <ContentSlide titleTh="สรุปภาพรวม สถานะโปรเจค" titleEn="สถานะโปรเจค R&D" page={6} {...props}>
+    <ContentSlide titleTh="สรุปภาพรวม สถานะโปรเจค" titleEn="สถานะโปรเจค R&D" page={7} {...props}>
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.5 }, { label: 'โปรเจค', w: 2.5, align: 'left' },
@@ -306,7 +360,7 @@ function FollowupSlide({ followUps, ...props }) {
     { text: f.remarks || '', align: 'left', color: GRAY_TEXT },
   ]));
   return (
-    <ContentSlide titleTh="วาระติดตาม" titleEn="รายการติดตามงาน" page={7} {...props}>
+    <ContentSlide titleTh="วาระติดตาม" titleEn="รายการติดตามงาน" page={8} {...props}>
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.5 }, { label: 'รายละเอียด', w: 5.5, align: 'left' },
@@ -431,7 +485,7 @@ function EditPanel({ idx, edit, set }) {
       </div>
     );
   }
-  if (idx === 3) {   // Hardware
+  if (idx === 4) {   // Hardware
     return (
       <RowsEditor rows={edit.hwSummary} setRows={set.hwSummary} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
         makeEmpty={() => ({ type: '', total: 0, inUse: 0, avail: 0, broken: 0, note: '–' })}
@@ -445,7 +499,7 @@ function EditPanel({ idx, edit, set }) {
         ]} />
     );
   }
-  if (idx === 4) {   // Software
+  if (idx === 5) {   // Software
     return (
       <RowsEditor rows={edit.swSummary} setRows={set.swSummary} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
         makeEmpty={() => ({ name: '', stock: 0, active: 0, inactive: 0, note: '–' })}
@@ -458,7 +512,7 @@ function EditPanel({ idx, edit, set }) {
         ]} />
     );
   }
-  if (idx === 5) {   // R&D
+  if (idx === 6) {   // R&D
     return (
       <RowsEditor rows={edit.rdProjects} setRows={set.rdProjects} itemLabel="โปรเจค" addLabel="เพิ่มโปรเจค"
         makeEmpty={() => ({ project: '', details: '', status: '⏳ In Progress', due: '', remarks: '' })}
@@ -471,7 +525,7 @@ function EditPanel({ idx, edit, set }) {
         ]} />
     );
   }
-  if (idx === 6) {   // Follow-up
+  if (idx === 7) {   // Follow-up
     return (
       <RowsEditor rows={edit.followUps} setRows={set.followUps} itemLabel="วาระ" addLabel="เพิ่มวาระ"
         makeEmpty={() => ({ details: '', status: '⏳ In Progress', due: '', remarks: '' })}
@@ -495,8 +549,8 @@ function EditPanel({ idx, edit, set }) {
 export default function ITReportPreview({ isOpen, onClose, onExport, exporting, data }) {
   const [idx, setIdx] = useState(0);
 
-  const total = 8;
-  const labels = ['ปก', 'สารบัญ', 'ฝ่ายสนับสนุน', 'ฮาร์ดแวร์', 'ซอฟต์แวร์', 'R&D', 'วาระติดตาม', 'ขอบคุณ'];
+  const total = 9;
+  const labels = ['ปก', 'สารบัญ', 'ฝ่ายสนับสนุน', 'เคสแจ้งซ่อม', 'ฮาร์ดแวร์', 'ซอฟต์แวร์', 'R&D', 'วาระติดตาม', 'ขอบคุณ'];
 
   const go = useCallback((dir) => setIdx(i => Math.min(total - 1, Math.max(0, i + dir))), [total]);
 
@@ -520,6 +574,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
     () => <CoverSlide {...data} />,
     () => <AgendaSlide {...data} />,
     () => <SupportSlide {...data} />,
+    () => <RepairSlide {...data} />,
     () => <HardwareSlide {...data} />,
     () => <SoftwareSlide {...data} />,
     () => <RDSlide {...data} />,

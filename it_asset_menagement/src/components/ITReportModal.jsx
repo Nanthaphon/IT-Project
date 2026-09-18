@@ -237,39 +237,109 @@ function RefreshBtn({ onClick }) {
   );
 }
 
-/* ── ตัวแก้ไขตาราง (การ์ดต่อแถว) — ใช้กับ ฮาร์ดแวร์ / ซอฟต์แวร์ ── */
+/* ── ตัวแก้ไขตาราง — ใช้กับ ฮาร์ดแวร์ / ซอฟต์แวร์ ──────────────────
+
+   ของเดิมทำเป็น "การ์ดใบใหญ่ต่อ 1 รายการ" ช่องกรอกเรียงลงมา 6 ช่อง
+   สูงราว 400px ต่อรายการ ข้อมูลจริงมี ~7 ประเภทฮาร์ดแวร์ + ~14 License
+   หน้านี้จึงยาวเกือบหมื่นพิกเซล ต้องเลื่อนหาช่องที่จะกรอกไปเรื่อย ๆ
+
+   ข้อมูลชุดนี้หน้าตาเป็นตารางอยู่แล้ว (ลงสไลด์ก็เป็นตาราง)
+   จึงทำเป็นตารางจริง 1 แถว = 1 รายการ สูงราว 44px
+   จอแคบ (< md) ถอยไปใช้การ์ดเหมือนเดิม เพราะตาราง 7 คอลัมน์ไม่พอที่ */
 function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabel }) {
   const num = (v) => (v === '' || isNaN(Number(v)) ? 0 : Number(v));
   const update = (i, k, v) => onChange(rows.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
   const remove = (i) => onChange(rows.filter((_, idx) => idx !== i));
   const add = () => onChange([...rows, makeEmpty()]);
+
+  /* ช่องกรอกในตาราง — ไม่มีกรอบ ให้เส้นของตารางทำหน้าที่แทน
+     โฟกัสแล้วค่อยขึ้นพื้นขาว + ring ให้รู้ว่าอยู่ช่องไหน */
+  const cellInput = 'w-full rounded-lg bg-transparent px-2 py-1.5 text-sm text-stone-800 outline-none transition-colors hover:bg-white focus:bg-white focus:ring-2 focus:ring-clay-600/20';
+
+  const field = (r, i, c) => (c.type === 'number'
+    ? <input type="number" value={r[c.key] ?? 0} onChange={e => update(i, c.key, num(e.target.value))}
+        className={`${cellInput} text-center tabular-nums`} />
+    : <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)}
+        placeholder={c.ph} className={cellInput} />);
+
+  const addBtn = (
+    <button type="button" onClick={add}
+      className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-clay-600/40 px-3 py-2.5 text-xs font-medium text-clay-600 transition-colors hover:border-clay-600 hover:text-clay-800">
+      <Plus className="h-3.5 w-3.5" /> {addLabel}
+    </button>
+  );
+
+  if (rows.length === 0) {
+    return (
+      <div className="space-y-2.5">
+        <p className="py-3 text-center text-[13px] text-stone-400">ยังไม่มีข้อมูล — กดปุ่มด้านล่างเพื่อเพิ่ม</p>
+        {addBtn}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2.5">
-      {rows.length === 0 && <p className="text-[13px] text-stone-400 text-center py-3">ยังไม่มีข้อมูล — กดปุ่มด้านล่างเพื่อเพิ่ม</p>}
-      {rows.map((r, i) => (
-        <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-medium text-stone-400">{itemLabel} #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-stone-300 hover:text-rose-500 transition-colors" aria-label="ลบแถว">
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {columns.map((c) => (
-              <div key={c.key} className={c.span === 'full' ? 'col-span-2' : ''}>
-                <label className="block text-[11px] font-medium text-stone-500 mb-1">{c.label}</label>
-                {c.type === 'number'
-                  ? <input type="number" value={r[c.key] ?? 0} onChange={e => update(i, c.key, num(e.target.value))} className={inputCls} />
-                  : <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)} className={inputCls} placeholder={c.ph} />}
-              </div>
+      {/* ── จอกว้าง: ตาราง 1 แถว = 1 รายการ ── */}
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="border-b border-stone-200/60">
+              <th className="w-9 pb-2 pl-1 text-xs font-medium text-stone-400">#</th>
+              {columns.map(c => (
+                <th key={c.key}
+                  className={`whitespace-nowrap px-1 pb-2 text-xs font-medium text-stone-400 ${
+                    c.type === 'number' ? 'w-[68px] text-center' : ''}`}>
+                  {c.label}
+                </th>
+              ))}
+              <th className="w-9 pb-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className="border-b border-stone-100 last:border-0">
+                <td className="pl-1 text-center text-xs tabular-nums text-stone-400">{i + 1}</td>
+                {columns.map(c => <td key={c.key} className="px-1 py-1">{field(r, i, c)}</td>)}
+                <td className="py-1 text-center">
+                  <button type="button" onClick={() => remove(i)}
+                    className="rounded-lg p-1 text-stone-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
+                    title={`ลบ${itemLabel}นี้`}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </td>
+              </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── จอแคบ: การ์ดต่อรายการ ── */}
+      <div className="space-y-2.5 md:hidden">
+        {rows.map((r, i) => (
+          <div key={i} className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[11px] font-medium text-stone-400">{itemLabel} #{i + 1}</span>
+              <button type="button" onClick={() => remove(i)}
+                className="text-stone-300 transition-colors hover:text-rose-500" aria-label="ลบแถว">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {columns.map(c => (
+                <div key={c.key} className={c.span === 'full' ? 'col-span-2' : ''}>
+                  <label className="mb-1 block text-[11px] font-medium text-stone-500">{c.label}</label>
+                  {c.type === 'number'
+                    ? <input type="number" value={r[c.key] ?? 0} onChange={e => update(i, c.key, num(e.target.value))} className={inputCls} />
+                    : <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)} className={inputCls} placeholder={c.ph} />}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
-      <button type="button" onClick={add}
-        className="flex items-center gap-1.5 text-xs font-medium text-clay-600 hover:text-clay-800 border border-dashed border-clay-600/40 hover:border-clay-600 px-3 py-2.5 rounded-xl transition-colors w-full justify-center">
-        <Plus className="h-3.5 w-3.5" /> {addLabel}
-      </button>
+        ))}
+      </div>
+
+      {addBtn}
     </div>
   );
 }
@@ -488,12 +558,14 @@ export default function ITReportPage({
         </div>
       </div>
 
-      {/* ── Body grid — แก้ไขได้ครบทุกสไลด์ในที่เดียว ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5 items-start">
+      {/* ── Body — เรียงตามลำดับที่กรอกจริง
+          ของเดิมแบ่งซ้าย 3 / ขวา 2 ตารางฮาร์ดแวร์กับซอฟต์แวร์จึงอยู่ในคอลัมน์แคบ
+          พอมีหลายรายการก็ยาวลงไปเรื่อย ๆ ต้องเลื่อนหาช่องที่จะกรอก
+          จัดใหม่: ของสั้นวางคู่กัน ตารางยาวกินความกว้างเต็ม ── */}
+      <div className="space-y-5">
 
-        {/* LEFT */}
-        <div className="xl:col-span-3 space-y-5">
-
+        {/* ตั้งค่า + ตัวเลขภาพรวม — สั้นทั้งคู่ */}
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-2">
           <PanelCard icon={Settings} title="ตั้งค่ารายงาน" desc="เดือน / ปี / ชื่อบริษัทที่แสดงในไฟล์ (ปก + ทุกสไลด์)">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
@@ -522,7 +594,42 @@ export default function ITReportPage({
               <StatInput label="ไม่สำเร็จ"       value={stats.closedLose} onChange={v => editStat('closedLose', v)} color="#B0453C" />
             </div>
           </PanelCard>
+        </div>
 
+        {/* ตารางฮาร์ดแวร์ / ซอฟต์แวร์ — เต็มความกว้าง ตารางจึงไม่ถูกบีบ */}
+        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
+          right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
+          <DataRowsEditor
+            rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
+            makeEmpty={() => ({ type: '', total: 0, inUse: 0, avail: 0, broken: 0, note: '–' })}
+            columns={[
+              { key: 'type', label: 'ประเภทอุปกรณ์', span: 'full', ph: 'เช่น โน้ตบุ๊ค' },
+              { key: 'total', label: 'รวม', type: 'number' },
+              { key: 'inUse', label: 'ใช้งาน', type: 'number' },
+              { key: 'avail', label: 'พร้อมส่งมอบ', type: 'number' },
+              { key: 'broken', label: 'ชำรุด', type: 'number' },
+              { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
+            ]}
+          />
+        </PanelCard>
+
+        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
+          right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
+          <DataRowsEditor
+            rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
+            makeEmpty={() => ({ name: '', stock: 0, active: 0, inactive: 0, note: '–' })}
+            columns={[
+              { key: 'name', label: 'ซอฟต์แวร์', span: 'full', ph: 'เช่น Microsoft 365' },
+              { key: 'stock', label: 'จำนวน', type: 'number' },
+              { key: 'active', label: 'ใช้งาน', type: 'number' },
+              { key: 'inactive', label: 'คงเหลือ', type: 'number' },
+              { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
+            ]}
+          />
+        </PanelCard>
+
+        {/* สามรายการที่เป็นข้อความยาว — ปกติมีไม่กี่แถว วางเรียงกัน */}
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
           <PanelCard icon={AlertCircle} tint="#FBEAE8" color="#B0453C" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3 — ตารางประเด็นสำคัญ" right={<CountBadge n={bigIssues.length} />}>
             <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
           </PanelCard>
@@ -536,45 +643,11 @@ export default function ITReportPage({
           </PanelCard>
         </div>
 
-        {/* RIGHT — hardware / software (แก้ไขได้) */}
-        <div className="xl:col-span-2 space-y-5">
-          <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4 — แก้ไข / เพิ่มแถวได้"
-            right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
-            <DataRowsEditor
-              rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
-              makeEmpty={() => ({ type: '', total: 0, inUse: 0, avail: 0, broken: 0, note: '–' })}
-              columns={[
-                { key: 'type', label: 'ประเภทอุปกรณ์', span: 'full', ph: 'เช่น โน้ตบุ๊ค' },
-                { key: 'total', label: 'รวม', type: 'number' },
-                { key: 'inUse', label: 'ใช้งาน', type: 'number' },
-                { key: 'avail', label: 'พร้อมส่งมอบ', type: 'number' },
-                { key: 'broken', label: 'ชำรุด', type: 'number' },
-                { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
-              ]}
-            />
-          </PanelCard>
-
-          <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5 — แก้ไข / เพิ่มแถวได้"
-            right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
-            <DataRowsEditor
-              rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
-              makeEmpty={() => ({ name: '', stock: 0, active: 0, inactive: 0, note: '–' })}
-              columns={[
-                { key: 'name', label: 'ซอฟต์แวร์', span: 'full', ph: 'เช่น Microsoft 365' },
-                { key: 'stock', label: 'จำนวน', type: 'number' },
-                { key: 'active', label: 'ใช้งาน', type: 'number' },
-                { key: 'inactive', label: 'คงเหลือ', type: 'number' },
-                { key: 'note', label: 'หมายเหตุ', span: 'full', ph: '–' },
-              ]}
-            />
-          </PanelCard>
-
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
-            <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors">
-              ล้างข้อมูลที่กรอก
-            </button>
-          </div>
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs text-stone-400">ตัวเลขจากระบบรีเฟรชทุกครั้งที่เปิดหน้านี้</span>
+          <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors">
+            ล้างข้อมูลที่กรอก
+          </button>
         </div>
       </div>
 

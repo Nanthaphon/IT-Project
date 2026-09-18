@@ -1,6 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import {
+  getFirestore, initializeFirestore, connectFirestoreEmulator,
+  persistentLocalCache, persistentMultipleTabManager,
+} from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 // ── Vercel API base URL ──
@@ -23,7 +26,26 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+/* ── แคชในเครื่อง (IndexedDB) ─────────────────────────────────────
+   ค่าเริ่มต้นของ Firestore web SDK คือแคชในหน่วยความจำอย่างเดียว
+   แปลว่า "รีเฟรชหน้า 1 ครั้ง = อ่านเอกสารใหม่ทั้งหมดจากเซิร์ฟเวอร์"
+   ระบบนี้เปิด listener ครอบทั้ง collection พร้อมกันสิบกว่าตัวตอนล็อกอิน
+   รีเฟรชไม่กี่สิบครั้งต่อวันก็ชน quota ของแพลนฟรี (50,000 reads/วัน)
+   แล้วทั้งระบบล่มจนถึงเที่ยงคืนเวลาแปซิฟิก — เข้าสู่ระบบก็ไม่ได้
+
+   เปิดแคชแบบ persistent แล้ว listener จะ resume ด้วย token
+   คิด read เฉพาะเอกสารที่เปลี่ยนจริง ไม่ใช่ทั้ง collection ซ้ำทุกครั้ง
+   multi-tab manager จำเป็นเพราะผู้ใช้เปิดหลายแท็บพร้อมกัน
+
+   โหมด emulator ใช้แคชในหน่วยความจำตามเดิม — ไม่ต้องเก็บอะไรลงเครื่อง
+   และเลี่ยงปัญหาข้อมูลเก่าค้างข้ามรอบทดสอบ */
+export const db = import.meta.env.VITE_USE_EMULATOR === '1'
+  ? getFirestore(app)
+  : initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    });
+
 export const storage = getStorage(app);
 
 /* ── โหมด emulator — เปิดด้วยคำสั่ง  npm run dev:emu  เท่านั้น ──────

@@ -241,7 +241,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
                     <button
                       onClick={() => handleDownloadSigned(d.id)}
                       disabled={downloadingFor === d.id}
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-olive-700 hover:text-olive-900 hover:bg-olive-100 px-2 py-1 rounded-lg disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-olive-700 hover:text-olive-800 hover:bg-olive-100 px-2 py-1 rounded-lg disabled:opacity-50"
                       title="ดาวน์โหลดไฟล์เซ็น"
                     >
                       {downloadingFor === d.id ? (

@@ -173,8 +173,8 @@ export default function Sidebar({
                             active
                               ? 'bg-white/25 text-white'
                               : isExpiryBadge
-                                ? 'bg-clay-400 text-clay-950'
-                                : 'bg-rose-400 text-white'
+                                ? 'bg-clay-200 text-clay-900'
+                                : 'bg-rose-100 text-rose-700'
                           }`}
                           title={isExpiryBadge ? `${count} รายการใกล้หมดอายุ` : `${count} รายการรอดำเนินการ`}
                         >

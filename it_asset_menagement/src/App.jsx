@@ -149,7 +149,7 @@ function App() {
     repairRequests, officeSupplies, supplyRequests, transactions, replacementRequests,
     accessoryRequests,
     fieldOptions, bundledItems,
-  } = useFirebaseData(authRole);
+  } = useFirebaseData(authRole, activeMenu);
 
   const { isSuperAdmin, adminPermissions, displayName: adminDisplayName, permLoading, permError } = useAdminPermissions(currentUid, authRole);
   const canEdit = isSuperAdmin || adminPermissions?.level === 'full';

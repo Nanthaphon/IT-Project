@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, getFirestore, doc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { planCollections } from './firebaseNeeds.js';
 
 /**
  * useFirebaseData
  *
- * @param {string|null} authRole  - 'admin' | 'staff' | null
- *                                  ใช้กรอง subscription ที่เฉพาะ admin อ่านได้
- *                                  (transactions, deleted_employees) เพื่อไม่ให้เกิด
- *                                  permission errors บน console ฝั่ง staff
+ * @param {string|null} authRole    admin / hr / staff / null
+ * @param {string}      activeMenu  เมนูที่เปิดอยู่ — ใช้เลือกว่าจะ subscribe อะไร
+ *
+ * subscribe เท่าที่หน้าปัจจุบันต้องใช้ และไม่ถอดออกเมื่อเปลี่ยนหน้า
+ * ตารางว่าเมนูไหนใช้ก้อนไหน + เหตุผล อยู่ที่ firebaseNeeds.js
  */
-export default function useFirebaseData(authRole = null) {
+export default function useFirebaseData(authRole = null, activeMenu = 'dashboard') {
   const db = getFirestore();
   const auth = getAuth();
-  const isAdmin = authRole === 'admin';
   const isSignedIn = authRole === 'admin' || authRole === 'hr' || authRole === 'staff';
 
   // 🆕 รอจนกว่า Firebase Auth SDK จะ ready จริง (มี currentUser) ก่อน subscribe
@@ -41,91 +42,107 @@ export default function useFirebaseData(authRole = null) {
   const [fieldOptions, setFieldOptions] = useState({});
   const [bundledItems, setBundledItems] = useState([]);  // ของแถม เช่น กระเป๋า/สายชาร์จ (ไม่ track stock)
 
+  /* listener ที่เปิดอยู่: key -> unsubscribe (ไม่ถอดจนกว่าจะออกจากระบบ/unmount) */
+  const subsRef = useRef(new Map());
+  /* transactions 3 collection รวมเป็น state เดียว — เก็บแยกไว้ก่อนค่อย merge */
+  const emptyTx = () => ({ accessories_transactions: [], assets_transactions: [], licenses_transactions: [] });
+  const txRef = useRef(emptyTx());
+
   useEffect(() => {
+    const subs = subsRef.current;
+
     // 🆕 BUG FIX: รอจนกว่าจะ login เสร็จ + Firebase Auth SDK propagate token แล้ว
     //   - isSignedIn = React state ของเรา (จาก authRole)
     //   - authUserReady = Firebase Auth client ยืนยันแล้วว่ามี currentUser
     //   ถ้า subscribe ก่อน 2 อย่างนี้ทั้งคู่ → Firestore rules reject → listener fail เงียบ
     //   → ผู้ใช้เห็นข้อมูลว่าง ต้อง refresh ถึงจะมาเจอ
-    if (!isSignedIn || !authUserReady) return;
-
-    const unsubs = [];
-    const onErr = (label) => (err) => {
-      // ไม่ throw — แค่ log เพื่อ debug (เกิดได้ตอน staff ไม่มีสิทธิ์)
-      console.warn(`[useFirebaseData] subscription failed: ${label}`, err.code || err.message);
-    };
-
-    // ── Collections ที่ public read ได้ (สำหรับผู้ login แล้ว) ──
-    unsubs.push(onSnapshot(collection(db, 'assets'),
-      (s) => setAssets(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
-      onErr('assets')));
-    unsubs.push(onSnapshot(collection(db, 'accessories'),
-      (s) => setAccessories(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
-      onErr('accessories')));
-    unsubs.push(onSnapshot(collection(db, 'employees'),
-      (s) => setEmployees(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
-        // 🆕 ใหม่สุดอยู่บน — ใช้ createdAt; ถ้า server timestamp ยังไม่มา fallback เป็น doc id
-        const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
-        const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
-        if (ta !== tb) return tb - ta;
-        return (b.id || '').localeCompare(a.id || '');
-      }) || []),
-      onErr('employees')));
-    unsubs.push(onSnapshot(collection(db, 'licenses'),
-      (s) => setLicenses(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
-      onErr('licenses')));
-    unsubs.push(onSnapshot(collection(db, 'repair_requests'),
-      (s) => setRepairRequests(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.timestamp - a.timestamp) || []),
-      onErr('repair_requests')));
-    unsubs.push(onSnapshot(collection(db, 'office_supplies'),
-      (s) => setOfficeSupplies(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
-      onErr('office_supplies')));
-    unsubs.push(onSnapshot(collection(db, 'supply_requests'),
-      (s) => setSupplyRequests(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.timestamp - a.timestamp) || []),
-      onErr('supply_requests')));
-    unsubs.push(onSnapshot(collection(db, 'replacement_requests'),
-      (s) => setReplacementRequests(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.timestamp - a.timestamp) || []),
-      onErr('replacement_requests')));
-    unsubs.push(onSnapshot(collection(db, 'accessory_requests'),
-      (s) => setAccessoryRequests(s.docs?.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.timestamp - a.timestamp) || []),
-      onErr('accessory_requests')));
-    unsubs.push(onSnapshot(doc(db, 'settings', 'fieldOptions'),
-      (snap) => setFieldOptions(snap.exists() ? snap.data() : {}),
-      onErr('settings/fieldOptions')));
-    unsubs.push(onSnapshot(collection(db, 'bundled_items'),
-      (s) => setBundledItems(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
-      onErr('bundled_items')));
-
-    // ── Collections ที่ admin เท่านั้น (ตาม firestore.rules) ──
-    if (isAdmin) {
-      unsubs.push(onSnapshot(collection(db, 'deleted_employees'),
-        (s) => setDeletedEmployees(s.docs?.map(d => ({ id: d.id, ...d.data() })) || []),
-        onErr('deleted_employees')));
-
-      let accData = []; let assetData = []; let licData = [];
-      const updateTransactionsState = () => {
-        const combined = [...accData, ...assetData, ...licData];
-        combined.sort((a, b) => b.timestamp - a.timestamp);
-        setTransactions(combined);
-      };
-
-      unsubs.push(onSnapshot(collection(db, 'accessories_transactions'),
-        (s) => { accData = s.docs?.map(d => ({ id: d.id, category: 'accessories', ...d.data() })) || []; updateTransactionsState(); },
-        onErr('accessories_transactions')));
-      unsubs.push(onSnapshot(collection(db, 'assets_transactions'),
-        (s) => { assetData = s.docs?.map(d => ({ id: d.id, category: 'assets', ...d.data() })) || []; updateTransactionsState(); },
-        onErr('assets_transactions')));
-      unsubs.push(onSnapshot(collection(db, 'licenses_transactions'),
-        (s) => { licData = s.docs?.map(d => ({ id: d.id, category: 'licenses', ...d.data() })) || []; updateTransactionsState(); },
-        onErr('licenses_transactions')));
-    } else {
-      // เมื่อไม่ใช่ admin (logout / staff) ให้ clear state
+    if (!isSignedIn || !authUserReady) {
+      subs.forEach((off) => { try { off(); } catch { /* ข้าม */ } });
+      subs.clear();
+      txRef.current = emptyTx();
       setDeletedEmployees([]);
       setTransactions([]);
+      return;
     }
 
-    return () => unsubs.forEach((u) => { try { u(); } catch {} });
-  }, [db, isAdmin, isSignedIn, authRole, authUserReady]);
+    const onErr = (label) => (err) => {
+      // ไม่ throw — แค่ log เพื่อ debug (เกิดได้ตอน staff ไม่มีสิทธิ์)
+      console.warn('[useFirebaseData] subscription failed: ' + label, err.code || err.message);
+    };
+
+    const rows = (s) => s.docs?.map((d) => ({ id: d.id, ...d.data() })) || [];
+    const byNewest = (a, b) => b.timestamp - a.timestamp;
+
+    const mergeTx = () => {
+      const t = txRef.current;
+      setTransactions([
+        ...t.accessories_transactions,
+        ...t.assets_transactions,
+        ...t.licenses_transactions,
+      ].sort(byNewest));
+    };
+    const txSub = (name, category) => onSnapshot(collection(db, name),
+      (s) => {
+        txRef.current[name] = s.docs?.map((d) => ({ id: d.id, category, ...d.data() })) || [];
+        mergeTx();
+      },
+      onErr(name));
+
+    /* key -> ฟังก์ชันเปิด listener */
+    const OPEN = {
+      assets: () => onSnapshot(collection(db, 'assets'),
+        (s) => setAssets(rows(s)), onErr('assets')),
+      accessories: () => onSnapshot(collection(db, 'accessories'),
+        (s) => setAccessories(rows(s)), onErr('accessories')),
+      employees: () => onSnapshot(collection(db, 'employees'),
+        (s) => setEmployees(rows(s).sort((a, b) => {
+          // ใหม่สุดอยู่บน — ใช้ createdAt; ถ้า server timestamp ยังไม่มา fallback เป็น doc id
+          const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
+          const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
+          if (ta !== tb) return tb - ta;
+          return (b.id || '').localeCompare(a.id || '');
+        })),
+        onErr('employees')),
+      licenses: () => onSnapshot(collection(db, 'licenses'),
+        (s) => setLicenses(rows(s)), onErr('licenses')),
+      repair_requests: () => onSnapshot(collection(db, 'repair_requests'),
+        (s) => setRepairRequests(rows(s).sort(byNewest)), onErr('repair_requests')),
+      office_supplies: () => onSnapshot(collection(db, 'office_supplies'),
+        (s) => setOfficeSupplies(rows(s)), onErr('office_supplies')),
+      supply_requests: () => onSnapshot(collection(db, 'supply_requests'),
+        (s) => setSupplyRequests(rows(s).sort(byNewest)), onErr('supply_requests')),
+      replacement_requests: () => onSnapshot(collection(db, 'replacement_requests'),
+        (s) => setReplacementRequests(rows(s).sort(byNewest)), onErr('replacement_requests')),
+      accessory_requests: () => onSnapshot(collection(db, 'accessory_requests'),
+        (s) => setAccessoryRequests(rows(s).sort(byNewest)), onErr('accessory_requests')),
+      fieldOptions: () => onSnapshot(doc(db, 'settings', 'fieldOptions'),
+        (snap) => setFieldOptions(snap.exists() ? snap.data() : {}), onErr('settings/fieldOptions')),
+      bundled_items: () => onSnapshot(collection(db, 'bundled_items'),
+        (s) => setBundledItems(rows(s)), onErr('bundled_items')),
+      deleted_employees: () => onSnapshot(collection(db, 'deleted_employees'),
+        (s) => setDeletedEmployees(rows(s)), onErr('deleted_employees')),
+      accessories_transactions: () => txSub('accessories_transactions', 'accessories'),
+      assets_transactions: () => txSub('assets_transactions', 'assets'),
+      licenses_transactions: () => txSub('licenses_transactions', 'licenses'),
+    };
+
+    /* เปิดเฉพาะก้อนที่ยังไม่เคยเปิด */
+    planCollections(activeMenu, { role: authRole }).forEach((key) => {
+      if (subs.has(key) || !OPEN[key]) return;
+      subs.set(key, OPEN[key]());
+    });
+
+    // ไม่ถอด listener ตอนเปลี่ยนเมนู — เหตุผลอยู่ที่ firebaseNeeds.js
+  }, [db, authRole, isSignedIn, authUserReady, activeMenu]);
+
+  /* ถอดทั้งหมดตอน unmount จริง ๆ เท่านั้น */
+  useEffect(() => {
+    const subs = subsRef.current;
+    return () => {
+      subs.forEach((off) => { try { off(); } catch { /* ข้าม */ } });
+      subs.clear();
+    };
+  }, []);
 
   return {
     assets, accessories, employees, deletedEmployees, licenses,

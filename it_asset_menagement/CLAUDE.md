@@ -67,10 +67,16 @@
 
 ## การรันเพื่อทดสอบ — ใช้ emulator เสมอ
 
-`npm run dev` ต่อ **Firestore ตัวจริง** และ `useFirebaseData` ผูก listener 15
-collection ทันทีที่ login → เปิดแอป 1 ครั้ง = อ่านหลายร้อย docs
-การแก้ UI แล้ว hot-reload ซ้ำ ๆ จึงกินโควตาจนระบบใช้งานไม่ได้
+`npm run dev` ต่อ **Firestore ตัวจริง** การแก้ UI แล้ว hot-reload ซ้ำ ๆ
+จึงกินโควตาจนระบบใช้งานไม่ได้
 (เคยเกิดมาแล้ว: `8 RESOURCE_EXHAUSTED: Quota exceeded` — login ไม่ได้ทั้งระบบ)
+
+**การโหลดข้อมูลตอนนี้เป็นแบบ on-demand แล้ว** — `useFirebaseData(authRole, activeMenu)`
+subscribe เฉพาะ collection ที่เมนูปัจจุบันใช้ แล้วไม่ถอดออก (กลับมาเมนูเดิมไม่เสีย read ซ้ำ)
+ตารางว่าเมนูไหนใช้ก้อนไหนอยู่ที่ `src/hooks/firebaseNeeds.js`
+แก้ตารางแล้วรัน `npm run check:needs` — จะตรวจว่าชื่อเมนูตรงกับ `MENU_PATH`,
+collection ที่อ้างถึงเปิดได้จริง, ป้ายบน sidebar ยังมีข้อมูลทุกหน้า และ StaffView ได้ครบ
+**เพิ่ม collection ใหม่ต้องเพิ่มใน `firebaseNeeds.js` ด้วย ไม่งั้นจะไม่ถูก subscribe เลย**
 
 ```bash
 npm run emu        # หน้าต่าง 1 — เปิด emulator (ต้องมี Java)
@@ -198,7 +204,7 @@ localhost:5173/preview-test.html        IT Report
 localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
 localhost:5173/login-preview.html       หน้าเข้าสู่ระบบ (ไม่ต้อง logout ของจริง)
 localhost:5173/edit-preview.html        หน้าแก้ไข License / ทรัพย์สิน (โหมดหน้าเต็ม)
-localhost:5173/emp-preview.html         รายละเอียดพนักงาน (modal ทุกแท็บ)
+localhost:5173/emp-preview.html         รายละเอียดพนักงาน (สลับหน้าเต็ม / modal ได้)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 
@@ -210,7 +216,7 @@ src/
   App.jsx                    ศูนย์กลาง state + handlers ทั้งหมด (ไฟล์ใหญ่)
   components/
     StaffView.jsx            ฝั่งพนักงาน (ยังไม่ได้ออกแบบโครงใหม่)
-    Sidebar.jsx              เมนู admin (พื้น maroon clay-900)
+    Sidebar.jsx              เมนู admin (พื้นไล่สี clay-800 -> clay-900)
     AssetDetailsModal.jsx    modal รายละเอียด — ใช้ร่วม assets/accessories/licenses
     *RequestTable.jsx        หน้า workflow อนุมัติ (ไม่ใช่ตารางธรรมดา)
     list/ListPage.jsx        โครงหน้ารายการกลาง — เมนูที่เป็นตารางใช้ตัวนี้

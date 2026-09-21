@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "emu": "firebase emulators:start --import .emulator-data --export-on-exit .emulator-data",
     "emu:seed": "node scripts/seed-emulator.mjs",
-    "dev:emu": "vite --mode emulator"
+    "dev:emu": "vite --mode emulator",
+    "check:needs": "node scripts/check-firebase-needs.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

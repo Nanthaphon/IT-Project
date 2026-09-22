@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Download, FileText } from 'lucide-react';
+import { Plus, Download, FileText, Monitor } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { StatusBadge, CellTitle, Clamp } from '../../ui/earthUI.jsx';
+import { StatusBadge, CellTitle, Clamp, Thumb } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
 
@@ -51,10 +51,13 @@ const COLUMNS = [
     key: 'name', label: 'ชื่อทรัพย์สิน',
     /* บรรทัดรอง: รหัส + รุ่น (ไม่ซ้ำรุ่นถ้าชื่อกับรุ่นเป็นค่าเดียวกัน) */
     render: a => (
-      <CellTitle
-        title={a.name}
-        sub={[a.assetTag, a.model !== a.name ? a.model : null].filter(Boolean).join(' · ')}
-      />
+      <div className="flex items-center gap-3">
+        <Thumb src={a.image} alt={a.name} icon={Monitor} />
+        <CellTitle
+          title={a.name}
+          sub={[a.assetTag, a.model !== a.name ? a.model : null].filter(Boolean).join(' · ')}
+        />
+      </div>
     ),
   },
   { key: 'type', label: 'ประเภท', width: 'w-40', cellClass: 'text-sm text-stone-600', render: a => a.type || '—' },

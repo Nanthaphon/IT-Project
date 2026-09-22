@@ -241,6 +241,29 @@ export function Clamp({ children, width = 220 }) {
   );
 }
 
+/* ── รูปย่อหน้าแถว ──
+   มีรูปก็โชว์รูป ไม่มีก็เป็นไทล์ไอคอนตามหมวด ขนาดคงที่ 40px
+   ทุกแถวจึงสูงเท่ากันไม่ว่ารายการนั้นจะมีรูปหรือไม่
+   fit="contain" ใช้กับโลโก้โปรแกรม ที่ครอบรูปแล้วจะโดนตัดขอบ */
+export function Thumb({ src, alt = '', icon: Icon, fit = 'cover' }) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className={`size-10 shrink-0 rounded-xl border border-stone-200/60 bg-white ${
+          fit === 'contain' ? 'object-contain p-1' : 'object-cover'}`}
+      />
+    );
+  }
+  return (
+    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
+      <Icon className="size-4" strokeWidth={2} />
+    </div>
+  );
+}
+
 /* ── ชื่อ + บรรทัดรอง — ลดคอลัมน์โดยซ้อนข้อมูลรองไว้ใต้ชื่อ ── */
 export function CellTitle({ title, sub, width = 280 }) {
   return (

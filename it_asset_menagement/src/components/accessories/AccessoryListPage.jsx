@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Cable } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { CellTitle } from '../../ui/earthUI.jsx';
+import { CellTitle, Thumb } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 
 /* ════════════════════════════════════════════════════════════════
@@ -17,7 +17,15 @@ const broken = (a) => Number(a.brokenQuantity) || 0;
 const remain = (a) => total(a) - used(a) - broken(a);
 
 const COLUMNS = [
-  { key: 'name', label: 'ชื่ออุปกรณ์', render: a => <CellTitle title={a.name} sub={a.type} /> },
+  {
+    key: 'name', label: 'ชื่ออุปกรณ์',
+    render: a => (
+      <div className="flex items-center gap-3">
+        <Thumb src={a.image} alt={a.name} icon={Cable} />
+        <CellTitle title={a.name} sub={a.type} />
+      </div>
+    ),
+  },
   {
     key: 'qty', label: 'ทั้งหมด', width: 'w-28', align: 'right',
     cellClass: 'text-sm tabular-nums text-stone-600',

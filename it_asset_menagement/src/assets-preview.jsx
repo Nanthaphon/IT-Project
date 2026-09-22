@@ -34,6 +34,8 @@ const ALL_ASSETS = Array.from({ length: 128 }, (_, i) => {
     cost: 12000 + (i % 9) * 3000,
     scrapValue: 3000 + (i % 5) * 1000,
     note: i % 4 === 0 ? 'เปลี่ยน SSD แล้ว' : '',
+    /* บางรายการมีรูป บางรายการไม่มี — ต้องสูงเท่ากันทั้งคู่ */
+    image: i % 3 === 0 ? 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' : null,
     remark: '',
   };
 });

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, AppWindow } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { StatusBadge, CellTitle, Clamp } from '../../ui/earthUI.jsx';
+import { StatusBadge, CellTitle, Clamp, Thumb } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
 
@@ -30,7 +30,12 @@ const OPTIONAL_COLUMNS = [
 const buildColumns = (checkExpiration) => [
   {
     key: 'name', label: 'ชื่อโปรแกรม',
-    render: l => <CellTitle title={l.name} sub={l.supplier} />,
+    render: l => (
+      <div className="flex items-center gap-3">
+        <Thumb src={l.image} alt={l.name} icon={AppWindow} fit="contain" />
+        <CellTitle title={l.name} sub={l.supplier} />
+      </div>
+    ),
   },
   {
     key: 'seats', label: 'จำนวน', width: 'w-32', align: 'right',

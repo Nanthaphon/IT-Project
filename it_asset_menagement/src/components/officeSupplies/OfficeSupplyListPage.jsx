@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Download, Upload } from 'lucide-react';
+import { Plus, Download, Upload, Package } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { StatusBadge, CellTitle, Clamp } from '../../ui/earthUI.jsx';
+import { StatusBadge, CellTitle, Clamp, Thumb } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
 
@@ -29,7 +29,15 @@ const OPTIONAL_COLUMNS = [
 ];
 
 const COLUMNS = [
-  { key: 'name', label: 'ชื่ออุปกรณ์', render: i => <CellTitle title={i.name} sub={i.type} /> },
+  {
+    key: 'name', label: 'ชื่ออุปกรณ์',
+    render: i => (
+      <div className="flex items-center gap-3">
+        <Thumb src={i.image} alt={i.name} icon={Package} />
+        <CellTitle title={i.name} sub={i.type} />
+      </div>
+    ),
+  },
   {
     key: 'qty', label: 'คงเหลือ', width: 'w-32', align: 'right', cellClass: 'tabular-nums',
     render: i => (

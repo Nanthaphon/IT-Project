@@ -4,6 +4,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { printViaIframe } from './printViaIframe.js';
+import { P, statusChip } from './printTheme.js';
 import { e } from './htmlEscape.js';
 import { formatDateShort } from './formatDate.js';
 
@@ -40,21 +41,13 @@ const STATUS_SHORT_LABEL = {
   'ตัดจำหน่าย':        'ตัดจำหน่าย',
 };
 
-/* ── สถานะ → สีของ badge ── */
+/* ── สถานะ → badge ──
+   สีมาจาก printTheme ที่ผูกกับ statusTone() ของระบบ
+   ของเดิมมีตารางสีของตัวเอง (เขียว/ฟ้า/ม่วงแบบ Tailwind) คนละชุดกับหน้าจอ
+   ไม่ใช้ nowrap → ถ้าคอลัมน์แคบ ให้ข้อความ wrap ลง 2 บรรทัดได้ ไม่ถูกตัดทิ้ง */
 const statusBadge = (status, fontSize = 9.5) => {
   const s = status || 'พร้อมใช้งาน';
-  const label = STATUS_SHORT_LABEL[s] || s;
-  const colorMap = {
-    'พร้อมใช้งาน':     { bg: '#dcfce7', fg: '#166534', border: '#86efac' },
-    'ถูกใช้งาน':       { bg: '#dbeafe', fg: '#1e40af', border: '#93c5fd' },
-    'ชำรุดเสียหาย':    { bg: '#fee2e2', fg: '#991b1b', border: '#fca5a5' },
-    'ไม่สามารถใช้งานได้': { bg: '#fee2e2', fg: '#991b1b', border: '#fca5a5' },
-    'สำรอง':           { bg: '#ede9fe', fg: '#5b21b6', border: '#c4b5fd' },
-    'ตัดจำหน่าย':      { bg: '#f1f5f9', fg: '#475569', border: '#cbd5e1' },
-  };
-  const c = colorMap[s] || { bg: '#f1f5f9', fg: '#475569', border: '#cbd5e1' };
-  // ไม่ใช้ nowrap → ถ้าคอลัมน์แคบ ให้ข้อความ wrap ลง 2 บรรทัดได้ (ไม่ถูกตัดทิ้ง)
-  return `<span style="display:inline-block;font-size:${fontSize}px;font-weight:600;padding:1px 5px;border-radius:3px;background:${c.bg};color:${c.fg};border:1px solid ${c.border};line-height:1.3;max-width:100%;overflow-wrap:anywhere">${e(label)}</span>`;
+  return statusChip(s, { fontSize, label: STATUS_SHORT_LABEL[s] || s });
 };
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -62,7 +55,7 @@ const statusBadge = (status, fontSize = 9.5) => {
    ════════════════════════════════════════════════════════════════════════ */
 const COLUMN_META = {
   name:          { label: 'ชื่อทรัพย์สิน', flex: 16, align: 'left',
-                   render: (a) => `<div style="font-weight:700">${e(a.name) || '-'}</div>${a.model ? `<div style="font-size:0.9em;color:#64748b;margin-top:1px">${e(a.model)}</div>` : ''}` },
+                   render: (a) => `<div style="font-weight:700">${e(a.name) || '-'}</div>${a.model ? `<div style="font-size:0.9em;color:${P.muted};margin-top:1px">${e(a.model)}</div>` : ''}` },
   type:          { label: 'ประเภท', flex: 8, align: 'left',
                    render: (a) => e(a.type) || '-' },
   forDepartment: { label: 'แผนก', flex: 9, align: 'left',
@@ -84,13 +77,13 @@ const COLUMN_META = {
   cost:          { label: 'ราคา', flex: 8, align: 'right',
                    render: (a) => a.cost ? `<span style="white-space:nowrap">฿${fmtTHB(a.cost)}</span>` : '-' },
   scrapValue:    { label: 'ราคาปัจจุบัน', flex: 9, align: 'right',
-                   render: (a) => a.scrapValue ? `<span style="white-space:nowrap;color:#059669">฿${fmtTHB(a.scrapValue)}</span>` : '-' },
+                   render: (a) => a.scrapValue ? `<span style="white-space:nowrap;${P.brand}">฿${fmtTHB(a.scrapValue)}</span>` : '-' },
   assignedName:  { label: 'ผู้ครอบครอง', flex: 11, align: 'left',
-                   render: (a) => e(a.assignedName) || '<span style="color:#94a3b8">-</span>' },
+                   render: (a) => e(a.assignedName) || '<span style="color:${P.faint}">-</span>' },
   note:          { label: 'หมายเหตุ', flex: 22, align: 'left',
-                   render: (a) => e(a.note) || '<span style="color:#94a3b8">-</span>' },
+                   render: (a) => e(a.note) || '<span style="color:${P.faint}">-</span>' },
   remark:        { label: 'Remark', flex: 22, align: 'left',
-                   render: (a) => e(a.remark) || '<span style="color:#94a3b8">-</span>' },
+                   render: (a) => e(a.remark) || '<span style="color:${P.faint}">-</span>' },
   age:           { label: 'อายุการใช้งาน', flex: 8, align: 'center',
                    render: (a) => `<span style="white-space:nowrap">${e(calcAge(a.purchaseDate))}</span>` },
   status:        { label: 'สถานะ', flex: 9, align: 'center',
@@ -100,7 +93,9 @@ const COLUMN_META = {
 /* ════════════════════════════════════════════════════════════════════════
    MAIN EXPORT
    ════════════════════════════════════════════════════════════════════════ */
-export function printAssetReport({
+/** ประกอบ HTML ของรายงาน — แยกจากการสั่งพิมพ์ เพื่อให้เปิดดู/ตรวจสไตล์ได้
+ *  โดยไม่ต้องเปิดกล่องพิมพ์ของเบราว์เซอร์ (ดู scripts/preview-print-report.mjs) */
+export function buildAssetReportHtml({
   assets = [],
   visibleColumns = null,    // 🆕 ถ้าไม่ส่ง = ใช้ default (name, type, cost, status)
   filters = {},
@@ -151,7 +146,7 @@ export function printAssetReport({
   if (filters.status && filters.status !== 'ทั้งหมด')         filterChips.push(`สถานะ: ${filters.status}`);
   if (filters.department && filters.department !== 'ทั้งหมด') filterChips.push(`แผนก: ${filters.department}`);
   const filterText = filterChips.length > 0
-    ? `<div style="font-size:10.5px;color:#64748b;margin-top:3px">กรอง: ${filterChips.map(c => `<span style="display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;padding:1px 6px;border-radius:3px;margin-right:3px">${e(c)}</span>`).join('')}</div>`
+    ? `<div style="font-size:10.5px;color:${P.muted};margin-top:3px">กรอง: ${filterChips.map(c => `<span style="display:inline-block;background:${P.surfaceAlt};padding:2px 7px;border-radius:5px;margin-right:4px">${e(c)}</span>`).join('')}</div>`
     : '';
 
   /* ── Header columns (HTML) ── */
@@ -167,7 +162,7 @@ export function printAssetReport({
   const rows = assets.map((a, idx) => {
     const cells = selectedKeys.map(k => {
       const col = COLUMN_META[k];
-      return `<td style="border:1px solid #cbd5e1;padding:${padding};font-size:${bodyFontSize}px;vertical-align:top;text-align:${col.align};overflow:hidden;overflow-wrap:anywhere;word-break:break-word;line-height:1.35">${col.render(a, ctx)}</td>`;
+      return `<td style="border:1px solid ${P.line};padding:${padding};font-size:${bodyFontSize}px;vertical-align:top;text-align:${col.align};overflow:hidden;overflow-wrap:anywhere;word-break:break-word;line-height:1.35">${col.render(a, ctx)}</td>`;
     }).join('');
 
     // คอลัมน์รูปภาพประกอบ — thumbnail เรียงในเซลล์เดียวกับข้อมูล
@@ -176,15 +171,15 @@ export function printAssetReport({
       const photos = getGalleryPhotos(a);
       const thumbs = photos.length > 0
         ? `<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center">
-             ${photos.map(src => `<img src="${src}" alt="" style="height:${thumbSize}px;width:${thumbSize}px;object-fit:cover;border:1px solid #cbd5e1;border-radius:3px" />`).join('')}
+             ${photos.map(src => `<img src="${src}" alt="" style="height:${thumbSize}px;width:${thumbSize}px;object-fit:cover;border:1px solid ${P.line};border-radius:5px" />`).join('')}
            </div>`
-        : `<span style="color:#cbd5e1;font-size:${bodyFontSize}px">–</span>`;
-      imgCell = `<td style="border:1px solid #cbd5e1;padding:${padding};text-align:center;vertical-align:middle">${thumbs}</td>`;
+        : `<span style="color:${P.faint};font-size:${bodyFontSize}px">–</span>`;
+      imgCell = `<td style="border:1px solid ${P.line};padding:${padding};text-align:center;vertical-align:middle">${thumbs}</td>`;
     }
 
     return `
       <tr style="break-inside:avoid">
-        <td style="border:1px solid #cbd5e1;padding:${padding};text-align:center;font-size:${bodyFontSize}px;vertical-align:top;overflow:hidden">${idx + 1}</td>
+        <td style="border:1px solid ${P.line};padding:${padding};text-align:center;font-size:${bodyFontSize}px;vertical-align:top;overflow:hidden">${idx + 1}</td>
         ${cells}
         ${imgCell}
       </tr>`;
@@ -205,25 +200,25 @@ export function printAssetReport({
       margin: 0;
       padding: 0;
       font-family: 'Sarabun', 'Leelawadee UI', 'Tahoma', sans-serif;
-      color: #0f172a;
-      background: #fff;
+      color: ${P.ink};
+      background: ${P.white};
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     .page-header {
-      border-bottom: 2px solid #2B6777;
+      border-bottom: 1.5px solid ${P.brand};
       padding-bottom: 7px;
       margin-bottom: 10px;
     }
     .page-header h1 {
       margin: 0;
       font-size: 17px;
-      font-weight: 700;
-      color: #2B6777;
+      font-weight: 500;
+      color: ${P.brand};
     }
     .page-header .sub {
       font-size: 10.5px;
-      color: #475569;
+      color: ${P.muted};
       margin-top: 2px;
     }
     .stats {
@@ -233,20 +228,20 @@ export function printAssetReport({
     }
     .stats .box {
       flex: 1;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      padding: 5px 8px;
-      background: #f8fafc;
+      border: 1px solid ${P.line};
+      border-radius: 8px;
+      padding: 6px 9px;
+      background: ${P.surface};
     }
     .stats .box .num {
       font-size: 16px;
-      font-weight: 700;
-      color: #2B6777;
+      font-weight: 500;
+      color: ${P.brand};
       line-height: 1.1;
     }
     .stats .box .lbl {
       font-size: 9.5px;
-      color: #64748b;
+      color: ${P.muted};
       margin-top: 1px;
     }
     table.report {
@@ -258,12 +253,12 @@ export function printAssetReport({
       display: table-header-group;
     }
     table.report th {
-      background: #2B6777;
-      color: #fff;
+      background: ${P.brand};
+      color: ${P.white};
       font-size: ${headerFontSize}px;
-      font-weight: 600;
-      padding: 6px 7px;
-      border: 1px solid #225462;
+      font-weight: 500;
+      padding: 7px;
+      border: 1px solid ${P.brandDark};
       overflow: hidden;
       overflow-wrap: anywhere;
     }
@@ -273,18 +268,18 @@ export function printAssetReport({
       word-break: break-word;
     }
     table.report tr:nth-child(even) td {
-      background: #f8fafc;
+      background: ${P.surface};
     }
     table.report img { display: block; }
     .footer-note {
       margin-top: 10px;
       font-size: 9px;
-      color: #64748b;
+      color: ${P.faint};
       text-align: center;
     }
     .col-info {
       font-size: 9.5px;
-      color: #64748b;
+      color: ${P.faint};
       margin-top: 2px;
     }
   </style>
@@ -306,7 +301,7 @@ export function printAssetReport({
 
   <table class="report">
     <thead><tr>${headerCells}</tr></thead>
-    <tbody>${rows || `<tr><td colspan="${numCols + 1 + (hasAnyPhoto ? 1 : 0)}" style="border:1px solid #cbd5e1;padding:20px;text-align:center;color:#94a3b8">ไม่มีข้อมูลทรัพย์สินตรงกับการกรอง</td></tr>`}</tbody>
+    <tbody>${rows || `<tr><td colspan="${numCols + 1 + (hasAnyPhoto ? 1 : 0)}" style="border:1px solid ${P.line};padding:20px;text-align:center;color:${P.faint}">ไม่มีข้อมูลทรัพย์สินตรงกับการกรอง</td></tr>`}</tbody>
   </table>
 
   <div class="footer-note">
@@ -315,5 +310,9 @@ export function printAssetReport({
 </body>
 </html>`;
 
-  printViaIframe(html, { cleanupDelay: 1500 });
+  return html;
+}
+
+export function printAssetReport(opts) {
+  printViaIframe(buildAssetReportHtml(opts), { cleanupDelay: 1500 });
 }

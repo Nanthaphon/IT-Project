@@ -38,7 +38,7 @@ export default function EditLicenseModal({
         onClose={close}
       />
       <form onSubmit={handleUpdateLicense} className="flex flex-col flex-1 overflow-hidden">
-        <ModalBody className={`space-y-7 ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
+        <ModalBody className={`space-y-7 ${asPage ? 'w-full' : ''}`}>
           <section className="space-y-3">
             <SectionHeader>รูปภาพ</SectionHeader>
             <div className="flex items-center gap-4">

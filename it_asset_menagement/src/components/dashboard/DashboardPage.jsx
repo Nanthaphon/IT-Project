@@ -48,7 +48,7 @@ export default function DashboardPage({
 
   return (
     <div className={`${surface.page} min-h-full`}>
-      <div className="mx-auto max-w-[1200px] space-y-6 p-6 lg:p-8">
+      <div className="space-y-4 p-4 lg:p-5">
 
         {/* ── หัวหน้า ── */}
         <header className="flex flex-wrap items-center justify-between gap-4">

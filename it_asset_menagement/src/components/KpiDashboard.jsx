@@ -165,7 +165,7 @@ export default function KpiDashboard({ repairRequests = [] }) {
 
   /* ── Render ────────────────────────────────────────── */
   return (
-    <div className="mx-auto max-w-[1360px] space-y-6">
+    <div className="space-y-4">
       {/* ── หัวหน้า + ตัวกรอง (หัวเรื่องอยู่นอกการ์ด ตามโครง v3) ── */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>

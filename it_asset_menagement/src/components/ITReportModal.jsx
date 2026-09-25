@@ -569,7 +569,7 @@ export default function ITReportPage({
   };
 
   return (
-    <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
+    <div className="space-y-4 p-4 lg:p-5">
 
       {/* ── Page header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

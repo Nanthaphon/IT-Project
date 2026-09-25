@@ -267,7 +267,7 @@ export default function SupplyRequestTable({
     <div className="bg-sand-50 h-full overflow-y-auto">
 
       {/* ══ หัวหน้า + สถิติ ══ */}
-      <div className="mx-auto max-w-[1360px] space-y-6 px-6 pt-6 lg:px-8 lg:pt-8">
+      <div className="space-y-4 px-4 pt-4 lg:px-5 lg:pt-5">
 
         {/* หัวหน้า + ตัวกรองวันที่ */}
         <div className="flex items-center justify-between flex-wrap gap-4">

@@ -181,7 +181,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
 
   return (
     <div className="bg-sand-50 min-h-full">
-      <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
+      <div className="space-y-4 p-4 lg:p-5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

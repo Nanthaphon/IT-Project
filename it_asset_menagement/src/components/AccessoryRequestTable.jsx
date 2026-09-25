@@ -80,7 +80,7 @@ export default function AccessoryRequestTable({
 
   return (
     <div className="bg-sand-50 h-full overflow-y-auto">
-      <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
+      <div className="space-y-4 p-4 lg:p-5">
 
       <div>
         <h1 className="text-[22px] font-medium tracking-tight text-stone-900">คำขออุปกรณ์เสริม</h1>

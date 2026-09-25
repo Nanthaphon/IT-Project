@@ -47,7 +47,7 @@ export default function ReplacementRequestTable({
     <div className="bg-sand-50 h-full overflow-y-auto">
 
       {/* ══ Header ══════════════════════════════════════════ */}
-      <div className="mx-auto max-w-[1360px] space-y-6 px-6 pt-6 lg:px-8 lg:pt-8">
+      <div className="space-y-4 px-4 pt-4 lg:px-5 lg:pt-5">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-[22px] font-medium tracking-tight text-stone-900">ขอเปลี่ยนเครื่อง</h1>
@@ -86,7 +86,7 @@ export default function ReplacementRequestTable({
       </div>
 
       {/* ══ Body ════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-[1360px] px-6 py-6 lg:px-8 lg:pb-8">
+      <div className="px-4 py-4 lg:px-5 lg:pb-5">
         {filtered.length === 0 ? (
           <div className="h-full min-h-[240px] flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-stone-200/70">
             <CheckCircle2 className="h-9 w-9 text-stone-300 mb-3" strokeWidth={2} />

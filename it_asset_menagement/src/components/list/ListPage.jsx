@@ -62,19 +62,22 @@ export default function ListPage({
 
   return (
     <div className={`${surface.page} min-h-full`}>
-      <div className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
+      {/* เต็มความกว้าง — เดิม max-w-[1360px] จัดกึ่งกลาง จอกว้างเลยเหลือพื้นที่ว่างสองข้าง */}
+      <div className="space-y-4 p-4 lg:p-5">
+        {/* หัวเรื่องของหน้ายังต้องมีสำหรับ screen reader แต่ไม่โชว์ซ้ำบนจอ */}
+        <h1 className="sr-only">{title}</h1>
 
-        {/* ── หัวหน้า + แถบเครื่องมือ ── */}
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className={text.h1}>{title}</h1>
-            <p className={`mt-1 ${text.muted}`}>{fmt.num(totalCount)} {unit}</p>
-          </div>
+        {/* ── แถบเครื่องมือ ──
+            ไม่มีหัวเรื่องซ้ำ — แถบบนสุดของแอปบอกชื่อเมนูอยู่แล้ว
+            จำนวนรายการย้ายไปไว้ที่หัวตาราง */}
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          {onSearchChange ? (
+            <div className="w-full sm:w-80">
+              <SearchInput value={searchTerm} onChange={onSearchChange} placeholder={searchPlaceholder} />
+            </div>
+          ) : <span />}
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {onSearchChange && (
-              <SearchInput value={searchTerm} onChange={onSearchChange} placeholder={searchPlaceholder} />
-            )}
 
             {usableFilters.length > 0 && (
               <button
@@ -155,7 +158,10 @@ export default function ListPage({
         )}
 
         {/* ── ตาราง ── */}
-        <Panel title="รายการทั้งหมด" meta={totalCount > 0 ? `หน้า ${page} จาก ${totalPages}` : undefined}>
+        <Panel
+          title={`ทั้งหมด ${fmt.num(totalCount)} ${unit}`}
+          meta={totalCount > 0 && totalPages > 1 ? `หน้า ${page} จาก ${totalPages}` : undefined}
+        >
           {rows.length === 0 ? (
             <EmptyState>{emptyText}</EmptyState>
           ) : (

@@ -84,7 +84,7 @@ export default function EditAssetModal({
         : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]'}>
         {/* Header */}
         <div className="px-7 py-5 border-b border-stone-100">
-          <div className={`flex items-start justify-between ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
+          <div className={`flex items-start justify-between ${asPage ? 'w-full' : ''}`}>
             <div className="flex items-start gap-3.5">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -109,7 +109,7 @@ export default function EditAssetModal({
 
         {/* Body */}
         <form onSubmit={handleUpdateAsset} className="overflow-y-auto flex-1">
-          <div className={`px-7 py-6 space-y-7 ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
+          <div className={`px-7 py-6 space-y-7 ${asPage ? 'w-full' : ''}`}>
 
             {/* รูปภาพ */}
             <section className="space-y-3">
@@ -496,7 +496,7 @@ export default function EditAssetModal({
 
           {/* Footer */}
           <div className="px-7 py-4 border-t border-stone-100 bg-white">
-            <div className={`flex justify-end gap-2.5 ${asPage ? 'max-w-[1360px] mx-auto w-full' : ''}`}>
+            <div className={`flex justify-end gap-2.5 ${asPage ? 'w-full' : ''}`}>
               <button
                 type="button"
                 onClick={close}

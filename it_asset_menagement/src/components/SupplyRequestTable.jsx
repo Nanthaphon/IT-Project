@@ -4,7 +4,8 @@ import {
   Clock, Package, Check, X, CalendarDays, BarChart3, TrendingUp, ChevronDown, ChevronUp,
   Download, Building2,
 } from 'lucide-react';
-import { formatDateTimeShort, formatDateShort } from '../utils/formatDate.js';
+import { formatDateShort } from '../utils/formatDate.js';
+import { stripTitle, initialOf } from '../utils/nameUtils.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)]';
@@ -64,6 +65,7 @@ export default function SupplyRequestTable({
   supplyRequests,
   currentSupplyRequests,
   officeSupplies = [],
+  employees = [],          // ใช้ดึงชื่อเล่น — คำขอไม่ได้เก็บไว้
   supplyFilterYear,
   setSupplyFilterYear,
   supplyFilterMonth,
@@ -92,6 +94,11 @@ export default function SupplyRequestTable({
     () => currentSupplyRequests.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
     [currentSupplyRequests, currentPage]
   );
+
+  /* lookup ครั้งเดียว — เดิม .find() ต่อแถว
+     คำขอเก็บ empId เป็นรหัสพนักงาน (เช่น 1010114) ไม่ใช่ doc id */
+  const supplyById = useMemo(() => new Map(officeSupplies.map((x) => [x.id, x])), [officeSupplies]);
+  const empByCode = useMemo(() => new Map(employees.map((e) => [String(e.empId || ''), e])), [employees]);
 
   const statusFilters = [
     { value: 'ทั้งหมด',    label: 'ทั้งหมด',    count: supplyRequests.length },
@@ -549,12 +556,13 @@ export default function SupplyRequestTable({
           <>
             {/* 🆕 compact horizontal rows */}
             <div className="bg-white rounded-2xl border border-stone-200/60 overflow-hidden">
-              {pagedRequests.map((req, idx) => (
+              <SupplyRowHeader />
+              {pagedRequests.map((req) => (
                 <SupplyRow
                   key={req.id}
                   req={req}
-                  isFirst={idx === 0}
-                  supply={officeSupplies.find(s => s.id === req.supplyId)}
+                  supply={supplyById.get(req.supplyId)}
+                  employee={empByCode.get(String(req.empId || ''))}
                   onUpdateStatus={handleUpdateSupplyRequestStatus}
                   onDelete={handleDelete}
                   canEdit={canEdit}
@@ -612,102 +620,146 @@ export default function SupplyRequestTable({
   );
 }
 
-/* ─── Compact Row ────────────────────────────────────────── */
-function SupplyRow({ req, isFirst, supply, onUpdateStatus, onDelete, canEdit }) {
+/* ─── แถวคำขอ ──────────────────────────────────────────────
+
+   ของเดิมมีปัญหา 4 อย่าง
+   - อวาตาร์ใช้ตัวแรกของชื่อเต็ม ทุกแถวเลยได้ "น" (นาย/นาง/นางสาว)
+   - สถานะโชว์ซ้ำสองครั้ง: badge "อนุมัติแล้ว" ติดกับ dropdown "อนุมัติแล้ว"
+   - ข้อมูลกองชิดซ้าย วันที่/สถานะชิดขวา ตรงกลางโล่งยาว กวาดตาเทียบแถวไม่ได้
+   - แถบสีซ้ายมีทุกแถว ทั้งที่แถวที่อนุมัติแล้วไม่ต้องการความสนใจ
+
+   ใหม่: จัดเป็นคอลัมน์ตรงกันทุกแถว (สิ่งที่ขอ / ผู้ขอ / วันที่ / สถานะ)
+   สถานะเหลือตัวควบคุมเดียว · แถบสีเฉพาะแถวที่รอดำเนินการ
+   ชื่อเล่นดึงจากทะเบียนพนักงาน (คำขอไม่ได้เก็บไว้)                    */
+const ROW_GRID = 'md:grid md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_6.5rem_9.5rem_2rem] md:items-center md:gap-4';
+
+function SupplyRowHeader() {
+  return (
+    <div className={`hidden px-5 pb-2.5 pt-3.5 text-xs font-medium text-stone-400 ${ROW_GRID}`}>
+      <span className="pl-[52px]">สิ่งที่ขอ</span>
+      <span className="pl-[44px]">ผู้ขอ</span>
+      <span>วันที่</span>
+      <span>สถานะ</span>
+      <span />
+    </div>
+  );
+}
+
+function SupplyRow({ req, supply, employee, onUpdateStatus, onDelete, canEdit }) {
   const cfg = STATUS[req.status] ?? STATUS['รอดำเนินการ'];
   const StatusIcon = cfg.icon;
   const isPending = req.status === 'รอดำเนินการ';
-  const initial = req.empName?.charAt(0) ?? '?';
-  const dateStr = formatDateTimeShort(req.timestamp);
+
+  /* ชื่อจากทะเบียนพนักงานก่อน (สะท้อนการเปลี่ยนชื่อ + ไม่มีคำนำหน้า)
+     หาไม่เจอ (เช่นลาออกไปแล้ว) ค่อยใช้ชื่อที่เก็บไว้ในคำขอ */
+  const name = employee?.fullName || stripTitle(req.empName) || '-';
+  const nickname = employee?.nickname || '';
+  const dept = employee?.department || req.department || '';
+  const company = req.supplyCompany || supply?.company;
+  const d = req.timestamp ? new Date(req.timestamp) : null;
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 hover:bg-stone-50/60 transition-colors ${isFirst ? '' : 'border-t border-stone-100'}`}>
-      {/* status bar */}
-      <div className={`w-1 h-10 rounded-full ${cfg.bar} shrink-0`} />
+    <div className={`relative border-t border-stone-100 px-5 py-3.5 transition-colors first:border-t-0 hover:bg-stone-50/60 ${ROW_GRID}`}>
+      {/* แถบเตือนเฉพาะรายการที่ยังรอ */}
+      {isPending && <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-ochre-500" aria-hidden />}
 
-      {/* employee avatar */}
-      <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-[13px] font-medium shrink-0 select-none">
-        {initial}
-      </div>
-
-      {/* supply image — เด่นชัด */}
-      {supply?.image ? (
-        <img src={supply.image} alt={req.supplyName} className="w-11 h-11 rounded-lg object-contain bg-stone-50 border border-stone-200 shrink-0 p-0.5" />
-      ) : (
-        <div className="w-11 h-11 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0">
-          <Package className="h-5 w-5 text-stone-400" strokeWidth={2} />
-        </div>
-      )}
-
-      {/* main info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[13px] font-medium text-stone-800 truncate">{req.empName}</span>
-          <span className="text-[11px] text-stone-400">·</span>
-          <span className="text-[11px] text-stone-500 truncate">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
-        </div>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="text-xs text-stone-700 truncate">{req.supplyName}</span>
-          <span className="text-[11px] font-medium text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">× {req.requestedQty}</span>
-          {(req.supplyCompany || supply?.company) && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-clay-100 border border-clay-200 px-1.5 py-0.5 rounded-lg">
-              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2} />
-              {req.supplyCompany || supply?.company}
-            </span>
-          )}
-          {req.note && <span className="text-[11px] text-stone-400 truncate hidden md:inline">— {req.note}</span>}
+      {/* ── สิ่งที่ขอ ── */}
+      <div className="flex min-w-0 items-center gap-3">
+        {supply?.image ? (
+          <img src={supply.image} alt={req.supplyName} loading="lazy"
+            className="size-10 shrink-0 rounded-xl border border-stone-200/60 bg-white object-contain p-0.5" />
+        ) : (
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
+            <Package className="size-4" strokeWidth={2} />
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-stone-900" title={req.supplyName}>{req.supplyName}</p>
+          <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-stone-500">
+            <span className="font-medium tabular-nums text-clay-600">× {req.requestedQty}</span>
+            {company && <><span className="text-stone-300">·</span><span className="truncate">{company}</span></>}
+          </p>
         </div>
       </div>
 
-      {/* date */}
-      <div className="hidden lg:flex items-center gap-1 text-[11px] text-stone-400 shrink-0">
-        <CalendarDays className="h-3 w-3" strokeWidth={2} />
-        {dateStr}
+      {/* ── ผู้ขอ ── */}
+      <div className="mt-3 flex min-w-0 items-center gap-3 md:mt-0">
+        <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-full bg-clay-100 text-[13px] font-medium text-clay-700">
+          {initialOf(name, nickname)}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[13px] text-stone-800">
+            <span className="font-medium">{name}</span>
+            {nickname && <span className="text-stone-400"> ({nickname})</span>}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-stone-400">
+            {[req.empId, dept].filter(Boolean).join(' · ')}
+          </p>
+        </div>
       </div>
 
-      {/* status */}
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cfg.badge} shrink-0`}>
-        <StatusIcon className="h-3 w-3" strokeWidth={2} />
-        <span className="hidden sm:inline">{req.status}</span>
-      </span>
+      {/* ── วันที่ ── */}
+      <div className="mt-2 text-xs tabular-nums text-stone-500 md:mt-0">
+        {d ? (
+          <>
+            <p>{formatDateShort(d)}</p>
+            <p className="text-stone-400">{String(d.getHours()).padStart(2, '0')}:{String(d.getMinutes()).padStart(2, '0')} น.</p>
+          </>
+        ) : '-'}
+        {req.note && <p className="mt-1 truncate text-stone-400 md:hidden">{req.note}</p>}
+      </div>
 
-      {/* actions */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* ── สถานะ: ตัวควบคุมเดียว ── */}
+      <div className="mt-3 flex items-center gap-1.5 md:mt-0">
         {canEdit && isPending ? (
           <>
             <button
               onClick={() => onUpdateStatus(req, 'อนุมัติแล้ว')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 transition-colors"
+              className="inline-flex items-center gap-1 rounded-lg bg-clay-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-clay-700"
             >
-              <Check className="h-3.5 w-3.5" strokeWidth={2} />
-              <span className="hidden sm:inline">อนุมัติ</span>
+              <Check className="size-3.5" strokeWidth={2} /> อนุมัติ
             </button>
             <button
               onClick={() => onUpdateStatus(req, 'ปฏิเสธคำขอ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 bg-white border border-stone-200 hover:border-rose-300 hover:bg-rose-50 transition-colors"
+              className="inline-flex items-center gap-1 rounded-lg border border-stone-200/60 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+              title="ปฏิเสธคำขอ"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={2} />
-              <span className="hidden sm:inline">ปฏิเสธ</span>
+              <X className="size-3.5" strokeWidth={2} />
             </button>
           </>
-        ) : canEdit && !isPending ? (
-          <select
-            value={req.status}
-            onChange={(e) => onUpdateStatus(req, e.target.value)}
-            className={`px-2 py-1 rounded-lg text-xs font-medium outline-none cursor-pointer ${cfg.badge}`}
-          >
-            <option value="รอดำเนินการ">รอดำเนินการ</option>
-            <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
-            <option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
-          </select>
-        ) : null}
+        ) : canEdit ? (
+          /* badge ที่กดเปลี่ยนสถานะได้ — แทน badge + dropdown ที่เคยโชว์ซ้ำกัน */
+          <label className={`relative inline-flex cursor-pointer items-center gap-1 rounded-lg py-1 pl-2 pr-6 text-xs font-medium ${cfg.badge}`}>
+            <StatusIcon className="size-3.5 shrink-0" strokeWidth={2} />
+            {req.status}
+            <ChevronDown className="pointer-events-none absolute right-1.5 size-3 opacity-60" strokeWidth={2} />
+            <select
+              value={req.status}
+              onChange={(e) => onUpdateStatus(req, e.target.value)}
+              className="absolute inset-0 cursor-pointer opacity-0"
+              aria-label="เปลี่ยนสถานะคำขอ"
+            >
+              <option value="รอดำเนินการ">รอดำเนินการ</option>
+              <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
+              <option value="ปฏิเสธคำขอ">ปฏิเสธคำขอ</option>
+            </select>
+          </label>
+        ) : (
+          <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium ${cfg.badge}`}>
+            <StatusIcon className="size-3.5" strokeWidth={2} /> {req.status}
+          </span>
+        )}
+      </div>
+
+      {/* ── ลบ ── */}
+      <div className="absolute right-4 top-3.5 md:static">
         {canEdit && (
           <button
             onClick={() => onDelete(req.id, 'supply_requests')}
-            className="w-7 h-7 flex items-center justify-center bg-white border border-stone-200 text-stone-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-xl transition-colors"
-            title="ลบ"
+            className="flex size-8 items-center justify-center rounded-lg text-stone-300 transition-colors hover:bg-rose-50 hover:text-rose-600"
+            title="ลบคำขอ"
           >
-            <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+            <Trash2 className="size-4" strokeWidth={2} />
           </button>
         )}
       </div>

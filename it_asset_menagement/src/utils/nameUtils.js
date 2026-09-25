@@ -23,3 +23,38 @@ export function resolveName(firstField, lastField, full) {
   if (f || l) return { first: f, last: l };
   return splitName(full);
 }
+
+/* ────────────────────────────────────────────────────────────
+   ตัดคำนำหน้าชื่อออก — ใช้ตอน "แสดงผล" เท่านั้น ไม่แก้ข้อมูลที่เก็บ
+
+   คำขอเบิกเก็บชื่อพร้อมคำนำหน้าติดกัน ("นางสาวกชกร เรืองนุ้ย")
+   อวาตาร์ที่ใช้ตัวแรกของชื่อเลยได้ "น" ทุกแถว บอกอะไรไม่ได้เลย
+
+   นางสาว ต้องมาก่อน นาง ไม่งั้น "นางสาว..." จะเหลือ "สาว..."
+   ข้อจำกัด: ชื่อจริงที่ขึ้นต้นด้วย นาย/นาง จะถูกตัดผิด (เช่น "นายิกา")
+   จึงควรใช้ชื่อจากทะเบียนพนักงานก่อน แล้วค่อยใช้ตัวนี้เป็นทางสำรอง
+   ──────────────────────────────────────────────────────────── */
+const TITLES = ['นางสาว', 'น.ส.', 'นาง', 'นาย', 'ด.ญ.', 'ด.ช.', 'Mrs.', 'Mr.', 'Ms.', 'Miss'];
+
+export function stripTitle(name) {
+  const s = String(name || '').trim();
+  for (const t of TITLES) {
+    if (s.startsWith(t)) {
+      const rest = s.slice(t.length).trim();
+      return rest || s;
+    }
+  }
+  return s;
+}
+
+/* ตัวอักษรสำหรับอวาตาร์ — ชื่อเล่นก่อน (เพื่อนร่วมงานจำกันด้วยชื่อเล่น)
+   ข้ามสระหน้า เ แ โ ใ ไ ไปเอาพยัญชนะ ไม่งั้น "เกศินี" จะได้ "เ" โดด ๆ */
+const LEADING_VOWELS = 'เแโใไ';
+
+export function initialOf(name, nickname) {
+  const src = String(nickname || '').trim() || stripTitle(name);
+  if (!src) return '?';
+  const first = src.charAt(0);
+  if (LEADING_VOWELS.includes(first) && src.length > 1) return src.charAt(1);
+  return first.toUpperCase();
+}

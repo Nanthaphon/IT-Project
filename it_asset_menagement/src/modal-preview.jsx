@@ -106,6 +106,7 @@ const LICENSE_LONG = {
 function Harness() {
   const [detail, setDetail] = useState(ASSET);
   const [cat, setCat] = useState('assets');
+  const [asPage, setAsPage] = useState(true);
   const showLicense = () => { setDetail(LICENSE_DEMO); setCat('licenses'); };
   const showLong = () => { setDetail(LICENSE_LONG); setCat('licenses'); };
   const showAsset = () => { setDetail(ASSET); setCat('assets'); };
@@ -124,8 +125,16 @@ function Harness() {
       <button onClick={showAsset} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${cat === 'assets' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ทรัพย์สิน</button>
       <button onClick={showLicense} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id==='lic-demo' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>License</button>
       <button onClick={showLong} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id==='lic-long' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ชื่อยาว 2 สิทธิ์</button>
+      <span className="mx-1 w-px bg-stone-200" />
+      <button onClick={() => setAsPage((v) => !v)} className="rounded-xl px-3 py-1.5 text-sm font-medium text-stone-600 hover:bg-stone-100">
+        {asPage ? 'หน้าเต็ม' : 'modal'}
+      </button>
     </div>
+    <div className={asPage ? 'h-screen pt-16' : ''}>
     <AssetDetailsModal
+      asPage={asPage}
+      onClosePage={() => setDetail(null)}
+      onEditPage={noop}
       selectedAssetDetail={detail}
       setSelectedAssetDetail={setDetail}
       selectedAssetCategory={cat}
@@ -149,6 +158,7 @@ function Harness() {
       handleAssignLicenseToAsset={noop}
       handleRevokeLicenseFromAsset={noop}
     />
+    </div>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
-import { Banknote, Briefcase, Building2, Calendar, Check, ChevronRight, CircleCheck, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
+import { Banknote, Building2, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, CornerUpLeft, Printer, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
@@ -10,6 +10,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeade
 import { cls } from '../ui/theme.js';
 import Timeline from './timeline/Timeline.jsx';
 import ImageViewer from '../ui/ImageViewer.jsx';
+import { Popover } from '../ui/earthUI.jsx';
 import SeatTable from './licenses/SeatTable.jsx';
 import ItemsToolbar from './list/ItemsToolbar.jsx';
 import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
@@ -73,6 +74,7 @@ export default function AssetDetailsModal({
   const [newItemData, setNewItemData] = useState({ sn: '', model: '', cost: '', purchaseDate: '', warrantyDate: '', quantity: 1, documents: [] });
 
   const [showLabelPreview, setShowLabelPreview] = useState(false);
+  const [printMenuOpen, setPrintMenuOpen] = useState(false);   // เมนู "พิมพ์" บนหัว (ทรัพย์สิน)
 
   const [selectedItemsForDelete, setSelectedItemsForDelete] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -1351,68 +1353,153 @@ export default function AssetDetailsModal({
         ? 'bg-white w-full h-full flex flex-col overflow-hidden'
         : 'bg-white rounded-lg border border-stone-200/60 shadow-[0_1px_3px_rgba(22,32,36,0.03),0_20px_50px_-24px_rgba(22,32,36,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
 
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center" style={{ background: '#2B67770F', color: '#2B6777' }}>
-              <Briefcase className="w-[18px] h-[18px]" strokeWidth={2} />
-            </div>
-            <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">
-              รายละเอียด{selectedAssetCategory === 'assets' ? 'ทรัพย์สินหลัก' : selectedAssetCategory === 'accessories' ? 'อุปกรณ์เสริม' : 'โปรแกรม / License'}
-            </h3>
-          </div>
-          <button onClick={closeAll} className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors shrink-0">
-            <X className="w-4 h-4" strokeWidth={2} />
-          </button>
-        </div>
-
-        {/* Profile band */}
-        <div className="px-5 py-3 shrink-0 bg-stone-50 border-b border-stone-100 flex items-center gap-3">
-          {currentAssetDetail.image ? (
-            <div className="w-11 h-11 rounded-lg shrink-0 border border-stone-200 bg-white overflow-hidden flex items-center justify-center">
-              <img src={currentAssetDetail.image} alt="" className="max-w-full max-h-full object-contain p-0.5" />
-            </div>
-          ) : (
-            <div className="w-11 h-11 rounded-lg shrink-0 border border-dashed border-stone-300 bg-white flex items-center justify-center text-stone-300">
-              <Image className="w-5 h-5" strokeWidth={2} />
-            </div>
+        {/* ── หัวหน้า: ตัวตน + ปุ่มทั้งหมด ──
+            แบบเดียวกับหน้าพนักงาน — เดิมมีสองชั้น (แถบชื่อหน้า "รายละเอียด..." + แถบรูป/ชื่อ)
+            และปุ่มเบิกจ่าย/แก้ไข/ปิด อยู่แถบล่างสุดห่างจากเนื้อหา */}
+        <div className="shrink-0 bg-white px-6 pt-5">
+          {asPage && (
+            <button onClick={closeAll}
+              className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-stone-400 transition-colors hover:text-clay-600">
+              <ChevronLeft className="size-4" strokeWidth={2} /> กลับไปรายการ
+            </button>
           )}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-[19px] font-medium text-clay-600 leading-tight tracking-tight truncate mb-1">{currentAssetDetail.name}</h2>
-            <div className="flex flex-wrap items-center gap-2">
-              {currentAssetDetail.type && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-stone-50 text-stone-600 border border-stone-200">
-                  {currentAssetDetail.type}
-                </span>
+
+          <div className="flex flex-wrap items-start justify-between gap-4 pb-4">
+            <div className="flex min-w-0 items-center gap-4">
+              {currentAssetDetail.image ? (
+                <button type="button" onClick={() => setViewerImage({ src: currentAssetDetail.image, name: currentAssetDetail.name })}
+                  className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-stone-200/60 bg-white"
+                  title="ดูรูปเต็ม">
+                  <img src={currentAssetDetail.image} alt="" className="max-h-full max-w-full object-contain p-1" />
+                </button>
+              ) : (
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
+                  {selectedAssetCategory === 'licenses'
+                    ? <KeyRound className="size-6" strokeWidth={2} />
+                    : <Image className="size-6" strokeWidth={2} />}
+                </div>
               )}
+              <div className="min-w-0">
+                <h1 className="truncate text-[22px] font-medium tracking-tight text-stone-900">{currentAssetDetail.name}</h1>
+
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  {currentAssetDetail.type && (
+                    <span className="inline-flex items-center rounded-lg bg-sand-100 px-2 py-0.5 text-xs font-medium text-stone-600">
+                      {currentAssetDetail.type}
+                    </span>
+                  )}
+                  {selectedAssetCategory === 'assets' && (
+                    <span className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-xs font-medium ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-olive-50 text-olive-700' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-stone-100 text-stone-700' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-sand-100 text-stone-500' : 'bg-ochre-50 text-ochre-700'}`}>
+                      <span className={`size-1.5 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-olive-500' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-stone-500' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-stone-400' : 'bg-ochre-500'}`} />
+                      {currentAssetDetail.status || 'พร้อมใช้งาน'}
+                    </span>
+                  )}
+                  {selectedAssetCategory === 'licenses' && (() => {
+                    const used = currentAssetDetail.assignees?.length || 0;
+                    const full = used >= (currentAssetDetail.quantity || 1);
+                    return (
+                      <>
+                        <span className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-xs font-medium ${full ? 'bg-ochre-50 text-ochre-700' : 'bg-olive-50 text-olive-700'}`}>
+                          <span className={`size-1.5 rounded-full ${full ? 'bg-ochre-500' : 'bg-olive-500'}`} />
+                          {full ? 'ใช้งานเต็ม' : 'มีสิทธิ์ว่าง'}
+                        </span>
+                        <span className="inline-flex items-center rounded-lg bg-sand-100 px-2 py-0.5 text-xs font-medium tabular-nums text-clay-600">
+                          {used} / {currentAssetDetail.quantity || 0} สิทธิ์
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {/* บรรทัดข้อมูลระบุตัว — ต่างกันตามประเภท */}
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-400">
+                  {selectedAssetCategory === 'assets' && currentAssetDetail.assetTag && (
+                    <span className="inline-flex items-center gap-1.5 font-mono"><Tag className="size-3.5" strokeWidth={2} />{currentAssetDetail.assetTag}</span>
+                  )}
+                  {selectedAssetCategory === 'assets' && currentAssetDetail.sn && (
+                    <span className="inline-flex items-center gap-1.5 font-mono"><Hash className="size-3.5" strokeWidth={2} />{currentAssetDetail.sn}</span>
+                  )}
+                  {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
+                    <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" strokeWidth={2} />{currentAssetDetail.department}</span>
+                  )}
+                  {selectedAssetCategory === 'licenses' && currentAssetDetail.supplier && (
+                    <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" strokeWidth={2} />{currentAssetDetail.supplier}</span>
+                  )}
+                  {selectedAssetCategory === 'licenses' && currentAssetDetail.expirationDate && (
+                    <span className="inline-flex items-center gap-1.5"><Calendar className="size-3.5" strokeWidth={2} />หมดอายุ {formatDateShort(currentAssetDetail.expirationDate)}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* ปุ่ม — รองก่อน หลักอยู่ขวาสุด */}
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <button
+                onClick={() => { if (asPage && onEditPage) { onEditPage(); return; } if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">
+                <SquarePen className="size-4" strokeWidth={2} /> แก้ไข
+              </button>
+
               {selectedAssetCategory === 'assets' && (
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-olive-50 text-olive-700 border-olive-200' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-stone-50 text-stone-700 border-stone-200' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-stone-100 text-stone-500 border-stone-300' : 'bg-ochre-50 text-ochre-700 border-ochre-200'}`}>
-                  <span className={`w-2 h-2 rounded-full ${(!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? 'bg-olive-500' : currentAssetDetail.status === 'ถูกใช้งาน' ? 'bg-stone-500' : currentAssetDetail.status === 'ตัดจำหน่าย' ? 'bg-stone-400' : 'bg-clay-500'}`} />
-                  {currentAssetDetail.status || 'พร้อมใช้งาน'}
-                </span>
+                <Popover
+                  open={printMenuOpen} onClose={() => setPrintMenuOpen(false)} width="w-56"
+                  trigger={
+                    <button onClick={() => setPrintMenuOpen((v) => !v)} aria-expanded={printMenuOpen}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">
+                      <Printer className="size-4" strokeWidth={2} /> พิมพ์
+                      <ChevronDown className="size-3.5 opacity-70" strokeWidth={2} />
+                    </button>
+                  }
+                >
+                  <button onClick={() => { setPrintMenuOpen(false); setShowLabelPreview(true); }}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm text-stone-700 transition-colors hover:bg-stone-50">
+                    ป้ายทรัพย์สิน <span className="text-xs text-stone-400">QR / บาร์โค้ด</span>
+                  </button>
+                  <button onClick={async () => { setPrintMenuOpen(false); const { printAssetDetail } = await import('../utils/printAssetDetail.js'); printAssetDetail({ asset: currentAssetDetail }); }}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm text-stone-700 transition-colors hover:bg-stone-50">
+                    รายละเอียด (PDF) <span className="text-xs text-stone-400">+ รูปเอกสาร</span>
+                  </button>
+                </Popover>
               )}
-              {selectedAssetCategory === 'licenses' && (
-                <>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-ochre-50 text-ochre-700 border-ochre-200' : 'bg-olive-50 text-olive-700 border-olive-200'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'bg-clay-500' : 'bg-olive-500'}`} />
-                    {(currentAssetDetail.assignees?.length || 0) >= (currentAssetDetail.quantity || 1) ? 'ใช้งานเต็ม' : 'มีสิทธิ์ว่าง'}
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 bg-sand-100 text-clay-600 rounded-lg text-xs font-medium">
-                    {currentAssetDetail.assignees?.length || 0} / {currentAssetDetail.quantity || 0} สิทธิ์
-                  </span>
-                </>
+
+              {/* ปุ่มหลัก — แล้วแต่สถานะ */}
+              {selectedAssetCategory === 'assets' && (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') && (
+                <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-clay-600 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-clay-700">
+                  <LogIn className="size-4" strokeWidth={2} /> เบิกจ่าย
+                </button>
               )}
-              {selectedAssetCategory === 'assets' && currentAssetDetail.department && (
-                <span className="inline-flex items-center px-2.5 py-1 bg-clay-100 text-clay-600 rounded-lg text-xs font-medium">
-                  {currentAssetDetail.department}
-                </span>
+              {selectedAssetCategory === 'assets' && currentAssetDetail.status === 'ถูกใช้งาน' && (
+                <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-clay-600 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-clay-700">
+                  <CornerUpLeft className="size-4" strokeWidth={2} /> รับคืน
+                </button>
+              )}
+              {(selectedAssetCategory === 'licenses' || selectedAssetCategory === 'accessories') && (() => {
+                const availCount = selectedAssetCategory === 'licenses'
+                  ? licenseSeats.filter((s) => s.type === 'available').length
+                  : individualItems.filter((it) => it.type === 'available').length;
+                return availCount > 0 ? (
+                  <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-clay-600 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-clay-700">
+                    <LogIn className="size-4" strokeWidth={2} /> เบิกจ่าย
+                    <span className="rounded bg-white/20 px-1.5 text-[11px] tabular-nums">{availCount}</span>
+                  </button>
+                ) : null;
+              })()}
+
+              {!asPage && (
+                <button onClick={closeAll} aria-label="ปิด"
+                  className="flex size-9 items-center justify-center rounded-xl text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700">
+                  <X className="size-4" strokeWidth={2} />
+                </button>
               )}
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="px-6 border-b border-stone-100 flex gap-1 shrink-0 bg-white flex-wrap">
+        <div className="px-5 border-b border-stone-200/60 flex gap-1 shrink-0 bg-white flex-wrap">
           <button
             onClick={() => { setActiveTab('info'); setIsAddingHistory(false); setEditingHistoryId(null); }}
             className={`py-3.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${activeTab === 'info' ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
@@ -2280,68 +2367,6 @@ export default function AssetDetailsModal({
 
         </div>
         
-        {/* Footer */}
-        <div className="px-5 py-3 bg-white flex flex-wrap justify-end items-center gap-2 border-t border-stone-100 shrink-0 rounded-b-2xl">
-          {selectedAssetCategory === 'assets' && (
-            (!currentAssetDetail.status || currentAssetDetail.status === 'พร้อมใช้งาน') ? (
-              <button onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: selectedAssetCategory }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto">เบิกจ่าย</button>
-            ) : currentAssetDetail.status === 'ถูกใช้งาน' ? (
-              <button onClick={() => { setReturnModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'assets', empId: currentAssetDetail.assignedTo, empName: currentAssetDetail.assignedName, assetName: currentAssetDetail.name }); closeAll(); }} className="w-full sm:w-auto px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto">รับคืน</button>
-            ) : null
-          )}
-
-          {/* 🆕 เบิกจ่าย — สำหรับ License ที่มี seat ว่าง */}
-          {selectedAssetCategory === 'licenses' && (() => {
-            const availCount = licenseSeats.filter(s => s.type === 'available').length;
-            return availCount > 0 ? (
-              <button
-                onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'licenses' }); closeAll(); }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto"
-              >
-                <LogIn className="h-4 w-4" strokeWidth={2} />
-                เบิกจ่าย
-                <span className="text-[11px] font-medium bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
-              </button>
-            ) : null;
-          })()}
-
-          {/* 🆕 เบิกจ่าย — สำหรับ Accessory ที่มีชิ้นว่าง (รูปแบบเดียวกับ License) */}
-          {selectedAssetCategory === 'accessories' && (() => {
-            const availCount = individualItems.filter(it => it.type === 'available').length;
-            return availCount > 0 ? (
-              <button
-                onClick={() => { setCheckoutModal({ isOpen: true, assetId: currentAssetDetail.id, collectionName: 'accessories' }); closeAll(); }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors sm:mr-auto"
-              >
-                <LogIn className="h-4 w-4" strokeWidth={2} />
-                เบิกจ่าย
-                <span className="text-[11px] font-medium bg-white/20 px-1.5 py-0.5 rounded">{availCount}</span>
-              </button>
-            ) : null;
-          })()}
-
-          {selectedAssetCategory === 'assets' && (
-            <button onClick={() => setShowLabelPreview(true)} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-stone-600 border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 text-sm font-medium transition-colors">
-              พิมพ์ป้าย
-            </button>
-          )}
-
-          {selectedAssetCategory === 'assets' && (
-            <button
-              onClick={async () => {
-                const { printAssetDetail } = await import('../utils/printAssetDetail.js');
-                printAssetDetail({ asset: currentAssetDetail });
-              }}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-stone-600 border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 text-sm font-medium transition-colors"
-              title="พิมพ์ PDF รายละเอียดทรัพย์สิน + รูปเอกสารแนบ"
-            >
-              พิมพ์ PDF
-            </button>
-          )}
-
-          <button onClick={() => { if (asPage && onEditPage) { onEditPage(); return; } if (selectedAssetCategory === 'licenses') { openEditLicenseModal(currentAssetDetail); } else { openEditAssetModal(currentAssetDetail, selectedAssetCategory); } closeAll(); }} className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-stone-600 border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 text-sm font-medium transition-colors">แก้ไขข้อมูล</button>
-          <button onClick={closeAll} className="w-full sm:w-auto px-5 py-2.5 bg-clay-600 text-white rounded-xl hover:bg-clay-700 text-sm font-medium transition-colors">ปิด</button>
-        </div>
       </div>
 
       {/* 🆕 Seat Detail Modal — ดีไซน์ใหม่สวยๆ */}

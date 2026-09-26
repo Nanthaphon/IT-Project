@@ -431,7 +431,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Add/Edit Modal ── */}
       {modalOpen && (
         <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[85]">
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-lg overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]">
+          <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-lg overflow-hidden border border-stone-200/60 flex flex-col max-h-[92vh]">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
@@ -633,7 +633,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Confirm Delete ── */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-sm overflow-hidden border border-stone-200/60">
+          <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-sm overflow-hidden border border-stone-200/60">
             <div className="p-6">
               <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-5 w-5 text-rose-600" strokeWidth={2} />
@@ -665,7 +665,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       {/* ── Reset Password Modal ── */}
       {pwUser && (
         <div className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]">
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-sm overflow-hidden border border-stone-200/60">
+          <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-sm overflow-hidden border border-stone-200/60">
 
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">

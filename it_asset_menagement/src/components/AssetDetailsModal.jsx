@@ -1349,7 +1349,7 @@ export default function AssetDetailsModal({
       : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[80]'}>
       <div className={asPage
         ? 'bg-white w-full h-full flex flex-col overflow-hidden'
-        : 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_3px_rgba(22,32,36,0.03),0_20px_50px_-24px_rgba(22,32,36,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
+        : 'bg-white rounded-lg border border-stone-200/60 shadow-[0_1px_3px_rgba(22,32,36,0.03),0_20px_50px_-24px_rgba(22,32,36,0.22)] max-w-5xl w-full flex flex-col h-[90vh] overflow-hidden'}>
 
         {/* Header */}
         <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between shrink-0">
@@ -2478,7 +2478,7 @@ export function SeatDetailModal({
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header — ขาวสะอาด ธีมเดียวกับฝั่ง user */}
         <div className="px-7 py-5 border-b border-stone-100">
@@ -2746,7 +2746,7 @@ export function AccessoryItemDetailModal({
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header */}
         <div className="px-7 py-5 border-b border-stone-100">

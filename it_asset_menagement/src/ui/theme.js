@@ -78,7 +78,7 @@ export const cls = {
     'fixed inset-0 bg-stone-950/50 backdrop-blur-sm flex items-center justify-center p-4 z-[85]',
 
   modalShell:
-    'bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] ' +
+    'bg-white rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] ' +
     'w-full overflow-hidden flex flex-col max-h-[92vh]',
 
   // Table

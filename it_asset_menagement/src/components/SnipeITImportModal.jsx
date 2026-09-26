@@ -305,7 +305,7 @@ export default function SnipeITImportModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-stone-200/60">
+      <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden border border-stone-200/60">
 
         {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-stone-100 flex items-center gap-3 shrink-0">

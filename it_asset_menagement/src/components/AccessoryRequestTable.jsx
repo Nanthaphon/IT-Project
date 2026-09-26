@@ -341,7 +341,7 @@ export default function AccessoryRequestTable({
       {/* ── Reject reason modal ── */}
       {rejectModal.open && (
         <div className="fixed inset-0 bg-stone-950/50 z-[90] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-md w-full overflow-hidden">
+          <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-md w-full overflow-hidden">
             <div className="px-6 py-5 border-b border-stone-100">
               <h3 className="text-[15px] font-medium text-stone-800">เหตุผลในการปฏิเสธคำขอ</h3>
               <p className="text-xs text-stone-500 mt-0.5">{rejectModal.req?.empName} · {rejectModal.req?.accessoryName}</p>

@@ -1603,7 +1603,7 @@ export default function StaffView({
       {/* ==================== Modal: แก้ไขแจ้งปัญหา ==================== */}
       {editStaffRepairModal.isOpen && (
         <div className="fixed inset-0 bg-stone-900/50 flex items-center justify-center p-4 z-[80]">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-stone-200/60 overflow-hidden">
+          <div className="bg-white rounded-lg max-w-md w-full border border-stone-200/60 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">
               <h3 className="text-sm font-medium text-stone-800">แก้ไขรายการแจ้งปัญหา</h3>
               <button

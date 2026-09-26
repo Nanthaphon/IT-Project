@@ -95,3 +95,40 @@ input, textarea, select {
   background: #2B6777;
   color: #fff;
 }
+
+/* ── แถบเลื่อน ────────────────────────────────────────────────
+   แทนแถบเทาหนาของ Windows ที่มีปุ่มลูกศรบนล่าง ให้เป็นแท่งบางมน
+   โทนเดียวกับธีม และไม่มีรางพื้นหลัง
+
+   Chrome 121+ ถ้าตั้ง scrollbar-width / scrollbar-color ไว้ จะเมิน
+   ::-webkit-scrollbar ทั้งหมด (คุมรูปทรง/ซ่อนลูกศรไม่ได้)
+   จึงใส่ค่ามาตรฐานเฉพาะเบราว์เซอร์ที่ไม่รองรับ ::-webkit-scrollbar (Firefox)
+
+   ที่ไหนกำหนดแถบเลื่อนของตัวเองไว้ (เช่น sidebar) ใช้คลาสระดับ element
+   ซึ่ง specificity สูงกว่ากฎนี้ จึงไม่ถูกทับ                           */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-stone-300) transparent;
+  }
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-button {
+  display: none;            /* ซ่อนปุ่มลูกศร ▲ ▼ */
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-stone-300);
+  border-radius: 999px;
+  border: 3px solid transparent;   /* เว้นขอบ -> แท่งดูบางลอย ๆ */
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-stone-400);
+}

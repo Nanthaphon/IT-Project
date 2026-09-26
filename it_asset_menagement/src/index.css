@@ -104,31 +104,43 @@ input, textarea, select {
    ::-webkit-scrollbar ทั้งหมด (คุมรูปทรง/ซ่อนลูกศรไม่ได้)
    จึงใส่ค่ามาตรฐานเฉพาะเบราว์เซอร์ที่ไม่รองรับ ::-webkit-scrollbar (Firefox)
 
-   ที่ไหนกำหนดแถบเลื่อนของตัวเองไว้ (เช่น sidebar) ใช้คลาสระดับ element
-   ซึ่ง specificity สูงกว่ากฎนี้ จึงไม่ถูกทับ                           */
-@supports not selector(::-webkit-scrollbar) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-stone-300) transparent;
+   อยู่ใน @layer base — Tailwind v4 วาง utility ไว้ใน @layer utilities
+   และ CSS ที่อยู่นอก layer ชนะ CSS ใน layer เสมอไม่ว่า specificity เท่าไร
+   ถ้าวางนอก layer จะไปทับทุกที่ที่ตั้งแถบเลื่อนเองด้วยคลาส (เคยพลาดมาแล้ว)
+   ซ่อนแถบเลื่อนทั้งอันใช้ utility `no-scrollbar` ด้านล่าง                */
+@layer base {
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-stone-300) transparent;
+    }
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;            /* ซ่อนปุ่มลูกศร ▲ ▼ */
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-stone-300);
+    border-radius: 999px;
+    border: 3px solid transparent;   /* เว้นขอบ -> แท่งดูบางลอย ๆ */
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-stone-400);
   }
 }
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-button {
-  display: none;            /* ซ่อนปุ่มลูกศร ▲ ▼ */
-}
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background-color: var(--color-stone-300);
-  border-radius: 999px;
-  border: 3px solid transparent;   /* เว้นขอบ -> แท่งดูบางลอย ๆ */
-  background-clip: content-box;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-stone-400);
+
+/* ซ่อนแถบเลื่อนแต่ยังเลื่อนได้ — ใช้กับ sidebar */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

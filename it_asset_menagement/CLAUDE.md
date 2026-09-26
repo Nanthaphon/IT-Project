@@ -101,7 +101,7 @@ npm run dev:emu    # หน้าต่าง 3 — เปิดแอปชี�
 | **ปุ่มหลัก** | `bg-clay-600 text-white rounded-xl font-medium hover:bg-clay-700` | `font-semibold/bold`, `rounded-lg`, gradient |
 | **ปุ่มลบ (ยืนยัน)** | `bg-brick-600 text-white rounded-xl` | `bg-rose-600` (แดงนีออน ตัดกับพื้นครีม) |
 | **Modal** | overlay `bg-stone-950/50` · กล่อง **`rounded-lg`** (เหลี่ยมกว่าการ์ด — ผู้ใช้ไม่ชอบ modal มน) · หัว/ท้าย `px-7 py-5` | `rounded-2xl`/`rounded-xl` ที่กล่อง modal, overlay ความมืดอื่น, `shadow-2xl` |
-| **แถบเลื่อน** | กำหนดไว้ทั้งระบบใน `index.css` (แท่งบางมน ไม่มีลูกศร) — ไม่ต้องใส่เองต่อ element | ตั้ง `scrollbar-width`/`scrollbar-color` เพิ่ม — Chrome จะเมินสไตล์ webkit ทั้งหมด |
+| **แถบเลื่อน** | กำหนดไว้ทั้งระบบใน `index.css` ใน `@layer base` (แท่งบางมน ไม่มีลูกศร) · ซ่อนทั้งอันใช้ `no-scrollbar` (sidebar) | ตั้ง `scrollbar-width`/`scrollbar-color` เพิ่ม (Chrome จะเมินสไตล์ webkit) · เขียน CSS ใหม่ไว้นอก `@layer` — Tailwind v4 วาง utility ใน layer และ CSS นอก layer ชนะเสมอ จะไปทับคลาสทุกตัว |
 | **ปุ่มรอง** | `bg-white border border-stone-200/60 rounded-xl text-stone-600` | ขอบทึบ |
 | **ป้ายกำกับฟอร์ม** | `text-[13px] font-medium text-stone-500` | **`uppercase`**, `tracking-wide`, `font-semibold` |
 | **Badge สถานะ** | `rounded-lg` + พื้นอ่อน **ไม่มีขอบ** + `font-medium` | pill กลม, `border`, `font-bold` |
@@ -207,6 +207,7 @@ localhost:5173/login-preview.html       หน้าเข้าสู่ระ�
 localhost:5173/edit-preview.html        หน้าแก้ไข License / ทรัพย์สิน (โหมดหน้าเต็ม)
 localhost:5173/emp-preview.html         รายละเอียดพนักงาน (สลับหน้าเต็ม / modal ได้)
 localhost:5173/supply-preview.html      คำขอเบิกอุปกรณ์ (ชื่อมีคำนำหน้า · ชื่อเล่น · ทุกสถานะ)
+localhost:5173/sidebar-preview.html     Sidebar ของจริง (ย่อความสูงหน้าต่างเพื่อตรวจการเลื่อน)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 

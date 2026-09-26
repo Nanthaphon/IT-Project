@@ -130,7 +130,7 @@ export default function Sidebar({
         </div>
 
         {/* ─── Navigation ─── */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+        <nav className="no-scrollbar flex-1 overflow-y-auto px-3 py-4 space-y-5">
           {groups.map((group, gi) => (
             <div key={group.group}>
               <div className="space-y-0.5">

@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Check, CheckCircle2, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Unlock, X } from 'lucide-react';
+import { Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Hash, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Unlock, X } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';
-import { resolveName } from '../utils/nameUtils.js';
+import { resolveName, initialOf } from '../utils/nameUtils.js';
+import { Popover } from '../ui/earthUI.jsx';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
 import Timeline from './timeline/Timeline.jsx';
-import { buildEmployeeTimeline, spanLabel, toMillis } from './timeline/buildTimeline.js';
+import { buildEmployeeTimeline, spanLabel, toMillis, thaiDate } from './timeline/buildTimeline.js';
+
+/* สีจุดของรายการในการ์ด "ความเคลื่อนไหวล่าสุด" — ตามชนิดเหตุการณ์ */
+const KIND_DOT = {
+  checkout: 'bg-clay-600', seatOn: 'bg-clay-600', licOn: 'bg-clay-600',
+  checkin: 'bg-olive-500', seatOff: 'bg-olive-500', licOff: 'bg-stone-300',
+  repair: 'bg-brick-500', purchase: 'bg-ochre-500',
+};
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -38,6 +46,7 @@ export default function EmployeeDetailsModal({
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
   const [returnPickerOpen, setReturnPickerOpen] = useState(false); // เลือกเครื่องเมื่อมีหลายตัว
+  const [printOpen, setPrintOpen] = useState(false);               // เมนู "พิมพ์" บนหัวหน้า
 
   /* โหมดหน้าเต็มไม่มี state ให้ล้าง — ต้องถอยกลับด้วย router แทน */
   const closeView = () => { if (asPage) { onClosePage?.(); return; } setSelectedEmployee(null); };
@@ -113,14 +122,6 @@ export default function EmployeeDetailsModal({
     ? empTimeline
     : empTimeline.filter(e => e.cat === historyFilter);
 
-  const tabs = [
-    { id: 'info',    label: 'ข้อมูลทั่วไป' },
-    { id: 'assets',  label: 'ครอบครองปัจจุบัน', count: allHeld.length },
-    { id: 'history', label: 'ไทม์ไลน์',          count: empTimeline.length },
-    { id: 'docs',    label: 'เอกสารที่พิมพ์' },
-  ];
-
-  const initial = selectedEmployee.fullName?.charAt(0) || '?';
 
   /* ชื่ออังกฤษรวมเป็นบรรทัดเดียว — เดิมแยกเป็นช่อง "ชื่อจริง"/"นามสกุล" สองช่อง
      ทั้งที่อ่านคู่กันเสมอ */
@@ -133,7 +134,10 @@ export default function EmployeeDetailsModal({
 
   // เปิด modal ให้ติ๊ก checklist + แนบรูปก่อนพิมพ์ (modal จะเรียก printHandoverForm เองเมื่อ submit)
   // 🆕 นับ Notebook ที่พนักงานถือ — เฉพาะ notebook ที่ต้องประเมิน 100 คะแนน
-  const empNotebooks = empAssets.filter(a => (a.type || '').toLowerCase().includes('โน๊ตบุ๊ค') || (a.type || '').toLowerCase().includes('notebook') || (a.type || '').toLowerCase().includes('laptop'));
+  /* สะกดได้หลายแบบในข้อมูลจริง: โน๊ตบุ๊ค (ไม้ตรี) / โน้ตบุ๊ค (ไม้โท) / โน้ตบุ๊ก
+     ของเดิมเช็คแค่ "โน๊ตบุ๊ค" — เครื่องที่ตั้งประเภทว่า "โน้ตบุ๊ค" จึงพิมพ์ใบส่งมอบไม่ได้ */
+  const NOTEBOOK_RE = /โน.?ตบุ.?[คก]|notebook|laptop/i;
+  const empNotebooks = empAssets.filter(a => NOTEBOOK_RE.test(a.type || ''));
   const hasNotebook  = empNotebooks.length > 0;
   const handlePrint = () => {
     if (!hasNotebook) {
@@ -177,6 +181,51 @@ export default function EmployeeDetailsModal({
     setReturnPickerOpen(true);
   };
 
+  /* ── ออกแบบใหม่ ─────────────────────────────────────────────
+     ของเดิม: หัวบาง ๆ บรรทัดเดียว · แท็บแรกเป็นข้อมูล HR · "ถือครองอะไรอยู่"
+     ซ่อนอยู่แท็บที่สอง · ปุ่ม 5 ตัวกองอยู่แถบล่างสุดห่างจากเนื้อหา
+     · ครึ่งล่างของจอว่าง
+
+     ระบบนี้คือระบบทรัพย์สิน IT — คำถามแรกเมื่อเปิดดูพนักงานคือ
+     "คนนี้ถืออะไรอยู่" จึงยกขึ้นมาเป็นเนื้อหาหลักของแท็บแรก
+     รวมกับข้อมูลติดต่อไว้หน้าเดียว (ภาพรวม) และย้ายปุ่มทั้งหมดขึ้นหัวหน้า */
+  const OVERVIEW = empModalTab === 'info' || empModalTab === 'assets';
+  const tabs2 = [
+    { id: 'info',    label: 'ภาพรวม' },
+    { id: 'history', label: 'ไทม์ไลน์', count: empTimeline.length },
+    { id: 'docs',    label: 'เอกสารที่พิมพ์' },
+  ];
+  const byCat = {
+    assets: empAssets.length, licenses: empLicenses.length, accessories: empAccessories.length,
+  };
+  const CAT_CHIPS = [
+    ['assets', 'ทรัพย์สิน', Monitor],
+    ['licenses', 'License', KeyRound],
+    ['accessories', 'อุปกรณ์เสริม', Mouse],
+  ];
+
+  /* ถือมาตั้งแต่เมื่อไร — ดูจากรายการเบิกจ่ายล่าสุดของชิ้นนั้นให้คนนี้ */
+  const sinceOf = (item) => {
+    const hit = (transactions || [])
+      .filter((t) => t.action === 'เบิกจ่าย' && t.empId === selectedEmployee.id && (
+        (item.checkoutId && t.checkoutId === item.checkoutId) ||
+        (!item.checkoutId && (t.assetId === item.id || t.licenseId === item.id))
+      ))
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))[0];
+    return hit?.timestamp || null;
+  };
+
+  const printMenu = [
+    { key: 'handover', label: 'ใบส่งมอบ', hint: hasNotebook ? `${empNotebooks.length} เครื่อง` : 'ไม่มีโน้ตบุ๊ค',
+      disabled: !hasNotebook, onSelect: handlePrint },
+    { key: 'return', label: 'ใบรับคืน', hint: allHeld.length ? `${allHeld.length} รายการ` : 'ไม่มีของถือครอง',
+      disabled: allHeld.length === 0, onSelect: handlePrintReturn },
+    { key: 'summary', label: 'สรุปพนักงาน (PDF)', hint: 'ข้อมูล + รายการถือครอง', onSelect: async () => {
+      const { printEmployeeSummary } = await import('../utils/printEmployeeSummary.js');
+      printEmployeeSummary({ employee: selectedEmployee, empAssets, empLicenses, empAccessories });
+    } },
+  ];
+
   return (
     <div
       data-modal="employee-detail"
@@ -185,90 +234,231 @@ export default function EmployeeDetailsModal({
         : 'fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[60]'}
     >
       <div className={asPage
-        ? 'bg-white w-full h-full flex flex-col overflow-hidden'
-        : 'bg-white rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden'}>
+        ? 'bg-sand-50 w-full h-full flex flex-col overflow-hidden'
+        : 'bg-sand-50 rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] w-full max-w-6xl flex flex-col h-[94vh] max-h-[94vh] overflow-hidden'}>
 
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-clay-600 text-white flex items-center justify-center text-[15px] font-medium shrink-0 select-none">
-              {initial}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <h3 className="text-[19px] font-medium tracking-tight text-stone-900 leading-tight">
-                  {selectedEmployee.fullName}
-                </h3>
-                {selectedEmployee.nickname && (
-                  <span className="text-sm text-stone-400">({selectedEmployee.nickname})</span>
-                )}
+        {/* ── หัวหน้า: ตัวตน + ปุ่มทั้งหมด ── */}
+        <div className="shrink-0 border-b border-stone-200/60 bg-white px-6 pt-5">
+          {asPage && (
+            <button onClick={closeView}
+              className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-stone-400 transition-colors hover:text-clay-600">
+              <ChevronLeft className="size-4" strokeWidth={2} /> พนักงานทั้งหมด
+            </button>
+          )}
+
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex size-14 shrink-0 select-none items-center justify-center rounded-xl bg-clay-600 text-[22px] font-medium text-white">
+                {initialOf(selectedEmployee.fullName, selectedEmployee.nickname)}
               </div>
-              <p className="text-xs text-stone-400 mt-0.5">
-                {selectedEmployee.empId}
-                {selectedEmployee.department ? ` · ${selectedEmployee.department}` : ''}
-                {selectedEmployee.position  ? ` · ${selectedEmployee.position}`   : ''}
-              </p>
+              <div className="min-w-0">
+                <h1 className="truncate text-[22px] font-medium tracking-tight text-stone-900">
+                  {selectedEmployee.fullName}
+                  {selectedEmployee.nickname && (
+                    <span className="ml-2 text-[15px] font-normal text-stone-400">({selectedEmployee.nickname})</span>
+                  )}
+                </h1>
+                <p className="mt-0.5 truncate text-sm text-stone-600">
+                  {[selectedEmployee.position, selectedEmployee.department].filter(Boolean).join(' · ') || '—'}
+                </p>
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-400">
+                  <span className="inline-flex items-center gap-1.5 tabular-nums"><Hash className="size-3.5" strokeWidth={2} />{selectedEmployee.empId || '—'}</span>
+                  {selectedEmployee.company && (
+                    <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" strokeWidth={2} />{selectedEmployee.company}</span>
+                  )}
+                  {tenure && (
+                    <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" strokeWidth={2} />{tenure}</span>
+                  )}
+                  {selectedEmployee.deletedAt && (
+                    <span className="rounded-lg bg-rose-50 px-2 py-0.5 font-medium text-rose-700">ลบออกจากระบบแล้ว</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              {!selectedEmployee.deletedAt && (
+                <button onClick={() => openEditEmpModal(selectedEmployee)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">
+                  <SquarePen className="size-4" strokeWidth={2} /> แก้ไข
+                </button>
+              )}
+              <Popover
+                open={printOpen} onClose={() => setPrintOpen(false)} width="w-64"
+                trigger={
+                  <button onClick={() => setPrintOpen((v) => !v)} aria-expanded={printOpen}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-clay-600 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-clay-700">
+                    <Printer className="size-4" strokeWidth={2} /> พิมพ์
+                    <ChevronDown className="size-3.5 opacity-80" strokeWidth={2} />
+                  </button>
+                }
+              >
+                {printMenu.map((m) => (
+                  <button key={m.key} disabled={m.disabled}
+                    onClick={() => { setPrintOpen(false); m.onSelect(); }}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
+                    <span className="text-sm text-stone-700">{m.label}</span>
+                    <span className="text-xs text-stone-400">{m.hint}</span>
+                  </button>
+                ))}
+              </Popover>
+              {!asPage && (
+                <button onClick={closeView} aria-label="ปิด"
+                  className="flex size-9 items-center justify-center rounded-xl text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700">
+                  <X className="size-4" strokeWidth={2} />
+                </button>
+              )}
             </div>
           </div>
 
-          <button
-            onClick={closeView}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition shrink-0"
-          >
-            <X className="h-4 w-4" strokeWidth={2} />
-          </button>
+          {/* แท็บ */}
+          <div className="mt-4 flex gap-6">
+            {tabs2.map((tab) => {
+              const on = tab.id === 'info' ? OVERVIEW : empModalTab === tab.id;
+              return (
+                <button key={tab.id} onClick={() => setEmpModalTab(tab.id)}
+                  className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-0.5 pb-3 text-sm font-medium transition-colors ${
+                    on ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-400 hover:text-stone-700'}`}>
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className={`rounded-lg px-1.5 py-0.5 text-[11px] font-medium tabular-nums ${
+                      on ? 'bg-clay-600/10 text-clay-600' : 'bg-stone-100 text-stone-400'}`}>{tab.count}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* ── Tab bar ── */}
-        <div className="flex border-b border-stone-100 px-6 shrink-0 bg-white">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setEmpModalTab(tab.id)}
-              className={`flex items-center gap-2 py-3 px-1 mr-6 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                empModalTab === tab.id
-                  ? 'border-clay-600 text-clay-600'
-                  : 'border-transparent text-stone-400 hover:text-stone-700'
-              }`}
-            >
-              {tab.label}
-              {tab.count !== undefined && (
-                <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-lg ${
-                  empModalTab === tab.id ? 'bg-clay-600/10 text-clay-600' : 'bg-stone-100 text-stone-400'
-                }`}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        {/* ── เนื้อหา ── */}
+        <div className="flex-1 overflow-y-auto p-5">
 
-        {/* ── Body ── */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-
-          {/* ======= TAB: ข้อมูลทั่วไป =======
-              ของเดิมไล่ช่องมีกรอบทีละช่องในกริด 2 คอลัมน์ 11 ช่อง
-              กรอบเยอะจนตัวข้อมูลจม ช่องคี่ก็เหลือช่องว่างเปล่า
-              และ 6 ใน 7 ช่องของบล็อกแรก (ชื่อ TH/EN · ตำแหน่ง · แผนก)
-              ซ้ำกับหัว modal ที่แสดงอยู่แล้ว — ตัดออก เหลือเฉพาะที่ยังไม่เห็น */}
-          {empModalTab === 'info' && (
+          {OVERVIEW && (
             <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
 
-              <DetailCard title="ข้อมูลพนักงาน" className="lg:col-span-2">
-                <DetailRow label="ชื่อ-นามสกุล (EN)" value={engFullName} />
-                <DetailRow label="บริษัท"           value={selectedEmployee.company} />
-                <DetailRow label="แผนก"             value={selectedEmployee.department} />
-                <DetailRow label="ตำแหน่ง"          value={selectedEmployee.position} />
-                <DetailRow label="เบอร์โทรศัพท์"     value={selectedEmployee.phone} copy />
-                <DetailRow label="หัวหน้างาน"       value={selectedEmployee.manager} />
-                <DetailRow
-                  label="วันที่เริ่มงาน"
-                  value={selectedEmployee.startDate ? formatDateShort(selectedEmployee.startDate) : ''}
-                  hint={tenure}
-                />
-              </DetailCard>
+              {/* ซ้าย: ของที่ถืออยู่ + ความเคลื่อนไหวล่าสุด */}
+              <div className="space-y-5 lg:col-span-2">
+                <section className="overflow-hidden rounded-2xl border border-stone-200/60 bg-white">
+                  <header className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 px-5 py-4">
+                    <h2 className="text-[15px] font-medium text-stone-800">
+                      ถือครองอยู่ตอนนี้ <span className="tabular-nums text-stone-400">{allHeld.length}</span>
+                    </h2>
+                    <div className="flex flex-wrap gap-1.5 text-xs">
+                      {CAT_CHIPS.filter(([k]) => byCat[k] > 0).map(([k, label, Icon]) => (
+                        <span key={k} className="inline-flex items-center gap-1 rounded-lg bg-sand-100 px-2 py-1 font-medium text-stone-600">
+                          <Icon className="size-3.5" strokeWidth={2} /> {label} {byCat[k]}
+                        </span>
+                      ))}
+                    </div>
+                  </header>
 
+                  {allHeld.length === 0 ? (
+                    <p className="px-5 py-12 text-center text-sm text-stone-400">ยังไม่มีทรัพย์สินที่ถือครอง</p>
+                  ) : (
+                    <ul>
+                      {allHeld.map((item) => {
+                        const isAsset     = assets.some((a) => a.id === item.id);
+                        const isAccessory = accessories.some((a) => a.id === item.id);
+                        const category    = isAsset ? 'assets' : isAccessory ? 'accessories' : 'licenses';
+                        const ItemIcon    = isAsset ? Monitor : isAccessory ? Mouse : KeyRound;
+                        const catLabel    = isAsset ? 'ทรัพย์สิน' : isAccessory ? 'อุปกรณ์เสริม' : 'License';
+                        const since       = sinceOf(item);
+                        const idLine      = [catLabel, item.type, isAsset ? item.assetTag : null, isAsset && item.sn ? `SN ${item.sn}` : null]
+                          .filter(Boolean).join(' · ');
+
+                        const openAssetDetail = () => {
+                          if (!setSelectedAssetDetail || !setSelectedAssetCategory) return;
+                          setSelectedAssetCategory(category);
+                          setSelectedAssetDetail(item);
+                        };
+                        const doReturn = (e) => {
+                          e.stopPropagation();
+                          if (isAccessory) {
+                            setReturnModal({ isOpen: true, assetId: item.id, checkoutId: item.checkoutId,
+                              empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name,
+                              collectionName: 'accessories' });
+                          } else if (isAsset) {
+                            setReturnModal({ isOpen: true, assetId: item.id, checkoutId: null,
+                              empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name,
+                              collectionName: 'assets' });
+                          } else {
+                            handleCheckin(item.id, category, selectedEmployee.id);
+                          }
+                        };
+
+                        return (
+                          <li key={item.uniqueKey || item.id}
+                            onClick={openAssetDetail} role="button" tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAssetDetail(); } }}
+                            className="group flex cursor-pointer items-center gap-4 border-t border-stone-100 px-5 py-3.5 transition-colors first:border-t-0 hover:bg-stone-50/60">
+                            {item.image ? (
+                              <img src={item.image} alt={item.name} loading="lazy"
+                                className="size-11 shrink-0 rounded-xl border border-stone-200/60 bg-white object-cover" />
+                            ) : (
+                              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
+                                <ItemIcon className="size-5" strokeWidth={2} />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-stone-900 transition-colors group-hover:text-clay-600">{item.name}</p>
+                              <p className="mt-0.5 truncate text-xs text-stone-400">{idLine}</p>
+                            </div>
+                            {since && (
+                              <span className="hidden shrink-0 text-xs tabular-nums text-stone-400 sm:block">
+                                ตั้งแต่ {formatDateShort(since)}
+                              </span>
+                            )}
+                            <button onClick={doReturn}
+                              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-stone-200/60 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:border-olive-200 hover:bg-olive-50 hover:text-olive-700">
+                              <CornerUpLeft className="size-3.5" strokeWidth={2} /> รับคืน
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
+
+                {/* ความเคลื่อนไหวล่าสุด — ไม่ต้องสลับแท็บก็เห็นว่าเพิ่งเกิดอะไรขึ้น */}
+                <section className="overflow-hidden rounded-2xl border border-stone-200/60 bg-white">
+                  <header className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+                    <h2 className="text-[15px] font-medium text-stone-800">ความเคลื่อนไหวล่าสุด</h2>
+                    {empTimeline.length > 5 && (
+                      <button onClick={() => setEmpModalTab('history')}
+                        className="inline-flex items-center gap-1 text-[13px] font-medium text-clay-600 hover:underline">
+                        ดูทั้งหมด {empTimeline.length} <ChevronRight className="size-3.5" strokeWidth={2} />
+                      </button>
+                    )}
+                  </header>
+                  {empTimeline.length === 0 ? (
+                    <p className="px-5 py-10 text-center text-sm text-stone-400">ยังไม่มีประวัติ</p>
+                  ) : (
+                    <ol className="px-5 py-3">
+                      {empTimeline.slice(0, 5).map((ev, i) => (
+                        <li key={`${ev.kind}-${ev.ms}-${i}`} className="flex items-start gap-3 py-2">
+                          <span className={`mt-1.5 size-2 shrink-0 rounded-full ${KIND_DOT[ev.kind] || 'bg-stone-300'}`} />
+                          <p className="min-w-0 flex-1 truncate text-[13px] text-stone-700">
+                            <span className="font-medium">{ev.title}</span>
+                            {ev.by && <span className="text-stone-500"> · {ev.by}</span>}
+                          </p>
+                          <span className="shrink-0 text-xs tabular-nums text-stone-400">{thaiDate(ev.ms)}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </section>
+              </div>
+
+              {/* ขวา: ข้อมูลติดต่อ + บัญชี */}
               <div className="space-y-5">
+                <DetailCard title="ข้อมูลติดต่อ">
+                  <DetailRow label="ชื่อ (EN)"      value={engFullName} />
+                  <DetailRow label="เบอร์โทรศัพท์"  value={selectedEmployee.phone} copy />
+                  <DetailRow label="หัวหน้างาน"    value={selectedEmployee.manager} />
+                  <DetailRow label="เริ่มงาน"
+                    value={selectedEmployee.startDate ? formatDateShort(selectedEmployee.startDate) : ''} />
+                </DetailCard>
+
                 {(selectedEmployee.m365Email || selectedEmployee.m365Password) && (
                   <DetailCard title="บัญชี Microsoft 365">
                     <DetailRow label="อีเมล" value={selectedEmployee.m365Email} accent copy />
@@ -289,99 +479,6 @@ export default function EmployeeDetailsModal({
             </div>
           )}
 
-          {/* ======= TAB: ครอบครองปัจจุบัน ======= */}
-          {empModalTab === 'assets' && (
-            allHeld.length === 0
-              ? <EmptyState label="ยังไม่มีทรัพย์สินที่ถือครอง" />
-              : (
-                <div className="space-y-2">
-                  {allHeld.map(item => {
-                    const isAsset     = assets.some(a => a.id === item.id);
-                    const isAccessory = accessories.some(a => a.id === item.id);
-                    const isLicense   = !isAsset && !isAccessory;
-                    const category    = isAsset ? 'assets' : isAccessory ? 'accessories' : 'licenses';
-                    const ItemIcon    = isAsset ? Monitor : isAccessory ? Mouse : KeyRound;
-                    const catLabel    = isAsset ? 'ทรัพย์สิน' : isAccessory ? 'อุปกรณ์เสริม' : 'License';
-                    const catColor    = isAsset
-                      ? 'bg-stone-50 text-stone-600 border-stone-100'
-                      : isAccessory
-                        ? 'bg-ochre-50 text-ochre-600 border-ochre-200'
-                        : 'bg-clay-100 text-clay-600 border-clay-100';
-
-                    const openAssetDetail = () => {
-                      if (!setSelectedAssetDetail || !setSelectedAssetCategory) return;
-                      setSelectedAssetCategory(category);
-                      setSelectedAssetDetail(item);
-                    };
-
-                    return (
-                      <div
-                        key={item.uniqueKey || item.id}
-                        onClick={openAssetDetail}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAssetDetail(); } }}
-                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-stone-200 hover:border-clay-600/40 hover:bg-stone-50/40 hover:shadow-sm cursor-pointer transition-colors group"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {item.image
-                            ? <img src={item.image} alt={item.name} className="w-9 h-9 rounded-lg object-cover border border-stone-200 shrink-0" />
-                            : <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${catColor}`}><ItemIcon className="h-4 w-4" strokeWidth={2} /></div>
-                          }
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-stone-800 truncate group-hover:text-clay-600 transition-colors">
-                              {item.name}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-lg border ${catColor}`}>
-                                {catLabel}
-                              </span>
-                              {item.type && (
-                                <span className="text-[11px] text-stone-400">{item.type}</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          {/* hint icon (เห็นชัดตอน hover) */}
-                          <ChevronRight className="h-3.5 w-3.5 text-stone-300 group-hover:text-clay-600 transition-colors" strokeWidth={2} />
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // กันไม่ให้เปิด asset detail
-                              if (isAccessory) {
-                                setReturnModal({
-                                  isOpen: true, assetId: item.id, checkoutId: item.checkoutId,
-                                  empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name,
-                                  collectionName: 'accessories',
-                                });
-                              } else if (isAsset) {
-                                // asset — เปิด ReturnModal เพื่อกรอกรูป/checklist หลักฐานสภาพ
-                                setReturnModal({
-                                  isOpen: true, assetId: item.id, checkoutId: null,
-                                  empId: selectedEmployee.id, empName: selectedEmployee.fullName, assetName: item.name,
-                                  collectionName: 'assets',
-                                });
-                              } else {
-                                // license — ไม่มีสภาพกายภาพ รับคืนทันที
-                                handleCheckin(item.id, category, selectedEmployee.id);
-                              }
-                            }}
-                            className="text-xs font-medium px-3 py-1.5 rounded-xl border border-olive-200 text-olive-700 bg-olive-50 hover:bg-olive-500 hover:text-white hover:border-olive-500 transition-colors flex items-center gap-1.5"
-                          >
-                            <CornerUpLeft className="h-3.5 w-3.5" strokeWidth={2} />
-                            รับคืน
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )
-          )}
-
-          {/* ======= TAB: ไทม์ไลน์ ======= */}
           {empModalTab === 'history' && (
             <EmployeeTimelineTab
               events={shownTimeline}
@@ -392,76 +489,12 @@ export default function EmployeeDetailsModal({
             />
           )}
 
-          {/* ======= TAB: เอกสารที่พิมพ์ ======= */}
           {empModalTab === 'docs' && (
             <PrintedDocumentsTab employeeId={selectedEmployee.id} employeeName={selectedEmployee.fullName} />
           )}
         </div>
-
-        {/* ── Footer ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-stone-100 bg-white shrink-0">
-
-          {/* 🆕 ปุ่ม Print — เรียบง่ายขึ้น */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              disabled={!hasNotebook}
-              title={!hasNotebook ? 'พนักงานไม่มีโน๊ตบุ๊คในครอบครอง' : `${empNotebooks.length} เครื่อง`}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
-            >
-              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
-              ใบส่งมอบ
-              {hasNotebook && <span className="text-[10px] font-medium text-stone-400 tabular-nums">{empNotebooks.length}</span>}
-            </button>
-            <button
-              onClick={handlePrintReturn}
-              disabled={allHeld.length === 0}
-              title={allHeld.length === 0 ? 'พนักงานไม่มีทรัพย์สิน' : `${allHeld.length} รายการ`}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-stone-600 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
-            >
-              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
-              ใบรับคืน
-              {allHeld.length > 0 && <span className="text-[10px] font-medium text-stone-400 tabular-nums">{allHeld.length}</span>}
-            </button>
-            {/* 🆕 พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง */}
-            <button
-              onClick={async () => {
-                const { printEmployeeSummary } = await import('../utils/printEmployeeSummary.js');
-                printEmployeeSummary({
-                  employee: selectedEmployee,
-                  empAssets,
-                  empLicenses,
-                  empAccessories,
-                });
-              }}
-              title="พิมพ์สรุปข้อมูลพนักงาน + รายการครอบครอง"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors text-white bg-clay-600 hover:bg-clay-700"
-            >
-              <Printer className="h-3.5 w-3.5" strokeWidth={2} />
-              พิมพ์ PDF
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!selectedEmployee.deletedAt && (
-              <button
-                onClick={() => openEditEmpModal(selectedEmployee)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-stone-600 bg-white border border-stone-200/60 rounded-xl hover:bg-stone-50 hover:border-stone-300 transition-colors"
-              >
-                <SquarePen className="h-3.5 w-3.5" strokeWidth={2} />
-                แก้ไขข้อมูล
-              </button>
-            )}
-            <button
-              onClick={closeView}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl transition-colors"
-            >
-              {asPage ? 'กลับ' : 'ปิด'}
-            </button>
-          </div>
-        </div>
-
       </div>
+
 
       {/* ── Pre-Handover Assessment Modal (เปิดก่อนพิมพ์) ── */}
       <PreHandoverAssessmentModal
@@ -845,23 +878,6 @@ function PasswordReveal({ label, value }) {
   );
 }
 
-function Th({ children, center }) {
-  return (
-    <th className={`px-4 py-2.5 text-[11px] font-medium text-stone-400 ${center ? 'text-center' : 'text-left'}`}>
-      {children}
-    </th>
-  );
-}
-
-function EmptyState({ label }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-stone-400 bg-stone-50 rounded-xl border border-dashed border-stone-200">
-      <FilePlus className="h-9 w-9 mb-3 opacity-40" strokeWidth={2} />
-      <p className="text-sm font-medium text-stone-500">{label}</p>
-    </div>
-  );
-}
-
 /* ════════════════════════════════════════════════
    🆕 EmployeeTimelineTab — ไทม์ไลน์ของพนักงาน
 
@@ -918,21 +934,6 @@ function EmployeeTimelineTab({ events, counts, filter, setFilter, openPrintRetur
           </button>
         ) : null)}
       />
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════════════
-   StatTile — มินิการ์ดสำหรับ summary
-════════════════════════════════════════════════ */
-function StatTile({ label, value, color, bg }) {
-  return (
-    <div
-      className="rounded-xl px-3.5 py-2.5 border transition-colors"
-      style={{ background: bg, borderColor: 'transparent' }}
-    >
-      <p className="text-xs font-medium" style={{ color: `${color}AA` }}>{label}</p>
-      <p className="text-[22px] font-medium tabular-nums leading-tight mt-0.5" style={{ color }}>{value}</p>
     </div>
   );
 }

@@ -32,7 +32,8 @@ export default function PreHandoverAssessmentModal({
   const notebooks = React.useMemo(
     () => (empAssets || []).filter(a => {
       const t = String(a.type || '').toLowerCase();
-      return t.includes('โน๊ตบุ๊ค') || t.includes('notebook') || t.includes('laptop');
+      /* รับทุกตัวสะกด: โน๊ตบุ๊ค / โน้ตบุ๊ค / โน้ตบุ๊ก — ต้องตรงกับหน้าพนักงาน */
+      return /โน.?ตบุ.?[คก]|notebook|laptop/i.test(t);
     }),
     [empAssets]
   );

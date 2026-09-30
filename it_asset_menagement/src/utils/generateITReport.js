@@ -712,14 +712,7 @@ function slide5(pptx, ctx, startPageNum) {
     cellC('–'), cellC('–'), cellC('–'), cell('–',{ align:'left' }),
   ];
 
-  const sum = (k) => summary.reduce((n, g) => n + Number(g[k] || 0), 0);
-  if (summary.length > 0) {
-    rows.push(totalRow([
-      { text: '' }, { text: 'รวมทั้งหมด', align: 'left' },
-      { text: sum('stock') }, { text: sum('active') }, { text: sum('inactive') },
-      { text: `${summary.length} รายการ`, align: 'left' },
-    ]));
-  }
+  /* ตารางนี้ไม่มีแถว "รวมทั้งหมด" ท้ายตาราง — ผู้ใช้สั่งเอาออก (ตารางฮาร์ดแวร์ยังมี) */
 
   return addPaginatedTableSlides(pptx, ctx, {
     titleTh: 'สรุปผลซอฟต์แวร์ / ลิขสิทธิ์', titleEn: 'รายการซอฟต์แวร์ในระบบ',

@@ -2085,15 +2085,14 @@ function App() {
     if (id) navigate(`/licenses/${encodeURIComponent(id)}`);
   };
 
-  const [savingFieldOptions, setSavingFieldOptions] = useState(false);
+  /* ตัวเลือกฟิลด์บันทึกทันทีทุกครั้งที่กดเพิ่ม/ลบ — คืน false ให้หน้าย้อนค่ากลับเมื่อบันทึกไม่สำเร็จ */
   const handleSaveFieldOptions = async (data) => {
-    setSavingFieldOptions(true);
     try {
       await setDoc(doc(db, 'settings', 'fieldOptions'), data);
+      return true;
     } catch (err) {
       setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
-    } finally {
-      setSavingFieldOptions(false);
+      return false;
     }
   };
 
@@ -3426,7 +3425,6 @@ function App() {
               <DropdownOptionsManager
                 fieldOptions={fieldOptions}
                 onSave={handleSaveFieldOptions}
-                saving={savingFieldOptions}
               />
             </Suspense>
           ) : activeMenu === 'it_report' ? (

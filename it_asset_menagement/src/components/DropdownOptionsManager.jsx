@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save, CheckCircle2, AlertTriangle, SlidersHorizontal, Info, Briefcase, Link2, ExternalLink } from 'lucide-react';
-import { BRAND } from '../ui/theme.js';
+import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, CheckCircle2, Loader2, Briefcase, Link2, ExternalLink } from 'lucide-react';
 import { normalizeUrl, hostOf, newLinkId } from '../utils/links.js';
 
 const CATEGORIES = [
@@ -62,7 +61,7 @@ const COLOR_MAP = {
   rose:    { tint: '#FBEAE8', icon: 'text-rose-600',    chip: 'bg-rose-50 text-rose-700 border-rose-200',       btn: 'bg-brick-600 hover:bg-brick-700' },
 };
 
-function CategoryCard({ category, values, onAdd, onRemove, saving }) {
+function CategoryCard({ category, values, onAdd, onRemove }) {
   const [input, setInput] = useState('');
   const c = COLOR_MAP[category.color];
   const Icon = category.icon;
@@ -219,53 +218,59 @@ function LinksCard({ links, onAdd, onRemove }) {
   );
 }
 
-export default function DropdownOptionsManager({ fieldOptions, onSave, saving }) {
-  // Local state: a copy we can mutate before saving
-  // (onSave เขียนทับทั้งเอกสาร — ทุก key ที่อยู่ใน settings/fieldOptions ต้องอยู่ใน local ด้วย)
-  const [local, setLocal] = useState(() => {
-    const init = {};
-    CATEGORIES.forEach(c => { init[c.key] = [...(fieldOptions[c.key] || [])]; });
-    init.links = [...(fieldOptions.links || [])];
-    return init;
-  });
-  const [dirty, setDirty] = useState(false);
-  const [savedAt, setSavedAt] = useState(null);
+/* ทุก key ที่อยู่ใน settings/fieldOptions ต้องอยู่ในก้อนนี้ — onSave ใช้ setDoc เขียนทับทั้งเอกสาร */
+const toLocal = (fieldOptions = {}) => {
+  const init = {};
+  CATEGORIES.forEach(c => { init[c.key] = [...(fieldOptions[c.key] || [])]; });
+  init.links = [...(fieldOptions.links || [])];
+  return init;
+};
 
-  // Sync when parent fieldOptions prop changes (e.g. first load from Firestore)
+/* บันทึกทันทีที่กดเพิ่ม/ลบ — ไม่มีปุ่ม "บันทึก" แยก (เดิมผู้ใช้กดเพิ่มแล้วลืมกดบันทึก ตัวเลือกหาย)
+   onSave คืน false ถ้าบันทึกไม่สำเร็จ (App แจ้ง error เอง) → ย้อนกลับเป็นค่าล่าสุดจาก Firestore */
+export default function DropdownOptionsManager({ fieldOptions, onSave }) {
+  const [local, setLocal] = useState(() => toLocal(fieldOptions));
+  /* ค่าล่าสุดแบบ synchronous — กดเพิ่มติดกันเร็ว ๆ ก่อน state อัปเดต จะได้ไม่เขียนทับกันเอง */
+  const localRef = React.useRef(local);
+  const [status, setStatus] = useState('idle'); // idle | saving | saved
+  const pending = React.useRef(0);
+  const savedTimer = React.useRef(null);
+
+  // Firestore เปลี่ยน (โหลดครั้งแรก / แท็บอื่นแก้) → ตามค่าจริง
   React.useEffect(() => {
-    setLocal(() => {
-      const init = {};
-      CATEGORIES.forEach(c => { init[c.key] = [...(fieldOptions[c.key] || [])]; });
-      init.links = [...(fieldOptions.links || [])];
-      return init;
-    });
-    setDirty(false);
+    const next = toLocal(fieldOptions);
+    localRef.current = next;
+    setLocal(next);
   }, [JSON.stringify(fieldOptions)]);
 
-  const handleAdd = (key, value) => {
-    setLocal(prev => ({ ...prev, [key]: [...prev[key], value] }));
-    setDirty(true);
+  React.useEffect(() => () => clearTimeout(savedTimer.current), []);
+
+  const commit = async (update) => {
+    const next = update(localRef.current);
+    localRef.current = next;
+    setLocal(next);
+    pending.current += 1;
+    setStatus('saving');
+    clearTimeout(savedTimer.current);
+    const ok = await onSave(next);
+    pending.current -= 1;
+    if (ok === false) {
+      const back = toLocal(fieldOptions);
+      localRef.current = back;
+      setLocal(back);
+      setStatus('idle');
+      return;
+    }
+    if (pending.current === 0) {
+      setStatus('saved');
+      savedTimer.current = setTimeout(() => setStatus('idle'), 2000);
+    }
   };
 
-  const handleRemove = (key, value) => {
-    setLocal(prev => ({ ...prev, [key]: prev[key].filter(v => v !== value) }));
-    setDirty(true);
-  };
-
-  const handleAddLink = (link) => {
-    setLocal(prev => ({ ...prev, links: [...prev.links, link] }));
-    setDirty(true);
-  };
-  const handleRemoveLink = (id) => {
-    setLocal(prev => ({ ...prev, links: prev.links.filter(l => l.id !== id) }));
-    setDirty(true);
-  };
-
-  const handleSave = async () => {
-    await onSave(local);
-    setDirty(false);
-    setSavedAt(new Date());
-  };
+  const handleAdd = (key, value) => commit(prev => ({ ...prev, [key]: [...prev[key], value] }));
+  const handleRemove = (key, value) => commit(prev => ({ ...prev, [key]: prev[key].filter(v => v !== value) }));
+  const handleAddLink = (link) => commit(prev => ({ ...prev, links: [...prev.links, link] }));
+  const handleRemoveLink = (id) => commit(prev => ({ ...prev, links: prev.links.filter(l => l.id !== id) }));
 
   return (
     <div className="bg-sand-50 min-h-full">
@@ -274,44 +279,21 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-medium tracking-tight text-stone-900">ตั้งค่าตัวเลือกฟิลด์</h1>
-          <p className="mt-1 text-sm text-stone-500">ตัวเลือกใน Dropdown ของฟอร์ม</p>
+          <p className="mt-1 text-sm text-stone-500">ตัวเลือกใน Dropdown ของฟอร์ม · เพิ่มหรือลบแล้วบันทึกทันที</p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          {savedAt && !dirty && (
-            <span className="text-[13px] text-olive-600 font-medium flex items-center gap-1">
+        <div className="flex h-9 items-center shrink-0" aria-live="polite">
+          {status === 'saving' && (
+            <span className="text-[13px] text-stone-400 font-medium flex items-center gap-1.5">
+              <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
+              กำลังบันทึก...
+            </span>
+          )}
+          {status === 'saved' && (
+            <span className="text-[13px] text-olive-700 font-medium flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
               บันทึกแล้ว
             </span>
           )}
-          <button
-            onClick={handleSave}
-            disabled={!dirty || saving}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${dirty && !saving ? 'text-white' : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
-            style={dirty && !saving ? { background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}33` } : {}}
-            onMouseEnter={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primaryDark)}
-            onMouseLeave={(e) => dirty && !saving && (e.currentTarget.style.background = BRAND.primary)}
-          >
-            <Save className="h-4 w-4" strokeWidth={2} />
-            {saving ? 'กำลังบันทึก...' : 'บันทึก'}
-          </button>
-        </div>
-      </div>
-
-      {/* Unsaved banner */}
-      {dirty && (
-        <div className="mb-5 bg-clay-100 border border-clay-200 rounded-xl px-4 py-3 flex items-center gap-2 text-clay-600 text-sm font-medium">
-          <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={2} />
-          มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก กด "บันทึก" เพื่อใช้งาน
-        </div>
-      )}
-
-      {/* How to use */}
-      <div className="mb-6 bg-stone-50/60 border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-[13px] leading-relaxed flex items-start gap-2">
-        <Info className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
-        <div>
-          <span className="font-medium">วิธีใช้:</span> เพิ่มตัวเลือกในแต่ละหมวด กด{' '}
-          <kbd className="bg-white border border-stone-300 px-1.5 py-0.5 rounded font-mono text-xs">Enter</kbd> หรือปุ่ม "เพิ่ม" แล้วกด "บันทึก"
-          — ตัวเลือกจะปรากฏใน Dropdown ของฟอร์มเพิ่ม/แก้ไขรายการ (ยังพิมพ์เองได้เสมอ)
         </div>
       </div>
 
@@ -324,7 +306,6 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
             values={local[cat.key] || []}
             onAdd={handleAdd}
             onRemove={handleRemove}
-            saving={saving}
           />
         ))}
         <LinksCard links={local.links || []} onAdd={handleAddLink} onRemove={handleRemoveLink} />

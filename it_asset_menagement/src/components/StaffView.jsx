@@ -459,6 +459,20 @@ export default function StaffView({
     const company = (supply.company || '').trim();
     return matchName && company === staffCompany;
   });
+  /* ของที่หมดไปไว้ท้าย — เลื่อนดูบนมือถือจะเจอของที่เบิกได้ก่อน */
+  const supplyCatalog = [...filteredSupplies].sort((a, b) => (a.quantity <= 0) - (b.quantity <= 0));
+
+  /* มือถือ: แผง "รายการที่เลือก" อยู่ใต้แคตตาล็อก — โชว์แถบลอยล่างจอจนกว่าจะเลื่อนถึงแผง
+     (เดิมเลือกของแล้วต้องเลื่อนผ่านของทั้งหมดลงไปหาปุ่มส่งเอง ไม่รู้ด้วยซ้ำว่าเลือกไปแล้วกี่ชิ้น) */
+  const cartPanelRef = useRef(null);
+  const [cartInView, setCartInView] = useState(false);
+  useEffect(() => {
+    const el = cartPanelRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setCartInView(entry.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [activeTab, supplyCart.length > 0]);
 
   const onRepairSubmit = async (e) => {
     e.preventDefault();
@@ -936,7 +950,7 @@ export default function StaffView({
           </div>
         </div>
 
-        <main className="mx-auto max-w-[1360px] space-y-6 p-6 lg:p-8">
+        <main className="mx-auto max-w-[1360px] space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8">
 
         {/* ==================== TAB: ข้อมูลของฉัน ==================== */}
         {activeTab === 'profile' && (
@@ -1301,13 +1315,15 @@ export default function StaffView({
           </div>
         )}
 
-        {/* ==================== TAB: เบิกอุปกรณ์ ==================== */}
+        {/* ==================== TAB: เบิกอุปกรณ์ ====================
+            ลำดับบนมือถือ: ค้นหา+แคตตาล็อก → รายการที่เลือก (เมื่อมี) → ประวัติ
+            จอใหญ่: แคตตาล็อก+ประวัติคอลัมน์ซ้าย · รายการที่เลือกติดขวา (sticky) */}
         {activeTab === 'office_supplies' && (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5 items-start">
+          <div className={`grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 lg:gap-5 items-start ${supplyCart.length > 0 ? 'pb-20 lg:pb-0' : ''}`}>
 
-            {/* ─── LEFT: Catalog ─── */}
-            <div className="space-y-5">
-              {/* Search bar + Company filter */}
+            {/* ─── Catalog ─── */}
+            <div className="space-y-3 lg:space-y-5 lg:col-start-1 min-w-0">
+              {/* Search bar + Company */}
               <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-3 space-y-2.5">
                 <div className="relative">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" strokeWidth={2} />
@@ -1320,21 +1336,19 @@ export default function StaffView({
                   />
                 </div>
 
-                {/* 🆕 บอกบริษัทที่พนักงานสังกัด (fixed — ไม่ให้เลือกเปลี่ยน) */}
+                {/* บริษัทที่พนักงานสังกัด (fixed — ไม่ให้เลือกเปลี่ยน) */}
                 {staffCompany && (
-                  <div className="pt-2 border-t border-stone-100 flex items-center gap-1.5 text-[11px] text-stone-500">
-                    <Building2 className="h-3 w-3 text-clay-600 shrink-0" strokeWidth={2} />
-                    <span>อุปกรณ์ของ</span>
-                    <span className="inline-flex items-center gap-1 font-medium text-clay-600 bg-stone-50 px-2 py-0.5 rounded-full ring-1 ring-stone-100">
-                      {staffCompany}
-                    </span>
-                    <span className="text-stone-400">· {filteredSupplies.length} รายการ</span>
+                  <div className="pt-2 border-t border-stone-100 flex items-center gap-1.5 text-xs text-stone-500 min-w-0">
+                    <Building2 className="h-3.5 w-3.5 text-clay-600 shrink-0" strokeWidth={2} />
+                    <span className="shrink-0">อุปกรณ์ของ</span>
+                    <span className="truncate font-medium text-clay-700">{staffCompany}</span>
+                    <span className="shrink-0 text-stone-400">· {filteredSupplies.length} รายการ</span>
                   </div>
                 )}
               </div>
 
               {/* Grid catalog */}
-              {filteredSupplies.length === 0 ? (
+              {supplyCatalog.length === 0 ? (
                 <div className="bg-white border border-dashed border-stone-200/70 rounded-2xl p-12 text-center">
                   <Package className="h-10 w-10 mx-auto text-stone-300 mb-3" strokeWidth={2} />
                   <p className="text-[13px] text-stone-500">
@@ -1342,15 +1356,17 @@ export default function StaffView({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
-                  {filteredSupplies.map(item => {
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
+                  {supplyCatalog.map(item => {
                     const inCart = supplyCart.some(c => c.supplyId === item.id);
                     const isOut  = item.quantity <= 0;
+                    const low    = !isOut && item.quantity <= 5;
                     return (
                       <button
                         key={item.id}
                         type="button"
                         disabled={isOut}
+                        aria-pressed={inCart}
                         onClick={() => {
                           if (inCart) {
                             setSupplyCart(supplyCart.filter(c => c.supplyId !== item.id));
@@ -1358,102 +1374,57 @@ export default function StaffView({
                             setSupplyCart([...supplyCart, { supplyId: item.id, name: item.name, maxQty: item.quantity, image: item.image, unit: item.unit, company: item.company || '', quantity: 1, note: '' }]);
                           }
                         }}
-                        className={`text-left rounded-xl border transition-colors overflow-hidden bg-white ${
+                        className={`relative flex flex-col text-left rounded-xl border transition-colors overflow-hidden bg-white ${
                           isOut
-                            ? 'border-stone-200 opacity-50 cursor-not-allowed'
+                            ? 'border-stone-200/60 cursor-not-allowed'
                             : inCart
-                              ? 'border-clay-600 ring-1 ring-clay-600/20'
-                              : 'border-stone-200 hover:border-stone-300'
+                              ? 'border-clay-600 ring-2 ring-clay-600/15'
+                              : 'border-stone-200/60 hover:border-stone-300'
                         }`}
                       >
-                        <div className="relative aspect-square bg-stone-50 flex items-center justify-center">
+                        {/* รูปเตี้ยลงบนมือถือ (4:3) — เดิมสี่เหลี่ยมจัตุรัส เห็นได้ทีละ 2 แถว */}
+                        <div className={`relative aspect-[4/3] sm:aspect-square bg-stone-50 flex items-center justify-center ${isOut ? 'opacity-40 grayscale' : ''}`}>
                           {item.image
                             ? <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" loading="lazy" />
-                            : <Package className="h-10 w-10 text-stone-300" strokeWidth={2} />
+                            : <Package className="h-9 w-9 text-stone-300" strokeWidth={2} />
                           }
-                          {inCart && (
-                            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-clay-600 text-white flex items-center justify-center shadow-sm">
-                              <Check className="h-3.5 w-3.5" strokeWidth={2} />
-                            </span>
-                          )}
-                          <span className={`absolute top-2 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                            isOut
-                              ? 'bg-rose-100 text-rose-700'
-                              : item.quantity <= 5
-                                ? 'bg-clay-100 text-clay-600 ring-1 ring-clay-100'
-                                : 'bg-olive-50 text-olive-700 ring-1 ring-olive-100'
-                          }`}>
-                            {isOut ? 'หมด' : `เหลือ ${item.quantity}`}
-                          </span>
                         </div>
-                        <div className="p-3 border-t border-stone-100">
-                          <p className="text-[13px] font-medium text-stone-800 truncate leading-tight">{item.name}</p>
-                          {item.company ? (
-                            <p className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-stone-50 px-1.5 py-0.5 rounded mt-1 max-w-full">
-                              <Building2 className="h-2.5 w-2.5 shrink-0" strokeWidth={2} />
-                              <span className="truncate">{item.company}</span>
-                            </p>
-                          ) : (
-                            <p className="text-[10px] text-stone-400 italic mt-1">ไม่ระบุบริษัท</p>
+                        {inCart && (
+                          <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-clay-600 text-white flex items-center justify-center shadow-sm">
+                            <Check className="h-3.5 w-3.5" strokeWidth={2} />
+                          </span>
+                        )}
+                        <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3 border-t border-stone-100">
+                          <p className={`text-[13px] font-medium leading-snug line-clamp-2 ${isOut ? 'text-stone-400' : 'text-stone-800'}`} title={item.name}>
+                            {item.name}
+                          </p>
+                          {/* บริษัทโชว์เฉพาะตอนไม่ได้กรองตามบริษัท (กรองแล้วทุกใบเหมือนกันหมด) */}
+                          {!staffCompany && item.company && (
+                            <p className="truncate text-[11px] text-stone-400">{item.company}</p>
                           )}
-                          <p className="text-[11px] text-stone-500 mt-0.5">{item.unit || 'ชิ้น'}</p>
+                          <p className={`mt-auto text-xs font-medium tabular-nums ${
+                            isOut ? 'text-rose-700' : low ? 'text-ochre-700' : 'text-olive-700'
+                          }`}>
+                            {isOut ? 'หมด' : `เหลือ ${item.quantity} ${item.unit || 'ชิ้น'}`}
+                          </p>
                         </div>
                       </button>
                     );
                   })}
                 </div>
               )}
-
-              {/* History */}
-              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="flex justify-between items-center px-5 py-4 border-b border-stone-100">
-                  <p className="text-sm font-medium text-stone-800">ประวัติคำขอ</p>
-                  {totalSupplyPages > 1 && <span className="text-[11px] text-stone-400">หน้า {supplyPage} / {totalSupplyPages}</span>}
-                </div>
-
-                {currentSupplyRequests.length === 0 ? (
-                  <div className="py-12 text-center text-[13px] text-stone-400">ยังไม่มีประวัติการเบิก</div>
-                ) : (
-                  <>
-                    <div className="divide-y divide-stone-100">
-                      {currentSupplyRequests.map(req => (
-                        <div key={req.id} className="flex items-center gap-3 px-5 py-3 hover:bg-stone-50/60 transition-colors">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-medium text-stone-800 truncate">{req.supplyName}</p>
-                            <p className="text-[11px] text-stone-400 mt-0.5">
-                              {formatDateShort(req.timestamp)}
-                            </p>
-                          </div>
-                          <span className="text-[13px] font-medium text-clay-600 tabular-nums">× {req.requestedQty}</span>
-                          <span className={statusBadge(req.status)}>{req.status}</span>
-                          {/* 🆕 ยกเลิกได้เฉพาะที่ยังรอดำเนินการ (เบิกผิด) */}
-                          {req.status === 'รอดำเนินการ' && handleStaffCancelSupplyRequest && (
-                            <button
-                              onClick={() => handleStaffCancelSupplyRequest(req)}
-                              title="ยกเลิกคำขอ"
-                              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-white border border-stone-200 text-stone-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 transition-colors"
-                            >
-                              <X className="h-3.5 w-3.5" strokeWidth={2} />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="px-5 py-3 border-t border-stone-100">
-                      <Pagination page={supplyPage} total={totalSupplyPages} onChange={setSupplyPage} />
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
 
-            {/* ─── RIGHT: Cart panel (sticky on desktop) ─── */}
-            <div className="lg:sticky lg:top-24">
+            {/* ─── Cart panel — มือถือ: ต่อจากแคตตาล็อก (ซ่อนตอนยังไม่เลือก) · จอใหญ่: ติดขวา ─── */}
+            <div
+              ref={cartPanelRef}
+              className={`lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24 scroll-mt-20 ${supplyCart.length === 0 ? 'hidden lg:block' : ''}`}
+            >
               <form onSubmit={onSupplySubmit} className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+                <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-stone-100 flex items-center justify-between">
                   <p className="text-sm font-medium text-stone-800">รายการที่เลือก</p>
                   {supplyCart.length > 0 && (
-                    <span className="text-xs font-medium text-clay-600 bg-clay-600/8 px-2 py-0.5 rounded">
+                    <span className="text-xs font-medium text-clay-700 bg-clay-50 px-2 py-0.5 rounded-lg tabular-nums">
                       {supplyCart.length}
                     </span>
                   )}
@@ -1466,56 +1437,57 @@ export default function StaffView({
                     <p className="text-[11px] text-stone-400 mt-1">คลิกที่อุปกรณ์เพื่อเพิ่ม</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-stone-100 max-h-[420px] overflow-y-auto">
+                  <div className="divide-y divide-stone-100 lg:max-h-[420px] lg:overflow-y-auto">
                     {supplyCart.map((cartItem, index) => (
-                      <div key={cartItem.supplyId} className="px-4 py-3 space-y-2">
-                        <div className="flex items-start gap-2.5">
+                      <div key={cartItem.supplyId} className="px-4 py-3 space-y-2.5">
+                        <div className="flex items-center gap-2.5">
                           {cartItem.image
-                            ? <img src={cartItem.image} alt={cartItem.name} className="w-9 h-9 rounded-lg object-contain bg-stone-50 p-0.5 border border-stone-200 shrink-0" />
-                            : <div className="w-9 h-9 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center text-sm shrink-0">📎</div>
+                            ? <img src={cartItem.image} alt={cartItem.name} className="w-10 h-10 rounded-lg object-contain bg-stone-50 p-0.5 border border-stone-200/60 shrink-0" />
+                            : <div className="w-10 h-10 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center text-stone-300 shrink-0"><Package className="h-4 w-4" strokeWidth={2} /></div>
                           }
                           <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-medium text-stone-800 truncate leading-tight">{cartItem.name}</p>
-                            {cartItem.company && (
-                              <p className="inline-flex items-center gap-1 text-[10px] font-medium text-clay-600 bg-stone-50 px-1 py-0.5 rounded mt-0.5 max-w-full">
-                                <Building2 className="h-2 w-2 shrink-0" strokeWidth={2} />
-                                <span className="truncate">{cartItem.company}</span>
-                              </p>
-                            )}
-                            <p className="text-[10px] text-stone-400 mt-0.5">สูงสุด {cartItem.maxQty} {cartItem.unit || ''}</p>
+                            <p className="text-[11px] text-stone-400 mt-0.5">สูงสุด {cartItem.maxQty} {cartItem.unit || 'ชิ้น'}</p>
                           </div>
                           <button
                             type="button"
                             onClick={() => setSupplyCart(supplyCart.filter(c => c.supplyId !== cartItem.supplyId))}
-                            className="w-7 h-7 flex items-center justify-center text-stone-300 hover:text-rose-600 hover:bg-rose-50 rounded transition shrink-0"
+                            className="w-9 h-9 flex items-center justify-center text-stone-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition shrink-0"
+                            aria-label={`เอา ${cartItem.name} ออก`}
                           >
-                            <X className="h-3.5 w-3.5" strokeWidth={2} />
+                            <X className="h-4 w-4" strokeWidth={2} />
                           </button>
                         </div>
-                        <div className="flex items-center gap-1.5 pl-11">
-                          <button
-                            type="button"
-                            onClick={() => { const nc = [...supplyCart]; nc[index].quantity = Math.max(1, Number(nc[index].quantity || 1) - 1); setSupplyCart(nc); }}
-                            disabled={Number(cartItem.quantity) <= 1}
-                            className="w-7 h-7 rounded-lg border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40 font-medium text-[13px]"
-                          >−</button>
-                          <input
-                            type="number" min="1" max={cartItem.maxQty} value={cartItem.quantity}
-                            onChange={e => { const nc = [...supplyCart]; nc[index].quantity = e.target.value; setSupplyCart(nc); }}
-                            className="w-12 bg-white border border-stone-200 rounded-lg px-1 py-1 text-xs text-center font-medium focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => { const nc = [...supplyCart]; nc[index].quantity = Math.min(nc[index].maxQty, Number(nc[index].quantity || 1) + 1); setSupplyCart(nc); }}
-                            disabled={Number(cartItem.quantity) >= cartItem.maxQty}
-                            className="w-7 h-7 rounded-lg border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40 font-medium text-[13px]"
-                          >+</button>
+                        {/* จำนวน + หมายเหตุ — ปุ่มใหญ่ขึ้นให้นิ้วกดโดน (เดิม 28px) */}
+                        <div className="flex items-center gap-2 pl-[50px]">
+                          <div className="flex shrink-0 items-center rounded-lg border border-stone-200/60 bg-white">
+                            <button
+                              type="button"
+                              onClick={() => { const nc = [...supplyCart]; nc[index].quantity = Math.max(1, Number(nc[index].quantity || 1) - 1); setSupplyCart(nc); }}
+                              disabled={Number(cartItem.quantity) <= 1}
+                              className="w-9 h-9 text-stone-600 hover:bg-stone-50 disabled:opacity-40 font-medium text-sm rounded-l-lg"
+                              aria-label="ลดจำนวน"
+                            >−</button>
+                            <input
+                              type="number" inputMode="numeric" min="1" max={cartItem.maxQty} value={cartItem.quantity}
+                              onChange={e => { const nc = [...supplyCart]; nc[index].quantity = e.target.value; setSupplyCart(nc); }}
+                              className="w-10 h-9 border-x border-stone-200/60 bg-white text-sm text-center font-medium tabular-nums focus:outline-none focus:ring-2 focus:ring-inset focus:ring-clay-600/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              aria-label="จำนวน"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => { const nc = [...supplyCart]; nc[index].quantity = Math.min(nc[index].maxQty, Number(nc[index].quantity || 1) + 1); setSupplyCart(nc); }}
+                              disabled={Number(cartItem.quantity) >= cartItem.maxQty}
+                              className="w-9 h-9 text-stone-600 hover:bg-stone-50 disabled:opacity-40 font-medium text-sm rounded-r-lg"
+                              aria-label="เพิ่มจำนวน"
+                            >+</button>
+                          </div>
                           <input
                             type="text" value={cartItem.note}
                             onChange={e => { const nc = [...supplyCart]; nc[index].note = e.target.value; setSupplyCart(nc); }}
                             placeholder="หมายเหตุ"
-                            className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-[11px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 focus:bg-white"
+                            className="min-w-0 flex-1 h-9 bg-stone-50 border border-stone-200/60 rounded-lg px-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 focus:bg-white"
                           />
                         </div>
                       </div>
@@ -1527,7 +1499,7 @@ export default function StaffView({
                   <button
                     type="submit"
                     disabled={supplyCart.length === 0 || isSubmittingSupply}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 lg:py-2.5 rounded-xl text-sm font-medium text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {isSubmittingSupply
                       ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>
@@ -1537,6 +1509,71 @@ export default function StaffView({
                 </div>
               </form>
             </div>
+
+            {/* ─── History ─── */}
+            <div className="lg:col-start-1 min-w-0 bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
+              <div className="flex justify-between items-center px-4 sm:px-5 py-3.5 sm:py-4 border-b border-stone-100">
+                <p className="text-sm font-medium text-stone-800">ประวัติคำขอ</p>
+                {totalSupplyPages > 1 && <span className="text-[11px] text-stone-400">หน้า {supplyPage} / {totalSupplyPages}</span>}
+              </div>
+
+              {currentSupplyRequests.length === 0 ? (
+                <div className="py-12 text-center text-[13px] text-stone-400">ยังไม่มีประวัติการเบิก</div>
+              ) : (
+                <>
+                  <div className="divide-y divide-stone-100">
+                    {currentSupplyRequests.map(req => (
+                      <div key={req.id} className="flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 hover:bg-stone-50/60 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-stone-800 truncate">{req.supplyName}</p>
+                          <p className="text-[11px] text-stone-400 mt-0.5 tabular-nums">
+                            {formatDateShort(req.timestamp)}
+                            <span className="text-clay-600 font-medium"> · × {req.requestedQty}</span>
+                          </p>
+                        </div>
+                        <span className={`${statusBadge(req.status)} shrink-0 whitespace-nowrap`}>{req.status}</span>
+                        {/* ยกเลิกได้เฉพาะที่ยังรอดำเนินการ (เบิกผิด) */}
+                        {req.status === 'รอดำเนินการ' && handleStaffCancelSupplyRequest && (
+                          <button
+                            onClick={() => handleStaffCancelSupplyRequest(req)}
+                            title="ยกเลิกคำขอ"
+                            aria-label="ยกเลิกคำขอ"
+                            className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg bg-white border border-stone-200/60 text-stone-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" strokeWidth={2} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="px-4 sm:px-5 py-3 border-t border-stone-100">
+                    <Pagination page={supplyPage} total={totalSupplyPages} onChange={setSupplyPage} />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* ─── มือถือ: แถบลอย "เลือกแล้ว N รายการ" จนกว่าจะเลื่อนถึงแผงรายการที่เลือก ─── */}
+            {supplyCart.length > 0 && !cartInView && (
+              <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 lg:hidden pointer-events-none">
+                <button
+                  type="button"
+                  onClick={() => cartPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="pointer-events-auto flex w-full items-center gap-3 rounded-2xl bg-clay-600 px-4 py-3 text-left text-white shadow-[0_10px_30px_-10px_rgba(18,48,58,0.6)] active:bg-clay-700"
+                >
+                  <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-white/15 px-2 text-sm font-medium tabular-nums">
+                    {supplyCart.length}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">เลือกแล้ว {supplyCart.length} รายการ</span>
+                    <span className="block truncate text-xs text-white/70">{supplyCart.map(c => c.name).join(', ')}</span>
+                  </span>
+                  <span className="shrink-0 inline-flex items-center gap-1 text-sm font-medium">
+                    ส่งคำขอ <ArrowRight className="h-4 w-4 rotate-90" strokeWidth={2} />
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 

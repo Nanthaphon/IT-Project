@@ -210,6 +210,7 @@ localhost:5173/supply-preview.html      คำขอเบิกอุปกร�
 localhost:5173/sidebar-preview.html     Sidebar ของจริง (ย่อความสูงหน้าต่างเพื่อตรวจการเลื่อน)
 localhost:5173/fieldopt-preview.html    ตัวเลือกฟิลด์ (กดบันทึกแล้วโชว์ก้อนที่จะเขียนลง settings/fieldOptions)
 localhost:5173/repair-preview.html      แจ้งซ่อม (ชื่อเล่น · ทุกสถานะ · คะแนน · ข้อมูลหลายเดือนไว้ตรวจตัวกรองวันที่)
+localhost:5173/staff-preview.html       ฝั่งพนักงาน (?tab=office_supplies เปิดแท็บเบิกอุปกรณ์ · ย่อจอเป็นมือถือเพื่อตรวจแถบลอย)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 

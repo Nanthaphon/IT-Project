@@ -178,8 +178,8 @@ export default function AssetDetailsModal({
   const isLicense = selectedAssetCategory === 'licenses';
   const timelineEvents = currentAssetDetail
     ? (isLicense
-        ? buildLicenseTimeline(currentAssetDetail, transactions)
-        : buildAssetTimeline(currentAssetDetail, transactions, repairRequests, licenses))
+        ? buildLicenseTimeline(currentAssetDetail, transactions, employees)
+        : buildAssetTimeline(currentAssetDetail, transactions, repairRequests, licenses, employees))
     : [];
 
   // 🟢 ฟังก์ชันบันทึก ประวัติการจัดซื้อ (สร้างใหม่ / แก้ไข)

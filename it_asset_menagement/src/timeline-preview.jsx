@@ -78,7 +78,12 @@ const LIC_TX = [
   // รายการรุ่นเก่า: ไม่มี licenseId -> ต้องขึ้นป้าย "จับคู่จากชื่อ"
   { category: 'licenses', action: 'เบิกจ่าย', assetName: 'Microsoft 365 Business',
     empName: 'ธณกร น้อยหมอ', timestamp: ago(800) },
+  // รายการที่เก็บแค่ empId (รหัสเอกสาร) -> ต้องขึ้นชื่อพนักงาน ไม่ใช่รหัส
+  { category: 'licenses', licenseId: 'lic1', action: 'เบิกจ่าย', empId: '2bEnHbAtCUOXNhp6HtGJ', timestamp: ago(30) },
+  // empId ที่หาไม่เจอแล้ว (พนักงานถูกลบ) -> "ไม่พบชื่อพนักงาน"
+  { category: 'licenses', licenseId: 'lic1', action: 'เบิกจ่าย', empId: '1jHZIt7x5VLMagVFiYeb', timestamp: ago(29) },
 ];
+const LIC_EMPLOYEES = [{ id: '2bEnHbAtCUOXNhp6HtGJ', fullName: 'นางสาวพิมพ์ชนก ศรีสุข', nickname: 'พิม' }];
 
 
 /* เคสจริงที่เจอบ่อย: รายการเก่าไม่ได้บันทึก productKey ไว้
@@ -134,7 +139,7 @@ const TABS = {
   ),
   'License — เคยอยู่กับใคร/เครื่องไหน': () => (
     <Timeline
-      events={buildLicenseTimeline(LICENSE, LIC_TX)}
+      events={buildLicenseTimeline(LICENSE, LIC_TX, LIC_EMPLOYEES)}
       holderLabel="ผู้/เครื่องที่เคยใช้สิทธิ์"
       holderKinds={['seatOn', 'licOn']}
       assignLabel="จ่ายสิทธิ์ไปแล้ว"

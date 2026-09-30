@@ -70,13 +70,31 @@ export function spanLabel(fromMs, toMs) {
 /** เอกสารรุ่นเก่าไม่มีฟิลด์ productKey เลย — ใช้แยกจากรุ่นใหม่ที่มีแต่ค่าว่าง */
 const hasKeyField = (t) => Object.prototype.hasOwnProperty.call(t, 'productKey');
 
+/** ชื่อคนในรายการ — รายการรุ่นเก่าบางอันเก็บแค่ empId (รหัสเอกสาร Firestore)
+    ห้ามโชว์รหัสนั้นออกหน้าจอ (ผู้ใช้อ่านไม่ออก) ให้ไปหาชื่อจากรายชื่อพนักงานแทน */
+const UNKNOWN_EMP = 'ไม่พบชื่อพนักงาน';
+function nameLookup(employees = [], extra = []) {
+  const byId = new Map();
+  employees.forEach((e) => {
+    if (!e?.fullName) return;
+    const label = e.nickname ? `${e.fullName} (${e.nickname})` : e.fullName;
+    if (e.id) byId.set(e.id, label);
+    if (e.empId) byId.set(e.empId, label);
+  });
+  extra.forEach((x) => { if (x?.empId && x?.empName && !byId.has(x.empId)) byId.set(x.empId, x.empName); });
+  return (t) => t.empName || (t.empId && byId.get(t.empId)) || (t.empId ? UNKNOWN_EMP : '—');
+}
+
 /* ── ไทม์ไลน์ของทรัพย์สิน 1 ชิ้น ─────────────────────────────
    @param {object}  asset         เอกสาร asset (ใช้ purchaseHistoryLog + วันที่ซื้อ)
    @param {array}   transactions  transactions ทั้งหมดที่โหลดมา
    @param {array}   repairs       repair_requests ทั้งหมด
    @returns {array} เหตุการณ์ เรียงใหม่ -> เก่า                     */
-export function buildAssetTimeline(asset, transactions = [], repairs = [], licenses = []) {
+export function buildAssetTimeline(asset, transactions = [], repairs = [], licenses = [], employees = []) {
   if (!asset?.id) return [];
+  const personOf = nameLookup(employees);
+  // หาชื่อไม่เจอ = นับผู้ถือด้วยรหัสแทน ไม่งั้นทุกคนที่ไม่พบชื่อจะรวมเป็นคนเดียว
+  const unknownId = (t) => (personOf(t) === UNKNOWN_EMP ? t.empId : undefined);
 
   /* Product Key ของสิทธิ์ที่ "ยังผูกอยู่" กับเครื่องนี้ ณ ตอนนี้
      ใช้เติมให้รายการเก่าที่บันทึกไว้ก่อนระบบจะเริ่มเก็บ key
@@ -124,7 +142,7 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
       if (t.action === 'เบิกจ่าย') {
         push('checkout', ms, {
           title: 'เบิกจ่ายให้พนักงาน',
-          by: t.empName || t.empId || '—',
+          by: personOf(t), who: unknownId(t),
           detail: t.condition ? `สภาพ: ${t.condition}` : '',
           note: t.remarks && t.remarks !== '-' ? t.remarks : '',
           checkoutId: t.checkoutId || null,
@@ -132,7 +150,7 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
       } else if (t.action === 'รับคืน' || t.action === 'ซ่อมเสร็จ/เข้าคลัง') {
         push('checkin', ms, {
           title: t.action === 'รับคืน' ? 'รับคืนจากพนักงาน' : 'ซ่อมเสร็จ / เข้าคลัง',
-          by: t.empName || t.empId || '—',
+          by: personOf(t), who: unknownId(t),
           detail: t.condition ? `สภาพ: ${t.condition}` : '',
           note: t.remarks && t.remarks !== '-' ? t.remarks : '',
           checkoutId: t.checkoutId || null,
@@ -196,8 +214,11 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
    หมายเหตุสำคัญ: licenses_transactions รุ่นเก่าบางรายการไม่ได้เก็บ
    licenseId ไว้ จึงต้อง fallback มาจับคู่ด้วยชื่อ — รายการที่จับคู่
    ด้วยชื่อจะติดธง matchedByName                                  */
-export function buildLicenseTimeline(license, transactions = []) {
+export function buildLicenseTimeline(license, transactions = [], employees = []) {
   if (!license?.id) return [];
+  const personOf = nameLookup(employees, license.assignees || []);
+  // หาชื่อไม่เจอ = นับผู้ถือด้วยรหัสแทน ไม่งั้นทุกคนที่ไม่พบชื่อจะรวมเป็นคนเดียว
+  const unknownId = (t) => (personOf(t) === UNKNOWN_EMP ? t.empId : undefined);
   const name = String(license.name || '').trim().toLowerCase();
 
   const mine = transactions.filter((t) => {
@@ -231,7 +252,7 @@ export function buildLicenseTimeline(license, transactions = []) {
         kind: t.action === 'เบิกจ่าย' ? 'seatOn' : 'seatOff',
         ms, matchedByName,
         title: t.action === 'เบิกจ่าย' ? 'จ่ายสิทธิ์ให้พนักงาน' : 'คืนสิทธิ์',
-        by: t.empName || t.empId || '—',
+        by: personOf(t), who: unknownId(t),
         detail: '',
         productKey: t.productKey || '', keyCode: t.keyCode || '',
         keyMissing: !t.productKey && !hasKeyField(t),
@@ -350,7 +371,7 @@ export function buildEmployeeTimeline(employee, transactions = [], assets = [], 
      License   -> ['seatOn', 'licOn']   = คน + เครื่องที่เคยใช้สิทธิ์  */
 export function summarize(events, holderKinds = ['checkout']) {
   const assigns = events.filter((e) => holderKinds.includes(e.kind));
-  const holders = new Set(assigns.map((e) => e.by).filter((x) => x && x !== '—'));
+  const holders = new Set(assigns.map((e) => e.who || e.by).filter((x) => x && x !== '—'));
   const first = events.length ? events[events.length - 1].ms : null;
   return {
     total: events.length,

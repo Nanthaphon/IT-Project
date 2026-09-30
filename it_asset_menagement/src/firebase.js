@@ -9,11 +9,14 @@ import { getStorage, connectStorageEmulator } from "firebase/storage";
 // ── Vercel API base URL ──
 // เมื่อ deploy บน Firebase Hosting จะเรียก Vercel functions ผ่าน URL เต็ม
 // เมื่อ deploy บน Vercel จะใช้ relative path (เว็บและ functions อยู่บน host เดียวกัน)
-export const VERCEL_API_BASE =
+// ตอน `npm run dev` ใช้ path ตรง ๆ ให้ proxy ใน vite.config.js ส่งต่อไป Vercel
+// (เรียก Vercel ตรงจาก localhost ติด CORS ทันทีที่พอร์ตไม่ใช่ 5173)
+const DEV_PROXY = import.meta.env.DEV && import.meta.env.MODE !== 'emulator';
+export const VERCEL_API_BASE = DEV_PROXY ? '' : (
   import.meta.env.VITE_VERCEL_API_URL ||
   (typeof window !== 'undefined' && window.location.hostname.endsWith('.web.app')
     ? 'https://itassetmenagement.vercel.app'
-    : '');
+    : ''));
 
 const firebaseConfig = {
   apiKey: "AIzaSyAyOWP7fsCUYh2cevBPBpehP85p7tuy-hM",

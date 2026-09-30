@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { formatDateShort } from '../utils/formatDate.js';
 import { stripTitle, initialOf } from '../utils/nameUtils.js';
+import { filterByDate } from '../utils/dateFilter.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)]';
@@ -78,10 +79,15 @@ export default function SupplyRequestTable({
   handleDelete,
   canEdit,
 }) {
+  /* ตัวเลขสรุปต้องนับตามช่วงวันที่ที่เลือก (แต่ไม่ตามแท็บสถานะ เพราะมันคือตัวแยกสถานะเอง) */
+  const inRange = useMemo(
+    () => filterByDate(supplyRequests, supplyFilterYear, supplyFilterMonth, supplyFilterDay),
+    [supplyRequests, supplyFilterYear, supplyFilterMonth, supplyFilterDay],
+  );
   const counts = {
-    pending:  supplyRequests.filter(r => r.status === 'รอดำเนินการ').length,
-    approved: supplyRequests.filter(r => r.status === 'อนุมัติแล้ว').length,
-    rejected: supplyRequests.filter(r => r.status === 'ปฏิเสธคำขอ').length,
+    pending:  inRange.filter(r => r.status === 'รอดำเนินการ').length,
+    approved: inRange.filter(r => r.status === 'อนุมัติแล้ว').length,
+    rejected: inRange.filter(r => r.status === 'ปฏิเสธคำขอ').length,
   };
 
   // 🆕 Pagination — 10 รายการ/หน้า
@@ -101,7 +107,7 @@ export default function SupplyRequestTable({
   const empByCode = useMemo(() => new Map(employees.map((e) => [String(e.empId || ''), e])), [employees]);
 
   const statusFilters = [
-    { value: 'ทั้งหมด',    label: 'ทั้งหมด',    count: supplyRequests.length },
+    { value: 'ทั้งหมด',    label: 'ทั้งหมด',    count: inRange.length },
     { value: 'รอดำเนินการ', label: 'รอดำเนินการ', count: counts.pending  },
     { value: 'อนุมัติแล้ว',  label: 'อนุมัติแล้ว',  count: counts.approved },
     { value: 'ปฏิเสธคำขอ',  label: 'ปฏิเสธคำขอ',  count: counts.rejected },

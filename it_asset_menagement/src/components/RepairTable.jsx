@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CalendarDays, Check, CheckCircle2, ChevronDown, Clock, Loader2, MessageSquare, Play, Star, Trash2, User, Wrench, XCircle } from 'lucide-react';
-import { formatDateTimeShort } from '../utils/formatDate.js';
+import { Check, CheckCircle2, ChevronDown, Clock, Hammer, MessageSquare, Play, Star, Trash2, User, Wrench, XCircle } from 'lucide-react';
+import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';
+import { stripTitle, initialOf } from '../utils/nameUtils.js';
+import { filterByDate } from '../utils/dateFilter.js';
 
 /* ─── Staff-theme tokens ─────────────────────────────────── */
 const CARD = 'bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)]';
@@ -10,9 +12,9 @@ const SELECT = 'bg-white border border-stone-200 text-stone-600 px-3 py-2 rounde
 /* ─── Status config ──────────────────────────────────────── */
 const STATUS = {
   'รอดำเนินการ':    { bar: 'bg-ochre-600/70',   badge: 'bg-ochre-50 text-ochre-700',     icon: Clock,       },
-  'กำลังดำเนินการ': { bar: 'bg-ochre-600/70',    badge: 'bg-ochre-50 text-ochre-700',        icon: Loader2,     },
+  'กำลังดำเนินการ': { bar: 'bg-clay-500',        badge: 'bg-clay-50 text-clay-700',          icon: Hammer,      },
   'ซ่อมเสร็จสิ้น':  { bar: 'bg-olive-600/70', badge: 'bg-olive-50 text-olive-700', icon: CheckCircle2 },
-  'ยกเลิก':         { bar: 'bg-sand-300',   badge: 'bg-sand-100 text-stone-400',     icon: XCircle,     },
+  'ยกเลิก':         { bar: 'bg-sand-300',   badge: 'bg-sand-100 text-stone-500',     icon: XCircle,     },
 };
 
 /* ─── Main component ─────────────────────────────────────── */
@@ -59,13 +61,21 @@ export default function RepairTable({
   handleUpdateRepairRequestStatus,
   handleDeleteRepairRequest,
   canEdit,
+  employees = [],          // ใช้ดึงชื่อเล่น — งานแจ้งซ่อมไม่ได้เก็บไว้
 }) {
+  /* ตัวเลขสรุปต้องนับตามช่วงวันที่ที่เลือก (แต่ไม่ตามแท็บสถานะ เพราะมันคือตัวแยกสถานะเอง) */
+  const inRange = useMemo(
+    () => filterByDate(repairRequests, repairFilterYear, repairFilterMonth, repairFilterDay),
+    [repairRequests, repairFilterYear, repairFilterMonth, repairFilterDay],
+  );
   const counts = {
-    pending:    repairRequests.filter(r => r.status === 'รอดำเนินการ').length,
-    inProgress: repairRequests.filter(r => r.status === 'กำลังดำเนินการ').length,
-    done:       repairRequests.filter(r => r.status === 'ซ่อมเสร็จสิ้น').length,
-    cancelled:  repairRequests.filter(r => r.status === 'ยกเลิก').length,
+    pending:    inRange.filter(r => r.status === 'รอดำเนินการ').length,
+    inProgress: inRange.filter(r => r.status === 'กำลังดำเนินการ').length,
+    done:       inRange.filter(r => r.status === 'ซ่อมเสร็จสิ้น').length,
+    cancelled:  inRange.filter(r => r.status === 'ยกเลิก').length,
   };
+  /* งานแจ้งซ่อมเก็บ empId เป็นรหัสพนักงาน (เช่น 1010093) ไม่ใช่ doc id */
+  const empByCode = useMemo(() => new Map(employees.map((e) => [String(e.empId || ''), e])), [employees]);
 
   // 🆕 Pagination — 10 รายการ/หน้า
   const PAGE_SIZE = 10;
@@ -79,7 +89,7 @@ export default function RepairTable({
   );
 
   const statusFilters = [
-    { value: 'ทั้งหมด',       label: 'ทั้งหมด',       count: repairRequests.length },
+    { value: 'ทั้งหมด',       label: 'ทั้งหมด',       count: inRange.length },
     { value: 'รอดำเนินการ',    label: 'รอดำเนินการ',    count: counts.pending    },
     { value: 'กำลังดำเนินการ', label: 'กำลังดำเนินการ', count: counts.inProgress },
     { value: 'ซ่อมเสร็จสิ้น',  label: 'ซ่อมเสร็จสิ้น',  count: counts.done       },
@@ -178,11 +188,12 @@ export default function RepairTable({
         ) : (
           <>
             <div className="bg-white border border-stone-200/60 rounded-2xl overflow-hidden">
-              {pagedRequests.map((req, idx) => (
+              <RepairRowHeader />
+              {pagedRequests.map((req) => (
                 <RepairRow
                   key={req.id}
                   req={req}
-                  isFirst={idx === 0}
+                  employee={empByCode.get(String(req.empId || ''))}
                   onUpdateStatus={handleUpdateRepairRequestStatus}
                   onDelete={handleDeleteRepairRequest}
                   canEdit={canEdit}
@@ -240,131 +251,206 @@ export default function RepairTable({
   );
 }
 
-/* ─── Compact Row ─────────────────────────────────────────── */
-function RepairRow({ req, isFirst, onUpdateStatus, onDelete, canEdit }) {
+/* ─── แถวงานแจ้งซ่อม ───────────────────────────────────────
+   ของเดิม: ข้อมูลกองซ้าย วันที่/สถานะ/ปุ่มชิดขวาแบบไม่มีคอลัมน์ แถวที่มีคะแนน
+   หรือปุ่มลูกศรจึงเหลื่อมกับแถวที่ไม่มี · อวาตาร์ได้ "น" ทุกแถว (นาย/นาง/นางสาว)
+   · ไม่มีชื่อเล่น · ปัญหายาว ๆ ดันแถวสูงไม่เท่ากัน
+
+   ใหม่: คอลัมน์ตรงกันทุกแถว (ผู้แจ้ง / อุปกรณ์ + ปัญหา / วันที่ / สถานะ / คะแนน / ปุ่ม)
+   สถานะ = ป้ายที่กดเปลี่ยนได้ · ปุ่มขั้นถัดไป (เริ่มซ่อม / ซ่อมเสร็จ) อยู่คอลัมน์ขวา
+   แถบสีซ้ายเฉพาะงานที่ยังต้องทำ · ปัญหาแสดงบรรทัดเดียว กดที่แถวเพื่อดูเต็ม + ผลประเมิน
+   ชื่อ + ชื่อเล่นดึงจากทะเบียนพนักงาน (งานแจ้งซ่อมไม่ได้เก็บชื่อเล่นไว้)        */
+const ROW_GRID = 'md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_6rem_10rem_3.5rem_10.5rem] md:items-center md:gap-4';
+
+function RepairRowHeader() {
+  return (
+    <div className={`hidden border-b border-stone-100 px-5 pb-2.5 pt-3.5 text-xs font-medium text-stone-400 ${ROW_GRID}`}>
+      <span className="pl-11">ผู้แจ้ง</span>
+      <span>อุปกรณ์ / ปัญหา</span>
+      <span>วันที่แจ้ง</span>
+      <span>สถานะ</span>
+      <span>คะแนน</span>
+      <span />
+    </div>
+  );
+}
+
+const NEXT_STEP = {
+  'รอดำเนินการ':    { to: 'กำลังดำเนินการ', label: 'เริ่มซ่อม', icon: Play,
+    cls: 'bg-clay-600 text-white hover:bg-clay-700' },
+  'กำลังดำเนินการ': { to: 'ซ่อมเสร็จสิ้น', label: 'ซ่อมเสร็จ', icon: Check,
+    cls: 'border border-stone-200/60 bg-white text-olive-700 hover:border-olive-200 hover:bg-olive-50' },
+};
+
+function RepairRow({ req, employee, onUpdateStatus, onDelete, canEdit }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS[req.status] ?? STATUS['รอดำเนินการ'];
   const StatusIcon = cfg.icon;
-  const isPending    = req.status === 'รอดำเนินการ';
-  const isInProgress = req.status === 'กำลังดำเนินการ';
-  const initial = req.empName?.charAt(0) ?? '?';
-  const dateStr = formatDateTimeShort(req.timestamp);
-  const hasDetails = (req.issue && req.issue.length > 60) || req.evaluation;
+  const next = NEXT_STEP[req.status];
+  const NextIcon = next?.icon;
+
+  /* ชื่อจากทะเบียนก่อน (ไม่มีคำนำหน้า + สะท้อนการเปลี่ยนชื่อ) หาไม่เจอค่อยใช้ชื่อในงานแจ้งซ่อม */
+  const name = employee?.fullName || stripTitle(req.empName) || '-';
+  const nickname = employee?.nickname || '';
+  const dept = employee?.department || req.department || '';
+  const d = req.timestamp ? new Date(req.timestamp) : null;
+  const hasDetails = !!(req.issue || req.evaluation);
+  const toggle = () => { if (hasDetails) setExpanded((v) => !v); };
+  const stop = (e) => e.stopPropagation();
 
   return (
-    <div className={`${isFirst ? '' : 'border-t border-stone-100'} transition-colors ${expanded ? 'bg-sand-50' : 'hover:bg-stone-50/40'}`}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        {/* Status bar */}
-        <div className={`w-1 h-10 rounded-full ${cfg.bar} shrink-0`} />
+    <div className={`relative border-t border-stone-100 transition-colors first:border-t-0 ${expanded ? 'bg-sand-50' : 'hover:bg-stone-50/60'}`}>
+      {next && (
+        <span className={`absolute inset-y-2 left-0 w-1 rounded-r-full ${req.status === 'รอดำเนินการ' ? 'bg-ochre-500' : 'bg-clay-500'}`} aria-hidden />
+      )}
 
-        {/* Avatar */}
-        <div className="w-9 h-9 rounded-lg bg-clay-600 text-white flex items-center justify-center text-[13px] font-medium shrink-0">
-          {initial}
-        </div>
-
-        {/* Main info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[13px] font-medium text-stone-800 truncate">{req.empName}</span>
-            <span className="text-[11px] text-stone-400 hidden sm:inline">·</span>
-            <span className="text-[11px] text-stone-500 truncate hidden sm:inline">{req.empId}{req.department ? ` · ${req.department}` : ''}</span>
+      <div
+        onClick={toggle}
+        role={hasDetails ? 'button' : undefined}
+        tabIndex={hasDetails ? 0 : undefined}
+        aria-expanded={hasDetails ? expanded : undefined}
+        onKeyDown={(e) => {
+          if (hasDetails && (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); toggle(); }
+        }}
+        className={`relative px-5 py-3.5 ${ROW_GRID} ${hasDetails ? 'cursor-pointer' : ''}`}
+      >
+        {/* ── ผู้แจ้ง ── */}
+        <div className="flex min-w-0 items-center gap-3 pr-10 md:pr-0">
+          <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-full bg-clay-100 text-[13px] font-medium text-clay-700">
+            {initialOf(name, nickname)}
           </div>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <Wrench className="h-3 w-3 text-stone-400 shrink-0" strokeWidth={2} />
-            <span className="text-xs text-stone-700 truncate">{req.assetName || '—'}</span>
-            {req.issue && (
-              <span className="text-[11px] text-stone-500 truncate hidden md:inline">— {req.issue}</span>
-            )}
+          <div className="min-w-0">
+            <p className="truncate text-[13px] text-stone-800" title={nickname ? `${name} (${nickname})` : name}>
+              <span className="font-medium">{name}</span>
+              {nickname && <span className="text-stone-400"> ({nickname})</span>}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-stone-400">
+              {[req.empId, dept].filter(Boolean).join(' · ')}
+            </p>
           </div>
         </div>
 
-        {/* Date */}
-        <div className="hidden lg:flex items-center gap-1 text-[11px] text-stone-400 shrink-0">
-          <CalendarDays className="h-3 w-3" strokeWidth={2} />
-          {dateStr}
+        {/* ── อุปกรณ์ + ปัญหา ── */}
+        <div className="mt-2.5 min-w-0 pl-11 md:mt-0 md:pl-0">
+          <p className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-stone-800">
+            <Wrench className="size-3.5 shrink-0 text-stone-400" strokeWidth={2} />
+            <span className="truncate">{req.assetName || '—'}</span>
+          </p>
+          {req.issue && (
+            <p className={`mt-0.5 text-xs text-stone-500 ${expanded ? 'whitespace-pre-line break-words' : 'truncate'}`}
+              title={expanded ? undefined : req.issue}>
+              {req.issue}
+            </p>
+          )}
         </div>
 
-        {/* Status badge */}
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cfg.badge} shrink-0`}>
-          <StatusIcon className={`h-3 w-3 ${isInProgress ? 'animate-spin' : ''}`} strokeWidth={2} />
-          <span className="hidden sm:inline">{req.status}</span>
-        </span>
+        {/* ── วันที่ ── */}
+        <div className="mt-2 pl-11 text-xs tabular-nums text-stone-500 md:mt-0 md:pl-0">
+          {d ? (
+            <>
+              <span className="md:block">{formatDateShort(d)}</span>
+              <span className="text-stone-400 md:block">
+                <span className="md:hidden"> · </span>
+                {String(d.getHours()).padStart(2, '0')}:{String(d.getMinutes()).padStart(2, '0')} น.
+              </span>
+            </>
+          ) : '-'}
+        </div>
 
-        {/* Evaluation star */}
-        {req.evaluation && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-clay-100 text-clay-600 border border-clay-200 shrink-0">
-            <Star className="h-3 w-3 fill-clay-400 text-clay-400" strokeWidth={2} />
-            {Number(req.evaluation.overallRating || 0).toFixed(1)}
-          </span>
-        )}
+        {/* ── สถานะ: ป้ายที่กดเปลี่ยนได้ ── */}
+        <div className="mt-3 flex items-center gap-2 pl-11 md:mt-0 md:pl-0" onClick={stop}>
+          {canEdit ? (
+            <label className={`relative inline-flex max-w-full cursor-pointer items-center gap-1 whitespace-nowrap rounded-lg py-1 pl-2 pr-6 text-xs font-medium ${cfg.badge}`}>
+              <StatusIcon className="size-3.5 shrink-0" strokeWidth={2} />
+              {req.status}
+              <ChevronDown className="pointer-events-none absolute right-1.5 size-3 opacity-60" strokeWidth={2} />
+              <select
+                value={req.status}
+                onChange={(e) => onUpdateStatus(req.id, e.target.value)}
+                className="absolute inset-0 cursor-pointer opacity-0"
+                aria-label="เปลี่ยนสถานะงานซ่อม"
+              >
+                <option value="รอดำเนินการ">รอดำเนินการ</option>
+                <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
+                <option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option>
+                <option value="ยกเลิก">ยกเลิก</option>
+              </select>
+            </label>
+          ) : (
+            <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium ${cfg.badge}`}>
+              <StatusIcon className="size-3.5" strokeWidth={2} /> {req.status}
+            </span>
+          )}
+          {/* จอแคบ: คะแนนมาต่อท้ายสถานะ */}
+          {req.evaluation && <Rating value={req.evaluation.overallRating} className="md:hidden" />}
+        </div>
 
-        {/* Expand chevron */}
-        {hasDetails && (
-          <button
-            onClick={() => setExpanded(v => !v)}
-            className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-xl transition-colors shrink-0"
-            title={expanded ? 'ย่อ' : 'ดูรายละเอียด'}
-          >
-            <ChevronDown className="h-4 w-4" strokeWidth={2} />
-          </button>
-        )}
+        {/* ── คะแนน ── */}
+        <div className="hidden md:block">
+          {req.evaluation ? <Rating value={req.evaluation.overallRating} /> : <span className="text-xs text-stone-300">—</span>}
+        </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {canEdit && isPending && (
+        {/* ── ปุ่ม: ขั้นถัดไป / ดูรายละเอียด / ลบ ── */}
+        <div className="absolute right-4 top-3 flex items-center justify-end gap-1 md:static" onClick={stop}>
+          {canEdit && next && (
             <button
-              onClick={() => onUpdateStatus(req.id, 'กำลังดำเนินการ')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 transition-colors"
+              onClick={() => onUpdateStatus(req.id, next.to)}
+              className={`mr-1 hidden items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors md:inline-flex ${next.cls}`}
             >
-              <Play className="h-3 w-3" strokeWidth={2} />
-              <span className="hidden sm:inline">เริ่มซ่อม</span>
+              <NextIcon className="size-3.5" strokeWidth={2} /> {next.label}
             </button>
           )}
-          {canEdit && isInProgress && (
+          {hasDetails && (
             <button
-              onClick={() => onUpdateStatus(req.id, 'ซ่อมเสร็จสิ้น')}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-olive-600 bg-white border border-stone-200 hover:border-olive-300 hover:bg-olive-50 transition-colors"
+              onClick={toggle}
+              className="hidden size-8 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 md:flex"
+              title={expanded ? 'ย่อ' : 'ดูรายละเอียด'} aria-label={expanded ? 'ย่อ' : 'ดูรายละเอียด'}
             >
-              <Check className="h-3 w-3" strokeWidth={2} />
-              <span className="hidden sm:inline">ซ่อมเสร็จ</span>
+              <ChevronDown className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`} strokeWidth={2} />
             </button>
           )}
           {canEdit && (
             <button
               onClick={() => onDelete(req.id)}
-              className="w-7 h-7 flex items-center justify-center bg-white border border-stone-200 text-stone-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-300 rounded-xl transition-colors"
-              title="ลบ"
+              className="flex size-8 items-center justify-center rounded-lg text-stone-300 transition-colors hover:bg-rose-50 hover:text-rose-600"
+              title="ลบ" aria-label="ลบงานแจ้งซ่อม"
             >
-              <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+              <Trash2 className="size-4" strokeWidth={2} />
             </button>
           )}
         </div>
+
+        {/* จอแคบ: ปุ่มขั้นถัดไปอยู่แถวล่างสุด กดง่ายกว่า */}
+        {canEdit && next && (
+          <div className="mt-3 pl-11 md:hidden" onClick={stop}>
+            <button
+              onClick={() => onUpdateStatus(req.id, next.to)}
+              className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${next.cls}`}
+            >
+              <NextIcon className="size-3.5" strokeWidth={2} /> {next.label}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Expanded details */}
-      {expanded && hasDetails && (
-        <div className="px-4 pb-4 pt-1 space-y-2 border-t border-stone-100 bg-stone-50/40">
-          {req.issue && (
-            <p className="text-xs text-stone-700 leading-relaxed">
-              <span className="font-medium text-stone-500">ปัญหา:</span> {req.issue}
-            </p>
-          )}
-          {req.evaluation && <EvaluationDetail evaluation={req.evaluation} />}
-          {canEdit && (
-            <select
-              value={req.status}
-              onChange={(e) => onUpdateStatus(req.id, e.target.value)}
-              className={`px-2 py-1 rounded-lg text-xs font-medium outline-none cursor-pointer ${cfg.badge}`}
-            >
-              <option value="รอดำเนินการ">รอดำเนินการ</option>
-              <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
-              <option value="ซ่อมเสร็จสิ้น">ซ่อมเสร็จสิ้น</option>
-              <option value="ยกเลิก">ยกเลิก</option>
-            </select>
-          )}
+      {/* ผลประเมินจากพนักงาน — ปัญหาเต็มแสดงในแถวแล้วตอนกางออก */}
+      {expanded && req.evaluation && (
+        <div className="px-5 pb-4 pl-16">
+          <div className="max-w-md">
+            <EvaluationDetail evaluation={req.evaluation} />
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function Rating({ value, className = '' }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-lg bg-ochre-50 px-2 py-1 text-xs font-medium tabular-nums text-ochre-700 ${className}`}>
+      <Star className="size-3 fill-current" strokeWidth={2} />
+      {Number(value || 0).toFixed(1)}
+    </span>
   );
 }
 

@@ -66,6 +66,7 @@ import Sidebar from './components/Sidebar.jsx';
 import HistoryImportModal from './components/HistoryImportModal.jsx';
 import { formatDateShort } from './utils/formatDate.js';
 import { splitName, joinName, resolveName } from './utils/nameUtils.js';
+import { cleanLinks } from './utils/links.js';
 import { useActiveTab } from './hooks/useActiveTab.js';
 import { EMPTY_CHECKLIST, EMPTY_FIELDS, flattenFields } from './components/ConditionCapture.jsx';
 import TopHeader from './components/TopHeader.jsx';
@@ -1967,11 +1968,8 @@ function App() {
         // 🆕 รวมชื่อจริง + นามสกุล → fullName / fullNameEng (คงไว้ให้ส่วนอื่นใช้)
         updatedData.fullName = joinName(updatedData.firstName, updatedData.lastName);
         updatedData.fullNameEng = joinName(updatedData.firstNameEng, updatedData.lastNameEng);
-        if (Array.isArray(updatedData.links)) {
-          updatedData.links = updatedData.links
-            .map(l => ({ label: (l?.label || '').trim(), url: (l?.url || '').trim() }))
-            .filter(l => l.url);
-        }
+        // คง optionId/id ของลิงก์ที่เลือกจากตัวเลือกฟิลด์ไว้ (ดู utils/links.js)
+        if (Array.isArray(updatedData.links)) updatedData.links = cleanLinks(updatedData.links);
         await updateDoc(doc(db, 'employees', editEmpModal.data.id), updatedData);
         if (selectedEmployee && selectedEmployee.id === editEmpModal.data.id) setSelectedEmployee({ ...selectedEmployee, ...updatedData, id: editEmpModal.data.id });
         setEditEmpModal({ isOpen: false, data: null });

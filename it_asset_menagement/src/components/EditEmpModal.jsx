@@ -190,7 +190,7 @@ function EmpLinksEditor({ links, setLinks }) {
       )}
       {rows.map((r, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center">
-          <input value={r.label ?? ''} onChange={e => update(i, 'label', e.target.value)}
+          <input value={r.label ?? r.name ?? ''} onChange={e => update(i, 'label', e.target.value)}
             placeholder="ชื่อลิงก์ (เช่น Microsoft 365)" className={`${inCls} sm:w-1/3 text-stone-800`} />
           <input value={r.url ?? ''} onChange={e => update(i, 'url', e.target.value)}
             placeholder="https://..." className={`${inCls} flex-1 font-mono text-[13px] text-stone-700`} />

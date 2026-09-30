@@ -240,7 +240,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - **`AssetDetailsModal.jsx` ใช้ร่วม 3 ประเภท** (assets / accessories / licenses) — แก้ส่วนไหนต้องดูว่ากระทบประเภทอื่นไหม
 - **`EditAssetModal.jsx` / `AddModal.jsx` ก็ใช้ร่วมกัน** ระหว่าง assets / accessories / office_supplies
 - **ลิงก์พนักงาน** — ตั้งตัวเลือกใน "ตัวเลือกฟิลด์" (`fieldOptions.links = [{id,name,url}]`) แล้วเลือกใส่ในหน้ารายละเอียดพนักงาน
-  (`components/employees/EmployeeLinks.jsx` → `employees/{id}.links` เก็บสำเนา name/url ลบตัวเลือกทิ้งภายหลังลิงก์ของคนเดิมยังอยู่)
+  (`components/employees/EmployeeLinks.jsx` → `employees/{id}.links` = `[{ label, url, id?, optionId? }]` เก็บสำเนา label/url ลบตัวเลือกทิ้งภายหลังลิงก์ของคนเดิมยังอยู่)
+  ⚠️ **ฟิลด์เดียวกับที่พนักงานเพิ่มเองในหน้า "ข้อมูลของฉัน" และฟอร์มแก้ไขพนักงาน** — ชื่อต้องอยู่ที่ `label` · บันทึกผ่าน `cleanLinks()` เสมอ (ไม่งั้น optionId หลุด)
   ⚠️ `handleSaveFieldOptions` ใช้ `setDoc` ทับทั้งเอกสาร — เพิ่ม key ใหม่ใน fieldOptions ต้องใส่ใน state `local` ของ `DropdownOptionsManager` ด้วย ไม่งั้นกดบันทึกแล้วหาย
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`

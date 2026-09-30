@@ -21,6 +21,13 @@ const EMP = {
   startDate: '2024-08-24',
   m365Email: 'Nathida.p@globesyndicate.co.th',
   m365Password: 'Gl0be#2026!xY',
+  /* ลิงก์ 3 รูปแบบที่มีอยู่จริงใน Firestore:
+     พนักงานเพิ่มเอง (ไม่มี id) · ไม่มีชื่อ (ต้องโชว์โดเมน) · รูปแบบ name ช่วงแรกของตัวเลือกฟิลด์ */
+  links: [
+    { label: 'Microsoft 365', url: 'https://microsoft.com' },
+    { label: '', url: 'https://globebestth.sharepoint.com/sites/it' },
+    { id: 'lnk_old', optionId: 'lo2', name: 'โฟลเดอร์เอกสารพนักงาน', url: 'https://globesyndicate.sharepoint.com/sites/hr/Nathida', addedAt: 1 },
+  ],
 };
 
 const day = 86400000;

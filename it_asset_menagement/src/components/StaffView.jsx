@@ -5,6 +5,7 @@ import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
 import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
 import { e, safeUrl } from '../utils/htmlEscape.js';
 import { formatDateShort } from '../utils/formatDate.js';
+import { cleanLinks, linkLabel } from '../utils/links.js';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -384,8 +385,9 @@ export default function StaffView({
       phone:        currentStaff.phone        || '',
       m365Email:    currentStaff.m365Email    || '',
       m365Password: currentStaff.m365Password || '',
+      // คงฟิลด์อื่นของลิงก์ไว้ (optionId/id ของลิงก์ที่ IT ใส่ให้จากตัวเลือกฟิลด์) — ดู utils/links.js
       links:        Array.isArray(currentStaff.links)
-        ? currentStaff.links.map(l => ({ label: l?.label || '', url: l?.url || '' }))
+        ? currentStaff.links.map(l => ({ ...l, label: l?.label || l?.name || '', url: l?.url || '' }))
         : [],
     });
     setIsEditingProfile(true);
@@ -400,10 +402,7 @@ export default function StaffView({
     if (!handleStaffUpdateProfile) return;
     setIsSavingProfile(true);
     try {
-      const cleanedLinks = (Array.isArray(profileForm.links) ? profileForm.links : [])
-        .map(l => ({ label: (l?.label || '').trim(), url: (l?.url || '').trim() }))
-        .filter(l => l.url);
-      await handleStaffUpdateProfile({ ...profileForm, links: cleanedLinks });
+      await handleStaffUpdateProfile({ ...profileForm, links: cleanLinks(profileForm.links) });
       setIsEditingProfile(false);
     } catch (e) {
       // alert already shown by handler
@@ -1867,7 +1866,8 @@ function LinkCards({ links }) {
         {items.map((l, i) => {
           const href = normalizeLinkUrl(l.url);
           const host = linkHost(l.url);
-          const label = (l.label || '').trim() || host || href;
+          // ลิงก์ที่ IT เลือกให้จากตัวเลือกฟิลด์ → ชื่อที่ตั้งไว้ (เช่น "แบบฟอร์มลาออก") ไม่ใช่โดเมนยาว ๆ
+          const label = linkLabel(l) || href;
           return (
             <a key={i} href={href} target="_blank" rel="noopener noreferrer"
                className="group flex items-center gap-3 rounded-lg border border-stone-200 hover:border-clay-600/40 hover:bg-clay-600/[0.03] px-3.5 py-3 transition-colors">

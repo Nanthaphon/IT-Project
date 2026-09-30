@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save, CheckCircle2, AlertTriangle, SlidersHorizontal, Info, Briefcase } from 'lucide-react';
+import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, Save, CheckCircle2, AlertTriangle, SlidersHorizontal, Info, Briefcase, Link2, ExternalLink } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
+import { normalizeUrl, hostOf, newLinkId } from '../utils/links.js';
 
 const CATEGORIES = [
   {
@@ -143,11 +144,88 @@ function CategoryCard({ category, values, onAdd, onRemove, saving }) {
   );
 }
 
+/* ── ลิงก์ — ต่างจากหมวดอื่นตรงที่แต่ละรายการมี 2 ค่า (ชื่อ + URL)
+   ตั้งไว้ที่นี่ที่เดียว แล้วไปเลือกใส่ให้พนักงานในหน้ารายละเอียดพนักงาน ── */
+function LinksCard({ links, onAdd, onRemove }) {
+  const [name, setName] = useState('');
+  const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
+
+  const handleAdd = () => {
+    const n = name.trim();
+    const u = normalizeUrl(url);
+    if (!n || !url.trim()) return;
+    if (!u) { setError('URL ไม่ถูกต้อง'); return; }
+    if (links.some((l) => l.name.toLowerCase() === n.toLowerCase())) { setError('มีชื่อนี้แล้ว'); return; }
+    onAdd({ id: newLinkId(), name: n, url: u });
+    setName(''); setUrl(''); setError('');
+  };
+  const onKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } };
+  const ready = name.trim() && url.trim();
+
+  return (
+    <div className="rounded-2xl border border-stone-200/60 bg-white p-6 flex flex-col gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:border-stone-300 transition-colors md:col-span-2">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-clay-600/[0.08]">
+          <Link2 className="h-5 w-5 text-clay-600" strokeWidth={2} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-stone-900 text-[15px] leading-tight tracking-tight">ลิงก์</h3>
+          <p className="text-xs text-stone-500 mt-0.5">เลือกใส่ให้พนักงานได้ในหน้ารายละเอียดพนักงาน</p>
+        </div>
+        <span className="text-xs font-medium text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full shrink-0">
+          {links.length} รายการ
+        </span>
+      </div>
+
+      {links.length === 0 ? (
+        <p className="text-[13px] text-stone-400 italic">ยังไม่มีลิงก์</p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {links.map((l) => (
+            <li key={l.id} className="group flex items-center gap-3 rounded-xl border border-stone-200/60 px-3 py-2.5">
+              <Link2 className="h-4 w-4 shrink-0 text-stone-400" strokeWidth={2} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-stone-800">{l.name}</p>
+                <a href={l.url} target="_blank" rel="noopener noreferrer" title={l.url}
+                  className="inline-flex max-w-full items-center gap-1 text-xs text-stone-400 hover:text-clay-600">
+                  <span className="truncate">{hostOf(l.url) || l.url}</span>
+                  <ExternalLink className="h-3 w-3 shrink-0" strokeWidth={2} />
+                </a>
+              </div>
+              <button type="button" onClick={() => onRemove(l.id)} title="ลบ"
+                className="shrink-0 rounded-lg p-1 text-stone-300 transition-colors hover:bg-rose-50 hover:text-rose-600">
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input type="text" value={name} onKeyDown={onKey} placeholder="ชื่อ เช่น แบบฟอร์มลาออก, Google Drive"
+          onChange={(e) => { setName(e.target.value); setError(''); }}
+          className="sm:w-64 bg-white border border-stone-200/60 px-3 py-2 rounded-xl text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600" />
+        <input type="text" value={url} onKeyDown={onKey} placeholder="https://..."
+          onChange={(e) => { setUrl(e.target.value); setError(''); }}
+          className="flex-1 min-w-0 bg-white border border-stone-200/60 px-3 py-2 rounded-xl text-sm outline-none transition-colors hover:border-stone-300 focus:ring-2 focus:ring-clay-600/15 focus:border-clay-600" />
+        <button type="button" onClick={handleAdd} disabled={!ready}
+          className={`inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${ready ? 'bg-clay-600 text-white hover:bg-clay-700 shadow-sm' : 'bg-stone-200 cursor-not-allowed text-stone-400'}`}>
+          <Plus className="h-4 w-4" strokeWidth={2} /> เพิ่ม
+        </button>
+      </div>
+      {error && <p className="-mt-2 text-xs text-rose-700">{error}</p>}
+    </div>
+  );
+}
+
 export default function DropdownOptionsManager({ fieldOptions, onSave, saving }) {
   // Local state: a copy we can mutate before saving
+  // (onSave เขียนทับทั้งเอกสาร — ทุก key ที่อยู่ใน settings/fieldOptions ต้องอยู่ใน local ด้วย)
   const [local, setLocal] = useState(() => {
     const init = {};
     CATEGORIES.forEach(c => { init[c.key] = [...(fieldOptions[c.key] || [])]; });
+    init.links = [...(fieldOptions.links || [])];
     return init;
   });
   const [dirty, setDirty] = useState(false);
@@ -158,6 +236,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
     setLocal(() => {
       const init = {};
       CATEGORIES.forEach(c => { init[c.key] = [...(fieldOptions[c.key] || [])]; });
+      init.links = [...(fieldOptions.links || [])];
       return init;
     });
     setDirty(false);
@@ -170,6 +249,15 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
 
   const handleRemove = (key, value) => {
     setLocal(prev => ({ ...prev, [key]: prev[key].filter(v => v !== value) }));
+    setDirty(true);
+  };
+
+  const handleAddLink = (link) => {
+    setLocal(prev => ({ ...prev, links: [...prev.links, link] }));
+    setDirty(true);
+  };
+  const handleRemoveLink = (id) => {
+    setLocal(prev => ({ ...prev, links: prev.links.filter(l => l.id !== id) }));
     setDirty(true);
   };
 
@@ -239,6 +327,7 @@ export default function DropdownOptionsManager({ fieldOptions, onSave, saving })
             saving={saving}
           />
         ))}
+        <LinksCard links={local.links || []} onAdd={handleAddLink} onRemove={handleRemoveLink} />
       </div>
       </div>
     </div>

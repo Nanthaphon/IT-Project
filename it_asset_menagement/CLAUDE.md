@@ -208,6 +208,7 @@ localhost:5173/edit-preview.html        หน้าแก้ไข License / �
 localhost:5173/emp-preview.html         รายละเอียดพนักงาน (สลับหน้าเต็ม / modal ได้)
 localhost:5173/supply-preview.html      คำขอเบิกอุปกรณ์ (ชื่อมีคำนำหน้า · ชื่อเล่น · ทุกสถานะ)
 localhost:5173/sidebar-preview.html     Sidebar ของจริง (ย่อความสูงหน้าต่างเพื่อตรวจการเลื่อน)
+localhost:5173/fieldopt-preview.html    ตัวเลือกฟิลด์ (กดบันทึกแล้วโชว์ก้อนที่จะเขียนลง settings/fieldOptions)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 
@@ -237,6 +238,9 @@ api/                         Vercel Functions (staff auth, Teams notify)
 
 - **`AssetDetailsModal.jsx` ใช้ร่วม 3 ประเภท** (assets / accessories / licenses) — แก้ส่วนไหนต้องดูว่ากระทบประเภทอื่นไหม
 - **`EditAssetModal.jsx` / `AddModal.jsx` ก็ใช้ร่วมกัน** ระหว่าง assets / accessories / office_supplies
+- **ลิงก์พนักงาน** — ตั้งตัวเลือกใน "ตัวเลือกฟิลด์" (`fieldOptions.links = [{id,name,url}]`) แล้วเลือกใส่ในหน้ารายละเอียดพนักงาน
+  (`components/employees/EmployeeLinks.jsx` → `employees/{id}.links` เก็บสำเนา name/url ลบตัวเลือกทิ้งภายหลังลิงก์ของคนเดิมยังอยู่)
+  ⚠️ `handleSaveFieldOptions` ใช้ `setDoc` ทับทั้งเอกสาร — เพิ่ม key ใหม่ใน fieldOptions ต้องใส่ใน state `local` ของ `DropdownOptionsManager` ด้วย ไม่งั้นกดบันทึกแล้วหาย
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 

@@ -10,6 +10,7 @@ import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
 import Timeline from './timeline/Timeline.jsx';
+import EmployeeLinks from './employees/EmployeeLinks.jsx';
 import { buildEmployeeTimeline, spanLabel, toMillis, thaiDate } from './timeline/buildTimeline.js';
 
 /* สีจุดของรายการในการ์ด "ความเคลื่อนไหวล่าสุด" — ตามชนิดเหตุการณ์ */
@@ -41,7 +42,11 @@ export default function EmployeeDetailsModal({
   bundledItems = [], handleAddBundledItem, handleDeleteBundledItem,
   asPage = false,        // true = แสดงเป็นหน้าเต็ม (URL /employees/:id) ไม่ใช่ modal
   onClosePage,           // callback ตอนกดปิดในโหมดหน้าเต็ม (navigate กลับ)
+  linkOptions,           // fieldOptions.links — ลิงก์ที่ตั้งไว้ในเมนู "ตัวเลือกฟิลด์"
+  saveLinks,             // (optional) แทนการเขียน Firestore — ใช้ในหน้า preview
+  fieldOptions, employees, // โหมด modal (ผ่าน ModalsContainer) ได้ props ทั้งก้อน ใช้แทนสองตัวบน
 }) {
+  const linkChoices = linkOptions || fieldOptions?.links || [];
   const [historyFilter, setHistoryFilter] = useState('all');
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
@@ -418,6 +423,11 @@ export default function EmployeeDetailsModal({
                     </ul>
                   )}
                 </section>
+
+                {/* โหมด modal ถือ selectedEmployee เป็นสำเนาเก่า — หาตัวสดจาก employees ให้ลิงก์อัปเดตทันทีหลังบันทึก */}
+                <EmployeeLinks
+                  employee={employees?.find((e) => e.id === selectedEmployee.id) || selectedEmployee}
+                  options={linkChoices} save={saveLinks} />
 
                 {/* ความเคลื่อนไหวล่าสุด — ไม่ต้องสลับแท็บก็เห็นว่าเพิ่งเกิดอะไรขึ้น */}
                 <section className="overflow-hidden rounded-2xl border border-stone-200/60 bg-white">

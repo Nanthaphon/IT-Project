@@ -56,6 +56,13 @@ const repairRequests = [
     issue: 'คีย์บอร์ดปุ่ม F5 หลุด', status: 'ซ่อมเสร็จสิ้น', timestamp: ago(125) },
 ];
 
+/* ลิงก์ที่ตั้งไว้ในเมนู "ตัวเลือกฟิลด์" (fieldOptions.links) */
+const LINK_OPTIONS = [
+  { id: 'lo1', name: 'แบบฟอร์มลาออก', url: 'https://forms.office.com/r/resign' },
+  { id: 'lo2', name: 'โฟลเดอร์เอกสารพนักงาน', url: 'https://globesyndicate.sharepoint.com/sites/hr/Shared%20Documents' },
+  { id: 'lo3', name: 'Staff Portal', url: 'https://it-asset.globesyndicate.co.th/staff' },
+];
+
 function Harness() {
   const [emp, setEmp] = useState(EMP);
   const [tab, setTab] = useState('info');
@@ -88,6 +95,8 @@ function Harness() {
         openEditEmpModal={() => console.log('edit')}
         handleCheckin={() => {}} setReturnModal={() => {}}
         setSelectedAssetDetail={() => {}} setSelectedAssetCategory={() => {}}
+        linkOptions={LINK_OPTIONS}
+        saveLinks={async (links) => setEmp((e) => ({ ...e, links }))}
       />
       </div>
     </div>

@@ -3209,6 +3209,7 @@ function App() {
                     asPage
                     onClosePage={() => navigate('/employees')}
                     selectedEmployee={routeEmp}
+                    linkOptions={fieldOptions.links || []}
                     setSelectedEmployee={setSelectedEmployee}
                     empModalTab={empModalTab} setEmpModalTab={setEmpModalTab}
                     assets={assets} licenses={licenses} accessories={accessories}

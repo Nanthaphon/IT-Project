@@ -16,11 +16,26 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
           <Trash2 className="h-7 w-7" strokeWidth={2} />
         </div>
         <h3 className="text-[19px] font-medium text-stone-900 mb-2 tracking-tight">ยืนยันการลบข้อมูล?</h3>
-        <p className="text-sm text-stone-500 mb-7 leading-relaxed">
-          คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
-          <br />
-          <span className="text-rose-600 font-medium">การกระทำนี้ไม่สามารถย้อนกลับได้</span>
-        </p>
+        {/* ส่ง itemName / heldCount / softDelete มาด้วยได้ (ปุ่มลบในหน้ารายละเอียดพนักงาน) — ไม่ส่งก็เป็นข้อความเดิม */}
+        {confirmDeleteModal.itemName ? (
+          <div className="text-sm text-stone-500 mb-7 leading-relaxed space-y-2">
+            <p>ลบ <span className="font-medium text-stone-800">{confirmDeleteModal.itemName}</span> ออกจากระบบ?</p>
+            {confirmDeleteModal.heldCount > 0 && (
+              <p className="rounded-lg bg-ochre-50 px-3 py-2 text-[13px] text-ochre-700">
+                ถือครองอยู่ {confirmDeleteModal.heldCount} รายการ — จะถูกคืนเข้าคลังอัตโนมัติ
+              </p>
+            )}
+            {confirmDeleteModal.softDelete && (
+              <p className="text-[13px] text-stone-400">ย้ายไปถังขยะ กู้คืนได้ภายหลัง แต่ของที่ถือครองจะไม่กลับมาผูกเอง</p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-stone-500 mb-7 leading-relaxed">
+            คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
+            <br />
+            <span className="text-rose-600 font-medium">การกระทำนี้ไม่สามารถย้อนกลับได้</span>
+          </p>
+        )}
         <div className="flex gap-2.5">
           <button
             onClick={close}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Hash, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Unlock, X } from 'lucide-react';
+import { Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Hash, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Trash2, Unlock, X } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
@@ -45,6 +45,7 @@ export default function EmployeeDetailsModal({
   linkOptions,           // fieldOptions.links — ลิงก์ที่ตั้งไว้ในเมนู "ตัวเลือกฟิลด์"
   saveLinks,             // (optional) แทนการเขียน Firestore — ใช้ในหน้า preview
   fieldOptions, employees, // โหมด modal (ผ่าน ModalsContainer) ได้ props ทั้งก้อน ใช้แทนสองตัวบน
+  onDelete,              // (emp, { heldCount }) => เปิดหน้าต่างยืนยันลบ · ไม่ส่งมา = ไม่มีปุ่มลบ
 }) {
   const linkChoices = linkOptions || fieldOptions?.links || [];
   const [historyFilter, setHistoryFilter] = useState('all');
@@ -282,6 +283,13 @@ export default function EmployeeDetailsModal({
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
+              {/* ลบ — ใช้ขั้นตอนเดียวกับหน้ารายการ (ย้ายไปถังขยะ + คืนของที่ถือเข้าคลัง) · คนที่ลบแล้วไม่มีปุ่มนี้ */}
+              {!selectedEmployee.deletedAt && onDelete && (
+                <button onClick={() => onDelete(selectedEmployee, { heldCount: allHeld.length })}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">
+                  <Trash2 className="size-4" strokeWidth={2} /> ลบ
+                </button>
+              )}
               {!selectedEmployee.deletedAt && (
                 <button onClick={() => openEditEmpModal(selectedEmployee)}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">

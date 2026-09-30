@@ -7,6 +7,7 @@ import './index.css';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import EmployeeDetailsModal from './components/EmployeeDetailsModal.jsx';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal.jsx';
 
 const EMP = {
   id: 'preview-emp', empId: '1010184',
@@ -75,6 +76,8 @@ function Harness() {
   const [tab, setTab] = useState('info');
   /* สลับดูได้ทั้งโหมดหน้าเต็ม (URL /employees/:id) และ modal เดิม */
   const [asPage, setAsPage] = useState(true);
+  /* ปุ่มลบ → หน้าต่างยืนยันตัวจริง · ยืนยันแล้วปิดหน้า (แทน navigate กลับหน้ารายการ) */
+  const [confirmDel, setConfirmDel] = useState({ isOpen: false });
   return (
     <div className="h-screen bg-sand-50">
       <div className="flex gap-2 border-b border-stone-200/60 bg-white p-2">
@@ -104,7 +107,10 @@ function Harness() {
         setSelectedAssetDetail={() => {}} setSelectedAssetCategory={() => {}}
         linkOptions={LINK_OPTIONS}
         saveLinks={async (links) => setEmp((e) => ({ ...e, links }))}
+        onDelete={(e, { heldCount }) => setConfirmDel({ isOpen: true, id: e.id, collectionName: 'employees', itemName: e.fullName, heldCount, softDelete: true })}
       />
+      <ConfirmDeleteModal confirmDeleteModal={confirmDel} setConfirmDeleteModal={setConfirmDel}
+        executeDelete={() => { setConfirmDel({ isOpen: false }); setEmp(null); }} />
       </div>
     </div>
   );

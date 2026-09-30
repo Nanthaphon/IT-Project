@@ -1343,6 +1343,8 @@ function App() {
       }
       setConfirmDeleteModal({ isOpen: false, id: null, collectionName: null });
       setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]); setSelectedLicenseIds([]);
+      // ลบจากหน้ารายละเอียดพนักงาน → กลับหน้ารายการ (ไม่งั้นจะค้างอยู่หน้าของคนที่เพิ่งลบ)
+      if (collectionName === 'employees' && routeEmployeeId && idsToDelete.includes(routeEmployeeId)) navigate('/employees');
       setCustomAlert({ isOpen: true, title: 'ลบสำเร็จ!', message: 'ลบรายการออกจากระบบเรียบร้อยแล้ว', type: 'success' });
       } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังลบรายการ...');
@@ -3207,6 +3209,10 @@ function App() {
                     onClosePage={() => navigate('/employees')}
                     selectedEmployee={routeEmp}
                     linkOptions={fieldOptions.links || []}
+                    onDelete={(emp, { heldCount }) => setConfirmDeleteModal({
+                      isOpen: true, id: emp.id, collectionName: 'employees',
+                      itemName: emp.fullName, heldCount, softDelete: true,
+                    })}
                     setSelectedEmployee={setSelectedEmployee}
                     empModalTab={empModalTab} setEmpModalTab={setEmpModalTab}
                     assets={assets} licenses={licenses} accessories={accessories}

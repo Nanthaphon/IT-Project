@@ -426,24 +426,29 @@ export default function ITReportPage({
 }) {
   const now = new Date();
 
-  // ── ร่างรายงาน: เก็บ "แยกรายเดือน" ──────────────────────────────
-  // เดิมใช้คีย์เดียวทั้งระบบ ทำให้ (1) ตัวเลขที่แก้เองของเดือนก่อนไหลมาเดือนใหม่
-  // และ (2) หน้าเปิดค้างอยู่ที่เดือนเก่าตลอด เพราะ month/year ถูกกู้จากร่าง
-  const DRAFT_PREFIX = 'it_report_draft';
-  const LEGACY_KEY = 'it_report_draft';   // คีย์เดิม ก่อนแยกรายเดือน
-  const draftKey = (m, y) => `${DRAFT_PREFIX}:${y}-${String(m + 1).padStart(2, '0')}`;
+  // ── ร่างรายงาน: ใช้ "ชุดเดียว" ร่วมทุกเดือน ──────────────────────
+  // ผู้ใช้ย้ำว่าข้อมูล (บริษัท/สถิติ/ฮาร์ดแวร์/ซอฟต์แวร์) เหมือนกันทุกเดือน
+  // ต่างแค่ปัญหา/โปรเจค/วาระ จึงเก็บร่าง "คีย์เดียว" แล้วเอาไปใช้กับทุกเดือน
+  // และเดือนต่อ ๆ ไป — กรอกครั้งเดียว เดือนหน้าค่อยปรับเฉพาะที่เปลี่ยน
+  const SHARED_KEY = 'it_report_shared';
 
-  const readDraft = (m, y) => {
+  // อ่านร่าง: คีย์รวม > ร่างรายเดือน "ล่าสุด" (ของระบบเดิม) > คีย์เดี่ยวเก่าสุด
+  // -> ของที่เคยกรอกไว้เดือนล่าสุดถูกย้ายมาเป็นชุดร่วมอัตโนมัติ ไม่ต้องกรอกใหม่
+  const readDraft = () => {
     const read = (k) => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
-    const own = read(draftKey(m, y));
-    if (own) return own;
-    // ย้ายร่างเก่า (คีย์รวม) มาให้เดือนที่มันระบุไว้ — ข้อมูลเดิมของผู้ใช้ไม่หาย
-    const legacy = read(LEGACY_KEY);
-    if (legacy && legacy.month === m && legacy.year === y) return legacy;
-    return {};
+    const shared = read(SHARED_KEY);
+    if (shared) return shared;
+    let best = null, bestKey = '';
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('it_report_draft:') && k > bestKey) {
+        const v = read(k); if (v) { best = v; bestKey = k; }
+      }
+    }
+    return best || read('it_report_draft') || {};
   };
 
-  // เปิดหน้าที่เดือนปัจจุบันเสมอ (ไม่กู้จากร่าง) — กันรายงานผิดเดือนโดยไม่รู้ตัว
+  // เปิดหน้าที่เดือนปัจจุบันเสมอ (ไม่กู้เดือนจากร่าง) — กันรายงานผิดเดือนโดยไม่รู้ตัว
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear]   = useState(now.getFullYear());
   const [companyName, setCompanyName] = useState(DEFAULT_COMPANY);
@@ -470,9 +475,7 @@ export default function ITReportPage({
   const autoSw = useMemo(() => getSoftwareSummary(licenses), [licenses]);
 
   // ── ตัวเลขที่ผู้ใช้แก้เอง ──────────────────────────────────────
-  // null = ยังไม่เคยแก้ -> ใช้ค่าจากระบบ  ·  มีค่า = ผู้ใช้กำหนดเอง
-  // เก็บเป็น derived state แทน useEffect คอยซิงก์ ทำให้ไม่มีจังหวะที่ค่าระบบ
-  // เขียนทับค่าที่ผู้ใช้เพิ่งแก้ (บั๊กเดิมของโครงแบบ effect)
+  // null = ยังไม่เคยแก้ -> ใช้ค่าจากระบบ  ·  มีค่า = ผู้ใช้กำหนดเอง (ใช้ร่วมทุกเดือน)
   const [statsEdit, setStatsEdit] = useState(null);
   const [hwEdit, setHwEdit]       = useState(null);
   const [swEdit, setSwEdit]       = useState(null);
@@ -481,19 +484,12 @@ export default function ITReportPage({
   const hw    = hwEdit ?? autoHw;
   const sw    = swEdit ?? autoSw;
 
-  /* 🆕 ค่าบนหน้าจอตอนนี้เป็นของร่างเดือนไหน (null = ยังไม่ได้โหลด)
-     ใช้กันไม่ให้ autosave เขียนทับร่างด้วยค่าว่าง
-
-     บั๊กเดิม: ตอน mount เอฟเฟกต์ autosave ทำงานต่อจากเอฟเฟกต์โหลดร่าง "ในคอมมิตเดียวกัน"
-     จึงยังเห็นค่าเริ่มต้น (ว่าง) ของเรนเดอร์แรก แล้วเขียนทับ localStorage ทันที
-     พอ StrictMode รันเอฟเฟกต์ซ้ำรอบสอง เอฟเฟกต์โหลดร่างก็อ่านได้แต่ค่าว่างที่เพิ่งถูกทับ
-     -> ทุกอย่างที่กรอกไว้ (รวมช่องหมายเหตุ) หายทุกครั้งที่เปิดหน้านี้ใหม่
-     กรณีเปลี่ยนเดือนก็กันด้วยตัวเดียวกัน ไม่ให้ข้อมูลเดือนเก่าไหลไปทับคีย์เดือนใหม่ */
-  const [loadedKey, setLoadedKey] = useState(null);
-
-  // โหลดร่างของเดือนที่เลือก (รวมตัวเลขที่เคยแก้เอง) ทุกครั้งที่เปลี่ยนเดือน/ปี
+  /* โหลดร่างชุดร่วม "ครั้งเดียว" ตอนเปิดหน้า — ไม่โหลดใหม่ตอนเปลี่ยนเดือน
+     เพื่อให้ข้อมูลที่กรอกไว้คงอยู่กับทุกเดือน · loaded กัน autosave เขียนทับด้วยค่าว่าง
+     (บั๊กเดิม: autosave รันในคอมมิตเดียวกับโหลด เห็นค่าว่างของเรนเดอร์แรกแล้วทับทิ้ง) */
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    const d = readDraft(month, year);
+    const d = readDraft();
     setCompanyName(d.companyName ?? DEFAULT_COMPANY);
     setBigIssues(d.bigIssues ?? []);
     setRdProjects(d.rdProjects ?? []);
@@ -501,23 +497,21 @@ export default function ITReportPage({
     setStatsEdit(d.stats ?? null);
     setHwEdit(d.hw ?? null);
     setSwEdit(d.sw ?? null);
-    setSaved(false);
-    setLoadedKey(draftKey(month, year));
-  }, [month, year]); // eslint-disable-line
+    setLoaded(true);
+  }, []); // eslint-disable-line
 
-  // ร่างที่จะเขียนลง localStorage — ทุกอย่างที่หน้านี้แก้ได้ ต้องอยู่ในนี้ครบ
+  // ร่างที่จะเขียน — ไม่เก็บ month/year (เปิดที่เดือนปัจจุบันเสมอ) จึงใช้ร่วมได้ทุกเดือน
   const buildDraft = () => ({
-    month, year, companyName, bigIssues, rdProjects, followUps,
+    companyName, bigIssues, rdProjects, followUps,
     stats: statsEdit, hw: hwEdit, sw: swEdit,
   });
 
-  // บันทึกร่างอัตโนมัติ กันข้อมูลหายระหว่างพิมพ์
+  // บันทึกร่างอัตโนมัติ กันข้อมูลหายระหว่างพิมพ์ (เริ่มหลังโหลดเสร็จ)
   useEffect(() => {
-    // เขียนเฉพาะเมื่อค่าบนหน้าจอเป็นของเดือนนี้จริง ๆ แล้วเท่านั้น
-    if (loadedKey !== draftKey(month, year)) return;
-    try { localStorage.setItem(draftKey(month, year), JSON.stringify(buildDraft())); }
+    if (!loaded) return;
+    try { localStorage.setItem(SHARED_KEY, JSON.stringify(buildDraft())); }
     catch { /* ข้าม */ }
-  }, [loadedKey, month, year, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit]); // eslint-disable-line
+  }, [loaded, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit]); // eslint-disable-line
 
   const reportDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -555,17 +549,17 @@ export default function ITReportPage({
 
   const handleSave = () => {
     try {
-      localStorage.setItem(draftKey(month, year), JSON.stringify(buildDraft()));
+      localStorage.setItem(SHARED_KEY, JSON.stringify(buildDraft()));
       setSaved(true);
       setTimeout(() => setSaved(false), 2200);
     } catch { alert('บันทึกไม่สำเร็จ — พื้นที่จัดเก็บเต็ม'); }
   };
 
   const clearDraft = () => {
-    if (!window.confirm('ล้างข้อมูลที่กรอกของเดือนนี้ทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง) ใช่หรือไม่?')) return;
+    if (!window.confirm('ล้างข้อมูลที่กรอกทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง) ใช่หรือไม่?')) return;
     setBigIssues([]); setRdProjects([]); setFollowUps([]);
     setStatsEdit(null); setHwEdit(null); setSwEdit(null);
-    try { localStorage.removeItem(draftKey(month, year)); } catch {}
+    try { localStorage.removeItem(SHARED_KEY); } catch {}
   };
 
   return (
@@ -691,8 +685,9 @@ export default function ITReportPage({
           </PanelCard>
         </div>
 
-        <div className="flex items-center justify-end px-1">
-          <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors">
+        <div className="flex items-center justify-between gap-3 px-1">
+          <p className="text-xs text-stone-400">ข้อมูลที่กรอกถูกจำไว้ใช้กับทุกเดือน — เดือนหน้าปรับเฉพาะปัญหา/โปรเจค</p>
+          <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors shrink-0">
             ล้างข้อมูลที่กรอก
           </button>
         </div>

@@ -177,10 +177,10 @@ export default function AssetDetailsModal({
      licenses ใช้มุมมองอีกแบบ (สิทธิ์เคยอยู่กับใคร/เครื่องไหน) */
   const isLicense = selectedAssetCategory === 'licenses';
   const isAccessory = selectedAssetCategory === 'accessories';
-  // ครุภัณฑ์สำนักงาน = assets ที่ assetGroup เป็น office (ใช้หน้าเดียวกับทรัพย์สิน)
-  const isFurniture = selectedAssetCategory === 'assets' && currentAssetDetail?.assetGroup === 'office';
+  // ทรัพย์สินหลัก + ครุภัณฑ์สำนักงาน (assetGroup office) ใช้หน้าเดียวกัน — จัด layout แบบเดียวกัน
+  const isAssetCat = selectedAssetCategory === 'assets';
   // จัดแท็บข้อมูลทั่วไปเป็น 2 คอลัมน์บนจอกว้าง: list = ข้อมูลแคบซ้าย+รายการขวา · gallery = ข้อมูลกว้างซ้าย+รูปแคบขวา
-  const infoLayout = (isLicense || isAccessory) ? 'list' : isFurniture ? 'gallery' : null;
+  const infoLayout = (isLicense || isAccessory) ? 'list' : isAssetCat ? 'gallery' : null;
   const timelineEvents = currentAssetDetail
     ? (isLicense
         ? buildLicenseTimeline(currentAssetDetail, transactions, employees)
@@ -1554,8 +1554,7 @@ export default function AssetDetailsModal({
 
           {/* TAB: ข้อมูลทั่วไป
               License / อุปกรณ์เสริม: จอกว้างจัด 2 คอลัมน์ (ข้อมูลจำเพาะแคบซ้าย · รายการสิทธิ์/ชิ้นย่อยขวา)
-              ครุภัณฑ์: สรุปเต็มแถวด้านบน · ข้อมูลจำเพาะซ้าย · รูปภาพประกอบแคบขวา
-              ทรัพย์สินหลักยังเรียงเต็มความกว้างตามเดิม */}
+              ทรัพย์สิน / ครุภัณฑ์: ผู้ครอบครอง + สรุปเต็มแถวด้านบน · ข้อมูลจำเพาะซ้าย · รูปภาพประกอบแคบขวา */}
           {activeTab === 'info' && (
             <div className={`animate-in fade-in duration-200 ${infoLayout === 'list'
               ? 'space-y-4 xl:space-y-0 xl:grid xl:grid-cols-[380px_minmax(0,1fr)] xl:gap-4 xl:items-start'
@@ -1624,7 +1623,7 @@ export default function AssetDetailsModal({
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
                   <h4 className="text-[13px] font-medium text-stone-600">ข้อมูลจำเพาะ</h4>
                 </div>
-                <div className={`p-5 grid gap-x-4 gap-y-4 ${infoLayout === 'list' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-1' : isFurniture ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
+                <div className={`p-5 grid gap-x-4 gap-y-4 ${infoLayout === 'list' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-1' : isAssetCat ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
                   {selectedAssetCategory === 'licenses' ? (
                     <>
                       <div className="col-span-full"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
@@ -1748,7 +1747,7 @@ export default function AssetDetailsModal({
                         <p className="text-[13px] font-medium text-stone-500">ยังไม่มีรูปในคลัง</p>
                       </div>
                     ) : (
-                      <div className={`grid gap-2 ${isFurniture ? 'grid-cols-3 sm:grid-cols-4 xl:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'}`}>
+                      <div className={`grid gap-2 ${isAssetCat ? 'grid-cols-3 sm:grid-cols-4 xl:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'}`}>
                         {gallery.map((src, idx) => (
                           <div key={idx} className="relative group rounded-xl overflow-hidden border border-stone-200/60 aspect-square bg-stone-50">
                             <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />

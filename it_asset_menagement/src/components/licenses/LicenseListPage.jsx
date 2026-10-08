@@ -18,6 +18,21 @@ const used = (l) => l.assignees?.length || 0;
 const total = (l) => Number(l.quantity) || 0;
 const available = (l) => Math.max(0, total(l) - used(l));
 
+/* วันหมดอายุทั้งหมดของ License — ระดับ License + รายสิทธิ์ (seat) ทุกใบ
+   ตรงกับชุดวันที่ที่ตัวกรอง "วันหมดอายุ" และตรา badge ใน sidebar ใช้ */
+const allExpDates = (l) => [
+  l.expirationDate,
+  ...(l.availableSeatExpirationDates || []),
+  ...((l.assignees || []).map(a => a.seatExpirationDate)),
+].filter(Boolean);
+
+/* วันที่ใกล้หมดอายุที่สุด (ของ License หรือของ seat ใดก็ได้) — ใช้โชว์เตือนบนหน้ารายการ */
+const nearestExpiry = (l) => {
+  const ds = allExpDates(l);
+  if (ds.length === 0) return null;
+  return ds.reduce((min, d) => (new Date(d) < new Date(min) ? d : min));
+};
+
 const OPTIONAL_COLUMNS = [
   { key: 'productKey', label: 'Product Key', render: l => <Clamp width={220}>{l.productKey || l.keyCode}</Clamp> },
   { key: 'supplier', label: 'Supplier', render: l => <Clamp width={160}>{l.supplier}</Clamp> },
@@ -51,14 +66,24 @@ const buildColumns = (checkExpiration) => [
   },
   {
     key: 'expiration', label: 'วันหมดอายุ', width: 'w-44',
+    /* ดูวันใกล้หมดอายุที่สุดของทั้ง License + รายสิทธิ์ (seat)
+       เดิมดูแค่ระดับ License ทำให้ใบที่หมดอายุเป็นรายคน (เช่น Sketchup Pro)
+       ไม่ขึ้นเตือนบนหน้ารายการ */
     render: (l) => {
-      if (!l.expirationDate) return <span className={text.faint}>—</span>;
-      const ex = checkExpiration?.(l.expirationDate);
+      const near = nearestExpiry(l);
+      if (!near) return <span className={text.faint}>—</span>;
+      const ex = checkExpiration?.(near);
+      const perSeat = near !== l.expirationDate;   // วันที่ใกล้สุดมาจาก seat ไม่ใช่ระดับ License
       return (
         <div className="whitespace-nowrap">
-          <p className="text-sm text-stone-600">{formatDateShort(l.expirationDate)}</p>
+          <p className="text-sm text-stone-600">
+            {formatDateShort(near)}
+            {perSeat && <span className={`ml-1 ${text.faint}`}>· รายสิทธิ์</span>}
+          </p>
           {ex?.statusText && (
-            <p className="mt-0.5 text-[13px] font-medium text-clay-600">{ex.statusText}</p>
+            <p className={`mt-0.5 text-[13px] font-medium ${ex.colorClass?.includes('rose') ? 'text-rose-700' : 'text-clay-600'}`}>
+              {ex.statusText}
+            </p>
           )}
         </div>
       );

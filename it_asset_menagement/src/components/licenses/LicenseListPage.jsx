@@ -66,26 +66,20 @@ const buildColumns = (checkExpiration) => [
   },
   {
     key: 'expiration', label: 'วันหมดอายุ', width: 'w-44',
-    /* ดูวันใกล้หมดอายุที่สุดของทั้ง License + รายสิทธิ์ (seat)
-       เดิมดูแค่ระดับ License ทำให้ใบที่หมดอายุเป็นรายคน (เช่น Sketchup Pro)
-       ไม่ขึ้นเตือนบนหน้ารายการ */
+    /* หน้ารายการโชว์แค่สถานะ "หมดอายุแล้ว" / "ใกล้หมดอายุ" ไว้สะดุดตา
+       (รายละเอียดวัน/รายสิทธิ์ เข้าไปดูในหน้า License อีกที)
+       ดูวันใกล้สุดของทั้งระดับ License + รายสิทธิ์ (seat) — ถ้าไม่ระบุวันเลยไม่โชว์อะไร */
     render: (l) => {
       const near = nearestExpiry(l);
       if (!near) return <span className={text.faint}>—</span>;
       const ex = checkExpiration?.(near);
-      const perSeat = near !== l.expirationDate;   // วันที่ใกล้สุดมาจาก seat ไม่ใช่ระดับ License
+      if (!ex?.isExpiring) return <span className={text.faint}>—</span>;   // มีวันแต่ยังไม่ใกล้/หมด → ไม่โชว์สถานะ
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      const expired = new Date(near) < t;
       return (
-        <div className="whitespace-nowrap">
-          <p className="text-sm text-stone-600">
-            {formatDateShort(near)}
-            {perSeat && <span className={`ml-1 ${text.faint}`}>· รายสิทธิ์</span>}
-          </p>
-          {ex?.statusText && (
-            <p className={`mt-0.5 text-[13px] font-medium ${ex.colorClass?.includes('rose') ? 'text-rose-700' : 'text-clay-600'}`}>
-              {ex.statusText}
-            </p>
-          )}
-        </div>
+        <span className={`inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium ${expired ? 'bg-rose-50 text-rose-700' : 'bg-ochre-50 text-ochre-700'}`}>
+          {expired ? 'หมดอายุแล้ว' : 'ใกล้หมดอายุ'}
+        </span>
       );
     },
   },

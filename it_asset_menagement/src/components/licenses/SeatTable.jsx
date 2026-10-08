@@ -65,7 +65,9 @@ function StatusChip({ status }) {
 function ExpiryCell({ seat, licenseExpiry, expiring, fmt }) {
   const own = seat.seatExpirationDate;
   if (!own) {
-    return <span className="text-stone-300" title={licenseExpiry ? `ใช้วันของ License: ${fmt(licenseExpiry)}` : ''}>ตามสัญญาหลัก</span>;
+    // ไม่ระบุวันเลย (ทั้ง seat และ License) → ไม่ต้องแสดงอะไร
+    if (!licenseExpiry) return <span className="text-stone-300">—</span>;
+    return <span className="text-stone-300" title={`ใช้วันของ License: ${fmt(licenseExpiry)}`}>ตามสัญญาหลัก</span>;
   }
   return (
     <span className={expiring?.isExpiring ? 'font-medium text-ochre-700' : ''}>

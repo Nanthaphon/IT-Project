@@ -1311,7 +1311,7 @@ export default function AssetDetailsModal({
     const pct = t ? Math.round((u / t) * 100) : 0;
     const tone = left === 0 ? 'bg-brick-500' : pct >= 80 ? 'bg-ochre-500' : 'bg-olive-500';
     return (
-      <div className="col-span-2 md:col-span-4">
+      <div className="col-span-full">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-[11px] font-medium text-stone-400">การใช้งาน</p>
@@ -1547,9 +1547,13 @@ export default function AssetDetailsModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto scrollbar-hide p-6 bg-stone-50">
 
-          {/* TAB: ข้อมูลทั่วไป */}
+          {/* TAB: ข้อมูลทั่วไป
+              License: จอกว้างจัด 2 คอลัมน์ (ข้อมูลจำเพาะซ้าย · รายการสิทธิ์ขวา) ลดความยาวหน้า
+              หมวดอื่นยังเรียงเต็มความกว้างตามเดิม */}
           {activeTab === 'info' && (
-            <div className="space-y-4 animate-in fade-in duration-200">
+            <div className={`animate-in fade-in duration-200 ${isLicense
+              ? 'space-y-4 xl:space-y-0 xl:grid xl:grid-cols-[380px_minmax(0,1fr)] xl:gap-4 xl:items-start'
+              : 'space-y-4'}`}>
 
               {/* Assignee banner — soft (v2) */}
               {selectedAssetCategory === 'assets' && currentAssetDetail.assignedName && (
@@ -1612,10 +1616,10 @@ export default function AssetDetailsModal({
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
                   <h4 className="text-[13px] font-medium text-stone-600">ข้อมูลจำเพาะ</h4>
                 </div>
-                <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
+                <div className={`p-5 grid gap-x-4 gap-y-4 ${isLicense ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-1' : 'grid-cols-2 md:grid-cols-4'}`}>
                   {selectedAssetCategory === 'licenses' ? (
                     <>
-                      <div className="col-span-2 md:col-span-4"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
+                      <div className="col-span-full"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
                       <UsageBar
                         used={currentAssetDetail.assignees?.length || 0}
                         total={currentAssetDetail.quantity || 0}
@@ -1628,7 +1632,7 @@ export default function AssetDetailsModal({
                       <DetailItem label="ราคา (บาท)" value={currentAssetDetail.cost ? `฿${Number(currentAssetDetail.cost).toLocaleString()}` : '-'} />
                       {/* 🆕 หมายเหตุ — ใช้บันทึกข้อมูลเพิ่มเติม */}
                       {currentAssetDetail.note && (
-                        <div className="col-span-2 md:col-span-4">
+                        <div className="col-span-full">
                           <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
                             <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
                             <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
@@ -1647,7 +1651,7 @@ export default function AssetDetailsModal({
                       <DetailItem label="อายุการใช้งาน" value={calculateAge(currentAssetDetail.purchaseDate)} />
                       <DetailItem label="วันที่หมด Warranty" value={formatDateShort(currentAssetDetail.warrantyDate)} />
                       {currentAssetDetail.note && (
-                        <div className="col-span-2 md:col-span-4">
+                        <div className="col-span-full">
                           <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
                             <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
                             <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
@@ -1655,7 +1659,7 @@ export default function AssetDetailsModal({
                         </div>
                       )}
                       {currentAssetDetail.remark && (
-                        <div className="col-span-2 md:col-span-4">
+                        <div className="col-span-full">
                           <div className="bg-stone-50/60 border border-stone-200/60 rounded-lg p-3">
                             <p className="text-xs font-medium text-stone-700/80 mb-1">Remark</p>
                             <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.remark}</p>
@@ -1673,7 +1677,7 @@ export default function AssetDetailsModal({
                       <DetailItem label="ผู้จัดจำหน่าย (Vendor)" value={currentAssetDetail.vendor} />
                       <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
                       {currentAssetDetail.note && (
-                        <div className="col-span-2 md:col-span-4">
+                        <div className="col-span-full">
                           <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
                             <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
                             <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
@@ -1690,7 +1694,7 @@ export default function AssetDetailsModal({
                     const label = selectedAssetCategory === 'accessories' ? 'มูลค่ารวม'
                       : selectedAssetCategory === 'licenses' ? 'ราคารวมทั้งหมด' : 'ราคาซื้อ';
                     return (
-                      <div className="col-span-2 flex items-center justify-between border-t border-stone-100 pt-3 md:col-span-4">
+                      <div className="col-span-full flex items-center justify-between border-t border-stone-100 pt-3">
                         <span className="text-[13px] font-medium text-stone-500">{label}</span>
                         <span className="text-[15px] font-medium tabular-nums text-stone-800">฿{total.toLocaleString()}</span>
                       </div>
@@ -1698,7 +1702,7 @@ export default function AssetDetailsModal({
                   })()}
                   {/* 🆕 ราคาปัจจุบัน — เฉพาะ asset */}
                   {selectedAssetCategory === 'assets' && (
-                    <div className="col-span-2 md:col-span-4 pt-2 flex items-center justify-between">
+                    <div className="col-span-full pt-2 flex items-center justify-between">
                       <span className="text-[13px] font-medium text-stone-500 leading-[1.5]">ราคาปัจจุบัน</span>
                       <span className="text-[15px] font-medium text-olive-700">
                         {currentAssetDetail.scrapValue ? `฿${Number(currentAssetDetail.scrapValue).toLocaleString()}` : '-'}

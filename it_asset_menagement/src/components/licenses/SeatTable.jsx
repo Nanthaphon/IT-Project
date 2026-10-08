@@ -14,7 +14,7 @@ const COLS = [
   { key: 'holder', label: 'ผู้ถือครอง',      w: ''          },
   { key: 'key',    label: 'Product Key',    w: 'w-[22%]'   },
   { key: 'date',   label: 'เบิกเมื่อ',       w: 'w-[96px]' },
-  { key: 'exp',    label: 'หมดอายุ',         w: 'w-[96px]' },
+  { key: 'exp',    label: 'หมดอายุ',         w: 'w-[116px]' },   // กว้างพอให้ "ตามสัญญาหลัก" อยู่บรรทัดเดียว (แถวไม่สูงเกิน)
   { key: 'status', label: 'สถานะ',           w: 'w-[118px]' },
 ];
 

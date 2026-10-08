@@ -34,6 +34,28 @@ const ASSET = {
 };
 
 
+/* ครุภัณฑ์สำนักงาน = assets ที่ assetGroup เป็น office — ใช้ตรวจ layout 2 คอลัมน์ */
+const FURNITURE = {
+  id: 'f1', assetGroup: 'office', assetTag: 'FN-0231', name: 'โต๊ะทำงาน L-Shape',
+  model: 'Modern L-160', type: 'โต๊ะ', status: 'พร้อมใช้งาน', company: 'Globe Syndicate',
+  vendor: 'Index Living Mall', cost: 8900, purchaseDate: '2023-05-02',
+  note: 'ชั้น 3 โซนฝ่ายบัญชี', documents: [], items: [], photoGallery: [],
+};
+
+/* อุปกรณ์เสริม — มีชิ้นย่อยว่าง + ชิ้นที่ชำรุด ไว้ตรวจ "รายการชิ้นย่อย" */
+const ACCESSORY = {
+  id: 'c1', name: 'เมาส์ Logitech M171', type: 'เมาส์', vendor: 'JIB Computer',
+  purchaseDate: '2025-01-10', quantity: 6, brokenQuantity: 1, cost: 390,
+  note: 'สำรองไว้ที่ห้อง IT',
+  assignees: [{ empId: 'e1', empName: 'สมชาย ใจดี', department: 'Design Experience', checkoutDate: '18/06/2569' }],
+  availableItems: [
+    { sn: 'LGM-001', model: 'M171', cost: 390, purchaseDate: '2025-01-10' },
+    { sn: 'LGM-002', model: 'M171', cost: 390, purchaseDate: '2025-01-10' },
+    { sn: 'LGM-003', model: 'M171', cost: 390, purchaseDate: '2025-01-10' },
+    { sn: 'LGM-004', model: 'M171', cost: 390, purchaseDate: '2025-01-10' },
+  ],
+};
+
 /* 🆕 ข้อมูลสมมติให้แท็บ "ไทม์ไลน์" มีอะไรแสดง */
 const ago = (d) => new Date(Date.now() - d * 86400000).setHours(10, 24, 0, 0);
 const TIMELINE_TX = [
@@ -110,6 +132,8 @@ function Harness() {
   const showLicense = () => { setDetail(LICENSE_DEMO); setCat('licenses'); };
   const showLong = () => { setDetail(LICENSE_LONG); setCat('licenses'); };
   const showAsset = () => { setDetail(ASSET); setCat('assets'); };
+  const showFurniture = () => { setDetail(FURNITURE); setCat('assets'); };
+  const showAccessory = () => { setDetail(ACCESSORY); setCat('accessories'); };
   if (!detail) {
     return (
       <div className="p-10">
@@ -122,7 +146,9 @@ function Harness() {
   return (
     <>
     <div className="fixed left-4 top-4 z-[200] flex gap-2 rounded-xl border border-stone-200/60 bg-white p-2 shadow-sm">
-      <button onClick={showAsset} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${cat === 'assets' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ทรัพย์สิน</button>
+      <button onClick={showAsset} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id === 'a1' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ทรัพย์สิน</button>
+      <button onClick={showFurniture} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id === 'f1' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ครุภัณฑ์</button>
+      <button onClick={showAccessory} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id === 'c1' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>อุปกรณ์เสริม</button>
       <button onClick={showLicense} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id==='lic-demo' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>License</button>
       <button onClick={showLong} className={`rounded-xl px-3 py-1.5 text-sm font-medium ${detail?.id==='lic-long' ? 'bg-clay-600 text-white' : 'text-stone-600'}`}>ชื่อยาว 2 สิทธิ์</button>
       <span className="mx-1 w-px bg-stone-200" />
@@ -139,8 +165,8 @@ function Harness() {
       setSelectedAssetDetail={setDetail}
       selectedAssetCategory={cat}
       setSelectedAssetCategory={setCat}
-      assets={[ASSET]}
-      accessories={[]}
+      assets={[ASSET, FURNITURE]}
+      accessories={[ACCESSORY]}
       licenses={[]}
       transactions={TIMELINE_TX}
       employees={EMPLOYEES}

@@ -176,6 +176,11 @@ export default function AssetDetailsModal({
   /* 🆕 ไทม์ไลน์ — รวมทุกเหตุการณ์ของรายการนี้เรียงตามเวลา
      licenses ใช้มุมมองอีกแบบ (สิทธิ์เคยอยู่กับใคร/เครื่องไหน) */
   const isLicense = selectedAssetCategory === 'licenses';
+  const isAccessory = selectedAssetCategory === 'accessories';
+  // ครุภัณฑ์สำนักงาน = assets ที่ assetGroup เป็น office (ใช้หน้าเดียวกับทรัพย์สิน)
+  const isFurniture = selectedAssetCategory === 'assets' && currentAssetDetail?.assetGroup === 'office';
+  // จัดแท็บข้อมูลทั่วไปเป็น 2 คอลัมน์บนจอกว้าง: list = ข้อมูลแคบซ้าย+รายการขวา · gallery = ข้อมูลกว้างซ้าย+รูปแคบขวา
+  const infoLayout = (isLicense || isAccessory) ? 'list' : isFurniture ? 'gallery' : null;
   const timelineEvents = currentAssetDetail
     ? (isLicense
         ? buildLicenseTimeline(currentAssetDetail, transactions, employees)
@@ -1548,16 +1553,19 @@ export default function AssetDetailsModal({
         <div className="flex-1 overflow-y-auto scrollbar-hide p-6 bg-stone-50">
 
           {/* TAB: ข้อมูลทั่วไป
-              License: จอกว้างจัด 2 คอลัมน์ (ข้อมูลจำเพาะซ้าย · รายการสิทธิ์ขวา) ลดความยาวหน้า
-              หมวดอื่นยังเรียงเต็มความกว้างตามเดิม */}
+              License / อุปกรณ์เสริม: จอกว้างจัด 2 คอลัมน์ (ข้อมูลจำเพาะแคบซ้าย · รายการสิทธิ์/ชิ้นย่อยขวา)
+              ครุภัณฑ์: สรุปเต็มแถวด้านบน · ข้อมูลจำเพาะซ้าย · รูปภาพประกอบแคบขวา
+              ทรัพย์สินหลักยังเรียงเต็มความกว้างตามเดิม */}
           {activeTab === 'info' && (
-            <div className={`animate-in fade-in duration-200 ${isLicense
+            <div className={`animate-in fade-in duration-200 ${infoLayout === 'list'
               ? 'space-y-4 xl:space-y-0 xl:grid xl:grid-cols-[380px_minmax(0,1fr)] xl:gap-4 xl:items-start'
+              : infoLayout === 'gallery'
+              ? 'space-y-4 xl:space-y-0 xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-4 xl:items-start'
               : 'space-y-4'}`}>
 
               {/* Assignee banner — soft (v2) */}
               {selectedAssetCategory === 'assets' && currentAssetDetail.assignedName && (
-                <div className="rounded-xl bg-stone-50/60 border border-stone-200/70 px-4 py-3.5">
+                <div className="rounded-xl bg-stone-50/60 border border-stone-200/70 px-4 py-3.5 xl:col-span-2">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-full bg-clay-600 text-white font-medium text-[15px] flex items-center justify-center shrink-0">
@@ -1579,7 +1587,7 @@ export default function AssetDetailsModal({
 
               {/* KPI Cards — assets only (v2) */}
               {selectedAssetCategory === 'assets' && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 xl:col-span-2">
                   <div className="bg-white rounded-xl border border-stone-200/70 px-4 py-3.5">
                     <div className="w-9 h-9 rounded-xl bg-stone-50 text-stone-400 flex items-center justify-center mb-2.5">
                       <CircleCheck className="w-[18px] h-[18px]" strokeWidth={2} />
@@ -1616,7 +1624,7 @@ export default function AssetDetailsModal({
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
                   <h4 className="text-[13px] font-medium text-stone-600">ข้อมูลจำเพาะ</h4>
                 </div>
-                <div className={`p-5 grid gap-x-4 gap-y-4 ${isLicense ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-1' : 'grid-cols-2 md:grid-cols-4'}`}>
+                <div className={`p-5 grid gap-x-4 gap-y-4 ${infoLayout === 'list' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-1' : isFurniture ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
                   {selectedAssetCategory === 'licenses' ? (
                     <>
                       <div className="col-span-full"><DetailItem label="Product Key" value={currentAssetDetail.productKey} isMono /></div>
@@ -1740,7 +1748,7 @@ export default function AssetDetailsModal({
                         <p className="text-[13px] font-medium text-stone-500">ยังไม่มีรูปในคลัง</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                      <div className={`grid gap-2 ${isFurniture ? 'grid-cols-3 sm:grid-cols-4 xl:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'}`}>
                         {gallery.map((src, idx) => (
                           <div key={idx} className="relative group rounded-xl overflow-hidden border border-stone-200/60 aspect-square bg-stone-50">
                             <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />

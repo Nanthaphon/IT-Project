@@ -44,87 +44,77 @@ function daysColor(days) {
   return 'Accent';                   // ฟ้า — ยังมีเวลา
 }
 
-// ── สร้าง body สำหรับการ์ดแบบจัดกลุ่มต่อโปรแกรม (License) ──
+// ── สร้าง body สำหรับการ์ด License ใกล้หมดอายุ ──
+// มินิมอล: 1 แถว = 1 สิทธิ์ · ซ้าย = ชื่อโปรแกรม + Product Key · ขวา = อีกกี่วัน + วันหมดอายุ
+// เรียงใกล้หมดสุดไว้บนสุด (ไม่แสดงผู้ถือ/ชื่อรายการย่อย — ดูต่อในระบบได้)
 function buildGroupItems(groups, summary) {
-  const items = [];
-  if (summary) {
-    items.push({
+  const rows = [];
+  groups.forEach(g => (g.items || []).forEach(it => rows.push({ name: g.name || 'License', ...it })));
+  rows.sort((a, b) => Number(a.days) - Number(b.days));
+
+  const seats = (summary && summary.seats) || rows.length;
+  const programs = (summary && summary.programs) || groups.length;
+
+  const items = [
+    {
       type: 'TextBlock',
-      text: `รวม ${summary.programs || groups.length} โปรแกรม · ${summary.seats || 0} สิทธิ์ใกล้หมดอายุ`,
+      text: `${seats} สิทธิ์ จาก ${programs} โปรแกรม จะหมดอายุภายใน 90 วัน`,
       size: 'Small',
-      weight: 'Bolder',
       isSubtle: true,
       wrap: true,
       spacing: 'Small',
-    });
-  }
+    },
+    // หัวคอลัมน์
+    {
+      type: 'ColumnSet',
+      spacing: 'Medium',
+      columns: [
+        { type: 'Column', width: 'stretch', items: [{ type: 'TextBlock', text: 'โปรแกรม / Product Key', size: 'Small', isSubtle: true }] },
+        { type: 'Column', width: 'auto', items: [{ type: 'TextBlock', text: 'หมดอายุ', size: 'Small', isSubtle: true, horizontalAlignment: 'Right' }] },
+      ],
+    },
+  ];
 
   const MAX_ITEMS = 60; // กัน payload ใหญ่เกินไป
-  let rendered = 0;
-  let truncated = 0;
-
-  groups.forEach(g => {
-    const seatItems = [];
-    (g.items || []).forEach(it => {
-      if (rendered >= MAX_ITEMS) { truncated++; return; }
-      rendered++;
-      const sub = [
-        {
-          type: 'TextBlock',
-          text: `🗓 ${String(it.dateText || '-')} · ${daysLabel(it.days)}`,
-          size: 'Small',
-          weight: 'Bolder',
-          color: daysColor(it.days),
-          wrap: true,
-        },
-        {
-          type: 'TextBlock',
-          text: `🔑 ${it.productKey ? String(it.productKey) : '— ไม่มี Product Key'}`,
-          size: 'Small',
-          isSubtle: true,
-          wrap: true,
-          spacing: 'None',
-        },
-      ];
-      if (it.holder) {
-        sub.push({
-          type: 'TextBlock',
-          text: `👤 ${String(it.holder)}`,
-          size: 'Small',
-          isSubtle: true,
-          wrap: true,
-          spacing: 'None',
-        });
-      }
-      if (it.label) {
-        sub.push({
-          type: 'TextBlock',
-          text: `🏷 ${String(it.label)}`,
-          size: 'Small',
-          isSubtle: true,
-          wrap: true,
-          spacing: 'None',
-        });
-      }
-      seatItems.push({ type: 'Container', spacing: 'Small', items: sub });
-    });
-
+  rows.slice(0, MAX_ITEMS).forEach(r => {
     items.push({
-      type: 'Container',
-      spacing: 'Medium',
+      type: 'ColumnSet',
       separator: true,
-      items: [
-        { type: 'TextBlock', text: `📄 ${String(g.name || 'License')}`, weight: 'Bolder', size: 'Medium', wrap: true },
-        { type: 'TextBlock', text: `${g.count || (g.items || []).length} สิทธิ์ใกล้หมดอายุ`, size: 'Small', isSubtle: true, spacing: 'None' },
-        ...seatItems,
+      spacing: 'Small',
+      columns: [
+        {
+          type: 'Column',
+          width: 'stretch',
+          verticalContentAlignment: 'Center',
+          items: [
+            { type: 'TextBlock', text: String(r.name), weight: 'Bolder', wrap: true },
+            {
+              type: 'TextBlock',
+              text: r.productKey ? String(r.productKey) : 'ไม่มี Product Key',
+              size: 'Small',
+              isSubtle: true,
+              wrap: true,
+              spacing: 'None',
+            },
+          ],
+        },
+        {
+          type: 'Column',
+          width: 'auto',
+          verticalContentAlignment: 'Center',
+          items: [
+            { type: 'TextBlock', text: daysLabel(r.days), weight: 'Bolder', color: daysColor(r.days), horizontalAlignment: 'Right' },
+            { type: 'TextBlock', text: String(r.dateText || '-'), size: 'Small', isSubtle: true, horizontalAlignment: 'Right', spacing: 'None' },
+          ],
+        },
       ],
     });
   });
 
-  if (truncated > 0) {
+  if (rows.length > MAX_ITEMS) {
     items.push({
       type: 'TextBlock',
-      text: `… และอีก ${truncated} สิทธิ์`,
+      text: `… และอีก ${rows.length - MAX_ITEMS} สิทธิ์ — ดูทั้งหมดในระบบ`,
       size: 'Small',
       isSubtle: true,
       horizontalAlignment: 'Center',

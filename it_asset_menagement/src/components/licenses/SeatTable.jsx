@@ -10,12 +10,12 @@ import { statusTone } from '../../ui/earth.js';
    จอแคบกว่า md กลับไปเป็นการ์ดเหมือนเดิม (ตารางอ่านไม่ได้บนมือถือ) */
 
 const COLS = [
+  { key: 'status', label: 'สถานะ',           w: 'w-[118px]' },   // หน้าสุด — กวาดตาดูว่าว่าง/ถูกใช้ได้ทันที
   { key: 'seat',   label: '#',              w: 'w-[52px]'  },
   { key: 'holder', label: 'ผู้ถือครอง',      w: ''          },
   { key: 'key',    label: 'Product Key',    w: 'w-[22%]'   },
   { key: 'date',   label: 'เบิกเมื่อ',       w: 'w-[96px]' },
   { key: 'exp',    label: 'หมดอายุ',         w: 'w-[116px]' },   // กว้างพอให้ "ตามสัญญาหลัก" อยู่บรรทัดเดียว (แถวไม่สูงเกิน)
-  { key: 'status', label: 'สถานะ',           w: 'w-[118px]' },
 ];
 
 /** ข้อมูลที่แถวหนึ่งต้องใช้ — รวมตรรกะ 3 แบบ (ว่าง / คนถือ / ผูกเครื่อง) ไว้ที่เดียว */
@@ -102,7 +102,7 @@ export default function SeatTable({
                   {c.label}
                 </th>
               ))}
-              <th className="w-[44px]" />
+              <th className="w-[96px]" />
             </tr>
           </thead>
           <tbody>
@@ -124,6 +124,10 @@ export default function SeatTable({
                       onChange={() => onToggleSelect(seat.id)}
                       className="size-3.5 rounded border-stone-300 text-clay-600"
                     />
+                  </td>
+
+                  <td className="py-3 pr-4">
+                    <StatusChip status={r.status} />
                   </td>
 
                   <td className="py-3 pr-4 text-[13px] tabular-nums text-stone-400 whitespace-nowrap">{r.n}</td>
@@ -158,9 +162,9 @@ export default function SeatTable({
                     <ExpiryCell seat={seat} licenseExpiry={licenseExpiry} expiring={exp} fmt={formatDate} />
                   </td>
 
+                  {/* ท้ายแถว: ปุ่มรับคืน (การกระทำ) + ลูกศร — สถานะย้ายไปหน้าสุดแล้ว */}
                   <td className="py-3 pr-4">
-                    <div className="flex items-center gap-2">
-                      <StatusChip status={r.status} />
+                    <div className="flex items-center justify-end gap-1">
                       {seat.type === 'assigned' && !seat.assignee?.isAssetBound && (
                         <button
                           onClick={(e) => { e.stopPropagation(); onReturn(seat); }}
@@ -169,11 +173,8 @@ export default function SeatTable({
                           รับคืน
                         </button>
                       )}
+                      <ChevronRight className="size-4 shrink-0 text-stone-300" strokeWidth={2} />
                     </div>
-                  </td>
-
-                  <td className="py-3 pr-4 text-right">
-                    <ChevronRight className="inline size-4 text-stone-300" strokeWidth={2} />
                   </td>
                 </tr>
               );

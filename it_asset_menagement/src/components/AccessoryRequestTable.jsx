@@ -14,12 +14,12 @@ const STATUS = {
 /* ─── Request type config ─── */
 const REQUEST_TYPE = {
   pending: { label: 'รอ IT พิจารณา', icon: Clock,       color: '#64757D', bg: '#F2F2F2' },
-  request: { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
+  request: { label: 'เบิก',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
   // legacy aliases
-  new:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
-  add:     { label: 'เบิก / เพิ่ม',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
+  new:     { label: 'เบิก',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
+  add:     { label: 'เบิก',   icon: PlusCircle,  color: '#2B6777', bg: '#DFEAEF' },
   replace: { label: 'ขอเปลี่ยน',      icon: Repeat,      color: '#A87A2C', bg: '#FBF4E6' },
-  borrow:  { label: 'ขอยืม',          icon: RotateCcw,   color: '#225462', bg: '#DFEAEF' },
+  borrow:  { label: 'ยืม',          icon: RotateCcw,   color: '#225462', bg: '#DFEAEF' },
 };
 
 /* ─── Date helpers ───────────────────────────────────────── */
@@ -47,7 +47,9 @@ export default function AccessoryRequestTable({
   const filtered = useMemo(() => {
     return accessoryRequests.filter(r => {
       if (statusFilter !== 'ทั้งหมด' && r.status !== statusFilter) return false;
-      if (typeFilter !== 'ทั้งหมด' && r.requestType !== typeFilter) return false;
+      // "เบิก" รวมค่าเก่าทั้งหมด (new จากฟอร์มพนักงาน · request/add จากการอนุมัติ/ข้อมูลเดิม)
+      const typeKey = ['new', 'add', 'request'].includes(r.requestType) ? 'request' : r.requestType;
+      if (typeFilter !== 'ทั้งหมด' && typeKey !== typeFilter) return false;
       return true;
     });
   }, [accessoryRequests, statusFilter, typeFilter]);
@@ -103,181 +105,194 @@ export default function AccessoryRequestTable({
           >
             <option value="ทั้งหมด">ทุกประเภท</option>
             <option value="pending">รอ IT พิจารณา</option>
-            <option value="request">เบิก / เพิ่ม</option>
+            <option value="request">เบิก</option>
+            <option value="borrow">ยืม</option>
             <option value="replace">ขอเปลี่ยน</option>
-            <option value="borrow">ขอยืม</option>
           </select>
         </div>
       </div>
 
-      {/* ── List — Compact row layout ── */}
+      {/* ── ตาราง — แบ่งคอลัมน์เต็มความกว้าง (เดิมชื่อชิดซ้าย ป้าย/ปุ่มชิดขวา ตรงกลางโล่ง)
+          ใช้ <table> จริง: คอลัมน์สั้นกว้างตามเนื้อหา · "เหตุผล" กินที่ที่เหลือ · จอแคบเลื่อนแนวนอน */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200/60 p-12 text-center">
           <ClipboardList className="h-10 w-10 text-stone-300 mx-auto mb-3" strokeWidth={2} />
           <p className="text-sm font-medium text-stone-500">ไม่มีคำขอ</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_1px_2px_rgba(22,32,36,0.04),0_10px_28px_-16px_rgba(22,32,36,0.12)] overflow-hidden">
-          {pagedRequests.map((req, idx) => {
-            const status = STATUS[req.status] || STATUS['รอดำเนินการ'];
-            const reqType = REQUEST_TYPE[req.requestType] || REQUEST_TYPE.new;
-            const TypeIcon = reqType.icon;
-            const StatusIcon = status.icon;
-            const isPending = req.status === 'รอดำเนินการ';
-            const isExpanded = expandedId === req.id;
-            const acc = accessories.find(a => a.id === req.accessoryId);
-            const hasDetails = req.reason || req.damagePhoto || req.rejectReason ||
-              (req.requestType === 'replace' && req.oldAccessoryName) ||
-              (req.requestType === 'borrow' && req.returnDate);
+        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-x-auto">
+          <table className="w-full min-w-[900px] border-collapse">
+            <thead>
+              <tr className="text-left text-xs font-medium text-stone-400">
+                <th className="py-3 pl-5 pr-4 font-medium">อุปกรณ์</th>
+                <th className="py-3 pr-4 font-medium">ผู้ขอ</th>
+                <th className="py-3 pr-4 font-medium">ประเภท</th>
+                <th className="py-3 pr-4 font-medium w-full">เหตุผล</th>
+                <th className="py-3 pr-4 font-medium">วันที่ขอ</th>
+                <th className="py-3 pr-4 font-medium">สถานะ</th>
+                <th className="py-3 pr-5 font-medium text-right">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedRequests.map((req) => {
+                const status = STATUS[req.status] || STATUS['รอดำเนินการ'];
+                const reqType = REQUEST_TYPE[req.requestType] || REQUEST_TYPE.new;
+                const TypeIcon = reqType.icon;
+                const StatusIcon = status.icon;
+                const isPending = req.status === 'รอดำเนินการ';
+                const isExpanded = expandedId === req.id;
+                const acc = accessories.find(a => a.id === req.accessoryId);
+                // เหตุผล/วันคืน/เหตุผลปฏิเสธ อยู่ในแถวแล้ว — ปุ่มขยายเหลือไว้สำหรับรายละเอียดเสริมเท่านั้น
+                const hasExtra = !!req.damagePhoto || (req.requestType === 'replace' && !!req.oldAccessoryName);
 
-            return (
-              <div
-                key={req.id}
-                className={`${idx > 0 ? 'border-t border-stone-100' : ''} transition-colors ${isExpanded ? 'bg-sand-50' : 'hover:bg-stone-50/40'}`}
-              >
-                {/* Compact row */}
-                <div className="flex items-center gap-3 px-4 py-3">
-                  {/* Status bar (vertical) */}
-                  <div className={`w-1 h-10 rounded-full ${status.bar} shrink-0`} />
+                return (
+                  <React.Fragment key={req.id}>
+                    <tr className={`border-t border-stone-100 align-middle transition-colors ${isExpanded ? 'bg-sand-50' : 'hover:bg-sand-50/60'}`}>
 
-                  {/* Item image */}
-                  {acc?.image ? (
-                    <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-stone-200 shrink-0 bg-stone-50 p-1" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200">
-                      <Package className="h-4 w-4 text-stone-400" strokeWidth={2} />
-                    </div>
-                  )}
-
-                  {/* Main info — flex column */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13px] font-medium text-stone-800 truncate">
-                        {req.empName}
-                        {req.nickname && <span className="text-stone-500 font-medium ml-1">({req.nickname})</span>}
-                      </span>
-                      <span className="text-[11px] text-stone-400 font-mono">#{req.id?.slice(-6)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-xs text-stone-600 truncate">
-                        {req.accessoryName}
-                        <span className="text-stone-400 ml-1">× {req.quantity || 1}</span>
-                      </span>
-                      <span className="text-[11px] text-stone-400">·</span>
-                      <span className="text-[11px] text-stone-400">
-                        {formatDate(req.timestamp)} {formatTime(req.timestamp)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Type badge */}
-                  <span
-                    className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium shrink-0"
-                    style={{ background: reqType.bg, color: reqType.color }}
-                  >
-                    <TypeIcon className="h-3 w-3" strokeWidth={2} />
-                    {reqType.label}
-                  </span>
-
-                  {/* Status badge */}
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${status.badge} shrink-0`}>
-                    <StatusIcon className="h-3 w-3" strokeWidth={2} />
-                    <span className="hidden sm:inline">{req.status}</span>
-                  </span>
-
-                  {/* Expand chevron (if has details) */}
-                  {hasDetails && (
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : req.id)}
-                      className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-xl transition shrink-0"
-                      title={isExpanded ? 'ย่อ' : 'ดูรายละเอียด'}
-                    >
-                      <ChevronDown className="h-4 w-4" strokeWidth={2} />
-                    </button>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {isPending && canEdit ? (
-                      <>
-                        <button
-                          /* คงประเภทที่พนักงานเลือก — ยืมต้องส่งวันคืนต่อ ไม่งั้นอนุมัติแล้วกลายเป็นเบิกถาวร */
-                          onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '',
-                            req.requestType === 'borrow'
-                              ? { requestType: 'borrow', returnDate: req.returnDate || null }
-                              : { requestType: 'request' })}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-olive-600 hover:bg-olive-700 transition-colors"
-                        >
-                          <Check className="h-3.5 w-3.5" strokeWidth={2} />
-                          <span className="hidden sm:inline">อนุมัติ</span>
-                        </button>
-                        <button
-                          onClick={() => openRejectModal(req)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
-                        >
-                          <X className="h-3.5 w-3.5" strokeWidth={2} />
-                          <span className="hidden sm:inline">ปฏิเสธ</span>
-                        </button>
-                      </>
-                    ) : !isPending && canEdit ? (
-                      <button
-                        onClick={() => handleDeleteAccessoryRequest(req.id)}
-                        className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
-                        title="ลบรายการ"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* Expanded details */}
-                {isExpanded && hasDetails && (
-                  <div className="px-4 pb-4 pt-1 space-y-2 border-t border-stone-100 bg-stone-50/40">
-                    {req.requestType === 'replace' && req.oldAccessoryName && (
-                      <div className="p-2.5 rounded-lg bg-white border border-stone-200">
-                        <p className="text-[11px] font-medium text-stone-500 mb-0.5">ของเดิมที่ต้องการเปลี่ยน</p>
-                        <p className="text-xs font-medium text-stone-800">
-                          {req.oldAccessoryName}
-                          {req.oldAccessoryModel && <span className="text-stone-500 font-normal ml-1">(รุ่น: {req.oldAccessoryModel})</span>}
-                        </p>
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-stone-500">
-                          {req.oldPurchaseDate && <span>ซื้อ: {req.oldPurchaseDate}</span>}
-                          {req.oldAge && <span>อายุ: {req.oldAge}</span>}
-                          {req.oldWarranty && <span>{req.oldWarranty}</span>}
+                      {/* อุปกรณ์ */}
+                      <td className="py-3.5 pl-5 pr-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-1 h-10 rounded-full ${status.bar} shrink-0`} />
+                          {acc?.image ? (
+                            <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-stone-200 shrink-0 bg-white p-1" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-sand-100 flex items-center justify-center shrink-0 border border-stone-200">
+                              <Package className="h-4 w-4 text-stone-400" strokeWidth={2} />
+                            </div>
+                          )}
+                          <div className="min-w-0 max-w-[220px]">
+                            <p className="truncate text-[13px] font-medium text-stone-800" title={req.accessoryName}>{req.accessoryName}</p>
+                            <p className="text-[11px] text-stone-400 tabular-nums whitespace-nowrap">× {req.quantity || 1} · #{req.id?.slice(-6)}</p>
+                          </div>
                         </div>
-                      </div>
+                      </td>
+
+                      {/* ผู้ขอ */}
+                      <td className="py-3.5 pr-4">
+                        <div className="max-w-[220px]">
+                          <p className="truncate text-[13px] text-stone-800" title={req.empName}>
+                            {req.empName}{req.nickname && <span className="text-stone-500"> ({req.nickname})</span>}
+                          </p>
+                          {req.department && <p className="truncate text-[11px] text-stone-400">{req.department}</p>}
+                        </div>
+                      </td>
+
+                      {/* ประเภท (+ วันคืนถ้ายืม) */}
+                      <td className="py-3.5 pr-4 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium" style={{ background: reqType.bg, color: reqType.color }}>
+                          <TypeIcon className="h-3 w-3" strokeWidth={2} /> {reqType.label}
+                        </span>
+                        {req.requestType === 'borrow' && req.returnDate && (
+                          <p className="mt-1 flex items-center gap-1 text-[11px] text-stone-500">
+                            <CalendarDays className="h-3 w-3" strokeWidth={2} /> คืน {formatDate(req.returnDate)}
+                          </p>
+                        )}
+                      </td>
+
+                      {/* เหตุผล — กินที่ที่เหลือ */}
+                      <td className="py-3.5 pr-4 min-w-[180px]">
+                        {req.reason
+                          ? <p className="line-clamp-2 text-[13px] text-stone-600" title={req.reason}>{req.reason}</p>
+                          : <span className="text-[13px] text-stone-300">—</span>}
+                        {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
+                          <p className="mt-0.5 line-clamp-2 text-[11px] text-rose-700" title={req.rejectReason}>ปฏิเสธ: {req.rejectReason}</p>
+                        )}
+                      </td>
+
+                      {/* วันที่ขอ */}
+                      <td className="py-3.5 pr-4 whitespace-nowrap text-[13px] tabular-nums text-stone-600">
+                        {formatDate(req.timestamp)}
+                        <p className="text-[11px] text-stone-400">{formatTime(req.timestamp)}</p>
+                      </td>
+
+                      {/* สถานะ */}
+                      <td className="py-3.5 pr-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${status.badge}`}>
+                          <StatusIcon className="h-3 w-3" strokeWidth={2} /> {req.status}
+                        </span>
+                      </td>
+
+                      {/* จัดการ */}
+                      <td className="py-3.5 pr-5">
+                        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                          {hasExtra && (
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : req.id)}
+                              className="w-7 h-7 flex items-center justify-center text-stone-400 hover:bg-stone-100 rounded-lg transition"
+                              title={isExpanded ? 'ย่อ' : 'ดูรายละเอียดเพิ่ม'}
+                              aria-expanded={isExpanded}
+                            >
+                              <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} strokeWidth={2} />
+                            </button>
+                          )}
+                          {isPending && canEdit ? (
+                            <>
+                              <button
+                                /* คงประเภทที่พนักงานเลือก — ยืมต้องส่งวันคืนต่อ ไม่งั้นอนุมัติแล้วกลายเป็นเบิกถาวร */
+                                onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '',
+                                  req.requestType === 'borrow'
+                                    ? { requestType: 'borrow', returnDate: req.returnDate || null }
+                                    : { requestType: 'request' })}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-olive-600 hover:bg-olive-700 transition-colors"
+                              >
+                                <Check className="h-3.5 w-3.5" strokeWidth={2} /> อนุมัติ
+                              </button>
+                              <button
+                                onClick={() => openRejectModal(req)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 bg-white hover:bg-rose-50 border border-stone-200 hover:border-rose-300 transition-colors"
+                              >
+                                <X className="h-3.5 w-3.5" strokeWidth={2} /> ปฏิเสธ
+                              </button>
+                            </>
+                          ) : !isPending && canEdit ? (
+                            <button
+                              onClick={() => handleDeleteAccessoryRequest(req.id)}
+                              className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                              title="ลบรายการ"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* รายละเอียดเสริม (ของเก่าที่ขอเปลี่ยน / รูปชำรุด) */}
+                    {isExpanded && hasExtra && (
+                      <tr className="bg-sand-50">
+                        <td colSpan={7} className="px-5 pb-4 pl-[4.75rem]">
+                          <div className="flex flex-wrap items-start gap-2">
+                            {req.requestType === 'replace' && req.oldAccessoryName && (
+                              <div className="p-2.5 rounded-lg bg-white border border-stone-200">
+                                <p className="text-[11px] font-medium text-stone-500 mb-0.5">ของเดิมที่ต้องการเปลี่ยน</p>
+                                <p className="text-xs font-medium text-stone-800">
+                                  {req.oldAccessoryName}
+                                  {req.oldAccessoryModel && <span className="text-stone-500 font-normal ml-1">(รุ่น: {req.oldAccessoryModel})</span>}
+                                </p>
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-stone-500">
+                                  {req.oldPurchaseDate && <span>ซื้อ: {req.oldPurchaseDate}</span>}
+                                  {req.oldAge && <span>อายุ: {req.oldAge}</span>}
+                                  {req.oldWarranty && <span>{req.oldWarranty}</span>}
+                                </div>
+                              </div>
+                            )}
+                            {req.damagePhoto && (
+                              <button
+                                onClick={() => setPreviewPhoto(req.damagePhoto)}
+                                className="inline-flex items-center gap-1.5 text-xs text-stone-700 hover:text-clay-600 bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
+                              >
+                                <ImageIcon className="h-3 w-3" strokeWidth={2} /> ดูรูปอุปกรณ์ที่ชำรุด
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                    {req.reason && (
-                      <p className="text-xs text-stone-700">
-                        <span className="font-medium text-stone-500">เหตุผล:</span> {req.reason}
-                      </p>
-                    )}
-                    {req.requestType === 'borrow' && req.returnDate && (
-                      <div className="inline-flex items-center gap-1.5 text-xs text-stone-700 bg-white px-2 py-1 rounded-lg border border-stone-200">
-                        <CalendarDays className="h-3 w-3" strokeWidth={2} />
-                        กำหนดคืน: <span className="font-medium">{formatDate(req.returnDate)}</span>
-                      </div>
-                    )}
-                    {req.damagePhoto && (
-                      <button
-                        onClick={() => setPreviewPhoto(req.damagePhoto)}
-                        className="inline-flex items-center gap-1.5 text-xs text-stone-700 hover:text-clay-600 bg-white hover:bg-stone-50 px-2 py-1 rounded-lg border border-stone-200 transition-colors"
-                      >
-                        <ImageIcon className="h-3 w-3" strokeWidth={2} />
-                        ดูรูปอุปกรณ์ที่ชำรุด
-                      </button>
-                    )}
-                    {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
-                      <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">
-                        <span className="font-medium">เหตุผลปฏิเสธ:</span> {req.rejectReason}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 

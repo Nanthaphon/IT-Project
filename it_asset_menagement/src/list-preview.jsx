@@ -35,6 +35,11 @@ const ACCESSORIES = mk(17, i => ({
   assignees: mk(i % 9, () => ({})),
   brokenQuantity: i % 5 === 0 ? 2 : 0,
   requestDisabled: i % 6 === 0,
+  vendor: ['JIB Computer', 'Advice', 'Banana IT'][i % 3],
+  cost: [390, 1290, 4500, 2190, 150][i % 5],
+  purchaseDate: `2025-0${1 + (i % 9)}-15`,
+  warrantyDate: i % 4 === 0 ? '' : `2027-0${1 + (i % 9)}-15`,
+  note: i % 3 === 0 ? 'เก็บที่ห้อง IT ชั้น 3' : '',
 }));
 
 const EMPLOYEES = mk(34, i => ({
@@ -124,6 +129,7 @@ function Harness() {
 
   const [stock, setStock] = useState('ทั้งหมด');
   const [supCols, setSupCols] = useState({ cost: true });
+  const [accCols, setAccCols] = useState({ vendor: true, cost: true });
   const sup = usePaged(SUPPLIES, (all, q) => all.filter(s => !q || match(s.name, q)));
   const tabs = [['licenses', 'License'], ['accessories', 'อุปกรณ์เสริม'], ['employees', 'พนักงาน'], ['supplies', 'อุปกรณ์สำนักงาน'], ['replace', 'ขอเปลี่ยนเครื่อง (รีสกิน)']];
 
@@ -160,6 +166,7 @@ function Harness() {
           rows={acc.rows} totalCount={acc.total} canEdit
           searchTerm={acc.search} onSearchChange={acc.setSearch}
           filterType={acc.filter} onFilterTypeChange={acc.setFilter} typeOptions={ACCESSORY_TYPE_OPTIONS}
+          visibleColumns={accCols} onVisibleColumnsChange={setAccCols}
           page={acc.page} pageSize={PAGE_SIZE} onPageChange={acc.setPage}
           selectedIds={acc.ids} onSelect={acc.toggle} onSelectAll={acc.all} onClearSelection={acc.clear}
           onBulkDelete={() => console.log('ลบอุปกรณ์เสริมที่เลือก', acc.ids.length)}

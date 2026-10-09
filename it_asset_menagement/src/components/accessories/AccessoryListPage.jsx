@@ -1,8 +1,9 @@
 import React from 'react';
 import { Plus, Download, Cable } from 'lucide-react';
 import { text } from '../../ui/earth.js';
-import { CellTitle, Thumb } from '../../ui/earthUI.jsx';
+import { CellTitle, Thumb, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
+import { formatDateShort } from '../../utils/formatDate.js';
 
 /* ════════════════════════════════════════════════════════════════
    หน้ารายการอุปกรณ์เสริม — ธีม v3 · config ของ ListPage
@@ -15,6 +16,16 @@ const total = (a) => Number(a.quantity) || 0;
 const used = (a) => a.assignees?.length || 0;
 const broken = (a) => Number(a.brokenQuantity) || 0;
 const remain = (a) => total(a) - used(a) - broken(a);
+const money = (v) => (Number(v) > 0 ? Number(v).toLocaleString('th-TH') : '');
+
+/* คอลัมน์เสริม — เปิดปิดเองได้จากปุ่ม "คอลัมน์" (ผูกกับ visibleAccessoryColumns ใน App.jsx) */
+const OPTIONAL_COLUMNS = [
+  { key: 'vendor', label: 'ผู้จัดจำหน่าย', render: a => <Clamp width={160}>{a.vendor}</Clamp> },
+  { key: 'cost', label: 'ราคา / ชิ้น', align: 'right', render: a => money(a.cost) },
+  { key: 'purchaseDate', label: 'วันที่ซื้อ', render: a => formatDateShort(a.purchaseDate) },
+  { key: 'warrantyDate', label: 'หมดประกัน', render: a => formatDateShort(a.warrantyDate) },
+  { key: 'note', label: 'หมายเหตุ', render: a => <Clamp width={220}>{a.note}</Clamp> },
+];
 
 const COLUMNS = [
   {
@@ -64,6 +75,7 @@ export default function AccessoryListPage({
   searchTerm, onSearchChange,
   filterType = [], onFilterTypeChange, typeOptions = [],
   page, pageSize, onPageChange,
+  visibleColumns, onVisibleColumnsChange,
   selectedIds = [], onSelect, onSelectAll, onClearSelection, onBulkDelete,
   onAdd, onExportCsv,
   onOpen, onEdit, onCheckout, onDelete,
@@ -76,6 +88,9 @@ export default function AccessoryListPage({
       totalCount={totalCount}
       unit="รายการ"
       columns={COLUMNS}
+      optionalColumns={OPTIONAL_COLUMNS}
+      visibleColumns={visibleColumns}
+      onVisibleColumnsChange={onVisibleColumnsChange}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       searchPlaceholder="ค้นหา ชื่ออุปกรณ์"

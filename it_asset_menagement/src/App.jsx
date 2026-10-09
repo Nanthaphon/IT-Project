@@ -325,6 +325,10 @@ function App() {
     image: true, name: true, productKey: true, supplier: true,
     purchaseDate: false, expirationDate: true, cost: true, quantity: true, status: true,
   }));
+  // คอลัมน์เสริมของเมนูอุปกรณ์เสริม — ค่าเริ่มต้นปิดทั้งหมด (หน้าตาเดิม) เปิดเองจากปุ่ม "คอลัมน์"
+  const [visibleAccessoryColumns, setVisibleAccessoryColumns] = useState(() => loadLS('cols:accessory', {
+    vendor: false, cost: false, purchaseDate: false, warrantyDate: false, note: false,
+  }));
   // คอลัมน์เสริมของเมนูอุปกรณ์สำนักงาน (ธีม v3) — ค่าเริ่มต้นโชว์เฉพาะราคา
   const [visibleOfficeSupplyColumns, setVisibleOfficeSupplyColumns] = useState(() => loadLS('cols:officeSupply', {
     cost: true, vendor: false, purchaseDate: false, note: false,
@@ -439,6 +443,7 @@ function App() {
   useEffect(() => { try { localStorage.setItem('filter:licenseExp',  JSON.stringify(licenseExpFilter)); } catch {} }, [licenseExpFilter]);
   useEffect(() => { try { localStorage.setItem('cols:asset',         JSON.stringify(visibleAssetColumns)); } catch {} }, [visibleAssetColumns]);
   useEffect(() => { try { localStorage.setItem('cols:officeSupply', JSON.stringify(visibleOfficeSupplyColumns)); } catch {} }, [visibleOfficeSupplyColumns]);
+  useEffect(() => { try { localStorage.setItem('cols:accessory',    JSON.stringify(visibleAccessoryColumns)); } catch {} }, [visibleAccessoryColumns]);
   useEffect(() => { try { localStorage.setItem('cols:license',       JSON.stringify(visibleLicenseColumns)); } catch {} }, [visibleLicenseColumns]);
 
   useEffect(() => {
@@ -3547,6 +3552,8 @@ function App() {
               filterType={accFilterType}
               onFilterTypeChange={(v) => { setAccFilterType(v); setTablePage(1); }}
               typeOptions={ACCESSORY_TYPE_OPTIONS}
+              visibleColumns={visibleAccessoryColumns}
+              onVisibleColumnsChange={setVisibleAccessoryColumns}
               selectedIds={selectedAccessoryIds}
               onSelect={(id) => handleSelectAccessory({ target: { checked: !selectedAccessoryIds.includes(id) } }, id)}
               onSelectAll={(on) => handleSelectAllAccessories({ target: { checked: on } })}

@@ -2736,9 +2736,11 @@ function App() {
     else if (activeMenu === 'licenses') {
       baseData = licenses.filter(item => {
         if (!licenseExpFilter || licenseExpFilter.length === 0) return true;
+        // ช่องว่างนับเฉพาะที่ยังว่างจริง (วันของช่องที่จ่ายไปแล้วค้างท้ายอาร์เรย์) — ให้ตรงกับหน้ารายการ/sidebar
+        const availCount = Math.max(0, (Number(item.quantity) || 0) - (item.assignees?.length || 0));
         const dates = [
           item.expirationDate,
-          ...(item.availableSeatExpirationDates || []),
+          ...(item.availableSeatExpirationDates || []).slice(0, availCount),
           ...((item.assignees || []).map(a => a.seatExpirationDate)),
         ].filter(Boolean);
         const today = new Date(); today.setHours(0, 0, 0, 0);

@@ -19,10 +19,11 @@ const total = (l) => Number(l.quantity) || 0;
 const available = (l) => Math.max(0, total(l) - used(l));
 
 /* วันหมดอายุทั้งหมดของ License — ระดับ License + รายสิทธิ์ (seat) ทุกใบ
-   ตรงกับชุดวันที่ที่ตัวกรอง "วันหมดอายุ" และตรา badge ใน sidebar ใช้ */
+   ช่องว่างนับเฉพาะ "ช่องที่ยังว่างจริง" (N ตัวแรก) — ตอนจ่ายสิทธิ์ระบบไม่ได้ตัดวันของช่องที่จ่ายออก
+   จึงมีวันเก่าค้างท้ายอาร์เรย์ ถ้านับหมดจะขึ้น "หมดอายุแล้ว" ทั้งที่ไม่มีสิทธิ์ไหนหมด (ตรงกับตราใน sidebar/Teams) */
 const allExpDates = (l) => [
   l.expirationDate,
-  ...(l.availableSeatExpirationDates || []),
+  ...(l.availableSeatExpirationDates || []).slice(0, available(l)),
   ...((l.assignees || []).map(a => a.seatExpirationDate)),
 ].filter(Boolean);
 

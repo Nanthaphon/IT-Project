@@ -664,9 +664,10 @@ export function getSoftwareSummary(licenses = []) {
     const active = (lic.assignees || []).length;
     const inactive = Math.max(0, stock - active);
     // วันหมดอายุที่ใกล้สุด (parent + per-seat)
+    // ช่องว่างนับเฉพาะที่ยังว่างจริง — วันของช่องที่จ่ายไปแล้วค้างท้ายอาร์เรย์
     const dates = [
       lic.expirationDate,
-      ...(lic.availableSeatExpirationDates || []),
+      ...(lic.availableSeatExpirationDates || []).slice(0, inactive),
       ...((lic.assignees || []).map(a => a.seatExpirationDate)),
     ].filter(Boolean);
     let note = '–';

@@ -888,7 +888,7 @@ function App() {
               ...(payload.oldWarranty ? [{ label: '🛡 สถานะประกัน', value: payload.oldWarranty }] : []),
             ] : []),
             { label: '📝 เหตุผล', value: payload.reason || '-' },
-            ...(payload.returnDate ? [{ label: '📅 กำหนดคืน', value: payload.returnDate }] : []),
+            ...(payload.returnDate ? [{ label: '📅 กำหนดคืน', value: formatDateShort(payload.returnDate) }] : []),
           ];
           const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
             method: 'POST',
@@ -928,7 +928,8 @@ function App() {
       if (newStatus === 'อนุมัติแล้ว') {
         const qty = Number(req.quantity || 1);
         const finalType = approvalMeta.requestType || req.requestType || 'request';
-        const finalReturnDate = approvalMeta.returnDate || null;
+        // ใช้วันคืนที่ IT แก้ (ถ้ามี) ไม่งั้นใช้ที่พนักงานระบุมาตอนขอยืม
+        const finalReturnDate = approvalMeta.returnDate || req.returnDate || null;
         const borrowNote = approvalMeta.borrowNote || '';
 
         // 🆕 resolve employee Firestore doc id จากรหัสพนักงาน

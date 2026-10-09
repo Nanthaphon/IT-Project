@@ -6,6 +6,7 @@ import StaffSetPasswordModal from './StaffSetPasswordModal.jsx';
 import { e, safeUrl } from '../utils/htmlEscape.js';
 import { formatDateShort } from '../utils/formatDate.js';
 import { cleanLinks, linkLabel } from '../utils/links.js';
+import DateField from './DateField.jsx';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -2036,6 +2037,12 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
   const [reason, setReason] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // ประเภทคำขอ: new = เบิก (ใช้ประจำ) · borrow = ยืม (ต้องระบุวันคืน)
+  const [reqType, setReqType] = useState('new');
+  const [returnDate, setReturnDate] = useState('');   // ISO YYYY-MM-DD
+  const todayISO = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
+  const isBorrow = reqType === 'borrow';
+  const returnDateInvalid = isBorrow && (!returnDate || returnDate < todayISO);
 
   const selectedAcc = accessories.find(a => a.id === accessoryId);
   const stockAvailable = selectedAcc
@@ -2055,11 +2062,14 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
 
   const reset = () => {
     setAccessoryId(''); setQuantity(1); setReason(''); setSearchTerm('');
+    setReqType('new'); setReturnDate('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!accessoryId) { alert('กรุณาเลือกอุปกรณ์'); return; }
+    if (isBorrow && !returnDate) { alert('กรุณาระบุวันที่จะคืน'); return; }
+    if (isBorrow && returnDate < todayISO) { alert('วันที่คืนต้องไม่ย้อนหลัง'); return; }
     if (!reason.trim()) { alert('กรุณากรอกเหตุผล'); return; }
     if (stockAvailable < quantity) { alert(`สต็อกไม่พอ (เหลือ ${stockAvailable} ชิ้น)`); return; }
 
@@ -2069,7 +2079,8 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
         accessoryId,
         accessoryName: selectedAcc?.name || '',
         accessoryType: selectedAcc?.type || '',
-        requestType: 'pending',
+        requestType: reqType,                       // 'new' (เบิก) | 'borrow' (ยืม)
+        returnDate: isBorrow ? returnDate : null,   // ISO — หน้า IT แปลงเป็น วว/ดด/ปปปป เอง
         quantity, reason,
       });
       reset();
@@ -2178,7 +2189,15 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-[13px] font-medium text-stone-800 truncate">{req.accessoryName}</p>
                       <span className="text-xs font-medium text-clay-600 tabular-nums">× {req.quantity || 1}</span>
+                      {(req.requestType === 'borrow' || req.requestType === 'new') && (
+                        <span className="rounded-lg bg-sand-100 px-1.5 py-0.5 text-[10px] font-medium text-stone-600">
+                          {req.requestType === 'borrow' ? 'ยืม' : 'เบิก'}
+                        </span>
+                      )}
                     </div>
+                    {req.requestType === 'borrow' && req.returnDate && (
+                      <p className="text-[11px] text-stone-500 mt-1">กำหนดคืน {formatDateShort(req.returnDate)}</p>
+                    )}
                     {req.reason && <p className="text-[11px] text-stone-500 mt-1 line-clamp-2">{req.reason}</p>}
                     {req.status === 'ปฏิเสธคำขอ' && req.rejectReason && (
                       <p className="text-[11px] text-rose-600 mt-1">ปฏิเสธ: {req.rejectReason}</p>
@@ -2202,6 +2221,34 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
           <div className="px-5 py-4 border-b border-stone-100">
             <p className="text-sm font-medium text-stone-800">รายการที่เลือก</p>
+          </div>
+
+          {/* ประเภทคำขอ — เบิก (ใช้ประจำ) / ยืม (ใช้ชั่วคราว ต้องคืน) */}
+          <div className="px-5 pt-4">
+            <div role="radiogroup" aria-label="ประเภทคำขอ" className="grid grid-cols-2 gap-1 rounded-xl bg-sand-100 p-1">
+              {[
+                { key: 'new', label: 'เบิก', hint: 'ใช้ประจำ', icon: Package },
+                { key: 'borrow', label: 'ยืม', hint: 'ใช้ชั่วคราว แล้วคืน', icon: RotateCcw },
+              ].map(({ key, label, hint, icon: Icon }) => {
+                const active = reqType === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setReqType(key)}
+                    className={`flex flex-col items-center rounded-lg px-2 py-2 transition-colors ${
+                      active ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                  >
+                    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium">
+                      <Icon className={`h-3.5 w-3.5 ${active ? 'text-clay-600' : ''}`} strokeWidth={2} /> {label}
+                    </span>
+                    <span className="mt-0.5 text-[11px] text-stone-400">{hint}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {!selectedAcc ? (
@@ -2254,6 +2301,23 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                 </div>
               </div>
 
+              {/* วันที่คืน — เฉพาะยืม */}
+              {isBorrow && (
+                <div>
+                  <label className="block text-xs font-medium text-stone-600 mb-1.5">
+                    วันที่จะคืน <span className="text-rose-500">*</span>
+                  </label>
+                  <DateField
+                    value={returnDate}
+                    onChange={setReturnDate}
+                    inputClassName="w-full bg-white border border-stone-200/60 rounded-xl px-3 py-2 pr-9 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
+                  />
+                  {returnDate && returnDate < todayISO && (
+                    <p className="mt-1 text-[11px] text-rose-600">วันที่คืนต้องไม่ย้อนหลัง</p>
+                  )}
+                </div>
+              )}
+
               {/* Reason */}
               <div>
                 <label className="block text-xs font-medium text-stone-600 mb-1.5">
@@ -2264,7 +2328,9 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                   onChange={(e) => setReason(e.target.value)}
                   rows={4}
                   required
-                  placeholder="เช่น เมาส์ใช้งานไม่ได้ ขอเปลี่ยน / เพิ่งเข้างานใหม่"
+                  placeholder={isBorrow
+                    ? 'เช่น ใช้ประชุมนอกสถานที่ / เครื่องประจำส่งซ่อม'
+                    : 'เช่น เมาส์ใช้งานไม่ได้ ขอเปลี่ยน / เพิ่งเข้างานใหม่'}
                   className="w-full bg-white border border-stone-200/60 rounded-xl px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600 resize-none"
                 />
               </div>
@@ -2274,12 +2340,12 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
           <div className="px-4 py-3 border-t border-stone-100 bg-stone-50/40">
             <button
               type="submit"
-              disabled={isSubmitting || !accessoryId || !reason.trim()}
+              disabled={isSubmitting || !accessoryId || !reason.trim() || returnDateInvalid}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13px] font-medium text-white bg-clay-600 hover:bg-clay-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting
                 ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> กำลังส่ง...</>
-                : 'ส่งคำขอ'
+                : isBorrow ? 'ส่งคำขอยืม' : 'ส่งคำขอเบิก'
               }
             </button>
           </div>

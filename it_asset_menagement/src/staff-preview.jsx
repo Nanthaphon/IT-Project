@@ -37,14 +37,28 @@ const REQS = [
   { id: 'q2', empId: '1010145', supplyName: 'ถ่านไฟฉายอัลคาไลน์ AA', requestedQty: 4, status: 'อนุมัติแล้ว', timestamp: Date.now() - 86400e3 * 3 },
 ];
 
+/* อุปกรณ์เสริมสำหรับแท็บ "ขออุปกรณ์เสริม" (ตัวที่ 2 หมดสต็อก ตัวที่ 3 ปิดเบิก) */
+const ACCESSORIES = [
+  { id: 'c1', name: 'Anitech W227 Wireless', type: 'เมาส์ (Mouse)', quantity: 8, assignees: [], brokenQuantity: 0 },
+  { id: 'c2', name: 'Wise MT-201', type: 'เมาส์ (Mouse)', quantity: 1, assignees: [{}], brokenQuantity: 0 },
+  { id: 'c3', name: 'Logitech K120', type: 'คีย์บอร์ด (Keyboard)', quantity: 5, assignees: [], brokenQuantity: 0, requestDisabled: true },
+  { id: 'c4', name: 'สาย HDMI 2 เมตร', type: 'สายสัญญาณ', quantity: 6, assignees: [], brokenQuantity: 0 },
+];
+
 function Harness() {
   const [staff, setStaff] = useState(STAFF);
   const [supplyRequests, setSupplyRequests] = useState(REQS);
+  const [accessoryRequests, setAccessoryRequests] = useState([]);
+  // จำลองการส่งคำขอ — ต่อท้ายประวัติ + log payload ไว้ตรวจ
+  const submitAccessoryRequest = async (p) => {
+    console.log('accessory request payload', p);
+    setAccessoryRequests((r) => [{ id: 'r' + Date.now(), empId: STAFF.empId, ...p, status: 'รอดำเนินการ', timestamp: Date.now() }, ...r]);
+  };
   /* เปิดแท็บตาม ?tab= — กดปุ่มเมนูให้ (StaffView เก็บแท็บเป็น state ภายใน) */
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get('tab');
     if (!tab) return;
-    const labels = { office_supplies: 'เบิกอุปกรณ์ สนง.', it_repair: 'แจ้งปัญหา IT', my_assets: 'ทรัพย์สินของฉัน' };
+    const labels = { office_supplies: 'เบิกอุปกรณ์ สนง.', it_repair: 'แจ้งปัญหา IT', my_assets: 'ทรัพย์สินของฉัน', accessory_request: 'ขออุปกรณ์เสริม' };
     const t = setTimeout(() => {
       [...document.querySelectorAll('button')].find((b) => b.innerText.trim() === labels[tab])?.click();
     }, 300);
@@ -53,6 +67,8 @@ function Harness() {
   return (
     <StaffView
       currentStaff={staff} setCurrentStaff={setStaff} setAuthRole={() => {}}
+      accessories={ACCESSORIES} accessoryRequests={accessoryRequests}
+      handleStaffSubmitAccessoryRequest={submitAccessoryRequest}
       handleLogout={() => {}}
       staffMustChangePassword={false} setStaffMustChangePassword={() => {}}
       staffRepairForm={{ assetName: '', issue: '' }} setStaffRepairForm={() => {}}

@@ -201,7 +201,11 @@ export default function AccessoryRequestTable({
                     {isPending && canEdit ? (
                       <>
                         <button
-                          onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '', { requestType: 'request' })}
+                          /* คงประเภทที่พนักงานเลือก — ยืมต้องส่งวันคืนต่อ ไม่งั้นอนุมัติแล้วกลายเป็นเบิกถาวร */
+                          onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '',
+                            req.requestType === 'borrow'
+                              ? { requestType: 'borrow', returnDate: req.returnDate || null }
+                              : { requestType: 'request' })}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-olive-600 hover:bg-olive-700 transition-colors"
                         >
                           <Check className="h-3.5 w-3.5" strokeWidth={2} />
@@ -252,7 +256,7 @@ export default function AccessoryRequestTable({
                     {req.requestType === 'borrow' && req.returnDate && (
                       <div className="inline-flex items-center gap-1.5 text-xs text-stone-700 bg-white px-2 py-1 rounded-lg border border-stone-200">
                         <CalendarDays className="h-3 w-3" strokeWidth={2} />
-                        กำหนดคืน: <span className="font-medium">{req.returnDate}</span>
+                        กำหนดคืน: <span className="font-medium">{formatDate(req.returnDate)}</span>
                       </div>
                     )}
                     {req.damagePhoto && (

@@ -756,6 +756,8 @@ export default function AssetDetailsModal({
         it.sn, it.model, it.status, it.assignee?.empName, it.assignee?.department,
       ].filter(Boolean).join(' ').toLowerCase().includes(accSearchQ))
     : individualItems;
+  // เลข "ชิ้นที่ N" = ลำดับในรายการทั้งหมด (ว่าง → ถือ → ชำรุด) ไม่ซ้ำกันข้ามกลุ่ม · ค้นหาแล้วเลขเดิมไม่เปลี่ยน
+  const itemNo = new Map(individualItems.map((it, i) => [it.id, i + 1]));
 
   let totalAccessoriesCost = 0;
   if (selectedAssetCategory === 'accessories') {
@@ -2050,20 +2052,14 @@ export default function AssetDetailsModal({
                                 <span className="truncate text-[13px] font-medium text-stone-800">
                                   {item.type === 'assigned'
                                     ? item.assignee.empName
-                                    : (item.sn || `ชิ้นที่ ${(item.originalIndex ?? 0) + 1}`)}
+                                    : `ชิ้นที่ ${itemNo.get(item.id)}`}
                                 </span>
                                 <span className={`shrink-0 rounded-lg px-2 py-0.5 text-[11px] font-medium ${item.type === 'available' ? 'bg-olive-50 text-olive-700 border-olive-200' : item.type === 'assigned' ? 'bg-stone-50 text-stone-700 border-stone-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{item.status}</span>
                               </div>
-                              {(() => {
-                                const showSn = item.sn && item.type === 'assigned';
-                                if (!showSn && !item.model) return null;
-                                return (
-                                  <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
-                                    {showSn && <span className="font-mono">SN: {item.sn}</span>}
-                                    {item.model && <span className="truncate">{showSn ? '· ' : ''}{item.model}</span>}
-                                  </p>
-                                );
-                              })()}
+                              {/* บรรทัดรอง = Serial Number ทุกแถว (รุ่น/โมเดล ดูได้ในรายละเอียดชิ้น) */}
+                              {item.sn && (
+                                <p className="mt-0.5 truncate font-mono text-[11px] text-stone-400">SN: {item.sn}</p>
+                              )}
                             </div>
                           </div>
 

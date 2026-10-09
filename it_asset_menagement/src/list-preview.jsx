@@ -77,11 +77,12 @@ const DEPTS = ['Design Experience', 'Recruitment & Field Force', 'Business Devel
 
 /* checkLicenseExpiration ตัวย่อ ใช้แค่ในหน้าทดสอบ */
 const checkExpiration = (d) => {
-  if (!d) return null;
+  // คืน isExpiring เหมือน checkLicenseExpiration ตัวจริง — คอลัมน์วันหมดอายุใช้ค่านี้ตัดสินว่าจะโชว์ป้ายไหม
+  if (!d) return { isExpiring: false };
   const days = Math.ceil((new Date(d) - new Date()) / 86400000);
-  if (days < 0) return { statusText: 'หมดอายุแล้ว' };
-  if (days <= 90) return { statusText: `เหลือ ${days} วัน` };
-  return null;
+  if (days < 0) return { isExpiring: true, statusText: 'หมดอายุแล้ว' };
+  if (days <= 90) return { isExpiring: true, statusText: `เหลือ ${days} วัน` };
+  return { isExpiring: false };
 };
 
 function usePaged(all, filterFn) {

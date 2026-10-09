@@ -76,8 +76,11 @@ const buildColumns = (checkExpiration) => [
       if (!ex?.isExpiring) return <span className={text.faint}>—</span>;   // มีวันแต่ยังไม่ใกล้/หมด → ไม่โชว์สถานะ
       const t = new Date(); t.setHours(0, 0, 0, 0);
       const expired = new Date(near) < t;
+      /* ป้ายแดงทั้งคู่ แต่แยกน้ำหนักให้ดูออกในแวบเดียว:
+         ใกล้หมดอายุ = แดงอ่อน (ต้องเตรียมต่ออายุ) · หมดอายุแล้ว = แดงทึบ (เลยกำหนดแล้ว) */
       return (
-        <span className={`inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium ${expired ? 'bg-rose-50 text-rose-700' : 'bg-ochre-50 text-ochre-700'}`}>
+        <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium ${expired ? 'bg-brick-600 text-white' : 'bg-rose-50 text-rose-700'}`}>
+          <span className={`size-1.5 shrink-0 rounded-full ${expired ? 'bg-white' : 'bg-rose-500'}`} />
           {expired ? 'หมดอายุแล้ว' : 'ใกล้หมดอายุ'}
         </span>
       );

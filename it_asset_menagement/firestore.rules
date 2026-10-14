@@ -55,6 +55,14 @@ service cloud.firestore {
     }
 
     /* ══════════════════════════════════════════════════════════
+       it_report — ร่าง IT Monthly Report (ชุดเดียวใช้ร่วมทุกเดือน)
+       admin เท่านั้น · ไม่ใส่ไว้ใน settings/ เพราะ settings อ่านได้สาธารณะ
+       ══════════════════════════════════════════════════════════ */
+    match /it_report/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    /* ══════════════════════════════════════════════════════════
        assets / accessories / licenses / office_supplies
        — ต้อง login (admin, hr, staff); write admin เท่านั้น
        ══════════════════════════════════════════════════════════ */

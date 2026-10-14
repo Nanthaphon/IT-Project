@@ -22,6 +22,27 @@ Object.defineProperty(window, 'localStorage', {
 import './index.css';
 import { createRoot } from 'react-dom/client';
 import ITReportPage from './components/ITReportModal.jsx';
+import { pickDraft } from './utils/reportDraftPick.js';
+
+/* ที่เก็บร่างจำลอง (แทน Firestore it_report/shared) — window.__remote ไว้ตรวจว่าเขียนขึ้นอะไร
+   ?remote=filled เริ่มด้วยร่างในระบบ · ?local=old เริ่มด้วยร่างเก่าในเครื่อง (ทดสอบการย้ายครั้งแรก)
+   ?fail=1 จำลองเขียนขึ้นระบบไม่สำเร็จ */
+const q = new URLSearchParams(location.search);
+window.__remote = q.get('remote') === 'filled'
+  ? { companyName: 'Globe Syndicate (Thailand) Company Limited', bigIssues: [{ issue: 'จากระบบ', raiseBy: 'All', status: '⏳ In Progress', due: '' }], rdProjects: [], followUps: [], stats: null, hw: null, sw: null, exp: null, _savedAt: 1000 }
+  : null;
+window.__remoteWrites = 0;
+if (q.get('local') === 'old') localStorage.setItem('it_report_shared', JSON.stringify({ bigIssues: [{ issue: 'จากเครื่องนี้ (ร่างเก่า)', raiseBy: 'All', status: '⏳ In Progress', due: '' }] }));
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const fakeStore = {
+  async load() {
+    await wait(300);
+    const local = JSON.parse(localStorage.getItem('it_report_shared') || 'null');
+    return pickDraft(local, window.__remote);   // กติกาเดียวกับของจริง
+  },
+  saveLocal(d) { localStorage.setItem('it_report_shared', JSON.stringify(d)); },
+  async saveRemote(d) { await wait(200); if (q.get('fail')) throw new Error('offline'); window.__remote = JSON.parse(JSON.stringify(d)); window.__remoteWrites += 1; },
+};
 
 const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
 const LICENSES = [
@@ -36,6 +57,6 @@ const LICENSES = [
 
 createRoot(document.getElementById('root')).render(
   <div className="min-h-screen bg-sand-50">
-    <ITReportPage licenses={LICENSES} />
+    <ITReportPage licenses={LICENSES} draftStore={fakeStore} />
   </div>,
 );

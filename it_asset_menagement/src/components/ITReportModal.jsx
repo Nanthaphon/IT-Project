@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { generateITReport, getHardwareSummary, getSoftwareSummary, getRepairSummary, getExpirySummary, expiryStatus, EXPIRY_WINDOW_DAYS } from '../utils/generateITReport.js';
-import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package, CalendarClock } from 'lucide-react';
+import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package, CalendarClock, Cloud, CloudOff } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
 import ITReportPreview from './ITReportPreview.jsx';
+import { firestoreDraftStore } from '../utils/reportDraftStore.js';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -413,6 +414,23 @@ function ExpiryChip({ expiry }) {
   );
 }
 
+/* ── สถานะการบันทึกขึ้นระบบ ── */
+function SyncState({ state }) {
+  const map = {
+    loading: { icon: Loader2,  text: 'กำลังโหลดข้อมูล...', cls: 'text-stone-400', spin: true },
+    saving:  { icon: Loader2,  text: 'กำลังบันทึก...',     cls: 'text-stone-400', spin: true },
+    synced:  { icon: Cloud,    text: 'บันทึกในระบบแล้ว',   cls: 'text-olive-700' },
+    offline: { icon: CloudOff, text: 'ยังไม่ขึ้นระบบ — เก็บไว้ในเครื่องนี้', cls: 'text-ochre-700' },
+  };
+  const m = map[state] || map.loading;
+  const Icon = m.icon;
+  return (
+    <span className={`hidden items-center gap-1.5 text-xs font-medium sm:inline-flex ${m.cls}`} aria-live="polite">
+      <Icon className={`h-3.5 w-3.5 ${m.spin ? 'animate-spin' : ''}`} strokeWidth={2} /> {m.text}
+    </span>
+  );
+}
+
 /* ── Count badge ── */
 function CountBadge({ n }) {
   return (
@@ -446,30 +464,14 @@ function PanelCard({ icon: Icon, tint = '#DFEAEF', color = '#2B6777', title, des
 ════════════════════════════════ */
 export default function ITReportPage({
   employees = [], repairRequests = [], assets = [], accessories = [], licenses = [],
+  draftStore = firestoreDraftStore,   // ที่เก็บร่าง — หน้า preview ส่งของจำลองมาแทน
 }) {
   const now = new Date();
 
   // ── ร่างรายงาน: ใช้ "ชุดเดียว" ร่วมทุกเดือน ──────────────────────
   // ผู้ใช้ย้ำว่าข้อมูล (บริษัท/สถิติ/ฮาร์ดแวร์/ซอฟต์แวร์) เหมือนกันทุกเดือน
-  // ต่างแค่ปัญหา/โปรเจค/วาระ จึงเก็บร่าง "คีย์เดียว" แล้วเอาไปใช้กับทุกเดือน
-  // และเดือนต่อ ๆ ไป — กรอกครั้งเดียว เดือนหน้าค่อยปรับเฉพาะที่เปลี่ยน
-  const SHARED_KEY = 'it_report_shared';
-
-  // อ่านร่าง: คีย์รวม > ร่างรายเดือน "ล่าสุด" (ของระบบเดิม) > คีย์เดี่ยวเก่าสุด
-  // -> ของที่เคยกรอกไว้เดือนล่าสุดถูกย้ายมาเป็นชุดร่วมอัตโนมัติ ไม่ต้องกรอกใหม่
-  const readDraft = () => {
-    const read = (k) => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } };
-    const shared = read(SHARED_KEY);
-    if (shared) return shared;
-    let best = null, bestKey = '';
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith('it_report_draft:') && k > bestKey) {
-        const v = read(k); if (v) { best = v; bestKey = k; }
-      }
-    }
-    return best || read('it_report_draft') || {};
-  };
+  // ต่างแค่ปัญหา/โปรเจค/วาระ จึงเก็บร่าง "ชุดเดียว" แล้วเอาไปใช้กับทุกเดือน
+  // เก็บที่ Firestore it_report/shared (ทุกเครื่อง/ทุกโดเมนเห็นชุดเดียวกัน) — ดู utils/reportDraftStore.js
 
   // เปิดหน้าที่เดือนปัจจุบันเสมอ (ไม่กู้เดือนจากร่าง) — กันรายงานผิดเดือนโดยไม่รู้ตัว
   const [month, setMonth] = useState(now.getMonth());
@@ -511,34 +513,79 @@ export default function ITReportPage({
   const exp   = expEdit ?? autoExp;
 
   /* โหลดร่างชุดร่วม "ครั้งเดียว" ตอนเปิดหน้า — ไม่โหลดใหม่ตอนเปลี่ยนเดือน
-     เพื่อให้ข้อมูลที่กรอกไว้คงอยู่กับทุกเดือน · loaded กัน autosave เขียนทับด้วยค่าว่าง
-     (บั๊กเดิม: autosave รันในคอมมิตเดียวกับโหลด เห็นค่าว่างของเรนเดอร์แรกแล้วทับทิ้ง) */
+     loaded กัน autosave เขียนทับด้วยค่าว่างระหว่างรอโหลด
+     (บั๊กเดิม: autosave รันในคอมมิตเดียวกับโหลด เห็นค่าว่างของเรนเดอร์แรกแล้วทับทิ้ง)
+     lastJson = ร่างล่าสุดที่บันทึกแล้ว — autosave เขียนเฉพาะเมื่อมีการแก้จริง
+     (ไม่งั้นแค่เปิดหน้าบนเครื่องใหม่ ร่างว่างจะถูกเขียนทับของจริงใน Firestore) */
   const [loaded, setLoaded] = useState(false);
+  const [sync, setSync] = useState('loading');   // loading | synced | saving | offline
+  const lastJson = useRef('');
+  const pending = useRef(null);                  // ร่างที่รอเขียนขึ้น Firestore
+  const timer = useRef(null);
+
+  const shape = (d = {}) => ({
+    companyName: d.companyName ?? DEFAULT_COMPANY,
+    bigIssues: d.bigIssues ?? [], rdProjects: d.rdProjects ?? [], followUps: d.followUps ?? [],
+    stats: d.stats ?? null, hw: d.hw ?? null, sw: d.sw ?? null, exp: d.exp ?? null,
+  });
+
   useEffect(() => {
-    const d = readDraft();
-    setCompanyName(d.companyName ?? DEFAULT_COMPANY);
-    setBigIssues(d.bigIssues ?? []);
-    setRdProjects(d.rdProjects ?? []);
-    setFollowUps(d.followUps ?? []);
-    setStatsEdit(d.stats ?? null);
-    setHwEdit(d.hw ?? null);
-    setSwEdit(d.sw ?? null);
-    setExpEdit(d.exp ?? null);
-    setLoaded(true);
+    let alive = true;
+    draftStore.load().then(({ draft, pushLocal, error }) => {
+      if (!alive) return;
+      const d = shape(draft || {});
+      setCompanyName(d.companyName);
+      setBigIssues(d.bigIssues); setRdProjects(d.rdProjects); setFollowUps(d.followUps);
+      setStatsEdit(d.stats); setHwEdit(d.hw); setSwEdit(d.sw); setExpEdit(d.exp);
+      lastJson.current = JSON.stringify(d);
+      setLoaded(true);
+      setSync(error ? 'offline' : 'synced');
+      // ร่างในเครื่องใหม่กว่า / ยังไม่เคยขึ้นระบบ (ย้ายจาก localStorage ครั้งแรก) → เขียนขึ้นเลย
+      if (pushLocal && !error) {
+        setSync('saving');
+        draftStore.saveRemote({ ...d, _savedAt: draft._savedAt || Date.now() })
+          .then(() => { if (alive) setSync('synced'); })
+          .catch(() => { if (alive) setSync('offline'); });
+      }
+    });
+    return () => { alive = false; };
   }, []); // eslint-disable-line
 
   // ร่างที่จะเขียน — ไม่เก็บ month/year (เปิดที่เดือนปัจจุบันเสมอ) จึงใช้ร่วมได้ทุกเดือน
-  const buildDraft = () => ({
+  const buildDraft = () => shape({
     companyName, bigIssues, rdProjects, followUps,
     stats: statsEdit, hw: hwEdit, sw: swEdit, exp: expEdit,
   });
 
-  // บันทึกร่างอัตโนมัติ กันข้อมูลหายระหว่างพิมพ์ (เริ่มหลังโหลดเสร็จ)
+  const pushRemote = (draft) => {
+    clearTimeout(timer.current);
+    pending.current = null;
+    setSync('saving');
+    return draftStore.saveRemote(draft)
+      .then(() => { setSync('synced'); return true; })
+      .catch(() => { setSync('offline'); return false; });
+  };
+
+  // บันทึกอัตโนมัติ: ในเครื่องทันที + ขึ้น Firestore หลังหยุดพิมพ์ 1.2 วิ (ไม่เขียนทุกตัวอักษร)
   useEffect(() => {
     if (!loaded) return;
-    try { localStorage.setItem(SHARED_KEY, JSON.stringify(buildDraft())); }
-    catch { /* ข้าม */ }
+    const body = buildDraft();
+    const json = JSON.stringify(body);
+    if (json === lastJson.current) return;
+    lastJson.current = json;
+    const draft = { ...body, _savedAt: Date.now() };
+    draftStore.saveLocal(draft);
+    pending.current = draft;
+    setSync('saving');
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => pushRemote(draft), 1200);
   }, [loaded, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit, expEdit]); // eslint-disable-line
+
+  // ออกจากหน้าระหว่างรอ → เขียนที่ค้างให้เลย (ในเครื่องมี _savedAt ใหม่กว่าเป็นสำรองอยู่แล้ว)
+  useEffect(() => () => {
+    clearTimeout(timer.current);
+    if (pending.current) draftStore.saveRemote(pending.current).catch(() => {});
+  }, []); // eslint-disable-line
 
   const reportDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -575,19 +622,21 @@ export default function ITReportPage({
     }
   };
 
-  const handleSave = () => {
-    try {
-      localStorage.setItem(SHARED_KEY, JSON.stringify(buildDraft()));
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2200);
-    } catch { alert('บันทึกไม่สำเร็จ — พื้นที่จัดเก็บเต็ม'); }
+  const handleSave = async () => {
+    const body = buildDraft();
+    lastJson.current = JSON.stringify(body);
+    const draft = { ...body, _savedAt: Date.now() };
+    draftStore.saveLocal(draft);
+    const ok = await pushRemote(draft);
+    if (!ok) { alert('บันทึกขึ้นระบบไม่สำเร็จ — เก็บไว้ในเครื่องนี้ก่อน จะลองใหม่เมื่อแก้ไขครั้งถัดไป'); return; }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2200);
   };
 
   const clearDraft = () => {
     if (!window.confirm('ล้างข้อมูลที่กรอกทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง) ใช่หรือไม่?')) return;
     setBigIssues([]); setRdProjects([]); setFollowUps([]);
     setStatsEdit(null); setHwEdit(null); setSwEdit(null); setExpEdit(null);
-    try { localStorage.removeItem(SHARED_KEY); } catch {}
   };
 
   return (
@@ -604,6 +653,7 @@ export default function ITReportPage({
           </div>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
+          <SyncState state={sync} />
           <button
             onClick={handleSave}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors ${saved ? 'bg-olive-50 border-olive-200 text-olive-700' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-stone-300'}`}
@@ -732,7 +782,7 @@ export default function ITReportPage({
         </div>
 
         <div className="flex items-center justify-between gap-3 px-1">
-          <p className="text-xs text-stone-400">ข้อมูลที่กรอกถูกจำไว้ใช้กับทุกเดือน — เดือนหน้าปรับเฉพาะปัญหา/โปรเจค</p>
+          <p className="text-xs text-stone-400">ข้อมูลที่กรอกบันทึกในระบบอัตโนมัติ ใช้ร่วมทุกเดือนและทุกเครื่อง — เดือนหน้าปรับเฉพาะปัญหา/โปรเจค</p>
           <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors shrink-0">
             ล้างข้อมูลที่กรอก
           </button>

@@ -244,6 +244,9 @@ api/                         Vercel Functions (staff auth, Teams notify)
   (`components/employees/EmployeeLinks.jsx` → `employees/{id}.links` = `[{ label, url, id?, optionId? }]` เก็บสำเนา label/url ลบตัวเลือกทิ้งภายหลังลิงก์ของคนเดิมยังอยู่)
   ⚠️ **ฟิลด์เดียวกับที่พนักงานเพิ่มเองในหน้า "ข้อมูลของฉัน" และฟอร์มแก้ไขพนักงาน** — ชื่อต้องอยู่ที่ `label` · บันทึกผ่าน `cleanLinks()` เสมอ (ไม่งั้น optionId หลุด)
   ⚠️ `handleSaveFieldOptions` ใช้ `setDoc` ทับทั้งเอกสาร — เพิ่ม key ใหม่ใน fieldOptions ต้องใส่ใน state `local` ของ `DropdownOptionsManager` ด้วย ไม่งั้นกดบันทึกแล้วหาย
+- **ร่าง IT Monthly Report เก็บที่ Firestore `it_report/shared`** (admin เท่านั้น — rules แยกจาก settings/ ที่อ่านได้สาธารณะ)
+  localStorage เป็นแค่สำรอง/ย้ายครั้งแรก · กติกาเลือกร่างอยู่ที่ `utils/reportDraftPick.js` (มีเทสต์) — **ร่างว่างของเครื่องใหม่ห้ามเขียนทับของจริง**
+  autosave เขียนเฉพาะเมื่อแก้จริง (เทียบกับ lastJson) และหน่วง 1.2 วิ ไม่เขียนทุกตัวอักษร
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 

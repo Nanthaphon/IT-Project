@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { generateITReport, getHardwareSummary, getSoftwareSummary, getRepairSummary, getExpirySummary, expiryStatus, EXPIRY_WINDOW_DAYS } from '../utils/generateITReport.js';
 import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package, CalendarClock, Cloud, CloudOff } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
@@ -31,6 +31,56 @@ function TableRow({ children }) {
   return <div className="grid gap-2 items-start">{children}</div>;
 }
 
+/* ── ช่องข้อความที่สูงตามเนื้อหาเสมอ (ไม่มีแถบเลื่อนในช่อง) ──────────
+   เดิม textarea สูง 2 บรรทัดตายตัว ข้อความยาวต้องเลื่อนในช่องเล็ก ๆ
+   และชื่อโปรเจค / หมายเหตุเป็น input บรรทัดเดียว พิมพ์ยาวแล้วตัวท้ายถูกซ่อน
+   ตัวนี้ตัดคำลงบรรทัดใหม่แล้วยืดความสูงตามจริง · ความกว้างการ์ดเปลี่ยน (ย่อ/ขยายจอ) ก็คำนวณใหม่ */
+function AutoTextarea({ value, onChange, className = '', minRows = 1, ...rest }) {
+  const ref = useRef(null);
+  const fit = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    // box-sizing: border-box → scrollHeight ไม่รวมขอบบน/ล่าง 1px
+    el.style.height = `${el.scrollHeight + 2}px`;
+  };
+  useLayoutEffect(fit, [value]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    let w = el.clientWidth;
+    const ro = new ResizeObserver(() => { if (el.clientWidth !== w) { w = el.clientWidth; fit(); } });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <textarea
+      ref={ref} rows={minRows} value={value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${className} block resize-none overflow-hidden leading-[22px]`}
+      {...rest}
+    />
+  );
+}
+
+/* Status + Due — แถวของตัวเอง 2 คอลัมน์ (เดิมเบียด 3 คอลัมน์ จนเหลือ "⏳ ..." กับ "10/10/2") */
+function StatusDueRow({ row, update, i }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <div>
+        <label className={labelCls}>Status</label>
+        <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
+          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className={labelCls}>Due</label>
+        <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9 tabular-nums'} />
+      </div>
+    </div>
+  );
+}
+
 /* ── Big Issues Editor ── */
 function BigIssuesEditor({ value, onChange }) {
   const add = () => onChange([...value, { issue: '', raiseBy: 'All', status: '⏳ In Progress', due: '' }]);
@@ -47,29 +97,18 @@ function BigIssuesEditor({ value, onChange }) {
         <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-stone-500">Issue #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors" aria-label="ลบ Issue">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
           <div>
             <label className={labelCls}>รายละเอียด Issue</label>
-            <textarea value={row.issue} onChange={e => update(i, 'issue', e.target.value)} className={inputCls} rows="2" placeholder="อธิบาย issue..." />
+            <AutoTextarea value={row.issue} onChange={v => update(i, 'issue', v)} className={inputCls} minRows={2} placeholder="อธิบาย issue..." />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className={labelCls}>Raise by</label>
-              <input value={row.raiseBy} onChange={e => update(i, 'raiseBy', e.target.value)} className={inputCls} placeholder="All / ชื่อ" />
-            </div>
-            <div>
-              <label className={labelCls}>Status</label>
-              <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
-                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Due</label>
-              <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9'} />
-            </div>
+          <StatusDueRow row={row} update={update} i={i} />
+          <div>
+            <label className={labelCls}>Raise by</label>
+            <input value={row.raiseBy} onChange={e => update(i, 'raiseBy', e.target.value)} className={inputCls} placeholder="All / ชื่อ" />
           </div>
         </div>
       ))}
@@ -97,35 +136,22 @@ function RDEditor({ value, onChange }) {
         <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-stone-500">โปรเจค #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors" aria-label="ลบโปรเจค">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className={labelCls}>ชื่อโปรเจค</label>
-              <input value={row.project} onChange={e => update(i, 'project', e.target.value)} className={inputCls} placeholder="ชื่อโปรเจค..." />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className={labelCls}>Status</label>
-                <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
-                  {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={labelCls}>Due</label>
-                <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9'} />
-              </div>
-            </div>
+          <div>
+            <label className={labelCls}>ชื่อโปรเจค</label>
+            <AutoTextarea value={row.project} onChange={v => update(i, 'project', v)} className={inputCls} placeholder="ชื่อโปรเจค..." />
           </div>
+          <StatusDueRow row={row} update={update} i={i} />
           <div>
             <label className={labelCls}>รายละเอียด</label>
-            <textarea value={row.details} onChange={e => update(i, 'details', e.target.value)} className={inputCls} rows="2" placeholder="รายละเอียดโปรเจค..." />
+            <AutoTextarea value={row.details} onChange={v => update(i, 'details', v)} className={inputCls} minRows={2} placeholder="รายละเอียดโปรเจค..." />
           </div>
           <div>
             <label className={labelCls}>หมายเหตุ</label>
-            <input value={row.remarks} onChange={e => update(i, 'remarks', e.target.value)} className={inputCls} placeholder="หมายเหตุเพิ่มเติม..." />
+            <AutoTextarea value={row.remarks} onChange={v => update(i, 'remarks', v)} className={inputCls} placeholder="หมายเหตุเพิ่มเติม..." />
           </div>
         </div>
       ))}
@@ -153,29 +179,18 @@ function FollowupEditor({ value, onChange }) {
         <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-stone-500">วาระ #{i + 1}</span>
-            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors">
+            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-600 transition-colors" aria-label="ลบวาระ">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
           <div>
             <label className={labelCls}>รายละเอียด</label>
-            <textarea value={row.details} onChange={e => update(i, 'details', e.target.value)} className={inputCls} rows="2" placeholder="รายละเอียดวาระติดตาม..." />
+            <AutoTextarea value={row.details} onChange={v => update(i, 'details', v)} className={inputCls} minRows={2} placeholder="รายละเอียดวาระติดตาม..." />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className={labelCls}>Status</label>
-              <select value={row.status} onChange={e => update(i, 'status', e.target.value)} className={selectCls}>
-                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Due</label>
-              <DateField value={row.due} onChange={v => update(i, 'due', v)} inputClassName={inputCls + ' pr-9'} />
-            </div>
-            <div>
-              <label className={labelCls}>หมายเหตุ</label>
-              <input value={row.remarks} onChange={e => update(i, 'remarks', e.target.value)} className={inputCls} placeholder="หมายเหตุ..." />
-            </div>
+          <StatusDueRow row={row} update={update} i={i} />
+          <div>
+            <label className={labelCls}>หมายเหตุ</label>
+            <AutoTextarea value={row.remarks} onChange={v => update(i, 'remarks', v)} className={inputCls} placeholder="หมายเหตุ..." />
           </div>
         </div>
       ))}

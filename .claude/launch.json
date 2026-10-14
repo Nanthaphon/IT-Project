@@ -4,8 +4,8 @@
     {
       "name": "IT Asset Management",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "it_asset_menagement", "run", "dev"],
-      "port": 5173
+      "runtimeArgs": ["--prefix", "it_asset_menagement", "run", "dev", "--", "--port", "5180", "--strictPort"],
+      "port": 5180
     }
   ]
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { generateITReport, getHardwareSummary, getSoftwareSummary, getRepairSummary } from '../utils/generateITReport.js';
-import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package } from 'lucide-react';
+import { generateITReport, getHardwareSummary, getSoftwareSummary, getRepairSummary, getExpirySummary, expiryStatus, EXPIRY_WINDOW_DAYS } from '../utils/generateITReport.js';
+import { FileDown, Plus, Trash2, ChevronDown, ChevronUp, Loader2, BarChart3, Settings, AlertCircle, FlaskConical, Pin, Eye, Save, Check, RotateCcw, Monitor, Package, CalendarClock } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
 import ITReportPreview from './ITReportPreview.jsx';
@@ -295,6 +295,11 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
   const cellInput = 'w-full rounded-lg bg-transparent px-2 py-1.5 text-sm text-stone-800 outline-none transition-colors hover:bg-white focus:bg-white focus:ring-2 focus:ring-clay-600/20';
 
   const field = (r, i, c) => {
+    /* คอลัมน์คำนวณ (เช่น "อีก 12 วัน") — แสดงอย่างเดียว ไม่ใช่ช่องกรอก */
+    if (c.type === 'computed') return <div className="px-2 py-1.5">{c.render(r)}</div>;
+    if (c.type === 'date') {
+      return <DateField value={r[c.key] || ''} onChange={v => update(i, c.key, v)} inputClassName={cellInput + ' pr-8 tabular-nums'} />;
+    }
     if (c.type === 'number') {
       return <input type="number" value={r[c.key] ?? 0}
         onChange={e => update(i, c.key, num(e.target.value))}
@@ -335,7 +340,7 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
               {columns.map(c => (
                 <th key={c.key}
                   className={`whitespace-nowrap px-1 pb-2 text-xs font-medium text-stone-400 ${
-                    c.type === 'number' ? 'w-[68px] text-center' : ''}`}>
+                    c.type === 'number' ? 'w-[68px] text-center' : c.type === 'date' ? 'w-[150px]' : c.type === 'computed' ? 'w-[130px]' : ''}`}>
                   {c.label}
                 </th>
               ))}
@@ -375,7 +380,9 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
               {columns.map(c => (
                 <div key={c.key} className={c.span === 'full' ? 'col-span-2' : ''}>
                   <label className="mb-1 block text-[11px] font-medium text-stone-500">{c.label}</label>
-                  {c.type === 'number'
+                  {c.type === 'computed' ? <div className="py-2">{c.render(r)}</div>
+                    : c.type === 'date' ? <DateField value={r[c.key] || ''} onChange={v => update(i, c.key, v)} inputClassName={inputCls + ' pr-9'} />
+                    : c.type === 'number'
                     ? <input type="number" value={r[c.key] ?? 0} onChange={e => update(i, c.key, num(e.target.value))} className={inputCls} />
                     : <input value={r[c.key] ?? ''} onChange={e => update(i, c.key, e.target.value)} className={inputCls} placeholder={c.ph} />}
                 </div>
@@ -387,6 +394,22 @@ function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabe
 
       {addBtn}
     </div>
+  );
+}
+
+/* ── ชิปสถานะวันหมดอายุ (ใช้ในตารางซอฟต์แวร์ใกล้หมดอายุ) ── */
+const EXPIRY_TONE = {
+  expired: 'bg-rose-50 text-rose-700',
+  soon:    'bg-ochre-50 text-ochre-700',
+  later:   'bg-clay-50 text-clay-700',
+  none:    'bg-stone-100 text-stone-400',
+};
+function ExpiryChip({ expiry }) {
+  const st = expiryStatus(expiry);
+  return (
+    <span className={`inline-flex whitespace-nowrap rounded-lg px-2 py-0.5 text-xs font-medium ${EXPIRY_TONE[st.tone]}`}>
+      {st.label}
+    </span>
   );
 }
 
@@ -473,16 +496,19 @@ export default function ITReportPage({
   }), [employees.length, monthly]);
   const autoHw = useMemo(() => getHardwareSummary(assets, accessories), [assets, accessories]);
   const autoSw = useMemo(() => getSoftwareSummary(licenses), [licenses]);
+  const autoExp = useMemo(() => getExpirySummary(licenses), [licenses]);
 
   // ── ตัวเลขที่ผู้ใช้แก้เอง ──────────────────────────────────────
   // null = ยังไม่เคยแก้ -> ใช้ค่าจากระบบ  ·  มีค่า = ผู้ใช้กำหนดเอง (ใช้ร่วมทุกเดือน)
   const [statsEdit, setStatsEdit] = useState(null);
   const [hwEdit, setHwEdit]       = useState(null);
   const [swEdit, setSwEdit]       = useState(null);
+  const [expEdit, setExpEdit]     = useState(null);   // 🆕 ซอฟต์แวร์ใกล้หมดอายุ
 
   const stats = statsEdit ?? autoStats;
   const hw    = hwEdit ?? autoHw;
   const sw    = swEdit ?? autoSw;
+  const exp   = expEdit ?? autoExp;
 
   /* โหลดร่างชุดร่วม "ครั้งเดียว" ตอนเปิดหน้า — ไม่โหลดใหม่ตอนเปลี่ยนเดือน
      เพื่อให้ข้อมูลที่กรอกไว้คงอยู่กับทุกเดือน · loaded กัน autosave เขียนทับด้วยค่าว่าง
@@ -497,13 +523,14 @@ export default function ITReportPage({
     setStatsEdit(d.stats ?? null);
     setHwEdit(d.hw ?? null);
     setSwEdit(d.sw ?? null);
+    setExpEdit(d.exp ?? null);
     setLoaded(true);
   }, []); // eslint-disable-line
 
   // ร่างที่จะเขียน — ไม่เก็บ month/year (เปิดที่เดือนปัจจุบันเสมอ) จึงใช้ร่วมได้ทุกเดือน
   const buildDraft = () => ({
     companyName, bigIssues, rdProjects, followUps,
-    stats: statsEdit, hw: hwEdit, sw: swEdit,
+    stats: statsEdit, hw: hwEdit, sw: swEdit, exp: expEdit,
   });
 
   // บันทึกร่างอัตโนมัติ กันข้อมูลหายระหว่างพิมพ์ (เริ่มหลังโหลดเสร็จ)
@@ -511,13 +538,14 @@ export default function ITReportPage({
     if (!loaded) return;
     try { localStorage.setItem(SHARED_KEY, JSON.stringify(buildDraft())); }
     catch { /* ข้าม */ }
-  }, [loaded, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit]); // eslint-disable-line
+  }, [loaded, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit, expEdit]); // eslint-disable-line
 
   const reportDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
   const editStat = (k, v) => { setStatsEdit({ ...stats, [k]: v }); setSaved(false); };
   const editHw   = (rows) => { setHwEdit(rows); setSaved(false); };
   const editSw   = (rows) => { setSwEdit(rows); setSaved(false); };
+  const editExp  = (rows) => { setExpEdit(rows); setSaved(false); };
 
   // ข้อมูลที่ส่งให้ preview + generator (แหล่งเดียว)
   /* 🆕 สรุปเคสแจ้งซ่อมของเดือนนั้น — ดึงจากระบบตรง ๆ ไม่มีช่องให้กรอก */
@@ -526,7 +554,7 @@ export default function ITReportPage({
 
   const previewData = {
     company: companyName, month, year, reportDate,
-    stats, hwSummary: hw, swSummary: sw, bigIssues, rdProjects, followUps,
+    stats, hwSummary: hw, swSummary: sw, expSummary: exp, bigIssues, rdProjects, followUps,
     repair,
   };
 
@@ -537,7 +565,7 @@ export default function ITReportPage({
         month, year, companyName,
         employees, repairRequests, assets, accessories, licenses,
         bigIssues, rdProjects, followUps,
-        supportStats: stats, hardwareSummary: hw, softwareSummary: sw,
+        supportStats: stats, hardwareSummary: hw, softwareSummary: sw, expirySummary: exp,
       });
       setShowPreview(false);
     } catch (err) {
@@ -558,7 +586,7 @@ export default function ITReportPage({
   const clearDraft = () => {
     if (!window.confirm('ล้างข้อมูลที่กรอกทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง) ใช่หรือไม่?')) return;
     setBigIssues([]); setRdProjects([]); setFollowUps([]);
-    setStatsEdit(null); setHwEdit(null); setSwEdit(null);
+    setStatsEdit(null); setHwEdit(null); setSwEdit(null); setExpEdit(null);
     try { localStorage.removeItem(SHARED_KEY); } catch {}
   };
 
@@ -639,7 +667,7 @@ export default function ITReportPage({
         </div>
 
         {/* ตารางฮาร์ดแวร์ / ซอฟต์แวร์ — เต็มความกว้าง ตารางจึงไม่ถูกบีบ */}
-        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 4"
+        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 5"
           right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
           <DataRowsEditor
             rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
@@ -655,7 +683,7 @@ export default function ITReportPage({
           />
         </PanelCard>
 
-        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 5"
+        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 6"
           right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
           <DataRowsEditor
             rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
@@ -670,17 +698,35 @@ export default function ITReportPage({
           />
         </PanelCard>
 
+        {/* 🆕 ซอฟต์แวร์ใกล้หมดอายุ — ดึงวันหมดอายุจาก License ในระบบ แก้/เพิ่มเองได้
+            สถานะ (อีก N วัน / หมดอายุแล้ว) คำนวณจากวันที่เสมอ ไม่ต้องพิมพ์เอง */}
+        <PanelCard icon={CalendarClock} tint="#FBF4E6" color="#A87A2C" title="ซอฟต์แวร์ใกล้หมดอายุ"
+          desc={`สไลด์ 7 · ดึงจากระบบ: หมดภายใน ${EXPIRY_WINDOW_DAYS} วัน + หมดแล้วแต่ยังมีคนใช้`}
+          right={<RefreshBtn onClick={() => { setExpEdit(null); setSaved(false); }} />}>
+          <DataRowsEditor
+            rows={exp} onChange={editExp} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มรายการ"
+            makeEmpty={() => ({ name: '', expiry: '', seats: 1, note: '' })}
+            columns={[
+              { key: 'name', label: 'ซอฟต์แวร์', span: 'full', ph: 'เช่น AutoCAD LT' },
+              { key: 'expiry', label: 'วันหมดอายุ', type: 'date' },
+              { key: 'status', label: 'สถานะ', type: 'computed', render: (r) => <ExpiryChip expiry={r.expiry} /> },
+              { key: 'seats', label: 'จำนวนสิทธิ์', type: 'number' },
+              { key: 'note', label: 'หมายเหตุ', span: 'full', grow: true, ph: 'เช่น รออนุมัติงบต่ออายุ' },
+            ]}
+          />
+        </PanelCard>
+
         {/* สามรายการที่เป็นข้อความยาว — ปกติมีไม่กี่แถว วางเรียงกัน */}
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
           <PanelCard icon={AlertCircle} tint="#FBEAE8" color="#B0453C" title="ประเด็นสำคัญ (Big Issues)" desc="สไลด์ 3" right={<CountBadge n={bigIssues.length} />}>
             <BigIssuesEditor value={bigIssues} onChange={setBigIssues} />
           </PanelCard>
 
-          <PanelCard icon={FlaskConical} tint="#DFEAEF" color="#225462" title="R&D Projects" desc="สไลด์ 6" right={<CountBadge n={rdProjects.length} />}>
+          <PanelCard icon={FlaskConical} tint="#DFEAEF" color="#225462" title="R&D Projects" desc="สไลด์ 8" right={<CountBadge n={rdProjects.length} />}>
             <RDEditor value={rdProjects} onChange={setRdProjects} />
           </PanelCard>
 
-          <PanelCard icon={Pin} tint="#FBF4E6" color="#A87A2C" title="วาระติดตาม (Follow-up)" desc="สไลด์ 7" right={<CountBadge n={followUps.length} />}>
+          <PanelCard icon={Pin} tint="#FBF4E6" color="#A87A2C" title="วาระติดตาม (Follow-up)" desc="สไลด์ 9" right={<CountBadge n={followUps.length} />}>
             <FollowupEditor value={followUps} onChange={setFollowUps} />
           </PanelCard>
         </div>

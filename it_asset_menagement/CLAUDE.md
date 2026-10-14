@@ -201,7 +201,7 @@ localhost:5173/assets-preview.html      ทรัพย์สิน (128 รา�
 localhost:5173/modal-preview.html       AssetDetailsModal
 localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุปกรณ์เสริม (sub-modal)
 localhost:5173/form-preview.html        primitives กลาง + CheckoutModal
-localhost:5173/preview-test.html        IT Report
+localhost:5173/report-preview.html      สร้าง IT Monthly Report (localStorage จำลอง — ไม่ทับร่างจริง · License ครบทุกกรณีวันหมดอายุ)
 localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
 localhost:5173/login-preview.html       หน้าเข้าสู่ระบบ (ไม่ต้อง logout ของจริง)
 localhost:5173/edit-preview.html        หน้าแก้ไข License / ทรัพย์สิน (โหมดหน้าเต็ม)

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, CircleAlert, Eye, FileDown, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { expiryStatus, EXPIRY_WINDOW_DAYS } from '../utils/generateITReport.js';
+import { formatDateShort } from '../utils/formatDate.js';
 
 /* ══════════════════════════════════════════════════════════════
    IT Report Preview + Edit — ตัวอย่าง + แก้ไขสไลด์ก่อน Export
@@ -328,6 +330,35 @@ function SoftwareSlide({ swSummary, ...props }) {
   );
 }
 
+/* 🆕 ซอฟต์แวร์ใกล้หมดอายุ — ตรงกับ slideExpiry ใน generateITReport.js (เรียงวันใกล้สุดก่อน) */
+function ExpirySlide({ expSummary, ...props }) {
+  const toneColor = { expired: RED, soon: AMBER, later: CLAY, none: GRAY_TEXT };
+  const sorted = [...(expSummary || [])].sort((a, b) => String(a.expiry || '9999').localeCompare(String(b.expiry || '9999')));
+  const rows = sorted.map((s, i) => {
+    const st = expiryStatus(s.expiry);
+    return [
+      { text: i + 1 },
+      { text: s.name || '–', align: 'left', bold: true },
+      { text: s.expiry ? formatDateShort(s.expiry) : '–' },
+      { text: st.label, color: toneColor[st.tone], bold: st.tone !== 'later', size: 13 },
+      { text: s.seats ?? '–' },
+      { text: s.note || '', align: 'left', color: GRAY_TEXT, size: 12 },
+    ];
+  });
+  return (
+    <ContentSlide titleTh="ซอฟต์แวร์ใกล้หมดอายุ" titleEn="รายการที่ต้องต่ออายุหรือตัดสินใจเร็ว ๆ นี้" page={7} {...props}>
+      <SlideTable
+        columns={[
+          { label: 'ลำดับ', w: 0.85 }, { label: 'ซอฟต์แวร์', w: 3.4, align: 'left' },
+          { label: 'วันหมดอายุ', w: 1.5 }, { label: 'สถานะ', w: 1.9 },
+          { label: 'จำนวนสิทธิ์', w: 1.2 }, { label: 'หมายเหตุ', w: 3.68, align: 'left' },
+        ]}
+        rows={rows} empty={`ไม่มีซอฟต์แวร์ที่จะหมดอายุภายใน ${EXPIRY_WINDOW_DAYS} วัน`}
+      />
+    </ContentSlide>
+  );
+}
+
 function RDSlide({ rdProjects, ...props }) {
   const rows = (rdProjects || []).map((p, i) => ([
     { text: i + 1 },
@@ -338,7 +369,7 @@ function RDSlide({ rdProjects, ...props }) {
     { text: p.remarks || '', align: 'left', color: GRAY_TEXT },
   ]));
   return (
-    <ContentSlide titleTh="สรุปภาพรวม สถานะโปรเจค" titleEn="สถานะโปรเจค R&D" page={7} {...props}>
+    <ContentSlide titleTh="สรุปภาพรวม สถานะโปรเจค" titleEn="สถานะโปรเจค R&D" page={8} {...props}>
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.5 }, { label: 'โปรเจค', w: 2.5, align: 'left' },
@@ -360,7 +391,7 @@ function FollowupSlide({ followUps, ...props }) {
     { text: f.remarks || '', align: 'left', color: GRAY_TEXT },
   ]));
   return (
-    <ContentSlide titleTh="วาระติดตาม" titleEn="รายการติดตามงาน" page={8} {...props}>
+    <ContentSlide titleTh="วาระติดตาม" titleEn="รายการติดตามงาน" page={9} {...props}>
       <SlideTable
         columns={[
           { label: 'ลำดับ', w: 0.5 }, { label: 'รายละเอียด', w: 5.5, align: 'left' },
@@ -548,8 +579,8 @@ function EditPanel({ idx, edit, set }) {
 export default function ITReportPreview({ isOpen, onClose, onExport, exporting, data }) {
   const [idx, setIdx] = useState(0);
 
-  const total = 9;
-  const labels = ['ปก', 'สารบัญ', 'ฝ่ายสนับสนุน', 'เคสแจ้งซ่อม', 'ฮาร์ดแวร์', 'ซอฟต์แวร์', 'R&D', 'วาระติดตาม', 'ขอบคุณ'];
+  const total = 10;
+  const labels = ['ปก', 'สารบัญ', 'ฝ่ายสนับสนุน', 'เคสแจ้งซ่อม', 'ฮาร์ดแวร์', 'ซอฟต์แวร์', 'ใกล้หมดอายุ', 'R&D', 'วาระติดตาม', 'ขอบคุณ'];
 
   const go = useCallback((dir) => setIdx(i => Math.min(total - 1, Math.max(0, i + dir))), [total]);
 
@@ -576,6 +607,7 @@ export default function ITReportPreview({ isOpen, onClose, onExport, exporting, 
     () => <RepairSlide {...data} />,
     () => <HardwareSlide {...data} />,
     () => <SoftwareSlide {...data} />,
+    () => <ExpirySlide {...data} />,
     () => <RDSlide {...data} />,
     () => <FollowupSlide {...data} />,
     () => <ThankYouSlide {...data} />,

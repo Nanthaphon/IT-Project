@@ -28,7 +28,7 @@ const TH_MONTHS = [
 
 const F  = 'Sarabun';    // Thai font
 const FE = 'Arial';      // EN/number font — universal install + tight Latin spacing
-const REPORT_VERSION = 'v3';  // bump when changing report layout — appears in footer to verify rebuild
+const REPORT_VERSION = 'v4';  // bump when changing report layout — appears in footer to verify rebuild
 
 /* ─── Language-aware font picker
    Sarabun has Latin glyphs but PowerPoint renders them with extra kerning,
@@ -657,8 +657,9 @@ function slide4(pptx, ctx, startPageNum) {
 ═══════════════════════════════════ */
 /* 🆕 สรุปซอฟต์แวร์ต่อรายการ (ใช้ร่วม PPTX + Preview) — หมายเหตุ = สถานะวันหมดอายุ */
 export function getSoftwareSummary(licenses = []) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const daysUntil = (d) => Math.ceil((new Date(d) - today) / (1000 * 60 * 60 * 24));
+  /* นับวันแบบเดียวกับสไลด์ "ซอฟต์แวร์ใกล้หมดอายุ" (expiryStatus) — เดิมใช้ Math.ceil กับเวลาปัจจุบัน
+     ทำให้สองสไลด์บอกจำนวนวันต่างกัน 1 วันสำหรับรายการเดียวกัน */
+  const daysUntil = (d) => expiryStatus(d).days ?? Infinity;
   return (licenses || []).map(lic => {
     const stock = Number(lic.quantity || 0);
     const active = (lic.assignees || []).length;
@@ -720,6 +721,109 @@ function slide5(pptx, ctx, startPageNum) {
     startPageNum,
     hdr, rows,
     colW: [0.85, 3.4, 0.9, 0.9, 1.0, 4.48],
+    rowH: 0.62,
+    emptyRow,
+  });
+}
+
+/* ═══════════════════════════════════
+   SLIDE 5b – ซอฟต์แวร์ใกล้หมดอายุ (ต่อจากสรุปซอฟต์แวร์)
+═══════════════════════════════════ */
+export const EXPIRY_WINDOW_DAYS = 90;
+
+const ymd = (d) => {
+  const x = new Date(d);
+  if (isNaN(x)) return '';
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
+
+/* สถานะจากวันหมดอายุ (คิดสดทุกครั้ง — ผู้ใช้แก้วันที่ได้ สถานะต้องตาม)
+   @returns { days, label, tone: 'expired' | 'soon' | 'later' | 'none' } */
+export function expiryStatus(expiry, asOf = new Date()) {
+  if (!expiry) return { days: null, label: 'ไม่ระบุวันที่', tone: 'none' };
+  const d = new Date(expiry); d.setHours(0, 0, 0, 0);
+  if (isNaN(d)) return { days: null, label: 'วันที่ไม่ถูกต้อง', tone: 'none' };
+  const t = new Date(asOf); t.setHours(0, 0, 0, 0);
+  const days = Math.round((d - t) / 86400000);
+  if (days < 0)   return { days, label: `หมดอายุแล้ว ${-days} วัน`, tone: 'expired' };
+  if (days === 0) return { days, label: 'หมดอายุวันนี้', tone: 'expired' };
+  return { days, label: `อีก ${days} วัน`, tone: days <= 30 ? 'soon' : 'later' };
+}
+
+/* 🆕 ซอฟต์แวร์ที่ต้องต่ออายุ/ตัดสินใจเร็ว ๆ นี้ (ใช้ร่วม PPTX + Preview + หน้ากรอก)
+   ต่อ License หยิบวันหมดอายุ "ที่ต้องสนใจที่สุด" 1 วัน จากวันหลัก + วันของแต่ละ seat
+   - หมดในอีก ≤ 90 วัน → แสดง
+   - หมดไปแล้ว แต่ยังมีคนใช้สิทธิ์อยู่ → แสดง (ด่วน)
+   - หมดไปแล้วและไม่มีคนใช้ → ถือว่าเลิกใช้ ไม่แสดง (ไม่งั้นเต็มไปด้วยของที่ยุติไปแล้ว)
+   seats = จำนวนสิทธิ์ที่หมดในวันนั้น (วันหลักของ License = ทั้งก้อน)
+   @returns [{ name, expiry: 'YYYY-MM-DD', seats, note }] เรียงวันใกล้สุดก่อน */
+export function getExpirySummary(licenses = [], asOf = new Date(), windowDays = EXPIRY_WINDOW_DAYS) {
+  const out = [];
+  (licenses || []).forEach((lic) => {
+    const active = (lic.assignees || []).length;
+    const seatDates = [
+      ...(lic.availableSeatExpirationDates || []),
+      ...(lic.assignees || []).map((a) => a.seatExpirationDate),
+    ].map(ymd).filter(Boolean);
+    const mainDate = ymd(lic.expirationDate);
+    const candidates = [...new Set([mainDate, ...seatDates].filter(Boolean))].sort();
+
+    const pick = candidates.find((d) => {
+      const { days } = expiryStatus(d, asOf);
+      if (days == null) return false;
+      if (days < 0) return active > 0;
+      return days <= windowDays;
+    });
+    if (!pick) return;
+
+    const seats = pick === mainDate
+      ? Number(lic.quantity || 0) || seatDates.length || 1
+      : seatDates.filter((d) => d === pick).length;
+    out.push({ name: lic.name || '–', expiry: pick, seats, note: '' });
+  });
+  return out.sort((a, b) => a.expiry.localeCompare(b.expiry));
+}
+
+function slideExpiry(pptx, ctx, startPageNum) {
+  const { licenses, expirySummary } = ctx;
+  const summary = expirySummary ?? getExpirySummary(licenses);
+  const rowsSorted = [...summary].sort((a, b) => String(a.expiry || '9999').localeCompare(String(b.expiry || '9999')));
+
+  const hdr = [
+    cellH('ลำดับ',        {}),
+    cellH('ซอฟต์แวร์',    { align:'left' }),
+    cellH('วันหมดอายุ',   {}),
+    cellH('สถานะ',        {}),
+    cellH('จำนวนสิทธิ์',  {}),
+    cellH('หมายเหตุ',     { align:'left' }),
+  ];
+
+  const toneColor = { expired: C.red, soon: C.amber, later: C.blue, none: C.grayText };
+  const rows = rowsSorted.map((s, i) => {
+    const f = rowFill(i);
+    const st = expiryStatus(s.expiry);
+    const dateText = s.expiry ? formatDateShort(s.expiry) : '–';
+    return [
+      { text:String(i+1),   options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:s.name || '–', options:{ fontSize:14, fontFace:fontFor(s.name), align:'left', valign:'middle', bold:true, border:bdr(), charSpacing:0, ...f } },
+      { text:dateText,      options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:st.label,      options:{ fontSize:13, fontFace:F, align:'center', valign:'middle', bold: st.tone !== 'later', color: toneColor[st.tone], border:bdr(), charSpacing:0, ...f } },
+      { text:String(s.seats ?? '–'), options:{ fontSize:14, fontFace:FE, align:'center', valign:'middle', border:bdr(), charSpacing:0, ...f } },
+      { text:s.note || '',  options:{ fontSize:11, fontFace:fontFor(s.note), align:'left', valign:'middle', color:C.grayText, border:bdr(), charSpacing:0, ...f } },
+    ];
+  });
+
+  const emptyRow = [
+    cellC('–'),
+    cell(`ไม่มีซอฟต์แวร์ที่จะหมดอายุภายใน ${EXPIRY_WINDOW_DAYS} วัน`, { align:'left', color:C.grayText }),
+    cellC('–'), cellC('–'), cellC('–'), cell('', { align:'left' }),
+  ];
+
+  return addPaginatedTableSlides(pptx, ctx, {
+    titleTh: 'ซอฟต์แวร์ใกล้หมดอายุ', titleEn: 'รายการที่ต้องต่ออายุหรือตัดสินใจเร็ว ๆ นี้',
+    startPageNum,
+    hdr, rows,
+    colW: [0.85, 3.4, 1.5, 1.9, 1.2, 3.68],
     rowH: 0.62,
     emptyRow,
   });
@@ -847,7 +951,7 @@ export async function generateITReport({
   assets = [], accessories = [], licenses = [],
   bigIssues = [], rdProjects = [], followUps = [],
   // 🆕 ค่าที่ผู้ใช้แก้ใน preview (override การคำนวณอัตโนมัติ) — ไม่ส่งมา = ใช้ค่าจากระบบ
-  supportStats = null, hardwareSummary = null, softwareSummary = null,
+  supportStats = null, hardwareSummary = null, softwareSummary = null, expirySummary = null,
 }) {
   const pptx = new PptxGenJS();
   pptx.layout  = 'LAYOUT_WIDE';
@@ -862,7 +966,7 @@ export async function generateITReport({
     month, year, company: companyName, reportDate,
     employees, repairRequests, assets, accessories, licenses,
     bigIssues, rdProjects, followUps,
-    supportStats, hardwareSummary, softwareSummary,   // 🆕 override จาก preview
+    supportStats, hardwareSummary, softwareSummary, expirySummary,   // 🆕 override จาก preview
   };
 
   slide1(pptx, ctx);
@@ -873,6 +977,7 @@ export async function generateITReport({
   page += slideRepair(pptx, ctx, page);   // 🆕 เคสแจ้งซ่อม — ดึงจากระบบ
   page += slide4(pptx, ctx, page);
   page += slide5(pptx, ctx, page);
+  page += slideExpiry(pptx, ctx, page);   // 🆕 ซอฟต์แวร์ใกล้หมดอายุ — ต่อจากสรุปซอฟต์แวร์
   page += slide6(pptx, ctx, page);
   page += slide7(pptx, ctx, page);
   slide8(pptx, ctx);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MoreHorizontal, Search, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { MoreHorizontal, Search, ChevronLeft, ChevronRight, Check, Minus } from 'lucide-react';
 import { surface, text, button, statusTone } from './earth.js';
 import useDismiss from './useDismiss.js';
 
@@ -134,18 +134,20 @@ export function CheckMark({ checked }) {
 }
 
 /* ── ช่องติ๊กที่กดได้เอง — ใช้ในตาราง ── */
-export function Checkbox({ checked, onChange, label }) {
+/* indeterminate = เลือกไว้บางส่วน (ใช้กับช่อง "เลือกทั้งหมด" บนหัวตาราง) — แสดงขีด กดแล้วถือว่ายังไม่ checked */
+export function Checkbox({ checked, indeterminate, onChange, label }) {
+  const on = checked || indeterminate;
   return (
     <button
-      type="button" role="checkbox" aria-checked={!!checked} aria-label={label}
+      type="button" role="checkbox" aria-checked={indeterminate ? 'mixed' : !!checked} aria-label={label}
       onClick={(e) => { e.stopPropagation(); onChange(!checked); }}
       className={`inline-flex size-[18px] items-center justify-center rounded-md border transition-colors ${
-        checked
+        on
           ? 'border-clay-600 bg-clay-600 text-white'
           : 'border-stone-300 bg-white hover:border-stone-400'
       }`}
     >
-      {checked && <Check className="size-3" strokeWidth={2} />}
+      {checked ? <Check className="size-3" strokeWidth={2} /> : indeterminate ? <Minus className="size-3" strokeWidth={2} /> : null}
     </button>
   );
 }

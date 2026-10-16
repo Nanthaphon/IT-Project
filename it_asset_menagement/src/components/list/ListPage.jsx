@@ -53,8 +53,20 @@ export default function ListPage({
      ป้ายจึงต้องเขียนให้ตรงกับสิ่งที่มันทำจริง ไม่งั้นผู้ใช้เข้าใจผิด */
   const allSelected = totalCount > 0 && selectedIds.length >= totalCount;
 
+  /* ช่อง "เลือกทั้งหมด" บนหัวตาราง — เดิมมีแค่ลิงก์ใต้ตาราง (ใต้ 50 แถว) แทบไม่มีใครเห็น
+     เลือก = ทุกรายการในผลค้นหา/ตัวกรองปัจจุบัน (ทุกหน้า) เหมือนลิงก์เดิม */
+  const someSelected = selectedIds.length > 0 && !allSelected;
+  const headerCheckbox = selectable && totalCount > 0 ? (
+    <Checkbox
+      checked={allSelected}
+      indeterminate={someSelected}
+      onChange={() => onSelectAll?.(!allSelected)}
+      label={allSelected ? 'ยกเลิกที่เลือกทั้งหมด' : `เลือกทั้งหมด ${totalCount} ${unit}`}
+    />
+  ) : '';
+
   const tableColumns = [
-    ...(selectable ? [{ key: '_sel', label: '', width: 'w-12' }] : []),
+    ...(selectable ? [{ key: '_sel', label: headerCheckbox, width: 'w-12' }] : []),
     ...columns,
     ...extraColumns.map(c => ({ key: c.key, label: c.label, align: c.align })),
     ...(rowActions ? [{ key: '_act', label: '', width: 'w-16' }] : []),

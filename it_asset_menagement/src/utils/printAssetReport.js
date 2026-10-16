@@ -58,7 +58,7 @@ const COLUMN_META = {
                    render: (a) => `<div style="font-weight:700">${e(a.name) || '-'}</div>${a.model ? `<div style="font-size:0.9em;color:${P.muted};margin-top:1px">${e(a.model)}</div>` : ''}` },
   type:          { label: 'ประเภท', flex: 8, align: 'left',
                    render: (a) => e(a.type) || '-' },
-  forDepartment: { label: 'แผนก', flex: 9, align: 'left',
+  forDepartment: { label: 'สำหรับแผนก', flex: 9, align: 'left',
                    render: (a) => e(a.forDepartment) || e(a.department) || '-' },
   assetTag:      { label: 'รหัสทรัพย์สิน', flex: 9, align: 'left',
                    render: (a) => `<span style="font-family:'Courier New',monospace">${e(a.assetTag) || '-'}</span>` },

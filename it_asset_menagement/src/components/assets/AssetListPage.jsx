@@ -38,6 +38,8 @@ const OPTIONAL_COLUMNS = [
   { key: 'scrapValue', label: 'ราคาปัจจุบัน', align: 'right', render: a => money(a.scrapValue) },
   { key: 'sn', label: 'Serial Number', render: a => <Clamp width={180}>{a.sn}</Clamp> },
   { key: 'company', label: 'บริษัท', render: a => <Clamp width={160}>{a.company}</Clamp> },
+  // key ต้องเป็น forDepartment — ตรงกับ COLUMN_META ของ PDF (printAssetReport) และ COL_MAP ของ CSV
+  { key: 'forDepartment', label: 'สำหรับแผนก', render: a => <Clamp width={180}>{a.forDepartment || a.department}</Clamp> },
   { key: 'vendor', label: 'ผู้จัดจำหน่าย', render: a => <Clamp width={180}>{a.vendor}</Clamp> },
   { key: 'purchaseDate', label: 'วันที่ซื้อ', render: a => formatDateShort(a.purchaseDate) },
   { key: 'warrantyDate', label: 'วันหมด Warranty', render: a => formatDateShort(a.warrantyDate) },

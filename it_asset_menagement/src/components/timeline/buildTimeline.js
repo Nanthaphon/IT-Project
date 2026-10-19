@@ -70,6 +70,20 @@ export function spanLabel(fromMs, toMs) {
 /** เอกสารรุ่นเก่าไม่มีฟิลด์ productKey เลย — ใช้แยกจากรุ่นใหม่ที่มีแต่ค่าว่าง */
 const hasKeyField = (t) => Object.prototype.hasOwnProperty.call(t, 'productKey');
 
+/* ── การ "ยืม" อุปกรณ์เสริม ──────────────────────────────────
+   ยืมถูกบันทึกเป็น action 'เบิกจ่าย' เหมือนเบิกปกติ ไทม์ไลน์เลยแยกไม่ออก
+   รายการใหม่มี t.isBorrow + t.returnDate · รายการเก่ามีแค่ข้อความ "ยืม: ..." ใน remarks
+   (App เขียน remarks เป็น "SN: xxx | ยืม: เหตุผล") จึงดูจากทั้งสองอย่าง
+   วันคืนของรายการเก่า หาได้จาก assignee ที่ checkoutId ตรงกัน (ถ้ายังถืออยู่) */
+const BORROW_RE = /(^|\|)\s*ยืม:/;
+export const isBorrowTx = (t) => t?.isBorrow === true || BORROW_RE.test(String(t?.remarks || ''));
+const BORROW_CHIP = { label: 'ยืม', tone: 'ochre' };
+function borrowDetail(t, holder) {
+  const due = t.returnDate || holder?.returnDate;
+  const ms = toMillis(due);
+  return ms == null ? '' : `กำหนดคืน ${thaiDate(ms)}`;
+}
+
 /** ชื่อคนในรายการ — รายการรุ่นเก่าบางอันเก็บแค่ empId (รหัสเอกสาร Firestore)
     ห้ามโชว์รหัสนั้นออกหน้าจอ (ผู้ใช้อ่านไม่ออก) ให้ไปหาชื่อจากรายชื่อพนักงานแทน */
 const UNKNOWN_EMP = 'ไม่พบชื่อพนักงาน';
@@ -140,10 +154,15 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
     .forEach((t) => {
       const ms = toMillis(t.timestamp);
       if (t.action === 'เบิกจ่าย') {
+        const borrow = isBorrowTx(t);
+        const holder = borrow && t.checkoutId
+          ? (asset.assignees || []).find((a) => a.checkoutId === t.checkoutId) : null;
         push('checkout', ms, {
-          title: 'เบิกจ่ายให้พนักงาน',
+          title: borrow ? 'ให้พนักงานยืม' : 'เบิกจ่ายให้พนักงาน',
+          chip: borrow ? BORROW_CHIP : undefined,
           by: personOf(t), who: unknownId(t),
-          detail: t.condition ? `สภาพ: ${t.condition}` : '',
+          detail: [borrow ? borrowDetail(t, holder) : '', t.condition ? `สภาพ: ${t.condition}` : '']
+            .filter(Boolean).join(' · '),
           note: t.remarks && t.remarks !== '-' ? t.remarks : '',
           checkoutId: t.checkoutId || null,
         });
@@ -336,12 +355,14 @@ export function buildEmployeeTimeline(employee, transactions = [], assets = [], 
         t.condition ? 'สภาพ: ' + t.condition : '',
       ].filter(Boolean).join(' · ');
       const what = cat === 'assets' ? 'ทรัพย์สิน' : 'อุปกรณ์เสริม';
+      const borrow = isOut && isBorrowTx(t);
       out.push({
         kind: isOut ? 'checkout' : 'checkin',
         ms, cat, tx: t,
-        title: (isOut ? 'เบิก' : 'คืน') + what,
+        title: (borrow ? 'ยืม' : isOut ? 'เบิก' : 'คืน') + what,
+        chip: borrow ? BORROW_CHIP : undefined,
         by: t.assetName || '—',
-        detail,
+        detail: [borrow ? borrowDetail(t) : '', detail].filter(Boolean).join(' · '),
         note,
         broken: t.condition === 'ชำรุด',
       });

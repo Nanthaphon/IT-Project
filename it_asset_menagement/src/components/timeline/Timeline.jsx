@@ -95,7 +95,9 @@ function KeyChip({ value, keyCode, fromCurrent }) {
 /* ── หนึ่งเหตุการณ์ ──────────────────────────────────────── */
 function Row({ event, nextMs, isLast, action }) {
   const meta = EVENT_KIND[event.kind] || EVENT_KIND.checkout;
-  const tone = TONE[meta.tone] || TONE.neutral;
+  /* event.chip = ป้ายเฉพาะรายการ (เช่น "ยืม") — ชนิดยังเป็น checkout เพื่อให้นับ/กรองเหมือนเดิม */
+  const chipLabel = event.chip?.label || meta.label;
+  const tone = TONE[event.chip?.tone || meta.tone] || TONE.neutral;
   const Icon = ICON[event.kind] || Info;
   const time = thaiTime(event.ms, event.exactTime);
 
@@ -117,7 +119,7 @@ function Row({ event, nextMs, isLast, action }) {
       <div className="bg-white rounded-xl border border-stone-200/60 px-4 py-3.5">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
           <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${tone.chip}`}>
-            {meta.label}
+            {chipLabel}
           </span>
           <span className="text-sm font-medium text-stone-900">{event.title}</span>
           {event.matchedByName && (

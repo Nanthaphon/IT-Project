@@ -1054,6 +1054,9 @@ function App() {
                 remarks:    `SN: ${assignee.serialNumber || '-'} | ${finalType === 'borrow' ? 'ยืม' : 'เบิก'}: ${req.reason || '-'}`,
                 timestamp:  Date.now(),
                 checkoutId: assignee.checkoutId,
+                // ไทม์ไลน์ใช้แยก "ยืม" ออกจากเบิกปกติ (ดู isBorrowTx ใน timeline/buildTimeline.js)
+                isBorrow:   finalType === 'borrow',
+                returnDate: finalType === 'borrow' ? (finalReturnDate || null) : null,
               });
             }
             await updateDoc(doc(db, 'accessories', req.accessoryId), {

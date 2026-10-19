@@ -27,6 +27,9 @@ const ASSET = {
 };
 
 const TRANSACTIONS = [
+  /* ยืม (รายการเก่า: รู้ได้จาก remarks "| ยืม:" อย่างเดียว) → ป้าย "ยืม" สีอำพัน + กำหนดคืน */
+  { assetId: 'asset1', action: 'เบิกจ่าย', empName: 'นายกษิดิศ จรัสทรัพย์', condition: 'ปกติ',
+    remarks: 'SN: M0002 | ยืม: ลืมเอามาจากบ้าน', returnDate: '2026-10-20', timestamp: ago(1), checkoutId: 'coB' },
   { assetId: 'asset1', action: 'เบิกจ่าย', empName: 'สมชาย ใจดี', condition: 'ปกติ',
     remarks: 'เครื่องใหม่ ส่งมอบพร้อมอุปกรณ์ครบ', timestamp: ago(700), checkoutId: 'co1' },
   { assetId: 'asset1', action: 'รับคืน', empName: 'สมชาย ใจดี', condition: 'ปกติ',

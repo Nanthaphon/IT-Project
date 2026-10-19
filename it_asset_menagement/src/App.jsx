@@ -67,6 +67,7 @@ import HistoryImportModal from './components/HistoryImportModal.jsx';
 import { formatDateShort } from './utils/formatDate.js';
 import { splitName, joinName, resolveName } from './utils/nameUtils.js';
 import { cleanLinks } from './utils/links.js';
+import { getAvailableItems, getBrokenItems, takeItems } from './utils/accessoryItems.js';
 import { useActiveTab } from './hooks/useActiveTab.js';
 import { EMPTY_CHECKLIST, EMPTY_FIELDS, flattenFields } from './components/ConditionCapture.jsx';
 import TopHeader from './components/TopHeader.jsx';
@@ -910,7 +911,8 @@ function App() {
   };
 
   // 🟢 Admin อนุมัติ / ปฏิเสธ + auto stock update
-  // approvalMeta = { requestType, returnDate, borrowNote, oldAccessoryId, newAccessoryId }
+  // approvalMeta = { requestType, returnDate, borrowNote, oldAccessoryId, newAccessoryId,
+  //                 pickedItems: [{ index, sn }] — ชิ้นที่ IT เลือกในหน้าต่างอนุมัติ (ไม่ส่ง = หยิบหัวแถวแบบเดิม) }
   const handleUpdateAccessoryRequestStatus = async (req, newStatus, rejectReason = '', approvalMeta = {}) => {
     try {
       const payload = { status: newStatus };
@@ -1028,10 +1030,16 @@ function App() {
           // ════ REQUEST / BORROW MODE: ให้ของจาก pool ที่ขอ ════
           const acc = accessories.find(a => a.id === req.accessoryId);
           if (acc) {
-            const items = getAvailableItems(acc);
+            const { picked: pickedItems, remaining: items, missing } =
+              takeItems(getAvailableItems(acc), approvalMeta.pickedItems, qty);
+            // ชิ้นที่เลือกถูกเบิกไปก่อน (เปิดหน้าต่างค้างไว้ระหว่างที่คนอื่นจ่ายของ) → หยุด ไม่ให้ของผิดชิ้น
+            if (approvalMeta.pickedItems?.length && missing > 0) {
+              throw new Error('ชิ้นที่เลือกถูกเบิกออกไปแล้ว — กรุณาเปิดหน้าต่างอนุมัติแล้วเลือกใหม่');
+            }
+            payload.givenItems = pickedItems.map(it => ({ sn: it.sn || '', model: it.model || '' }));
             const assigneesToAdd = [];
             for (let i = 0; i < qty; i++) {
-              const picked = items.shift() || {};
+              const picked = pickedItems[i] || {};
               const noteText = `${finalType === 'borrow' ? 'ยืม' : 'เบิก'}: ${req.reason || ''}${borrowNote ? ' | ' + borrowNote : ''}`;
               const assignee = buildAssignee(picked, noteText, finalType === 'borrow');
               assigneesToAdd.push(assignee);
@@ -2102,29 +2110,7 @@ function App() {
     }
   };
 
-  // Normalize accessory item arrays to array-of-objects format (backward compat)
-  const getAvailableItems = (acc) => {
-    if (Array.isArray(acc.availableItems)) return [...acc.availableItems];
-    const availCount = Math.max(0, Number(acc.quantity||0) - (acc.assignees?.length||0) - Number(acc.brokenQuantity||0));
-    return Array.from({length: availCount}, (_, i) => ({
-      sn: acc.availableSNs?.[i] || '',
-      model: acc.availableModels?.[i] || '',
-      cost: acc.availableCosts?.[i] || '',
-      purchaseDate: acc.availablePurchaseDates?.[i] || '',
-      warrantyDate: acc.availableWarrantyDates?.[i] || '',
-    }));
-  };
-  const getBrokenItems = (acc) => {
-    if (Array.isArray(acc.brokenItems)) return [...acc.brokenItems];
-    const brokenCount = Number(acc.brokenQuantity||0);
-    return Array.from({length: brokenCount}, (_, i) => ({
-      sn: acc.brokenSNs?.[i] || '',
-      model: acc.brokenModels?.[i] || '',
-      cost: acc.brokenCosts?.[i] || '',
-      purchaseDate: acc.brokenPurchaseDates?.[i] || '',
-      warrantyDate: acc.brokenWarrantyDates?.[i] || '',
-    }));
-  };
+  // getAvailableItems / getBrokenItems ย้ายไป utils/accessoryItems.js (ใช้ร่วมกับหน้าคำขออุปกรณ์เสริม)
 
   const handleCheckout = async (e) => {
     e.preventDefault();

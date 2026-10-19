@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock, ImageIcon, Package, PlusCircle, Repeat, RotateCcw, Trash2, X, XCircle } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import { formatDateShort } from '../utils/formatDate.js';
+import ApproveAccessoryModal from './accessories/ApproveAccessoryModal.jsx';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
@@ -43,6 +44,7 @@ export default function AccessoryRequestTable({
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [rejectModal, setRejectModal] = useState({ open: false, req: null, reason: '' });
+  const [approveFor, setApproveFor] = useState(null);   // คำขอที่กำลังเลือกชิ้นเพื่ออนุมัติ
 
   const filtered = useMemo(() => {
     return accessoryRequests.filter(r => {
@@ -162,7 +164,14 @@ export default function AccessoryRequestTable({
                           )}
                           <div className="min-w-0 max-w-[220px]">
                             <p className="truncate text-[13px] font-medium text-stone-800" title={req.accessoryName}>{req.accessoryName}</p>
-                            <p className="text-[11px] text-stone-400 tabular-nums whitespace-nowrap">× {req.quantity || 1} · #{req.id?.slice(-6)}</p>
+                            {req.givenItems?.some(g => g.sn) ? (
+                              /* อนุมัติแล้ว — บอกว่าให้ชิ้นไหนไป */
+                              <p className="truncate text-[11px] text-stone-500 tabular-nums" title={req.givenItems.map(g => g.sn).filter(Boolean).join(', ')}>
+                                ให้ SN {req.givenItems.map(g => g.sn).filter(Boolean).join(', ')}
+                              </p>
+                            ) : (
+                              <p className="text-[11px] text-stone-400 tabular-nums whitespace-nowrap">× {req.quantity || 1} · #{req.id?.slice(-6)}</p>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -228,11 +237,8 @@ export default function AccessoryRequestTable({
                           {isPending && canEdit ? (
                             <>
                               <button
-                                /* คงประเภทที่พนักงานเลือก — ยืมต้องส่งวันคืนต่อ ไม่งั้นอนุมัติแล้วกลายเป็นเบิกถาวร */
-                                onClick={() => handleUpdateAccessoryRequestStatus(req, 'อนุมัติแล้ว', '',
-                                  req.requestType === 'borrow'
-                                    ? { requestType: 'borrow', returnDate: req.returnDate || null }
-                                    : { requestType: 'request' })}
+                                /* เปิดหน้าต่างเลือกชิ้นในสต็อก (เดิมอนุมัติทันทีแล้วระบบหยิบชิ้นแรกให้เอง) */
+                                onClick={() => setApproveFor(req)}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-olive-600 hover:bg-olive-700 transition-colors"
                               >
                                 <Check className="h-3.5 w-3.5" strokeWidth={2} /> อนุมัติ
@@ -356,6 +362,16 @@ export default function AccessoryRequestTable({
         </div>
       )}
 
+
+      {/* ── อนุมัติ: เลือกชิ้นในสต็อก ── */}
+      {approveFor && (
+        <ApproveAccessoryModal
+          req={approveFor}
+          accessory={accessories.find(a => a.id === approveFor.accessoryId)}
+          onClose={() => setApproveFor(null)}
+          onConfirm={(meta) => handleUpdateAccessoryRequestStatus(approveFor, 'อนุมัติแล้ว', '', meta)}
+        />
+      )}
 
       {/* ── Reject reason modal ── */}
       {rejectModal.open && (

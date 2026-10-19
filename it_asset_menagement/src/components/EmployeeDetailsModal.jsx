@@ -103,8 +103,12 @@ export default function EmployeeDetailsModal({
   }, []);
   const empAccessories = accessories.reduce((acc, item) => {
     if (item.assignees) {
+      /* เก็บข้อมูลของ "ชิ้นนี้" ไว้ด้วย — ยืม/วันคืน/SN อยู่ที่ assignee ไม่ใช่ที่ตัวอุปกรณ์ */
       item.assignees.filter(a => a.empId === selectedEmployee.id).forEach(co =>
-        acc.push({ ...item, uniqueKey: co.checkoutId, checkoutId: co.checkoutId })
+        acc.push({
+          ...item, uniqueKey: co.checkoutId, checkoutId: co.checkoutId,
+          isBorrow: !!co.isBorrow, borrowReturnDate: co.returnDate || null, unitSn: co.serialNumber || '',
+        })
       );
     } else if (item.assignedTo === selectedEmployee.id) {
       acc.push({ ...item, uniqueKey: item.id });
@@ -376,8 +380,13 @@ export default function EmployeeDetailsModal({
                         const ItemIcon    = isAsset ? Monitor : isAccessory ? Mouse : KeyRound;
                         const catLabel    = isAsset ? 'ทรัพย์สิน' : isAccessory ? 'อุปกรณ์เสริม' : 'License';
                         const since       = sinceOf(item);
-                        const idLine      = [catLabel, item.type, isAsset ? item.assetTag : null, isAsset && item.sn ? `SN ${item.sn}` : null]
+                        const idLine      = [catLabel, item.type, isAsset ? item.assetTag : null, isAsset && item.sn ? `SN ${item.sn}` : null,
+                          isAccessory && item.unitSn ? `SN ${item.unitSn}` : null]
                           .filter(Boolean).join(' · ');
+                        /* อุปกรณ์เสริมที่ "ยืม" — ติดป้ายสี + วันคืน (เลยกำหนด = แดง) · เบิกปกติไม่มีป้าย */
+                        const borrow = isAccessory && item.isBorrow;
+                        const overdue = borrow && item.borrowReturnDate &&
+                          new Date(item.borrowReturnDate).setHours(23, 59, 59, 999) < Date.now();
 
                         const openAssetDetail = () => {
                           if (!setSelectedAssetDetail || !setSelectedAssetCategory) return;
@@ -413,7 +422,17 @@ export default function EmployeeDetailsModal({
                               </div>
                             )}
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-stone-900 transition-colors group-hover:text-clay-600">{item.name}</p>
+                              <p className="flex min-w-0 items-center gap-2">
+                                <span className="truncate text-sm font-medium text-stone-900 transition-colors group-hover:text-clay-600">{item.name}</span>
+                                {borrow && (
+                                  <span className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2 py-0.5 text-[11px] font-medium ${
+                                    overdue ? 'bg-rose-50 text-rose-700' : 'bg-ochre-50 text-ochre-700'}`}>
+                                    <RotateCcw className="size-3" strokeWidth={2} />
+                                    {overdue ? 'ยืม · เลยกำหนดคืน' : 'ยืม'}
+                                    {item.borrowReturnDate && <span className="font-normal tabular-nums">· คืน {formatDateShort(item.borrowReturnDate)}</span>}
+                                  </span>
+                                )}
+                              </p>
                               <p className="mt-0.5 truncate text-xs text-stone-400">{idLine}</p>
                             </div>
                             {since && (

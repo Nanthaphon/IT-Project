@@ -41,6 +41,11 @@ const assets = [
 const accessories = [
   { id: 'c1', name: 'Logitech Mouse M171', type: 'เมาส์',
     assignees: [{ empId: 'preview-emp', assignedDate: '2025-10-22' }] },
+  /* ยืม — ยังไม่ถึงกำหนด / เลยกำหนดคืน → ต้องมีป้าย 'ยืม' สีอำพัน / แดง */
+  { id: 'c2', name: 'Anitech W227 Wireless', type: 'เมาส์',
+    assignees: [{ empId: 'preview-emp', checkoutId: 'b1', isBorrow: true, returnDate: new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10), serialNumber: 'AN-W227-0091' }] },
+  { id: 'c3', name: 'Wise MT-201', type: 'เมาส์',
+    assignees: [{ empId: 'preview-emp', checkoutId: 'b2', isBorrow: true, returnDate: '2026-10-01', serialNumber: 'WS-201-12' }] },
 ];
 const licenses = [
   { id: 'l1', name: 'Microsoft 365 Business Basic (Globe)',

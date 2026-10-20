@@ -59,6 +59,21 @@ src/utils/printTheme.js                สีสำหรับไฟล์ท�
 
 ---
 
+## 1.5 ฟอนต์ — ต้องก๊อปลิงก์ใน `index.html` ด้วย (ลืมกันบ่อยที่สุด)
+
+ฟอนต์ **Bai Jamjuree** คือครึ่งหนึ่งของ "ความรู้สึก" ของชุดนี้ `index.css` แค่สั่งใช้
+แต่ตัวฟอนต์โหลดจาก Google Fonts ใน `index.html` — ก๊อปแค่ css ฟอนต์จะถอยเป็นฟอนต์ระบบ หน้าตาเปลี่ยนทั้งเว็บ
+
+```html
+<!-- ใส่ใน <head> ของ index.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+```
+
+> ไฟล์ที่ส่งออกไปนอกเว็บ (PowerPoint / Word) **ห้ามใช้ Google Font** — เปิดใน Outlook / Office บนเว็บแล้วภาษาไทยเป็นสี่เหลี่ยม
+> ใช้ `Leelawadee UI` แทน (ดู `src/utils/generateITReport.js`)
+
 ## 2. ใส่ชุดสี
 
 ### Tailwind v3 — แปะลง `tailwind.config.js`
@@ -210,6 +225,10 @@ src/utils/printTheme.js                สีสำหรับไฟล์ท�
 | ตาราง | หัวตารางไม่มีพื้น · แถว `py-4` · เส้นคั่นบาง |
 | สถานะ | ใช้ `statusTone()` เสมอ ห้ามเขียนสีที่คอมโพเนนต์ |
 | หน้า | เต็มความกว้าง `p-4 lg:p-5` · ไม่จัดกึ่งกลางด้วย `max-w-*` · ไม่มีหัวเรื่องซ้ำกับแถบบน |
+| Modal | กล่อง **`rounded-lg`** (เหลี่ยมกว่าการ์ด) · overlay `bg-stone-950/50` · ห้าม `rounded-2xl` ที่กล่อง modal |
+| แถบเลื่อน | แท่งบางมนทั้งระบบ — อยู่ใน `index.css` ใต้ **`@layer base`** · ซ่อนทั้งอันใช้ `no-scrollbar` · CSS ที่เขียนนอก `@layer` จะทับคลาส Tailwind ทุกตัว |
+| ช่องติ๊กเลือกทั้งหมด | หัวตารางใช้ `<Checkbox indeterminate>` — ว่าง / ขีด (บางส่วน) / ถูก (ครบ) |
+| ช่องข้อความยาว | ใช้ textarea ที่สูงตามเนื้อหา (`AutoTextarea` ใน `ITReportModal.jsx`) ไม่ใช้กล่องสูงตายตัวที่ต้องเลื่อนในช่อง |
 | **ข้อความไทยในตาราง** | ต้อง `whitespace-nowrap` — ไทยไม่มีเว้นวรรค เบราว์เซอร์ตัดกลางคำได้ (`โน้ตบุ๊ค` → `โน้ต`/`บุ๊ค`) |
 
 ระบบต้นทางเคยมีขนาดตัวอักษร **30 ค่า** และ `strokeWidth` **12 ค่า**

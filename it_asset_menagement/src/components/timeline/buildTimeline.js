@@ -78,6 +78,29 @@ const hasKeyField = (t) => Object.prototype.hasOwnProperty.call(t, 'productKey')
 const BORROW_RE = /(^|\|)\s*ยืม:/;
 export const isBorrowTx = (t) => t?.isBorrow === true || BORROW_RE.test(String(t?.remarks || ''));
 const BORROW_CHIP = { label: 'ยืม', tone: 'ochre' };
+
+/* ── SN ของชิ้นที่เบิก/คืน ─────────────────────────────────────
+   อุปกรณ์เสริมมีหลายชิ้นต่อรายการ ต้องรู้ว่าคืน "ชิ้นไหน"
+   รายการคืนรุ่นเก่าไม่ได้เก็บ SN ไว้ แต่มี checkoutId ตรงกับรายการเบิก
+   ซึ่งเก็บ SN ไว้ใน t.sn (ใหม่) หรือใน remarks "SN: xxx | ..." (เก่า) → จับคู่กัน */
+const SN_RE = /SN:\s*([^|]+?)\s*(?:\||$)/;
+function snOfTx(t) {
+  if (t?.sn) return String(t.sn);
+  const m = SN_RE.exec(String(t?.remarks || ''));
+  const v = m ? m[1].trim() : '';
+  return v && v !== '-' ? v : '';
+}
+/** checkoutId → SN จากรายการเบิกจ่าย (+ ชิ้นที่ยังถืออยู่ใน assignees) */
+function snByCheckout(transactions = [], assignees = []) {
+  const map = new Map();
+  assignees.forEach((a) => { if (a?.checkoutId && a.serialNumber) map.set(a.checkoutId, a.serialNumber); });
+  transactions.forEach((t) => {
+    if (t.action !== 'เบิกจ่าย' || !t.checkoutId || map.has(t.checkoutId)) return;
+    const sn = snOfTx(t);
+    if (sn) map.set(t.checkoutId, sn);
+  });
+  return map;
+}
 function borrowDetail(t, holder) {
   const due = t.returnDate || holder?.returnDate;
   const ms = toMillis(due);
@@ -149,8 +172,9 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
 
   /* 2) เบิกจ่าย / รับคืน — จาก *_transactions ของเครื่องนี้
         (ตัด isAssetBound ออก เพราะนั่นคือรายการ License ไม่ใช่การถือครอง) */
-  transactions
-    .filter((t) => t.assetId === asset.id && !t.isAssetBound)
+  const mineTx = transactions.filter((t) => t.assetId === asset.id && !t.isAssetBound);
+  const snOf = snByCheckout(mineTx, asset.assignees || []);
+  mineTx
     .forEach((t) => {
       const ms = toMillis(t.timestamp);
       if (t.action === 'เบิกจ่าย') {
@@ -167,10 +191,11 @@ export function buildAssetTimeline(asset, transactions = [], repairs = [], licen
           checkoutId: t.checkoutId || null,
         });
       } else if (t.action === 'รับคืน' || t.action === 'ซ่อมเสร็จ/เข้าคลัง') {
+        const sn = snOfTx(t) || (t.checkoutId && snOf.get(t.checkoutId)) || '';
         push('checkin', ms, {
           title: t.action === 'รับคืน' ? 'รับคืนจากพนักงาน' : 'ซ่อมเสร็จ / เข้าคลัง',
           by: personOf(t), who: unknownId(t),
-          detail: t.condition ? `สภาพ: ${t.condition}` : '',
+          detail: [sn ? `SN: ${sn}` : '', t.condition ? `สภาพ: ${t.condition}` : ''].filter(Boolean).join(' · '),
           note: t.remarks && t.remarks !== '-' ? t.remarks : '',
           checkoutId: t.checkoutId || null,
         });
@@ -317,8 +342,9 @@ export function buildEmployeeTimeline(employee, transactions = [], assets = [], 
     return 'accessories';
   };
 
-  transactions
-    .filter((t) => t.empId === employee.id)
+  const empTx = transactions.filter((t) => t.empId === employee.id);
+  const snOfCheckout = snByCheckout(empTx);
+  empTx
     .forEach((t) => {
       const ms = toMillis(t.timestamp);
       if (ms == null) return;
@@ -348,7 +374,8 @@ export function buildEmployeeTimeline(employee, transactions = [], assets = [], 
       /* ทรัพย์สิน / อุปกรณ์เสริม — ดึง Tag + SN จากของจริงมาช่วยระบุตัว
          (transaction รุ่นเก่าไม่ได้เก็บ sn/assetTag ไว้ในตัวมันเอง) */
       const a = cat === 'assets' ? assetById.get(t.assetId) : null;
-      const snText = t.sn || a?.sn || '';
+      // รายการเบิกมี SN อยู่ใน remarks (แสดงเป็นหมายเหตุอยู่แล้ว) — เติมจากการจับคู่เฉพาะรายการคืน
+      const snText = t.sn || (!isOut && t.checkoutId && snOfCheckout.get(t.checkoutId)) || a?.sn || '';
       const detail = [
         a?.assetTag || '',
         snText ? 'SN: ' + snText : '',

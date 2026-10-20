@@ -2558,6 +2558,8 @@ function App() {
           condition: returnCondition === 'broken' ? 'ชำรุด' : 'ปกติ',
           remarks: returnRemarks.trim() || '-', timestamp: Date.now(),
           checkoutId: returnModal.checkoutId,
+          // คืนชิ้นไหน — ไทม์ไลน์ใช้แสดง (License ไม่มี SN)
+          ...(collectionName === 'accessories' ? { sn: returnedItem?.serialNumber || '' } : {}),
         });
 
       } else {

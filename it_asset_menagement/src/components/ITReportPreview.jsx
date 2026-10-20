@@ -26,7 +26,7 @@ const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มี
 
 const STATUS_OPTIONS = ['⏳ In Progress', '✓ Complete', '❌ Cancelled', '⏸ On Hold'];
 
-const FONT = "'Sarabun', 'Leelawadee UI', sans-serif";
+const FONT = "'Leelawadee UI', 'Sarabun', sans-serif";   // ตรงกับ F ใน generateITReport.js
 
 /* สีสถานะตามข้อความ (ตรงกับ statusOpts ใน generator) */
 function statusColor(s = '') {

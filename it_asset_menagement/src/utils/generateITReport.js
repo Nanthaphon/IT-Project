@@ -26,12 +26,16 @@ const TH_MONTHS = [
   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม',
 ];
 
-const F  = 'Sarabun';    // Thai font
+/* Thai font — ต้องเป็นฟอนต์ที่ Office ทุกตัวมี ไม่งั้นภาษาไทยเป็นสี่เหลี่ยม (tofu)
+   เดิมใช้ Sarabun (Google Font) — PowerPoint บนเครื่องหาฟอนต์สำรองให้ได้ แต่ตัวเปิดไฟล์ใน
+   Outlook / PowerPoint for the web ไม่หา → ไทยเป็นกล่องทั้งไฟล์ (เจอจริงตอนแนบส่งเมล)
+   Leelawadee UI = ฟอนต์ไทยของ Windows 10/11 และเป็น cloud font ของ Office */
+const F  = 'Leelawadee UI';
 const FE = 'Arial';      // EN/number font — universal install + tight Latin spacing
-const REPORT_VERSION = 'v4';  // bump when changing report layout — appears in footer to verify rebuild
+const REPORT_VERSION = 'v5';  // bump when changing report layout — appears in footer to verify rebuild
 
 /* ─── Language-aware font picker
-   Sarabun has Latin glyphs but PowerPoint renders them with extra kerning,
+   Thai fonts have Latin glyphs but PowerPoint renders them with extra kerning,
    causing the "spread out English chars" bug. Auto-pick FE for non-Thai text. ─── */
 const isThai = (text) => /[฀-๿]/.test(String(text ?? ''));
 const fontFor = (text) => isThai(text) ? F : FE;
@@ -131,7 +135,7 @@ addFooter = (pptx, slide, pageNum, month, year, company) => {
     x: 0, y: 7.15, w: 13.33, h: 0.06,
     fill: { color: C.blue }, line: { color: C.blue },
   });
-  // Split runs so English uses FE (Calibri) and Thai uses F (Sarabun) — fixes spread chars
+  // Split runs so English uses FE (Calibri) and Thai uses F (Leelawadee UI) — fixes spread chars
   slide.addText(
     [
       { text: `${company}  |  รายงานผล IT – `,     options: { color: 'AAAAAA', fontFace: F  } },

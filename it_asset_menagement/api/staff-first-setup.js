@@ -53,9 +53,17 @@ export default async function handler(req, res) {
     const inputEmpId = String(empId).trim();
     const inputEmail = String(m365Email).trim().toLowerCase();
 
-    // หา employee จาก empId (case-insensitive)
-    const allSnap = await dbRef.collection('employees').get();
-    const empDoc = allSnap.docs.find(d => (d.data().empId || '').toLowerCase() === inputEmpId.toLowerCase());
+    // หา employee — query ตรงตัว แล้วลองตัวพิมพ์เล็ก/ใหญ่ (แบบเดียวกับ staff-login)
+    // เดิม .get() ทั้ง collection ทุกครั้งที่เรียก = ยิงซ้ำ ๆ ถล่มโควตา Firestore ได้
+    let empDoc = null;
+    const seen = new Set();
+    for (const candidate of [inputEmpId, inputEmpId.toLowerCase(), inputEmpId.toUpperCase()]) {
+      if (seen.has(candidate)) continue;
+      seen.add(candidate);
+      const snap = await dbRef.collection('employees')
+        .where('empId', '==', candidate).limit(1).get();
+      if (!snap.empty) { empDoc = snap.docs[0]; break; }
+    }
     if (!empDoc) return res.status(404).json({ error: 'ไม่พบรหัสพนักงานนี้ในระบบ' });
 
     // ตรวจ M365 email ตรงกัน

@@ -97,8 +97,8 @@ export default function useFirebaseData(authRole = null, activeMenu = 'dashboard
       employees: () => onSnapshot(collection(db, 'employees'),
         (s) => setEmployees(rows(s).sort((a, b) => {
           // ใหม่สุดอยู่บน — ใช้ createdAt; ถ้า server timestamp ยังไม่มา fallback เป็น doc id
-          const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
-          const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
+          const ta = a.createdAt?.toMillis?.() ?? (a.createdAt?.seconds ?? 0) * 1000;
+          const tb = b.createdAt?.toMillis?.() ?? (b.createdAt?.seconds ?? 0) * 1000;
           if (ta !== tb) return tb - ta;
           return (b.id || '').localeCompare(a.id || '');
         })),

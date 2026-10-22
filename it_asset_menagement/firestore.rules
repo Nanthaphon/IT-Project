@@ -21,6 +21,17 @@ service cloud.firestore {
         get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.isSuperAdmin == true;
     }
 
+    // Staff = login ผ่าน custom token จาก api/staff-login (มี claim role/empId/empDocId)
+    function isStaff() {
+      return isSignedIn() && request.auth.token.role == 'staff';
+    }
+
+    // คำขอต้องเป็นชื่อตัวเอง — กัน staff ส่งคำขอในนามคนอื่น (admin สร้างแทนได้)
+    function isOwnRequest() {
+      return isAdmin() ||
+        (isStaff() && request.resource.data.empId == request.auth.token.empId);
+    }
+
     // ฟิลด์ที่ staff อนุญาตให้แก้ profile ตัวเองได้เท่านั้น
     // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
     function staffEditableFields() {
@@ -34,9 +45,11 @@ service cloud.firestore {
     match /employees/{empId} {
       allow read: if isSignedIn();
       allow create, delete: if isAdmin();
-      // Update: admin แก้อะไรก็ได้  |  staff (via custom token) แก้เฉพาะฟิลด์ profile
+      // Update: admin แก้อะไรก็ได้  |  staff แก้เฉพาะฟิลด์ profile ของ "เอกสารตัวเอง"
+      //   (เดิมเช็คแค่ isSignedIn — staff คนหนึ่งแก้ M365 Email/รหัสผ่านของคนอื่นได้)
       allow update: if isAdmin() ||
-        (isSignedIn() &&
+        (isStaff() &&
+         empId == request.auth.token.empDocId &&
          request.resource.data.diff(resource.data)
            .affectedKeys()
            .hasOnly(staffEditableFields()));
@@ -93,7 +106,7 @@ service cloud.firestore {
        ══════════════════════════════════════════════════════════ */
     match /repair_requests/{id} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
+      allow create: if isOwnRequest() && request.resource.data.keys().hasAll(['empId', 'empName']);
       // 🆕 Staff อนุญาตอัปเดตเฉพาะ evaluation ของคำขอที่เป็นของตัวเอง
       allow update: if isAdmin()
         || (isSignedIn()
@@ -107,7 +120,7 @@ service cloud.firestore {
     }
     match /supply_requests/{id} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
+      allow create: if isOwnRequest() && request.resource.data.keys().hasAll(['empId', 'empName']);
       allow update: if isAdmin();
       // 🆕 Staff ยกเลิก (ลบ) คำขอของตัวเองได้ เฉพาะที่ยัง "รอดำเนินการ"
       //    (ยังไม่อนุมัติ = สต็อกยังไม่ถูกตัด จึงลบได้ปลอดภัย)
@@ -118,13 +131,13 @@ service cloud.firestore {
     }
     match /replacement_requests/{id} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName']);
+      allow create: if isOwnRequest() && request.resource.data.keys().hasAll(['empId', 'empName']);
       allow update, delete: if isAdmin();
     }
     // คำขออุปกรณ์เสริม (เบิกใหม่ / เปลี่ยน / เพิ่ม / ยืม)
     match /accessory_requests/{id} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.keys().hasAll(['empId', 'empName', 'accessoryId', 'requestType']);
+      allow create: if isOwnRequest() && request.resource.data.keys().hasAll(['empId', 'empName', 'accessoryId', 'requestType']);
       allow update, delete: if isAdmin();
     }
 

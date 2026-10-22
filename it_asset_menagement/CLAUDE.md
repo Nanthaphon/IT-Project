@@ -82,7 +82,11 @@ collection ที่อ้างถึงเปิดได้จริง, ป�
 npm run emu        # หน้าต่าง 1 — เปิด emulator (ต้องมี Java)
 npm run emu:seed   # หน้าต่าง 2 — เติมข้อมูลตัวอย่างครั้งแรก
 npm run dev:emu    # หน้าต่าง 3 — เปิดแอปชี้ไป emulator
+npm run test:rules # ทดสอบ firestore.rules (หลัง emu:seed)
 ```
+
+Java ที่ใช้กับ emulator: `%LOCALAPPDATA%\Programs\temurin-jre21\jdk-21.0.12.1+1-jre\bin` (portable — ใส่ใน PATH ก่อนสั่ง `npm run emu`)
+emulator โหลด rules ใหม่เองเมื่อแก้ไฟล์ แต่บางครั้งพลาดรอบสุดท้าย — ถ้าเทสต์ผลแปลก ให้แตะไฟล์ (`touch firestore.rules`) ซ้ำ
 
 | | `npm run dev` | `npm run dev:emu` |
 |---|---|---|
@@ -251,6 +255,9 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - **อนุมัติคำขออุปกรณ์เสริม = เลือกชิ้นในสต็อก** (`accessories/ApproveAccessoryModal.jsx`) ส่ง `pickedItems: [{index, sn}]`
   ตัดสต็อกด้วย `takeItems()` ใน `utils/accessoryItems.js` (ตรวจ SN ซ้ำ — ชิ้นถูกเบิกไประหว่างเปิดหน้าต่าง = หยุด ไม่ให้ของผิดชิ้น)
   ยืม = assignee.isBorrow + returnDate → หน้าพนักงานติดป้าย "ยืม · คืน …" (เลยกำหนด = แดง)
+- **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login
+  อ่าน/เขียนผ่าน `utils/employeeSecrets.js` เท่านั้น (`loadM365Password` / `saveM365Password` / `splitM365Password`)
+  rules ห้ามสร้างพนักงานที่มี `m365Password` ในเอกสาร · ตรวจสิทธิ์ด้วย `npm run test:rules` (ต้องเปิด emulator)
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 

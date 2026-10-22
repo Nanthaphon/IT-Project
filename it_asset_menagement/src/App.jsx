@@ -30,7 +30,8 @@ function parseRoute(pathname) {
   return { menu, assetId, assetEdit, employeeId, licenseId, licenseEdit, accessoryId, accessoryEdit, furnitureId, furnitureEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField } from 'firebase/firestore';
+import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
@@ -468,7 +469,8 @@ function App() {
             if (empDocId) {
               const empSnap = await getDoc(doc(db, 'employees', empDocId));
               if (empSnap.exists()) {
-                setCurrentStaff({ id: empSnap.id, ...empSnap.data() });
+                const emp = { id: empSnap.id, ...empSnap.data() };
+                setCurrentStaff({ ...emp, m365Password: await loadM365Password(emp) });
               }
             }
           } catch (e) { /* ignore */ }
@@ -677,7 +679,7 @@ function App() {
 
       // ดึง employee doc มา set currentStaff
       const foundEmp = employees.find(emp => emp.id === empDocId);
-      if (foundEmp) setCurrentStaff(foundEmp);
+      if (foundEmp) setCurrentStaff({ ...foundEmp, m365Password: await loadM365Password(foundEmp) });
       setStaffEmpIdInput('');
       setStaffPasswordInput('');
 
@@ -1096,14 +1098,20 @@ function App() {
     try {
       // ✅ Whitelist เฉพาะ field ที่ staff อนุญาตให้แก้ (ตรงกับ Firestore rules)
       // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
-      const ALLOWED = ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password','links'];
+      // m365Password ไม่อยู่ในนี้ — เก็บแยกที่ employee_secrets (ดู utils/employeeSecrets.js)
+      const ALLOWED = ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','links'];
       const safe = {};
       for (const k of ALLOWED) {
         if (k in updates) safe[k] = updates[k];
       }
       safe.updatedAt = serverTimestamp();
       await updateDoc(doc(db, 'employees', currentStaff.id), safe);
-      setCurrentStaff(prev => ({ ...prev, ...safe }));
+      const secret = {};
+      if ('m365Password' in updates) {
+        await saveM365Password(currentStaff.id, updates.m365Password);
+        secret.m365Password = updates.m365Password || '';
+      }
+      setCurrentStaff(prev => ({ ...prev, ...safe, ...secret }));
       setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว — ข้อมูลในระบบ admin จะอัปเดตทันที', type: 'success' });
     } catch (err) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: err.message, type: 'error' });
@@ -1240,7 +1248,9 @@ function App() {
     if (isDuplicate) return setCustomAlert({ isOpen: true, title: 'ข้อมูลซ้ำซ้อน!', message: `รหัสพนักงาน หรือ ชื่อ-นามสกุล นี้มีอยู่ในระบบแล้ว`, type: 'error' });
     await withLoading(async () => {
       try {
-        await addDoc(collection(db, 'employees'), { ...empForm, fullName, fullNameEng, createdAt: serverTimestamp() });
+        const [pub, m365Password] = splitM365Password(empForm);
+        const ref = await addDoc(collection(db, 'employees'), { ...pub, fullName, fullNameEng, createdAt: serverTimestamp() });
+        if (m365Password) await saveM365Password(ref.id, m365Password);
         setEmpForm({ firstName: '', lastName: '', firstNameEng: '', lastNameEng: '', fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '', startDate: '' });
         setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
       } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
@@ -1370,7 +1380,10 @@ function App() {
   const handleRestoreEmployee = async (emp) => {
     try {
       const empData = { ...emp }; delete empData.id; delete empData.deletedAt;
-      await setDoc(doc(db, 'employees', emp.id), { ...empData, createdAt: serverTimestamp() });
+      // ถังขยะรุ่นก่อนย้ายอาจยังมี m365Password ติดมา → ย้ายไป employee_secrets แทน
+      const [pub, legacyPassword] = splitM365Password(empData);
+      await setDoc(doc(db, 'employees', emp.id), { ...pub, createdAt: serverTimestamp() });
+      if (legacyPassword) await saveM365Password(emp.id, legacyPassword);
       await deleteDoc(doc(db, 'deleted_employees', emp.id));
       setCustomAlert({ isOpen: true, title: 'กู้คืนสำเร็จ!', message: 'กู้คืนข้อมูลพนักงานกลับสู่ระบบเรียบร้อยแล้ว', type: 'success' });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
@@ -1384,6 +1397,7 @@ function App() {
       async () => {
         try {
           await deleteDoc(doc(db, 'deleted_employees', emp.id));
+          await deleteDoc(doc(db, SECRETS_COLLECTION, emp.id));
           setCustomAlert({ isOpen: true, title: 'ลบสำเร็จ!', message: 'ลบข้อมูลถาวรเรียบร้อยแล้ว', type: 'success' });
         } catch (error) {
           setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' });
@@ -1860,8 +1874,11 @@ function App() {
 
           rec.createdAt = serverTimestamp();
           // 🆕 ถ้าไฟล์ระบุจำนวน > 1 → สร้างหลายชิ้น (แต่ละ doc = 1 ชิ้น)
+          // พนักงาน: คอลัมน์ M365 Password ไปลง employee_secrets ไม่ใช่ employees
+          const [pubRec, importedPassword] = colName === 'employees' ? splitM365Password(rec) : [rec];
           for (let c = 0; c < importCopies; c++) {
-            await addDoc(collection(db, colName), rec);
+            const ref = await addDoc(collection(db, colName), pubRec);
+            if (importedPassword) await saveM365Password(ref.id, importedPassword);
             count++;
           }
         }
@@ -1977,19 +1994,28 @@ function App() {
     const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
     const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
     setEditEmpModal({ isOpen: true, data: { ...emp, firstName: th.first, lastName: th.last, firstNameEng: en.first, lastNameEng: en.last } });
+    // รหัส M365 อยู่ที่ employee_secrets — โหลดตามมาแล้วเติมลงฟอร์ม (ถ้ายังเปิดคนเดิมอยู่)
+    loadM365Password(emp).then(m365Password => setEditEmpModal(prev =>
+      prev.isOpen && prev.data?.id === emp.id && prev.data.m365Password === emp.m365Password
+        ? { ...prev, data: { ...prev.data, m365Password } }
+        : prev));
   };
   const handleEditEmpChange = (e) => setEditEmpModal(prev => ({ ...prev, data: { ...prev.data, [e.target.name]: e.target.value } }));
   const handleUpdateEmployee = async (e) => {
     e.preventDefault();
     await withLoading(async () => {
       try {
-        const updatedData = { ...editEmpModal.data }; delete updatedData.id;
+        const [updatedData, m365Password] = splitM365Password(editEmpModal.data); delete updatedData.id;
+        updatedData.updatedAt = serverTimestamp();   // หน้ารายละเอียดใช้ค่านี้เป็นสัญญาณให้โหลดรหัส M365 ใหม่
         // 🆕 รวมชื่อจริง + นามสกุล → fullName / fullNameEng (คงไว้ให้ส่วนอื่นใช้)
         updatedData.fullName = joinName(updatedData.firstName, updatedData.lastName);
         updatedData.fullNameEng = joinName(updatedData.firstNameEng, updatedData.lastNameEng);
         // คง optionId/id ของลิงก์ที่เลือกจากตัวเลือกฟิลด์ไว้ (ดู utils/links.js)
         if (Array.isArray(updatedData.links)) updatedData.links = cleanLinks(updatedData.links);
-        await updateDoc(doc(db, 'employees', editEmpModal.data.id), updatedData);
+        // ลบ m365Password ค้างเก่าออกจาก employees ไปด้วย (ข้อมูลก่อนรันสคริปต์ย้าย)
+        await updateDoc(doc(db, 'employees', editEmpModal.data.id), { ...updatedData, m365Password: deleteField() });
+        // undefined = กดบันทึกก่อนรหัสโหลดเสร็จและไม่ได้พิมพ์ใหม่ → ไม่เขียนทับของเดิม
+        if (m365Password !== undefined) await saveM365Password(editEmpModal.data.id, m365Password);
         if (selectedEmployee && selectedEmployee.id === editEmpModal.data.id) setSelectedEmployee({ ...selectedEmployee, ...updatedData, id: editEmpModal.data.id });
         setEditEmpModal({ isOpen: false, data: null });
         setCustomAlert({ isOpen: true, title: 'อัปเดตสำเร็จ!', message: 'แก้ไขข้อมูลเรียบร้อยแล้ว', type: 'success' });

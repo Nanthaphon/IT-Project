@@ -11,7 +11,9 @@
     "emu": "firebase emulators:start --import .emulator-data --export-on-exit .emulator-data",
     "emu:seed": "node scripts/seed-emulator.mjs",
     "dev:emu": "vite --mode emulator",
-    "check:needs": "node scripts/check-firebase-needs.mjs"
+    "check:needs": "node scripts/check-firebase-needs.mjs",
+    "test:rules": "node scripts/test-rules.mjs",
+    "migrate:m365": "node scripts/migrate-m365-secrets.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

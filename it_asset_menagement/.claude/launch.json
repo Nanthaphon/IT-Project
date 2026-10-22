@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "IT Asset Management (emulator)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:emu"],
+      "port": 5173
     }
   ]
 }

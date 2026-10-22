@@ -33,7 +33,8 @@ const put = async (path, data) => {
   const fields = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, val(v)]));
   const r = await fetch(`${base}/${path}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    // Bearer owner = สิทธิ์ admin ของ emulator (ข้าม rules) — ไม่ใส่ rules จะปฏิเสธทุก write
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer owner' },
     body: JSON.stringify({ fields }),
   });
   if (!r.ok) throw new Error(`${path}: ${r.status} ${await r.text()}`);
@@ -61,7 +62,11 @@ const employees = NAMES.map((fullName, i) => ({
   position: pick(POSITIONS, i),
   company: pick(COMPANIES, i),
   status: i === 11 ? 'ลาออก' : 'ทำงานอยู่',
+  m365Email: `user${i + 1}@local.test`,
 }));
+
+/* รหัส M365 อยู่ที่ employee_secrets (ไม่อยู่ใน employees) */
+const employeeSecrets = employees.slice(0, 6).map((e, i) => ({ id: e.id, m365Password: `M365-pass-${i + 1}` }));
 
 const ASSET_TYPES = ['โน๊ตบุ๊ค', 'คอมพิวเตอร์', 'จอมอนิเตอร์', 'เครื่องพิมพ์', 'ทีวี'];
 const ASSET_STATUS = ['พร้อมใช้งาน', 'ถูกใช้งาน', 'ชำรุดเสียหาย', 'สำรอง', 'ตัดจำหน่าย'];
@@ -179,6 +184,7 @@ const accessoryReq = Array.from({ length: 4 }, (_, i) => ({
 /* ── เขียนลง emulator ─────────────────────────────────────── */
 const COLLECTIONS = {
   employees,
+  employee_secrets: employeeSecrets,
   assets,
   licenses,
   accessories,

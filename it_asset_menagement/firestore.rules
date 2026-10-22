@@ -34,8 +34,9 @@ service cloud.firestore {
 
     // ฟิลด์ที่ staff อนุญาตให้แก้ profile ตัวเองได้เท่านั้น
     // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
+    // ❌ ไม่รวม m365Password — ย้ายไป employee_secrets แล้ว (employees อ่านได้ทุกคนที่ login)
     function staffEditableFields() {
-      return ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','m365Password','links','updatedAt'];
+      return ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','links','updatedAt'];
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -44,7 +45,9 @@ service cloud.firestore {
        ══════════════════════════════════════════════════════════ */
     match /employees/{empId} {
       allow read: if isSignedIn();
-      allow create, delete: if isAdmin();
+      // เอกสารใหม่ห้ามมี m365Password — ต้องเขียนลง employee_secrets แทน
+      allow create: if isAdmin() && !('m365Password' in request.resource.data);
+      allow delete: if isAdmin();
       // Update: admin แก้อะไรก็ได้  |  staff แก้เฉพาะฟิลด์ profile ของ "เอกสารตัวเอง"
       //   (เดิมเช็คแค่ isSignedIn — staff คนหนึ่งแก้ M365 Email/รหัสผ่านของคนอื่นได้)
       allow update: if isAdmin() ||
@@ -53,6 +56,18 @@ service cloud.firestore {
          request.resource.data.diff(resource.data)
            .affectedKeys()
            .hasOnly(staffEditableFields()));
+    }
+
+    /* employee_secrets — รหัสผ่าน M365 (doc id = id ของเอกสาร employees)
+       อ่าน/เขียนได้เฉพาะ admin กับเจ้าของ · staff เขียนได้แค่ m365Password */
+    match /employee_secrets/{empDocId} {
+      allow read: if isAdmin() ||
+        (isStaff() && empDocId == request.auth.token.empDocId);
+      allow create, update: if isAdmin() ||
+        (isStaff() &&
+         empDocId == request.auth.token.empDocId &&
+         request.resource.data.keys().hasOnly(['m365Password', 'updatedAt']));
+      allow delete: if isAdmin();
     }
 
     match /deleted_employees/{id} {

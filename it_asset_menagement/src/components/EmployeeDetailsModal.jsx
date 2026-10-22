@@ -5,6 +5,7 @@ import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';
 import { resolveName, initialOf } from '../utils/nameUtils.js';
+import { loadM365Password } from '../utils/employeeSecrets.js';
 import { Popover } from '../ui/earthUI.jsx';
 import PreHandoverAssessmentModal from './PreHandoverAssessmentModal.jsx';
 import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
@@ -53,6 +54,19 @@ export default function EmployeeDetailsModal({
   const [printReturnFor, setPrintReturnFor] = useState(null); // { period, asset } or null
   const [returnPickerOpen, setReturnPickerOpen] = useState(false); // เลือกเครื่องเมื่อมีหลายตัว
   const [printOpen, setPrintOpen] = useState(false);               // เมนู "พิมพ์" บนหัวหน้า
+
+  /* รหัส M365 อยู่ที่ employee_secrets (ไม่อยู่ในเอกสาร employees แล้ว) — อ่าน 1 doc ตอนเปิดคนนี้
+     ระหว่างรอใช้ค่าเก่าที่อาจยังค้างในเอกสาร employees (ก่อนรันสคริปต์ย้าย) */
+  const [secret, setSecret] = useState({ id: null, value: '' });
+  const empDocId = selectedEmployee?.id;
+  useEffect(() => {
+    if (!empDocId) return;
+    let alive = true;
+    loadM365Password(selectedEmployee).then(value => { if (alive) setSecret({ id: empDocId, value }); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- โหลดใหม่เมื่อเปลี่ยนคน / หลังบันทึกฟอร์มแก้ไข
+  }, [empDocId, selectedEmployee?.updatedAt]);
+  const m365Password = secret.id === empDocId ? secret.value : (selectedEmployee?.m365Password || '');
 
   /* โหมดหน้าเต็มไม่มี state ให้ล้าง — ต้องถอยกลับด้วย router แทน */
   const closeView = () => { if (asPage) { onClosePage?.(); return; } setSelectedEmployee(null); };
@@ -232,7 +246,7 @@ export default function EmployeeDetailsModal({
       disabled: allHeld.length === 0, onSelect: handlePrintReturn },
     { key: 'summary', label: 'สรุปพนักงาน (PDF)', hint: 'ข้อมูล + รายการถือครอง', onSelect: async () => {
       const { printEmployeeSummary } = await import('../utils/printEmployeeSummary.js');
-      printEmployeeSummary({ employee: selectedEmployee, empAssets, empLicenses, empAccessories });
+      printEmployeeSummary({ employee: { ...selectedEmployee, m365Password }, empAssets, empLicenses, empAccessories });
     } },
   ];
 
@@ -496,10 +510,10 @@ export default function EmployeeDetailsModal({
                     value={selectedEmployee.startDate ? formatDateShort(selectedEmployee.startDate) : ''} />
                 </DetailCard>
 
-                {(selectedEmployee.m365Email || selectedEmployee.m365Password) && (
+                {(selectedEmployee.m365Email || m365Password) && (
                   <DetailCard title="บัญชี Microsoft 365">
                     <DetailRow label="อีเมล" value={selectedEmployee.m365Email} accent copy />
-                    <PasswordReveal label="รหัสผ่าน" value={selectedEmployee.m365Password} />
+                    <PasswordReveal label="รหัสผ่าน" value={m365Password} />
                   </DetailCard>
                 )}
 

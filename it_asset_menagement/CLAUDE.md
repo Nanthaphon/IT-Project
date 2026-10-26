@@ -237,7 +237,7 @@ src/
     primitives.jsx           Modal, ModalHeader/Body/Footer, Field, Button
   utils/
     printAssetReport.js      PDF รายงานทรัพย์สิน (dynamic columns)
-    uploadPhoto.js           อัปโหลดรูป — Storage ก่อน แล้ว fallback base64
+    uploadPhoto.js           อัปโหลดรูป — ตอนนี้เก็บ base64 ตรง (Storage ยังไม่ได้เปิด: bucket 404 · `STORAGE_ENABLED=false`)
 api/                         Vercel Functions (staff auth, Teams notify)
 ```
 
@@ -258,6 +258,9 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login
   อ่าน/เขียนผ่าน `utils/employeeSecrets.js` เท่านั้น (`loadM365Password` / `saveM365Password` / `splitM365Password`)
   rules ห้ามสร้างพนักงานที่มี `m365Password` ในเอกสาร · ตรวจสิทธิ์ด้วย `npm run test:rules` (ต้องเปิด emulator)
+- **รูปประเมินสภาพเก็บเป็น base64 ในเอกสาร** — Firebase Storage ยังไม่ได้เปิด (bucket ตอบ 404 · ต้องอัปเป็นแพลน Blaze ถึงสร้างได้)
+  เดิมลอง Storage ก่อนทุกรูป → ค้าง 8 วิ/รูป ผู้ใช้คิดว่าระบบค้าง · เปิด Storage วันไหนให้ตั้ง `STORAGE_ENABLED = true` ใน `utils/uploadPhoto.js`
+  อ่านรูปไม่ได้ (HEIC จาก iPhone / ไฟล์เสีย) `compressImage` โยน Error ภาษาไทย → ช่องแนบรูปแสดงข้อความ (ห้ามกลืน error เงียบ)
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 

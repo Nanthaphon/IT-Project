@@ -206,17 +206,19 @@ function QuickFillBtn({ onClick, color, children }) {
 function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
   const ref = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');   // แนบไม่สำเร็จ (เช่น HEIC) — เดิมเงียบ ผู้ใช้ไม่รู้ว่าพังหรือยังโหลด
 
   const handleSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setError('');
     try {
-      // 🆕 upload ไป Firebase Storage → save เฉพาะ URL
       const url = await compressAndUploadPhoto(file, 'assessment-photos');
       if (url) onUpload(url);
     } catch (err) {
       console.error('Compress image failed:', err);
+      setError(err?.message || 'แนบรูปไม่สำเร็จ');
     } finally {
       setUploading(false);
       if (ref.current) ref.current.value = '';
@@ -260,6 +262,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove }) {
             )}
           </button>
         )}
+        {error && <p className="pt-1 text-[10px] leading-snug text-rose-700">{error}</p>}
         <input
           ref={ref}
           type="file"

@@ -230,6 +230,7 @@ export default function ConditionCapture({
 function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, onPhotoClick }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');   // บางรูปแนบไม่ได้ (เช่น HEIC) — รูปอื่นยังเข้า
   const [isDragging, setIsDragging] = useState(false);
   const dragCounterRef = useRef(0);
 
@@ -241,13 +242,15 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
     const imageFiles = files.filter(f => f.type?.startsWith('image/'));
     if (imageFiles.length === 0 || slotsLeft <= 0) return;
     setUploading(true);
+    setUploadError('');
     try {
       const toProcess = imageFiles.slice(0, slotsLeft);
-      // 🆕 อัพโหลดไป Firebase Storage → ได้ URL กลับมา (ไม่ติดขีดจำกัด 1MB Firestore)
       const urls = await compressAndUploadPhotos(toProcess, 'condition-photos');
       onPhotosChange([...photos, ...urls.filter(Boolean)]);
+      if (urls.failed) setUploadError(`แนบไม่ได้ ${urls.failed} รูป — ${urls.error}`);
     } catch (err) {
       console.error('Compress image failed:', err);
+      setUploadError(err?.message || 'แนบรูปไม่สำเร็จ');
     } finally {
       setUploading(false);
     }
@@ -404,6 +407,8 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
           ))}
         </div>
       )}
+
+      {uploadError && <p className="px-3 pb-2 text-[11px] leading-snug text-rose-700">{uploadError}</p>}
 
       <input
         ref={fileInputRef}

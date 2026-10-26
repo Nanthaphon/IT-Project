@@ -3,9 +3,23 @@
 //   - default: 600px, quality 0.55, JPEG → ~30-60KB ต่อรูป
 //   - icon preset: 400px, quality 0.7  → ~15-30KB ต่อรูป (สำหรับ icon ทรัพย์สิน/License/อุปกรณ์)
 //   - evidence preset: 1000px, quality 0.7 → ~80-120KB (เก็บหลักฐานสภาพ — ใช้กับ ConditionCapture)
+/* อ่านรูปไม่ได้ → ข้อความที่ผู้ใช้เข้าใจ (เดิม reject ด้วย Event ดิบ แล้วช่องแนบรูปเงียบไปเฉย ๆ)
+   เจอบ่อยสุด: HEIC จาก iPhone — Chrome/Edge บน Windows เปิดไม่ได้ */
+const isHeic = (file) => /\.(heic|heif)$/i.test(file?.name || '') || /hei[cf]/i.test(file?.type || '');
+const unreadable = (file) => new Error(isHeic(file)
+  ? 'ไฟล์ HEIC (iPhone) เปิดไม่ได้ — ตั้งกล้องเป็น "ใช้ได้กับทุกเครื่อง" หรือส่งเป็น JPG'
+  : 'อ่านไฟล์รูปนี้ไม่ได้ — ใช้ไฟล์ JPG หรือ PNG');
+
+// กันวงหมุนค้างตลอดไป ถ้าเบราว์เซอร์ไม่ตอบ onload/onerror
+const COMPRESS_TIMEOUT_MS = 20000;
+
 export async function compressImage(file, { maxDim = 600, quality = 0.55 } = {}) {
   if (!file) return null;
-  return new Promise((resolve, reject) => {
+  if (isHeic(file)) throw unreadable(file);
+  return new Promise((resolveRaw, rejectRaw) => {
+    const timer = setTimeout(() => rejectRaw(new Error('ประมวลผลรูปนานเกินไป — ลองรูปที่เล็กลง')), COMPRESS_TIMEOUT_MS);
+    const resolve = (v) => { clearTimeout(timer); resolveRaw(v); };
+    const reject = () => { clearTimeout(timer); rejectRaw(unreadable(file)); };
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();

@@ -508,17 +508,19 @@ function AssessmentEditor({ assessment, setItemStatus, setSectionStatus }) {
 function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
   const ref = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');   // แนบไม่สำเร็จ (เช่น HEIC) — เดิมเงียบ ผู้ใช้ไม่รู้ว่าพังหรือยังโหลด
 
   const handleSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setError('');
     try {
-      // 🆕 upload ไป Firebase Storage → save เฉพาะ URL
       const url = await compressAndUploadPhoto(file, 'assessment-photos');
       if (url) onUpload(url);
     } catch (err) {
       console.error('Compress image failed:', err);
+      setError(err?.message || 'แนบรูปไม่สำเร็จ');
     } finally {
       setUploading(false);
       if (ref.current) ref.current.value = '';
@@ -556,6 +558,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
           </button>
         )}
       </div>
+      {error && <p className="px-2 pb-2 text-[11px] leading-snug text-rose-700">{error}</p>}
       <input ref={ref} type="file" accept="image/*" onChange={handleSelect} className="hidden" />
     </div>
   );

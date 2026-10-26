@@ -1,18 +1,26 @@
 // 🆕 Helper สำหรับอัพโหลดรูปประเมินสภาพ
 // - ถ้า Firebase Storage เปิดใช้แล้ว → อัพโหลดไป Storage (ไม่จำกัดขนาด)
-// - ถ้ายังไม่ได้เปิด → fallback เป็น base64 (จำกัด 1MB/doc)
+// - ถ้ายังไม่ได้เปิด → เก็บเป็น base64 (จำกัด 1MB/doc)
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase.js';
 import { compressImage, CONDITION_PRESET } from './compressImage.js';
 
-// preset สำหรับ fallback base64 (เล็กกว่า Storage เพื่อกัน 1MB)
+/* ── Storage ยังไม่ได้เปิด → ข้ามไปเก็บ base64 ทันที ─────────────────────────
+   ตรวจแล้ว 26 ต.ค. 2026: bucket "it-asset-management-dc883.firebasestorage.app" (และ .appspot.com)
+   ตอบ 404 = ยังไม่เคยสร้าง · Firebase ต้องใช้แพลน Blaze ถึงสร้าง bucket ได้ (ตั้งแต่ปลาย 2024)
+   เดิมทุกรูปลอง Storage ก่อน → SDK ลองซ้ำจนครบ timeout 8 วิ แล้วค่อย fallback
+   ผู้ใช้เห็นวงหมุนค้างหลายช่องพร้อมกัน (เลือกหลายรูป = รอ 8+ วิทุกช่อง) จนคิดว่าระบบค้าง
+   ถ้าวันหนึ่งเปิด Storage (อัปเป็น Blaze + สร้าง bucket + deploy storage.rules) → เปลี่ยนเป็น true */
+const STORAGE_ENABLED = false;
+
+// preset สำหรับ base64 (เล็กกว่า Storage เพื่อกัน 1MB/doc)
 const FALLBACK_PRESET = { maxDim: 1000, quality: 0.75 };
 
-// timeout สำหรับ Storage (Storage ที่ยังไม่ได้เปิดอาจจะค้าง — 8 วิพอ)
+// timeout สำหรับ Storage (ใช้เมื่อ STORAGE_ENABLED เท่านั้น)
 const STORAGE_TIMEOUT_MS = 8000;
 
-// 🆕 flag caching — พอ Storage ล้มครั้งแรก จะไม่ลองอีก (ไม่ต้องรอ timeout ทุกรูป)
-let storageDisabled = false;
+// พอ Storage ล้มครั้งแรก จะไม่ลองอีก (ไม่ต้องรอ timeout ทุกรูป)
+let storageDisabled = !STORAGE_ENABLED;
 
 function withTimeout(promise, ms, tag) {
   return Promise.race([
@@ -24,13 +32,13 @@ function withTimeout(promise, ms, tag) {
 }
 
 /**
- * บีบอัดรูป → อัพโหลดไป Storage → คืน URL
- * ถ้า Storage ล้มเหลว/timeout → fallback เป็น base64
+ * บีบอัดรูป → (อัพโหลดไป Storage ถ้าเปิดใช้) → คืน URL หรือ data URL
+ * อ่านไฟล์ไม่ได้ (เช่น HEIC จาก iPhone) → โยน Error ข้อความภาษาไทยให้ช่องแนบรูปแสดง
  */
 export async function compressAndUploadPhoto(file, folder = 'condition-photos', preset = CONDITION_PRESET) {
   if (!file) return null;
 
-  // ถ้า Storage เคยล้มแล้ว → ข้ามไป base64 เลย (ไม่ต้องรอ timeout)
+  // Storage ไม่พร้อม → บีบเป็น base64 แล้วจบเลย (ไม่ต้องบีบรอบใหญ่ก่อน)
   if (storageDisabled) {
     return await compressImage(file, FALLBACK_PRESET);
   }
@@ -55,8 +63,15 @@ export async function compressAndUploadPhoto(file, folder = 'condition-photos', 
 
 /**
  * บีบอัด + อัพโหลดหลายรูปพร้อมกัน
+ * รูปที่อ่านไม่ได้ถูกข้าม (เดิม 1 รูปพัง = ทั้งชุดหาย) — failed บอกจำนวนที่ข้าม
  */
 export async function compressAndUploadPhotos(files, folder = 'condition-photos', preset = CONDITION_PRESET) {
   const arr = Array.from(files || []);
-  return Promise.all(arr.map((f) => compressAndUploadPhoto(f, folder, preset)));
+  const results = await Promise.allSettled(arr.map((f) => compressAndUploadPhoto(f, folder, preset)));
+  const urls = results.map((r) => (r.status === 'fulfilled' ? r.value : null));
+  const failed = results.filter((r) => r.status === 'rejected');
+  if (failed.length) console.warn('[uploadPhoto] skipped', failed.length, failed[0].reason?.message);
+  urls.failed = failed.length;
+  urls.error = failed[0]?.reason?.message || '';
+  return urls;
 }

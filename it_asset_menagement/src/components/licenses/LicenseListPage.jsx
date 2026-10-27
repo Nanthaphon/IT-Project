@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Download, AppWindow } from 'lucide-react';
+import { Plus, Download, AppWindow, FileText } from 'lucide-react';
 import { text } from '../../ui/earth.js';
 import { StatusBadge, CellTitle, Clamp, Thumb } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
@@ -97,7 +97,7 @@ export default function LicenseListPage({
   page, pageSize, onPageChange,
   visibleColumns, onVisibleColumnsChange,
   selectedIds = [], onSelect, onSelectAll, onClearSelection, onBulkDelete,
-  onAdd, onExportCsv,
+  onAdd, onExportCsv, onPrintCover,
   onOpen, onEdit, onCheckout, onCheckin, onDelete,
   checkExpiration,
   canEdit = false,
@@ -122,10 +122,13 @@ export default function LicenseListPage({
       onSelect={onSelect}
       onSelectAll={onSelectAll}
       onClearSelection={onClearSelection}
-      bulkActions={canEdit && onBulkDelete
-        ? [{ key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete }]
-        : []}
+      bulkActions={[
+        /* ใบคลุมต่ออายุ — ตั้งต้นจากที่ติ๊กไว้ */
+        onPrintCover && { key: 'cover', label: 'พิมพ์ใบคลุม', onSelect: () => onPrintCover(selectedIds) },
+        canEdit && onBulkDelete && { key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete },
+      ].filter(Boolean)}
       toolbar={[
+        onPrintCover && { key: 'cover', label: 'ใบคลุม', icon: <FileText className="size-5" strokeWidth={2} />, onSelect: () => onPrintCover([]) },
         onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
         canEdit && onAdd && { key: 'add', label: 'เพิ่ม License', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
       ].filter(Boolean)}

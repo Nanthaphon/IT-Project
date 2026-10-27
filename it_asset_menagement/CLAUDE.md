@@ -216,6 +216,7 @@ localhost:5173/fieldopt-preview.html    ตัวเลือกฟิลด์ 
 localhost:5173/repair-preview.html      แจ้งซ่อม (ชื่อเล่น · ทุกสถานะ · คะแนน · ข้อมูลหลายเดือนไว้ตรวจตัวกรองวันที่)
 localhost:5173/staff-preview.html       ฝั่งพนักงาน (?tab=office_supplies เปิดแท็บเบิกอุปกรณ์ · ย่อจอเป็นมือถือเพื่อตรวจแถบลอย)
 localhost:5173/accreq-preview.html      คำขออุปกรณ์เสริม (กดอนุมัติ → เลือกชิ้นในสต็อก · ผลตัดสต็อกโชว์ท้ายหน้า)
+localhost:5173/licover-preview.html     ใบคลุมต่ออายุโปรแกรม (ติ๊กโปรแกรม → เอกสารโชว์ใน iframe แทนกล่องพิมพ์)
 ```
 ทุกตัวจำลอง app shell จริง ใช้ตรวจ integration ได้ · ไม่เข้า production build
 
@@ -237,6 +238,7 @@ src/
     primitives.jsx           Modal, ModalHeader/Body/Footer, Field, Button
   utils/
     printAssetReport.js      PDF รายงานทรัพย์สิน (dynamic columns)
+    printLicenseCover.js     ใบคลุมต่ออายุโปรแกรม — 1 โปรแกรม/หน้า A4 + หน้าสรุปรวม (ปุ่ม "ใบคลุม" / "พิมพ์ใบคลุม" หน้า License)
     uploadPhoto.js           อัปโหลดรูป — ตอนนี้เก็บ base64 ตรง (Storage ยังไม่ได้เปิด: bucket 404 · `STORAGE_ENABLED=false`)
 api/                         Vercel Functions (staff auth, Teams notify)
 ```

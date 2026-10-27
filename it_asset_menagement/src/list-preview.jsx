@@ -4,6 +4,7 @@ import './index.css';
 import React, { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import LicenseListPage from './components/licenses/LicenseListPage.jsx';
+import LicenseCoverModal from './components/licenses/LicenseCoverModal.jsx';
 import AccessoryListPage from './components/accessories/AccessoryListPage.jsx';
 import EmployeeListPage from './components/employees/EmployeeListPage.jsx';
 import OfficeSupplyListPage from './components/officeSupplies/OfficeSupplyListPage.jsx';
@@ -114,6 +115,7 @@ const match = (hay, q) => String(hay || '').toLowerCase().includes(q.trim().toLo
 
 function Harness() {
   const [menu, setMenu] = useState('licenses');
+  const [coverIds, setCoverIds] = useState(null);
   const [cols, setCols] = useState({ productKey: true, supplier: true });
 
   const lic = usePaged(LICENSES, (all, q, f) => all.filter(l =>
@@ -158,7 +160,12 @@ function Harness() {
           onAdd={() => console.log('เพิ่ม license')} onExportCsv={() => console.log('csv')}
           onOpen={log('เปิด')} onEdit={log('แก้ไข')} onCheckout={log('จ่าย')} onCheckin={log('คืน')} onDelete={log('ลบ')}
           checkExpiration={checkExpiration}
+          onPrintCover={setCoverIds}
         />
+      )}
+      {coverIds && (
+        <LicenseCoverModal licenses={LICENSES} initialIds={coverIds} onClose={() => setCoverIds(null)}
+          onPrint={(o) => { window.__cover = o; console.log('พิมพ์ใบคลุม', o.licenses.length); }} />
       )}
 
       {menu === 'accessories' && (

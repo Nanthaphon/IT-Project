@@ -92,6 +92,7 @@ const SnipeITImportModal    = lazy(() => import('./components/SnipeITImportModal
 
 import AssetListPage from './components/assets/AssetListPage.jsx';   // ธีม v3 (earth tone)
 import LicenseListPage from './components/licenses/LicenseListPage.jsx';
+import LicenseCoverModal from './components/licenses/LicenseCoverModal.jsx';
 import AccessoryListPage from './components/accessories/AccessoryListPage.jsx';
 import EmployeeListPage from './components/employees/EmployeeListPage.jsx';
 import OfficeSupplyListPage from './components/officeSupplies/OfficeSupplyListPage.jsx';
@@ -164,6 +165,7 @@ function App() {
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState([]);
   const [selectedOfficeSupplyIds, setSelectedOfficeSupplyIds] = useState([]);
   const [selectedLicenseIds, setSelectedLicenseIds] = useState([]);
+  const [licenseCoverIds, setLicenseCoverIds] = useState(null);   // ไม่ null = เปิดหน้าต่างใบคลุมต่ออายุ (ค่า = id ที่ติ๊กไว้ตั้งต้น)
   const [selectedAssetIds, setSelectedAssetIds] = useState([]); // 🆕 เลือกทรัพย์สินรายตัวเพื่อพิมพ์ PDF (คงอยู่ข้ามการค้นหา)
 
   const [name, setName] = useState('');
@@ -3552,6 +3554,7 @@ function App() {
               onBulkDelete={() => setConfirmDeleteModal({ isOpen: true, id: selectedLicenseIds, collectionName: 'licenses' })}
               onAdd={() => setIsAddModalOpen(true)}
               onExportCsv={handleExportLicenses}
+              onPrintCover={setLicenseCoverIds}
               onOpen={openLicensePage}
               onEdit={(l) => navigate(`/licenses/${encodeURIComponent(l.id)}/edit`)}
               onCheckout={(l) => setCheckoutModal({ isOpen: true, assetId: l.id, collectionName: 'licenses' })}
@@ -3662,8 +3665,17 @@ function App() {
           )}
         </div>
       </main>
-      
-      <ModalsContainer 
+
+      {licenseCoverIds && (
+        <LicenseCoverModal
+          licenses={licenses}
+          employees={employees}
+          initialIds={licenseCoverIds}
+          onClose={() => setLicenseCoverIds(null)}
+        />
+      )}
+
+      <ModalsContainer
         isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} remark={remark} setRemark={setRemark} assetDocument={assetDocument} setAssetDocument={setAssetDocument} purchaseCondition={purchaseCondition} setPurchaseCondition={setPurchaseCondition} scrapValue={scrapValue} setScrapValue={setScrapValue} fieldOptions={fieldOptions}
         checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} checkoutCondition={checkoutCondition} setCheckoutCondition={setCheckoutCondition}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} repairRequests={repairRequests} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}

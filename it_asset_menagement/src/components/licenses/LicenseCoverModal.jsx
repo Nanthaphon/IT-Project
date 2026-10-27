@@ -5,7 +5,7 @@ import DateField from '../DateField.jsx';
 import { licenseCoverItems, printLicenseCover } from '../../utils/printLicenseCover.js';
 
 /* ── หน้าต่างพิมพ์ใบคลุมต่ออายุโปรแกรม ─────────────────────────────
-   1 แถว = โปรแกรม + ผู้ถือครอง 1 คน → ติ๊กแล้วได้ 1 ใบ
+   1 แถว = โปรแกรม + ผู้ถือครอง 1 คน · ติ๊กหลายแถว → พิมพ์รวมหน้าเดียวกัน (2 คอลัมน์)
    วันที่เริ่ม / หมดอายุ กรอกเองใต้แถวที่ติ๊ก (ไม่ดึงจากระบบ) — เว้นว่างได้ จะพิมพ์เป็นเส้นจุดไว้เขียนมือ
    เปิดจากแถวที่ติ๊กในตาราง → ติ๊กผู้ถือครองคนแรกของแต่ละโปรแกรมไว้ให้
    พิมพ์ผ่าน printViaIframe → กล่องพิมพ์ของเบราว์เซอร์เลือก "บันทึกเป็น PDF" ได้ */
@@ -59,7 +59,7 @@ export default function LicenseCoverModal({ licenses = [], employees = [], initi
           </div>
           <div className="min-w-0">
             <h3 id="lic-cover-title" className="text-[15px] font-medium text-stone-800">พิมพ์ใบคลุมต่ออายุโปรแกรม</h3>
-            <p className="mt-0.5 text-xs text-stone-500">1 ใบต่อผู้ถือครอง 1 คน · วันที่เว้นว่างได้ จะพิมพ์เป็นช่องให้เขียน</p>
+            <p className="mt-0.5 text-xs text-stone-500">เลือกหลายรายการ พิมพ์รวมในหน้าเดียวกัน · วันที่เว้นว่างได้</p>
           </div>
         </div>
 

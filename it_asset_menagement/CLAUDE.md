@@ -238,7 +238,7 @@ src/
     primitives.jsx           Modal, ModalHeader/Body/Footer, Field, Button
   utils/
     printAssetReport.js      PDF รายงานทรัพย์สิน (dynamic columns)
-    printLicenseCover.js     ใบคลุมต่ออายุโปรแกรม — 1 ใบ = โปรแกรม + ผู้ถือครอง 1 คน · วันที่เริ่ม/หมดอายุผู้ใช้กรอกเอง (ว่าง = เส้นจุด) (ปุ่ม "ใบคลุม" / "พิมพ์ใบคลุม" หน้า License)
+    printLicenseCover.js     ใบคลุมต่ออายุโปรแกรม — รายการละ โปรแกรม + ผู้ถือครอง 1 คน · หลายรายการรวมหน้าเดียว 2 คอลัมน์ ไม่มีลายเซ็น · วันที่ผู้ใช้กรอกเอง (ว่าง = เส้นจุด) (ปุ่ม "ใบคลุม" / "พิมพ์ใบคลุม" หน้า License)
     uploadPhoto.js           อัปโหลดรูป — ตอนนี้เก็บ base64 ตรง (Storage ยังไม่ได้เปิด: bucket 404 · `STORAGE_ENABLED=false`)
 api/                         Vercel Functions (staff auth, Teams notify)
 ```

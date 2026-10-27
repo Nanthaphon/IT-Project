@@ -1,6 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    printLicenseCover — ใบคลุมต่ออายุโปรแกรม (PDF ผ่านกล่องพิมพ์ของเบราว์เซอร์)
-   1 ใบ = โปรแกรม 1 ตัว + ผู้ถือครอง 1 คน (A4 แนวตั้ง)
+   1 รายการ = โปรแกรม 1 ตัว + ผู้ถือครอง 1 คน · เลือกหลายรายการ → อยู่หน้าเดียวกัน 2 คอลัมน์ (ประหยัดกระดาษ)
+   ไม่มีช่องลายเซ็น (ผู้ใช้ไม่ต้องการ) · ขึ้นหน้าใหม่เฉพาะระหว่างรายการ ไม่ตัดกลางตาราง
    ดึงจากระบบ: ชื่อโปรแกรม · Supplier · ผู้ถือครอง · แผนก · ราคา
    วันที่เริ่ม / วันหมดอายุ: ผู้ใช้กรอกเองในหน้าต่างก่อนพิมพ์ — เว้นว่าง = พิมพ์เป็นเส้นจุดไว้เขียนมือ
    ════════════════════════════════════════════════════════════════════════ */
@@ -53,7 +54,7 @@ export function licenseCoverItems(licenses = [], employees = []) {
   return out;
 }
 
-function sheet(item, ctx) {
+function sheet(item) {
   const lic = item.license || {};
   const d = (v) => (v ? e(formatDateShort(v)) : BLANK);
   const rows = [
@@ -66,42 +67,36 @@ function sheet(item, ctx) {
     ['ราคา', `<b>${baht(item.cost)}</b>`],
   ];
   return `
-  <section class="page">
-    <div class="head">
-      <img src="${safeUrl(ctx.company.logoUrl)}" alt="" class="logo" />
-      <div class="co">
-        <div class="co-th">${e(ctx.company.nameTh)}</div>
-        <div class="co-en">${ctx.company.nameEn.replace(/<br\/?>/g, ' ')}</div>
-      </div>
-      <div class="doc">
-        <div class="doc-title">ใบคลุมต่ออายุโปรแกรม</div>
-        <div class="doc-date">วันที่พิมพ์ ${e(ctx.thDate)}</div>
-      </div>
+  <table class="info">
+    ${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}
+  </table>`;
+}
+
+function header(ctx) {
+  return `
+  <div class="head">
+    <img src="${safeUrl(ctx.company.logoUrl)}" alt="" class="logo" />
+    <div class="co">
+      <div class="co-th">${e(ctx.company.nameTh)}</div>
+      <div class="co-en">${ctx.company.nameEn.replace(/<br\/?>/g, ' ')}</div>
     </div>
-    <table class="info">
-      ${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}
-    </table>
-    <div class="sign">
-      ${['ผู้จัดทำ', 'ผู้ตรวจสอบ', 'ผู้อนุมัติ'].map((r) => `
-        <div class="sign-box">
-          <div class="sign-line"></div>
-          <div>(.............................................)</div>
-          <div class="sign-role">${r}</div>
-          <div class="sign-date">วันที่ ......../......../............</div>
-        </div>`).join('')}
+    <div class="doc">
+      <div class="doc-title">ใบคลุมต่ออายุโปรแกรม</div>
+      <div class="doc-date">วันที่พิมพ์ ${e(ctx.thDate)}${ctx.count > 1 ? ` · ${ctx.count} รายการ` : ''}</div>
     </div>
-  </section>`;
+  </div>`;
 }
 
 /** ประกอบ HTML — items มาจาก licenseCoverItems() + { start, expiry } ที่ผู้ใช้กรอก (ISO หรือว่าง) */
 export function buildLicenseCoverHtml({ items = [], company = '', asOf = new Date() }) {
   const ctx = {
     company: getCompanyInfo(company),
+    count: items.length,
     thDate: new Date(asOf).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }),
   };
   const title = items.length === 1
     ? `ใบคลุมต่ออายุ ${items[0].license?.name || ''}${items[0].holder ? ` - ${items[0].holder}` : ''}`
-    : `ใบคลุมต่ออายุโปรแกรม ${items.length} ใบ`;
+    : `ใบคลุมต่ออายุโปรแกรม ${items.length} รายการ`;
 
   return `<!DOCTYPE html>
 <html lang="th">
@@ -113,12 +108,10 @@ export function buildLicenseCoverHtml({ items = [], company = '', asOf = new Dat
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0; color: ${P.ink}; background: ${P.white};
-      font-family: 'Sarabun', 'Leelawadee UI', 'Tahoma', sans-serif; font-size: 14px; line-height: 1.5;
+      font-family: 'Sarabun', 'Leelawadee UI', 'Tahoma', sans-serif; font-size: 13px; line-height: 1.45;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
-    .page { break-after: page; page-break-after: always; }
-    .page:last-child { break-after: auto; page-break-after: auto; }
-    .head { display: flex; align-items: center; gap: 12px; border-bottom: 1.5px solid ${P.brand}; padding-bottom: 10px; margin-bottom: 22px; }
+    .head { display: flex; align-items: center; gap: 12px; border-bottom: 1.5px solid ${P.brand}; padding-bottom: 10px; margin-bottom: 16px; }
     .logo { height: 44px; width: auto; object-fit: contain; }
     .co { flex: 1; min-width: 0; }
     .co-th { font-size: 14px; font-weight: 500; }
@@ -126,19 +119,18 @@ export function buildLicenseCoverHtml({ items = [], company = '', asOf = new Dat
     .doc { text-align: right; }
     .doc-title { font-size: 20px; font-weight: 500; color: ${P.brand}; }
     .doc-date { font-size: 11px; color: ${P.muted}; }
-    table.info { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    table.info th, table.info td { border: 1px solid ${P.line}; padding: 11px 14px; text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
-    table.info th { width: 30%; background: ${P.surface}; color: ${P.inkSoft}; font-weight: 500; }
+    .grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 14px; align-items: start; }
+    table.info { width: 100%; border-collapse: collapse; table-layout: fixed; break-inside: avoid; page-break-inside: avoid; }
+    table.info th, table.info td { border: 1px solid ${P.line}; padding: 7px 10px; text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+    table.info th { width: 36%; background: ${P.surface}; color: ${P.inkSoft}; font-weight: 500; }
+    table.info tr:first-child th, table.info tr:first-child td { background: ${P.brandPale}; }
     .sub { font-size: 12px; color: ${P.muted}; }
     .blank { display: inline-block; width: 55%; border-bottom: 1px dotted ${P.muted}; height: 1.1em; vertical-align: bottom; }
-    .sign { display: flex; gap: 16px; margin-top: 56px; break-inside: avoid; }
-    .sign-box { flex: 1; text-align: center; font-size: 12px; color: ${P.inkSoft}; }
-    .sign-line { border-bottom: 1px dotted ${P.muted}; height: 36px; margin: 0 10px 6px; }
-    .sign-role { margin-top: 2px; font-weight: 500; color: ${P.ink}; }
-    .sign-date { margin-top: 4px; font-size: 11px; color: ${P.muted}; }
   </style>
 </head>
-<body>${items.map((it) => sheet(it, ctx)).join('') || `<p style="color:${P.muted}">ไม่ได้เลือกรายการ</p>`}</body>
+<body>${items.length
+  ? `${header(ctx)}<div class="grid" style="--cols:${items.length > 1 ? 2 : 1}">${items.map(sheet).join('')}</div>`
+  : `<p style="color:${P.muted}">ไม่ได้เลือกรายการ</p>`}</body>
 </html>`;
 }
 

@@ -1,6 +1,6 @@
 /* Dev harness ใบคลุมต่ออายุโปรแกรม (LicenseCoverModal + printLicenseCover) — ไม่ต้องล็อกอิน / ไม่แตะ Firestore
    เปิดที่ /licover-preview.html — ไม่เข้า production build
-   กด "พิมพ์ / PDF" → แทนที่จะเปิดกล่องพิมพ์ จะโชว์เอกสารใน iframe ด้านล่าง (window.__coverHtml) */
+   1 แถว = โปรแกรม + ผู้ถือครอง · กด "พิมพ์ / PDF" → แทนที่จะเปิดกล่องพิมพ์ จะโชว์เอกสารใน iframe ด้านล่าง (window.__coverHtml) */
 import './index.css';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';

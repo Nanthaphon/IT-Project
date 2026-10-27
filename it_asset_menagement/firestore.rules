@@ -83,7 +83,7 @@ service cloud.firestore {
     }
 
     /* ══════════════════════════════════════════════════════════
-       it_report — ร่าง IT Monthly Report (ชุดเดียวใช้ร่วมทุกเดือน)
+       it_report — ร่าง IT Monthly Report (shared) + ค่าที่กรอกในใบคลุมต่ออายุโปรแกรม (license_cover)
        admin เท่านั้น · ไม่ใส่ไว้ใน settings/ เพราะ settings อ่านได้สาธารณะ
        ══════════════════════════════════════════════════════════ */
     match /it_report/{id} {

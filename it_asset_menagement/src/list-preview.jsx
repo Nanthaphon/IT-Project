@@ -165,6 +165,7 @@ function Harness() {
       )}
       {coverIds && (
         <LicenseCoverModal licenses={LICENSES} initialIds={coverIds} onClose={() => setCoverIds(null)}
+          store={{ load: async () => ({}), save: async () => {} }}
           onPrint={(o) => { window.__cover = o; console.log('พิมพ์ใบคลุม', o.items.length); }} />
       )}
 

@@ -7,6 +7,12 @@ import { createRoot } from 'react-dom/client';
 import LicenseCoverModal from './components/licenses/LicenseCoverModal.jsx';
 import { buildLicenseCoverHtml } from './utils/printLicenseCover.js';
 
+/* store จำลอง (แทน it_report/license_cover) — ดูค่าที่บันทึกได้ที่ window.__coverSaved · จำนวนครั้งที่บันทึก window.__coverSaves */
+const memStore = {
+  async load() { await new Promise((r) => setTimeout(r, 150)); return JSON.parse(JSON.stringify(window.__coverSaved || {})); },
+  async save(entries) { window.__coverSaved = JSON.parse(JSON.stringify(entries)); window.__coverSaves = (window.__coverSaves || 0) + 1; },
+};
+
 const EMPLOYEES = [
   { id: 'e1', empId: '1010122', fullName: 'นายกษิดิศ จรัสทรัพย์', department: 'Business Development' },
   { id: 'e2', empId: '1010184', fullName: 'อัญวีณ์ โชติกัมพลพงศ์', department: 'Operation Team 1 (Hitachi)' },
@@ -32,7 +38,7 @@ function App() {
       <button className="rounded-lg border bg-white px-3 py-2 text-sm" onClick={() => setOpen(true)}>เปิดหน้าต่าง</button>
       {open && (
         <LicenseCoverModal
-          licenses={LICENSES} employees={EMPLOYEES} initialIds={['l1']}
+          licenses={LICENSES} employees={EMPLOYEES} initialIds={['l1']} store={memStore}
           onClose={() => setOpen(false)}
           onPrint={(opts) => {
             const h = buildLicenseCoverHtml({ ...opts, asOf: new Date('2026-10-27') });

@@ -239,6 +239,7 @@ src/
   utils/
     printAssetReport.js      PDF รายงานทรัพย์สิน (dynamic columns)
     printLicenseCover.js     ใบคลุมต่ออายุโปรแกรม — รายการละ โปรแกรม + ผู้ถือครอง 1 คน · หลายรายการรวมหน้าเดียว 2 คอลัมน์ ไม่มีลายเซ็น · วันที่/ราคาผู้ใช้กรอกเอง (ว่าง = เส้นจุด) บันทึกอัตโนมัติที่ it_report/license_cover (licenseCoverStore.js) ไม่แตะ licenses (ปุ่ม "ใบคลุม" / "พิมพ์ใบคลุม" หน้า License)
+    printLicenseList.js      รายการโปรแกรม + ผู้ถือครองทั้งหมดแบบตาราง (A4 แนวนอน) — ปุ่ม "พิมพ์รายการ" ตอนติ๊กโปรแกรม · วันที่/ราคาใช้ค่าที่กรอกในใบคลุมก่อน ไม่มีค่อยใช้ข้อมูลระบบ · รวมราคาท้ายตาราง
     uploadPhoto.js           อัปโหลดรูป — ตอนนี้เก็บ base64 ตรง (Storage ยังไม่ได้เปิด: bucket 404 · `STORAGE_ENABLED=false`)
 api/                         Vercel Functions (staff auth, Teams notify)
 ```

@@ -97,7 +97,7 @@ export default function LicenseListPage({
   page, pageSize, onPageChange,
   visibleColumns, onVisibleColumnsChange,
   selectedIds = [], onSelect, onSelectAll, onClearSelection, onBulkDelete,
-  onAdd, onExportCsv, onPrintCover,
+  onAdd, onExportCsv, onPrintCover, onPrintList,
   onOpen, onEdit, onCheckout, onCheckin, onDelete,
   checkExpiration,
   canEdit = false,
@@ -123,7 +123,8 @@ export default function LicenseListPage({
       onSelectAll={onSelectAll}
       onClearSelection={onClearSelection}
       bulkActions={[
-        /* ใบคลุมต่ออายุ — ตั้งต้นจากที่ติ๊กไว้ */
+        /* รายการโปรแกรม + ผู้ถือครองทั้งหมดของที่ติ๊ก (ตาราง) · ใบคลุมต่ออายุ — ตั้งต้นจากที่ติ๊กไว้ */
+        onPrintList && { key: 'list', label: 'พิมพ์รายการ', onSelect: () => onPrintList(selectedIds) },
         onPrintCover && { key: 'cover', label: 'พิมพ์ใบคลุม', onSelect: () => onPrintCover(selectedIds) },
         canEdit && onBulkDelete && { key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete },
       ].filter(Boolean)}

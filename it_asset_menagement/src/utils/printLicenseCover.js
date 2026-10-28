@@ -12,12 +12,12 @@ import { e, safeUrl } from './htmlEscape.js';
 import { formatDateShort } from './formatDate.js';
 import { getCompanyInfo } from './companyInfo.js';
 
-const num = (v) => {
+export const num = (v) => {
   if (v === '' || v == null) return null;
   const n = Number(String(v).replace(/[,฿\s]/g, ''));
   return Number.isFinite(n) ? n : null;
 };
-const baht = (n) => (n == null ? '-' : `฿${n.toLocaleString('th-TH', { maximumFractionDigits: 2 })}`);
+export const baht = (n) => (n == null ? '-' : `฿${n.toLocaleString('th-TH', { maximumFractionDigits: 2 })}`);
 const BLANK = '<span class="blank"></span>';
 
 /** รายการที่เลือกพิมพ์ได้ — 1 แถวต่อผู้ถือครอง 1 คน
@@ -34,7 +34,7 @@ export function licenseCoverItems(licenses = [], employees = []) {
   licenses.forEach((lic) => {
     const seats = lic.assignees || [];
     if (seats.length === 0) {
-      out.push({ key: `${lic.id}::-`, licenseId: lic.id, license: lic, holder: '', holderSub: '', department: '', cost: num(lic.cost) });
+      out.push({ key: `${lic.id}::-`, licenseId: lic.id, license: lic, seat: null, holder: '', holderSub: '', department: '', cost: num(lic.cost) });
       return;
     }
     seats.forEach((a, i) => {
@@ -44,6 +44,7 @@ export function licenseCoverItems(licenses = [], employees = []) {
         key: `${lic.id}::${a.checkoutId || i}`,
         licenseId: lic.id,
         license: lic,
+        seat: a,
         holder: a.isAssetBound ? (a.assignedAssetName || 'ทรัพย์สิน') : (person || 'ไม่พบชื่อพนักงาน'),
         holderSub: a.isAssetBound ? (person ? `ผู้ใช้ ${person}` : 'ติดตั้งบนเครื่อง') : '',
         department: a.department || emp?.department || '',

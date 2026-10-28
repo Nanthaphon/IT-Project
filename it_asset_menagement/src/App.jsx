@@ -93,6 +93,8 @@ const SnipeITImportModal    = lazy(() => import('./components/SnipeITImportModal
 import AssetListPage from './components/assets/AssetListPage.jsx';   // ธีม v3 (earth tone)
 import LicenseListPage from './components/licenses/LicenseListPage.jsx';
 import LicenseCoverModal from './components/licenses/LicenseCoverModal.jsx';
+import { printLicenseList } from './utils/printLicenseList.js';
+import { firestoreLicenseCoverStore } from './utils/licenseCoverStore.js';
 import AccessoryListPage from './components/accessories/AccessoryListPage.jsx';
 import EmployeeListPage from './components/employees/EmployeeListPage.jsx';
 import OfficeSupplyListPage from './components/officeSupplies/OfficeSupplyListPage.jsx';
@@ -3555,6 +3557,7 @@ function App() {
               onAdd={() => setIsAddModalOpen(true)}
               onExportCsv={handleExportLicenses}
               onPrintCover={setLicenseCoverIds}
+              onPrintList={(ids) => printLicenseList({ licenses: licenses.filter((l) => ids.includes(l.id)), employees, store: firestoreLicenseCoverStore })}
               onOpen={openLicensePage}
               onEdit={(l) => navigate(`/licenses/${encodeURIComponent(l.id)}/edit`)}
               onCheckout={(l) => setCheckoutModal({ isOpen: true, assetId: l.id, collectionName: 'licenses' })}

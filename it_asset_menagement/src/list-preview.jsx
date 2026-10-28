@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import LicenseListPage from './components/licenses/LicenseListPage.jsx';
 import LicenseCoverModal from './components/licenses/LicenseCoverModal.jsx';
+import { buildLicenseListHtml, licenseListRows } from './utils/printLicenseList.js';
 import AccessoryListPage from './components/accessories/AccessoryListPage.jsx';
 import EmployeeListPage from './components/employees/EmployeeListPage.jsx';
 import OfficeSupplyListPage from './components/officeSupplies/OfficeSupplyListPage.jsx';
@@ -21,7 +22,7 @@ const LICENSES = mk(23, i => ({
   supplier: ['Microsoft', 'Adobe', 'Autodesk', 'Zoom', 'Figma'][i % 5],
   productKey: `KEY-${1000 + i}`,
   quantity: 5 + (i % 8),
-  assignees: mk(i % 6, () => ({})),
+  assignees: mk(i % 6, (j) => ({ checkoutId: `s${i}-${j}`, empName: `พนักงานทดสอบ ${j + 1}`, department: ['IT', 'บัญชี', 'การตลาด'][j % 3], checkoutDate: '2025-04-01', ...(j === 1 ? { seatCost: '1,500' } : {}) })),
   cost: 12000 + i * 900,
   status: ['พร้อมใช้งาน', 'ถูกใช้งาน', 'ตัดจำหน่าย'][i % 3],
   expirationDate: i % 4 === 0 ? '' : `202${6 + (i % 2)}-${String(1 + (i % 12)).padStart(2, '0')}-28`,
@@ -116,6 +117,7 @@ const match = (hay, q) => String(hay || '').toLowerCase().includes(q.trim().toLo
 function Harness() {
   const [menu, setMenu] = useState('licenses');
   const [coverIds, setCoverIds] = useState(null);
+  const [listHtml, setListHtml] = useState('');   // พิมพ์รายการ → โชว์ใน iframe แทนกล่องพิมพ์
   const [cols, setCols] = useState({ productKey: true, supplier: true });
 
   const lic = usePaged(LICENSES, (all, q, f) => all.filter(l =>
@@ -161,8 +163,10 @@ function Harness() {
           onOpen={log('เปิด')} onEdit={log('แก้ไข')} onCheckout={log('จ่าย')} onCheckin={log('คืน')} onDelete={log('ลบ')}
           checkExpiration={checkExpiration}
           onPrintCover={setCoverIds}
+          onPrintList={(ids) => setListHtml(buildLicenseListHtml({ rows: licenseListRows(LICENSES.filter((l) => ids.includes(l.id)), [], { [`l1::s1-0`]: { start: '2026-11-01', expiry: '2027-10-31', cost: '6000' } }) }))}
         />
       )}
+      {listHtml && <iframe id="listprint" title="พิมพ์รายการ" srcDoc={listHtml} className="h-[600px] w-full border-t-4 border-clay-600 bg-white" />}
       {coverIds && (
         <LicenseCoverModal licenses={LICENSES} initialIds={coverIds} onClose={() => setCoverIds(null)}
           store={{ load: async () => ({}), save: async () => {} }}

@@ -70,7 +70,7 @@ export default function LoginView({
               </div>
             )}
 
-            <FormField label="รหัสพนักงาน หรือ อีเมล" icon={UserRound}>
+            <FormField label="รหัสพนักงาน หรือ อีเมล" icon={UserRound} tag="ใช้รหัสพนักงาน">
               <input
                 type="text"
                 value={identifier}
@@ -83,7 +83,7 @@ export default function LoginView({
               />
             </FormField>
 
-            <FormField label="รหัสผ่าน" icon={Lock}>
+            <FormField label="รหัสผ่าน" icon={Lock} tag="ใช้รหัสพนักงาน">
               <input
                 type="password"
                 value={password}
@@ -167,10 +167,13 @@ function Logo() {
   );
 }
 
-function FormField({ label, icon: Icon, children }) {
+function FormField({ label, icon: Icon, tag, children }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-stone-600">{label}</label>
+      <div className="mb-1.5 flex items-center gap-2">
+        <label className="text-sm font-medium text-stone-600">{label}</label>
+        {tag && <span className="rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">{tag}</span>}
+      </div>
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
           <Icon className="size-4 text-stone-400" strokeWidth={2} />

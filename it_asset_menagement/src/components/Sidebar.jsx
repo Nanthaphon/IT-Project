@@ -117,15 +117,22 @@ export default function Sidebar({
         {/* ─── Logo / Brand area ─── */}
         <div className="px-5 pt-6 pb-5 shrink-0 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-white/15 border border-white/25">
+            {/* ไอคอนแบรนด์ — ไล่สีเดียวกับหน้าล็อกอิน */}
+            <div
+              className="size-11 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-white/20 shadow-[0_6px_16px_-6px_rgba(0,0,0,0.45)]"
+              style={{ background: 'linear-gradient(135deg, #3A8193 0%, #225462 100%)' }}
+            >
               <img
                 src="/gb_icon.svg"
                 alt="Logo"
-                className="w-5 h-5 object-contain"
+                className="size-6 object-contain"
                 style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
-            <p className="text-[15px] font-medium text-white tracking-tight">IT Admin</p>
+            <div className="min-w-0 leading-tight">
+              <p className="text-[15px] font-medium text-white">IT Admin</p>
+              <p className="mt-0.5 truncate text-xs text-white/65">ระบบจัดการทรัพย์สิน</p>
+            </div>
           </div>
         </div>
 

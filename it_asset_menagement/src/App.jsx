@@ -2056,8 +2056,8 @@ function App() {
     if (!sourceAsset) return;
     // 🆕 ถามยืนยันก่อน clone
     showConfirm(
-      'ยืนยันการคัดลอก',
-      `ต้องการคัดลอกข้อมูลจากทรัพย์สิน "${sourceAsset.name}" หรือไม่?\n\nระบบจะ:\n• สร้างทรัพย์สินใหม่ที่ใช้ข้อมูลเดียวกัน\n• รีเซ็ต Serial Number / Asset Tag ให้ว่าง\n• ไม่คัดลอกประวัติการเบิก-คืน\n• เปิดฟอร์มแก้ไขให้กรอกข้อมูลเพิ่ม`,
+      'ทำซ้ำทรัพย์สิน',
+      `สร้างรายการใหม่จาก "${sourceAsset.name}" โดยใช้ข้อมูลเดียวกัน\n\nไม่คัดลอก: Serial Number · Asset Tag · ผู้ถือครอง · ประวัติเบิก-คืน\nจากนั้นเปิดหน้าแก้ไขของรายการใหม่ให้ทันที`,
       async () => {
         await withLoading(async () => {
           try {
@@ -2068,7 +2068,7 @@ function App() {
             delete clone.assignees;
             delete clone.purchaseHistoryLog;
             delete clone.createdAt;
-            clone.name      = `${sourceAsset.name || 'ทรัพย์สิน'} (Clone)`;
+            clone.name      = `${sourceAsset.name || 'ทรัพย์สิน'} (สำเนา)`;
             clone.assetTag  = '';
             clone.sn        = '';
             clone.status    = 'พร้อมใช้งาน';
@@ -2076,20 +2076,16 @@ function App() {
             clone.createdTs = Date.now();
 
             const ref = await addDoc(collection(db, 'assets'), clone);
-            setCustomAlert({
-              isOpen: true,
-              title: 'คัดลอกสำเร็จ!',
-              message: `สร้างทรัพย์สินใหม่จาก "${sourceAsset.name}" เรียบร้อย — กรุณากำหนด Serial Number / Asset Tag ใหม่`,
-              type: 'success',
-            });
-            const newDocSnap = await getDoc(ref);
-            if (newDocSnap.exists()) openEditAssetModal({ id: ref.id, ...newDocSnap.data() }, 'assets');
+            // ไปหน้าแก้ไขของรายการใหม่ (ฟอร์มเติมเองเมื่อ snapshot ส่งเอกสารใหม่มา — ไม่ต้อง getDoc ซ้ำ)
+            // กดปิดหน้าแก้ไข = ไปหน้ารายละเอียดของรายการใหม่ ผู้ใช้เห็นทันทีว่าสร้างแล้ว
+            const base = sourceAsset.assetGroup === 'office' ? 'furniture' : 'assets';
+            navigate(`/${base}/${encodeURIComponent(ref.id)}/edit`);
           } catch (err) {
             setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: err.message, type: 'error' });
           }
-        }, 'กำลังคัดลอก...');
+        }, 'กำลังทำซ้ำ...');
       },
-      { confirmText: 'ยืนยันคัดลอก', icon: 'copy' }
+      { confirmText: 'ทำซ้ำ', icon: 'copy' }
     );
   };
   const handleUpdateAsset = async (e) => {
@@ -3290,6 +3286,7 @@ function App() {
                     asPage
                     onClosePage={() => navigate('/assets')}
                     onEditPage={() => navigate(`/assets/${encodeURIComponent(routeAsset.id)}/edit`)}
+                    onDuplicate={handleCloneAsset}
                     selectedAssetDetail={routeAsset}
                     setSelectedAssetDetail={setSelectedAssetDetail}
                     selectedAssetCategory="assets"
@@ -3437,6 +3434,7 @@ function App() {
                     asPage
                     onClosePage={() => navigate('/furniture')}
                     onEditPage={() => navigate(`/furniture/${encodeURIComponent(routeFurniture.id)}/edit`)}
+                    onDuplicate={handleCloneAsset}
                     selectedAssetDetail={routeFurniture}
                     setSelectedAssetDetail={setSelectedAssetDetail}
                     selectedAssetCategory="assets"
@@ -3681,6 +3679,7 @@ function App() {
       )}
 
       <ModalsContainer
+        onDuplicate={handleCloneAsset}
         isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} remark={remark} setRemark={setRemark} assetDocument={assetDocument} setAssetDocument={setAssetDocument} purchaseCondition={purchaseCondition} setPurchaseCondition={setPurchaseCondition} scrapValue={scrapValue} setScrapValue={setScrapValue} fieldOptions={fieldOptions}
         checkoutModal={checkoutModal} setCheckoutModal={setCheckoutModal} handleCheckout={handleCheckout} checkoutSearchTerm={checkoutSearchTerm} setCheckoutSearchTerm={setCheckoutSearchTerm} checkoutEmpId={checkoutEmpId} setCheckoutEmpId={setCheckoutEmpId} employees={employees} checkoutRemarks={checkoutRemarks} setCheckoutRemarks={setCheckoutRemarks} checkoutCondition={checkoutCondition} setCheckoutCondition={setCheckoutCondition}
         selectedEmployee={selectedEmployee} setSelectedEmployee={setSelectedEmployee} empModalTab={empModalTab} setEmpModalTab={setEmpModalTab} assets={assets} licenses={licenses} accessories={accessories} transactions={transactions} repairRequests={repairRequests} openEditEmpModal={openEditEmpModal} handleCheckin={handleCheckin} setReturnModal={setReturnModal}

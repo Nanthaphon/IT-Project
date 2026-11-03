@@ -125,7 +125,7 @@ export default function AssetListPage({
           ? { key: 'return', label: 'รับคืน', onSelect: () => onReturn?.(item) }
           : { key: 'checkout', label: 'จ่ายออก', onSelect: () => onCheckout?.(item) },
         { key: 'edit', label: 'แก้ไข', onSelect: () => onEdit?.(item) },
-        { key: 'clone', label: 'คัดลอกรายการ', onSelect: () => onClone?.(item) },
+        { key: 'clone', label: 'ทำซ้ำ', onSelect: () => onClone?.(item) },
         { key: 'delete', label: 'ลบ', tone: 'danger', onSelect: () => onDelete?.(item) },
       ])}
     />

@@ -69,7 +69,7 @@ export default function ListPage({
     ...(selectable ? [{ key: '_sel', label: headerCheckbox, width: 'w-12' }] : []),
     ...columns,
     ...extraColumns.map(c => ({ key: c.key, label: c.label, align: c.align })),
-    ...(rowActions ? [{ key: '_act', label: '', width: 'w-16' }] : []),
+    ...(rowActions ? [{ key: '_act', label: '', width: 'w-16', sticky: true }] : []),
   ];
 
   return (
@@ -203,7 +203,15 @@ export default function ListPage({
                         </Cell>
                       ))}
                       {rowActions && (
-                        <Cell align="right">
+                        /* ติดขอบขวา — ตารางกว้างเกินจอ เมนู ⋯ (จ่ายออก/แก้ไข/ทำซ้ำ/ลบ) จะไม่ตกขอบ
+                           พื้นต้องทึบไม่งั้นข้อความที่เลื่อนผ่านจะทะลุ · สีตามสถานะแถว (เลือก / hover)
+                           sticky สร้าง stacking context — ตอนเมนูเปิดต้องยกขึ้น ไม่งั้นช่องของแถวถัดไปทับเมนู */
+                        <Cell
+                          align="right"
+                          className={`sticky right-0 z-[1] has-[[aria-expanded=true]]:z-20 shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.08)] ${
+                            selected ? 'bg-clay-50' : 'bg-white group-hover:bg-stone-50'
+                          }`}
+                        >
                           {/* กันคลิกทะลุไปเปิดรายละเอียด */}
                           <div onClick={e => e.stopPropagation()} className="flex justify-end">
                             <ActionMenu items={rowActions(item)} />

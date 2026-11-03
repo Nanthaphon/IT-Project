@@ -53,6 +53,7 @@ export default function AssetDetailsModal({
   asPage = false,        // 🆕 true = แสดงเป็นหน้าเต็ม (ไม่ใช่ modal ป๊อปอัพ)
   onClosePage,           // 🆕 callback ตอนปิดในโหมดหน้าเต็ม (navigate กลับ)
   onEditPage,            // 🆕 callback ตอนกด "แก้ไขข้อมูล" ในโหมดหน้าเต็ม (navigate ไปหน้าแก้ไข)
+  onDuplicate,           // (asset) => ทำซ้ำทรัพย์สิน · ไม่ส่งมา = ไม่มีปุ่ม
 }) {
   const db = getFirestore(); 
   const [expandedItem, setExpandedItem] = useState(null);
@@ -1446,6 +1447,16 @@ export default function AssetDetailsModal({
                 className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">
                 <SquarePen className="size-4" strokeWidth={2} /> แก้ไข
               </button>
+
+              {/* ทำซ้ำ — เฉพาะทรัพย์สิน/ครุภัณฑ์ (ชิ้นเดียวต่อเอกสาร) · ยืนยันแล้วจะไปหน้าแก้ไขของรายการใหม่เอง
+                  โหมด modal ปิดหน้าต่างก่อน ไม่งั้นค้างทับหน้าแก้ไข */}
+              {selectedAssetCategory === 'assets' && onDuplicate && (
+                <button
+                  onClick={() => { onDuplicate(currentAssetDetail); if (!asPage) closeAll(); }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">
+                  <Copy className="size-4" strokeWidth={2} /> ทำซ้ำ
+                </button>
+              )}
 
               {selectedAssetCategory === 'assets' && (
                 <Popover

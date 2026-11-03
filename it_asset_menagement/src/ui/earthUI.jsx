@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { MoreHorizontal, Search, ChevronLeft, ChevronRight, Check, Minus } from 'lucide-react';
 import { surface, text, button, statusTone } from './earth.js';
 import useDismiss from './useDismiss.js';
@@ -71,13 +71,34 @@ export function BarRow({ label, value, total, tone = 'neutral' }) {
 }
 
 /* ── กล่องลอย — ฐานของเมนู "..." และตัวเลือกคอลัมน์ ─────────── */
-export function Popover({ open, onClose, trigger, children, width = 'w-56', align = 'right' }) {
+/* floating = วางแบบ fixed ตามตำแหน่งปุ่ม — ใช้เมื่ออยู่ในกล่องที่ overflow ตัดขอบ (ตาราง overflow-x-auto)
+   แบบ absolute เมนูของแถวล่าง ๆ จะถูกตัดหาย · ใกล้ขอบล่างจอ = เปิดขึ้นด้านบน · เลื่อนหน้า = ปิด (ไม่ตามตำแหน่ง) */
+export function Popover({ open, onClose, trigger, children, width = 'w-56', align = 'right', floating = false }) {
   const ref = useDismiss(open, onClose);
+  const panelRef = useRef(null);
+  useLayoutEffect(() => {
+    if (!open || !floating || !ref.current || !panelRef.current) return;
+    const r = ref.current.getBoundingClientRect();
+    const s = panelRef.current.style;
+    const below = window.innerHeight - r.bottom;
+    const up = below < panelRef.current.offsetHeight + 8 && r.top > below;
+    s.top = up ? 'auto' : `${r.bottom + 4}px`;
+    s.bottom = up ? `${window.innerHeight - r.top + 4}px` : 'auto';
+    if (align === 'right') s.right = `${window.innerWidth - r.right}px`;
+    else s.left = `${r.left}px`;
+    const close = () => onClose?.();
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => { window.removeEventListener('scroll', close, true); window.removeEventListener('resize', close); };
+  }, [open, floating, align, onClose, ref]);
   return (
     <div ref={ref} className="relative shrink-0">
       {trigger}
       {open && (
-        <div className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} z-20 mt-1 ${width} overflow-hidden ${surface.card} p-1.5`}>
+        <div
+          ref={panelRef}
+          className={`${floating ? 'fixed z-50' : `absolute ${align === 'right' ? 'right-0' : 'left-0'} z-20 mt-1`} ${width} overflow-hidden ${surface.card} p-1.5`}
+        >
           {children}
         </div>
       )}
@@ -91,7 +112,7 @@ export function ActionMenu({ items = [], label = 'ตัวเลือกเพ
   if (items.length === 0) return null;
   return (
     <Popover
-      open={open} onClose={() => setOpen(false)} width="w-48"
+      open={open} onClose={() => setOpen(false)} width="w-48" floating
       trigger={
         <button
           type="button" onClick={() => setOpen(v => !v)} className={button.icon}
@@ -101,7 +122,9 @@ export function ActionMenu({ items = [], label = 'ตัวเลือกเพ
         </button>
       }
     >
-      <div role="menu">
+      {/* flex-col: เมนูนี้มักอยู่ในช่องตาราง (whitespace-nowrap) ปุ่ม inline-block จะเรียงต่อกันแนวนอน
+          แล้วถูก overflow-hidden ตัด — เห็นแค่รายการแรก (เคยเกิด: หน้าทรัพย์สินเห็นแค่ "จ่ายออก") */}
+      <div role="menu" className="flex flex-col">
         {items.map(({ key, label: itemLabel, onSelect, tone }) => (
           <button
             key={key} role="menuitem" type="button"
@@ -192,7 +215,7 @@ export function DataTable({ columns, children }) {
             {columns.map(c => (
               <th
                 key={c.key}
-                className={`whitespace-nowrap px-5 pb-3 text-xs font-medium text-stone-400 ${c.align === 'right' ? 'text-right' : ''} ${c.width || ''}`}
+                className={`whitespace-nowrap px-5 pb-3 text-xs font-medium text-stone-400 ${c.align === 'right' ? 'text-right' : ''} ${c.width || ''} ${c.sticky ? 'sticky right-0 z-[1] bg-white' : ''}`}
               >
                 {c.label}
               </th>
@@ -210,7 +233,7 @@ export function Row({ onClick, selected, children }) {
   return (
     <tr
       onClick={onClick}
-      className={`border-b border-stone-100 last:border-0 ${selected ? 'bg-clay-100/40' : ''} ${
+      className={`group border-b border-stone-100 last:border-0 ${selected ? 'bg-clay-100/40' : ''} ${
         onClick ? 'cursor-pointer transition-colors hover:bg-stone-50/80' : ''
       }`}
     >

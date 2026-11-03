@@ -203,7 +203,7 @@ localhost:5173/dashboard-preview.html   แดชบอร์ด
 localhost:5173/list-preview.html        License / อุปกรณ์เสริม / พนักงาน / อุปกรณ์สำนักงาน
 localhost:5173/assets-preview.html      ทรัพย์สิน (128 รายการ)
 localhost:5173/modal-preview.html       AssetDetailsModal
-localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุปกรณ์เสริม (sub-modal) · แท็บไทม์ไลน์รายตัว (ประวัติจำลอง)
+localhost:5173/submodal-preview.html    Seat / ชิ้นย่อยอุปกรณ์เสริม (sub-modal) · แท็บไทม์ไลน์รายตัว (ประวัติจำลอง) · ?nokey = สิทธิ์ไม่มี Product Key
 localhost:5173/form-preview.html        primitives กลาง + CheckoutModal
 localhost:5173/report-preview.html      สร้าง IT Monthly Report (localStorage จำลอง — ไม่ทับร่างจริง · License ครบทุกกรณีวันหมดอายุ)
 localhost:5173/timeline-preview.html    ไทม์ไลน์ทรัพย์สิน / License
@@ -266,6 +266,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
   อ่านรูปไม่ได้ (HEIC จาก iPhone / ไฟล์เสีย) `compressImage` โยน Error ภาษาไทย → ช่องแนบรูปแสดงข้อความ (ห้ามกลืน error เงียบ)
 - **ไทม์ไลน์รายตัว** (แท็บในหน้าต่างรายการย่อย) — `buildSeatTimeline` จับสิทธิ์ด้วย Product Key · `buildAccessoryItemTimeline` จับชิ้นด้วย SN (timeline/buildTimeline.js)
   ไม่มี Key/SN หรือ Key ซ้ำ → เห็นแค่รอบที่ถืออยู่ (จับด้วย checkoutId) · รายการจ่าย License บันทึก `checkoutId` ตั้งแต่ 11/2026
+  ไทม์ไลน์ License: จับด้วย `licenseId` → `assetId` (คืนสิทธิ์รุ่นเก่า) → ชื่อ (เฉพาะรายการหลังวันสร้าง License — กันประวัติของตัวที่ลบไปแล้วแต่ชื่อซ้ำ)
+  เทสต์: `npm test` (node --test · `src/**/*.test.mjs`)
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 

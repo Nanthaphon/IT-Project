@@ -32,6 +32,8 @@ const SEAT = {
   productKey: 'User: seat3@corp.test Password: demo',
   assignee: { empName: 'สมชาย ใจดี', empId: 'EMP101', checkoutId: 's3', productKey: 'User: seat3@corp.test Password: demo' },
 };
+// ?nokey = สิทธิ์ที่ไม่ได้กรอก Product Key → ตรวจแถบ "แสดงเฉพาะรอบที่ใช้อยู่ตอนนี้" ในแท็บไทม์ไลน์
+if (new URLSearchParams(location.search).has('nokey')) { SEAT.productKey = ''; SEAT.assignee.productKey = ''; }
 
 const LICENSE = {
   id: 'lic1',

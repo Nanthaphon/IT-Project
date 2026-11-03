@@ -264,11 +264,19 @@ export function buildLicenseTimeline(license, transactions = [], employees = [])
   // หาชื่อไม่เจอ = นับผู้ถือด้วยรหัสแทน ไม่งั้นทุกคนที่ไม่พบชื่อจะรวมเป็นคนเดียว
   const unknownId = (t) => (personOf(t) === UNKNOWN_EMP ? t.empId : undefined);
   const name = String(license.name || '').trim().toLowerCase();
+  const createdMs = toMillis(license.createdTs ?? license.createdAt);
+  // รายการคืนสิทธิ์จากหน้าต่างรับคืน (ไม่ผูกเครื่อง) เก็บ id ของ License ไว้ที่ assetId แทน licenseId
+  const ownById = (t) => !t.licenseId && !t.isAssetBound && t.assetId === license.id;
 
   const mine = transactions.filter((t) => {
     if (t.category !== 'licenses') return false;
     if (t.licenseId) return t.licenseId === license.id;
+    if (!t.isAssetBound && t.assetId) return t.assetId === license.id;
     if (!name) return false;
+    // จับด้วยชื่อ: รายการที่เกิดก่อนสร้าง License นี้ เป็นของ License ชื่อเดียวกันตัวเก่า
+    // (ลบไปแล้วแต่ประวัติยังค้าง) — เคยเกิด: สร้าง "test" ใหม่แล้วเห็นประวัติ 25 รายการของตัวเก่า
+    const ms = toMillis(t.timestamp);
+    if (createdMs != null && ms != null && ms < createdMs - 60_000) return false;
     // รุ่นเก่า: ชื่อ license ถูกเก็บไว้ที่ licenseName หรือ assetName แล้วแต่เส้นทาง
     const a = String(t.licenseName || '').trim().toLowerCase();
     const b = String(t.assetName || '').trim().toLowerCase();
@@ -279,7 +287,7 @@ export function buildLicenseTimeline(license, transactions = [], employees = [])
   mine.forEach((t) => {
     const ms = toMillis(t.timestamp);
     if (ms == null) return;
-    const matchedByName = !t.licenseId;
+    const matchedByName = !t.licenseId && !ownById(t);
     if (t.isAssetBound) {
       out.push({
         kind: t.action === 'เบิกจ่าย' ? 'licOn' : 'licOff',
@@ -349,7 +357,8 @@ export function buildSeatTimeline(license, seat, transactions = [], employees = 
     supplier: seat.seatSupplier || license.supplier,
     cost: seat.seatCost || '',
   }, tx, employees);
-  return { events, partial: !byKey };
+  // reason ให้ UI อธิบายได้ตรงสาเหตุ: ไม่มี Key เลย / Key ซ้ำกับสิทธิ์อื่น
+  return { events, partial: !byKey, reason: byKey ? '' : (key ? 'dupKey' : 'noKey') };
 }
 
 export function buildAccessoryItemTimeline(accessory, item, transactions = [], employees = []) {

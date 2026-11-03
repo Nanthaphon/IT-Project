@@ -2588,6 +2588,12 @@ function App() {
           checkoutId: returnModal.checkoutId,
           // คืนชิ้นไหน — ไทม์ไลน์ใช้แสดง (License ไม่มี SN)
           ...(collectionName === 'accessories' ? { sn: returnedItem?.serialNumber || '' } : {}),
+          // License: เก็บ licenseId + Key เหมือนเส้นทางจ่ายสิทธิ์ — ไม่งั้นไทม์ไลน์ต้องเดาจากชื่อ
+          // (ชื่อซ้ำกับ License ที่ลบไปแล้ว = ดึงประวัติผิดตัว) และไทม์ไลน์รายสิทธิ์หา Key ไม่เจอ
+          ...(collectionName === 'licenses' ? {
+            licenseId: returnModal.assetId, licenseName: returnModal.assetName,
+            productKey: returnedItem?.productKey || '', keyCode: returnedItem?.keyCode || '',
+          } : {}),
         });
 
       } else {

@@ -97,7 +97,13 @@ async function cascadeAsset(assetId) {
 }
 
 async function cascadeLicense(licenseId) {
-  return { transactions: await deleteWhere('licenses_transactions', 'assetId', licenseId) };
+  // จ่ายสิทธิ์ / ผูกเครื่อง เก็บไว้ที่ licenseId (assetId ของรายการผูกเครื่อง = id เครื่อง)
+  // เดิมลบแค่ assetId → ประวัติค้าง แล้วไปโผล่ในไทม์ไลน์ของ License ใหม่ที่ตั้งชื่อซ้ำ
+  const [byAsset, byLicense] = await Promise.all([
+    deleteWhere('licenses_transactions', 'assetId', licenseId),
+    deleteWhere('licenses_transactions', 'licenseId', licenseId),
+  ]);
+  return { transactions: byAsset + byLicense };
 }
 
 async function cascadeAccessory(accessoryId) {

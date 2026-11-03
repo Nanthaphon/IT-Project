@@ -56,3 +56,17 @@ test('ไทม์ไลน์รายสิทธิ์บอกสาเห�
   const ok = buildSeatTimeline(lic({ availableKeys: ['AAA', 'BBB'] }), { productKey: 'AAA' }, []);
   assert.equal(ok.partial, false);
 });
+
+test('สิทธิ์ไม่มี Product Key แต่มี seatId: จ่ายแล้วคืนจนว่าง ไทม์ไลน์ยังเห็นครบ', async () => {
+  const { buildSeatTimeline } = await import('./buildTimeline.js');
+  const L = lic({ quantity: 2, availableKeys: ['', ''], availableSeatIds: ['s1', 's2'] });
+  const seat = { productKey: '', seatId: 's1' };           // สิทธิ์ว่าง ไม่มีผู้ถือแล้ว
+  const T = [
+    tx({ licenseId: 'newLic', seatId: 's1', checkoutId: 'c1', timestamp: created + day }),
+    tx({ licenseId: 'newLic', seatId: 's1', checkoutId: 'c1', action: 'รับคืน', timestamp: created + 2 * day }),
+    tx({ licenseId: 'newLic', seatId: 's2', checkoutId: 'c2', timestamp: created + 3 * day }),   // ของสิทธิ์อื่น
+  ];
+  const r = buildSeatTimeline(L, seat, T);
+  assert.equal(r.events.filter(e => e.kind !== 'purchase').length, 2);
+  assert.equal(r.partial, false);
+});

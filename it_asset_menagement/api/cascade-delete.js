@@ -21,6 +21,30 @@ function isAllowedOrigin(origin) {
   return allowed.includes(origin) || defaults.includes(origin);
 }
 
+/* คืนสิทธิ์ License กลับเป็นสิทธิ์ว่าง — สำเนาของ returnSeats ใน src/utils/licenseSeats.js
+   (Vercel Function import โค้ดฝั่งเว็บไม่ได้) แก้รายการฟิลด์ต้องแก้คู่กันทั้งสองไฟล์ */
+const SEAT_FIELDS = [
+  ['availableKeys', 'productKey'], ['availableKeyCodes', 'keyCode'], ['availableSeatCosts', 'seatCost'],
+  ['availableSeatLabels', 'seatLabel'], ['availableSeatSuppliers', 'seatSupplier'],
+  ['availableSeatPurchaseDates', 'seatPurchaseDate'], ['availableSeatExpirationDates', 'seatExpirationDate'],
+  ['availableSeatNotes', 'seatNote'], ['availableSeatIds', 'seatId'],
+];
+function returnSeats(lic, returned) {
+  const n = Math.max(0, Number(lic.quantity ?? 1) - (lic.assignees || []).length);
+  const fit = (arr) => { const a = (arr || []).slice(0, n); while (a.length < n) a.push(''); return a; };
+  const patch = {};
+  for (const [arrKey, field] of SEAT_FIELDS) {
+    const a = fit(lic[arrKey]);
+    returned.forEach((r) => a.push(r?.[field] || ''));
+    patch[arrKey] = a;
+  }
+  const map = {};
+  Object.entries(lic.availableSeatDocs || {}).forEach(([k, v]) => { if (Number(k) < n) map[k] = v; });
+  returned.forEach((r, k) => { if (r?.seatDocuments?.length) map[String(n + k)] = r.seatDocuments; });
+  patch.availableSeatDocs = map;
+  return patch;
+}
+
 /** ลบทุก doc ใน collection ที่ matching where(field, '==', value) ทีละ batch (450 ต่อรอบ) */
 async function deleteWhere(collectionName, field, value) {
   const db = admin.firestore();
@@ -70,26 +94,14 @@ async function cascadeAsset(assetId) {
     const removed = assignees.filter(a => a.isAssetBound && a.assignedAssetId === assetId);
     if (removed.length === 0) continue;
     const kept = assignees.filter(a => !(a.isAssetBound && a.assignedAssetId === assetId));
-    const availableKeys      = [...(lic.availableKeys      || [])];
-    const availableKeyCodes  = [...(lic.availableKeyCodes  || [])];
-    const availableSeatCosts = [...(lic.availableSeatCosts || [])];
-    const availableSeatDocs  = { ...(lic.availableSeatDocs || {}) };
-    let nextIdx = availableKeys.length;
-    for (const seat of removed) {
-      availableKeys.push(seat.productKey || '');
-      availableKeyCodes.push(seat.keyCode || '');
-      availableSeatCosts.push(seat.seatCost || '');
-      if (seat.seatDocuments?.length > 0) availableSeatDocs[String(nextIdx)] = seat.seatDocuments;
-      nextIdx++;
-    }
-    const totalQty = Number(lic.quantity || 1);
+    const totalQty = Number(lic.quantity ?? 1);
     await licDoc.ref.update({
       assignees: kept,
       status: kept.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน',
       assignedTo:   kept.filter(a => a.empId).map(a => a.empId).join(',') || null,
       assignedName: kept.filter(a => a.empName || a.assignedAssetName)
                       .map(a => a.empName || a.assignedAssetName).join(', ') || null,
-      availableKeys, availableKeyCodes, availableSeatCosts, availableSeatDocs,
+      ...returnSeats(lic, removed),
     });
     revokedSeats += removed.length;
   }

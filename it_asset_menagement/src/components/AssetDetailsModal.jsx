@@ -14,6 +14,7 @@ import { Popover } from '../ui/earthUI.jsx';
 import SeatTable from './licenses/SeatTable.jsx';
 import ItemsToolbar from './list/ItemsToolbar.jsx';
 import { buildAssetTimeline, buildLicenseTimeline, buildSeatTimeline, buildAccessoryItemTimeline } from './timeline/buildTimeline.js';
+import { availableArrays, availableCount, newSeatId, removeAvailableSeats } from '../utils/licenseSeats.js';
 
 /* ── Purchase-history document storage helpers ── */
 const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
@@ -782,6 +783,7 @@ export default function AssetDetailsModal({
         seatPurchaseDate: currentAssetDetail.availableSeatPurchaseDates?.[i] || '',
         seatExpirationDate: currentAssetDetail.availableSeatExpirationDates?.[i] || '',
         seatNote: currentAssetDetail.availableSeatNotes?.[i] || '',
+        seatId: currentAssetDetail.availableSeatIds?.[i] || '',   // ไทม์ไลน์รายสิทธิ์ใช้ตามตัว
         documents: currentAssetDetail.availableSeatDocs?.[String(i)] || [],
       });
     }
@@ -797,6 +799,7 @@ export default function AssetDetailsModal({
         seatPurchaseDate: a.seatPurchaseDate || '',
         seatExpirationDate: a.seatExpirationDate || '',
         seatNote: a.seatNote || '',
+        seatId: a.seatId || '',
         documents: a.seatDocuments || [],
       });
     });
@@ -989,17 +992,21 @@ export default function AssetDetailsModal({
     setIsSavingItem(true);
     try {
       const count = Number(newSeatCount) || 1;
-      const existingAvailCount = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0));
-      const newKeys = [...(currentAssetDetail.availableKeys || [])];
-      const newKeyCodes = [...(currentAssetDetail.availableKeyCodes || [])];
-      const newCosts = [...(currentAssetDetail.availableSeatCosts || [])];
-      const newSuppliers = [...(currentAssetDetail.availableSeatSuppliers || [])];
-      const newPurchaseDates = [...(currentAssetDetail.availableSeatPurchaseDates || [])];
-      const newExpDates = [...(currentAssetDetail.availableSeatExpirationDates || [])];
-      const newNotes = [...(currentAssetDetail.availableSeatNotes || [])];
-      const newLabels = [...(currentAssetDetail.availableSeatLabels || [])];
+      const existingAvailCount = availableCount(currentAssetDetail);
+      // ปรับความยาวอาร์เรย์ให้เท่าสิทธิ์ว่างก่อน push — ไม่งั้นสิทธิ์ใหม่ไปตกตำแหน่งของสิทธิ์เดิม
+      const arrs = availableArrays(currentAssetDetail);
+      const newKeys = arrs.availableKeys;
+      const newKeyCodes = arrs.availableKeyCodes;
+      const newCosts = arrs.availableSeatCosts;
+      const newSuppliers = arrs.availableSeatSuppliers;
+      const newPurchaseDates = arrs.availableSeatPurchaseDates;
+      const newExpDates = arrs.availableSeatExpirationDates;
+      const newNotes = arrs.availableSeatNotes;
+      const newLabels = arrs.availableSeatLabels;
+      const newIds = arrs.availableSeatIds;
       const newDocMap = { ...(currentAssetDetail.availableSeatDocs || {}) };
       for (let i = 0; i < count; i++) {
+        newIds.push(newSeatId());
         newKeys.push(newSeatProductKey.trim());
         newKeyCodes.push(newSeatKeyCode.trim());
         newCosts.push(newSeatCost.trim());
@@ -1024,6 +1031,7 @@ export default function AssetDetailsModal({
         availableSeatExpirationDates: newExpDates,
         availableSeatNotes: newNotes,
         availableSeatLabels: newLabels,
+        availableSeatIds: newIds,
         availableSeatDocs: newDocMap,
       };
       await updateDoc(doc(db, 'licenses', currentAssetDetail.id), updateData);
@@ -1087,22 +1095,8 @@ export default function AssetDetailsModal({
           quantity: newQty, assignees: newAssignees, status: newStatus,
           assignedTo: newAssignees.length > 0 ? newAssignees.map(a => a.empId).join(',') : null,
           assignedName: newAssignees.length > 0 ? newAssignees.map(a => a.empName).join(', ') : null,
-          availableKeys: (currentAssetDetail.availableKeys || []).filter((_, i) => !availIndices.includes(i)),
-          availableKeyCodes: (currentAssetDetail.availableKeyCodes || []).filter((_, i) => !availIndices.includes(i)),
-          availableSeatCosts: (currentAssetDetail.availableSeatCosts || []).filter((_, i) => !availIndices.includes(i)),
-          availableSeatDocs: (() => {
-            const oldDocMap = currentAssetDetail.availableSeatDocs || {};
-            const totalAvail = Math.max(0, (Number(currentAssetDetail.quantity) || 0) - (currentAssetDetail.assignees?.length || 0));
-            const newDocMap = {};
-            let newIdx = 0;
-            for (let i = 0; i < totalAvail; i++) {
-              if (!availIndices.includes(i)) {
-                if (oldDocMap[String(i)]) newDocMap[String(newIdx)] = oldDocMap[String(i)];
-                newIdx++;
-              }
-            }
-            return newDocMap;
-          })(),
+          // ลบทุกฟิลด์รายสิทธิ์ตำแหน่งเดียวกัน (เดิมลบแค่ Key/KeyCode/ราคา → ชื่อ/วันที่ของสิทธิ์อื่นเลื่อนผิดตัว)
+          ...removeAvailableSeats(currentAssetDetail, availIndices),
         });
         setSelectedLicenseSeatsForDelete([]);
         setExpandedItem(null);

@@ -266,6 +266,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
   อ่านรูปไม่ได้ (HEIC จาก iPhone / ไฟล์เสีย) `compressImage` โยน Error ภาษาไทย → ช่องแนบรูปแสดงข้อความ (ห้ามกลืน error เงียบ)
 - **ไทม์ไลน์รายตัว** (แท็บในหน้าต่างรายการย่อย) — `buildSeatTimeline` จับสิทธิ์ด้วย Product Key · `buildAccessoryItemTimeline` จับชิ้นด้วย SN (timeline/buildTimeline.js)
   ไม่มี Key/SN หรือ Key ซ้ำ → เห็นแค่รอบที่ถืออยู่ (จับด้วย checkoutId) · รายการจ่าย License บันทึก `checkoutId` ตั้งแต่ 11/2026
+  **ย้ายสิทธิ์ License (จ่าย/ผูก/ถอด/คืน/ลบ/เพิ่ม) ต้องผ่าน `utils/licenseSeats.js` เสมอ** — `takeSeat` / `returnSeats` / `removeAvailableSeats` ย้ายทุกฟิลด์รายสิทธิ์ (`SEAT_FIELDS`)
+  และ `seatId` (รหัสประจำสิทธิ์ ให้ไทม์ไลน์ตามสิทธิ์ที่ไม่มี Product Key) · `api/cascade-delete.js` มีสำเนา `SEAT_FIELDS` แก้คู่กัน
   ไทม์ไลน์ License: จับด้วย `licenseId` → `assetId` (คืนสิทธิ์รุ่นเก่า) → ชื่อ (เฉพาะรายการหลังวันสร้าง License — กันประวัติของตัวที่ลบไปแล้วแต่ชื่อซ้ำ)
   เทสต์: `npm test` (node --test · `src/**/*.test.mjs`)
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน

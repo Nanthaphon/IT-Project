@@ -32,6 +32,7 @@ function parseRoute(pathname) {
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField } from 'firebase/firestore';
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
+import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
@@ -2193,39 +2194,16 @@ function App() {
         if (currentAssignees.length >= totalQty) {
           return setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'สิทธิ์ License ถูกใช้งานครบแล้ว', type: 'error' });
         }
-        // Transfer selected available slot's per-seat data to the new assignee
-        const pickedIdx = checkoutModal.seatIndex ?? 0;
-        const availableKeys = [...(item.availableKeys || [])];
-        const availableKeyCodes = [...(item.availableKeyCodes || [])];
-        const availableSeatCosts = [...(item.availableSeatCosts || [])];
-        const oldDocMap = { ...(item.availableSeatDocs || {}) };
-        const seatProductKey = availableKeys[pickedIdx] || '';
-        const seatKeyCode = availableKeyCodes[pickedIdx] || '';
-        const seatCost = availableSeatCosts[pickedIdx] || '';
-        const seatDocuments = oldDocMap[String(pickedIdx)] || [];
-        // Remove picked slot from arrays and re-index doc map
-        availableKeys.splice(pickedIdx, 1);
-        availableKeyCodes.splice(pickedIdx, 1);
-        availableSeatCosts.splice(pickedIdx, 1);
-        const totalAvailBefore = Math.max(0, totalQty - currentAssignees.length);
-        const newDocMap = {};
-        let newIdx = 0;
-        for (let i = 0; i < totalAvailBefore; i++) {
-          if (i === pickedIdx) continue;
-          if (oldDocMap[String(i)]) newDocMap[String(newIdx)] = oldDocMap[String(i)];
-          newIdx++;
-        }
+        // ย้ายสิทธิ์ว่างที่เลือกไปเป็นของผู้ถือ — ทุกฟิลด์รายสิทธิ์ + seatId (utils/licenseSeats.js)
+        const { seat, patch } = takeSeat(item, checkoutModal.seatIndex ?? 0);
         const checkoutDate = formatDateShort(new Date());
         const newAssignees = [...currentAssignees, {
+          ...seat,
           checkoutId: Date.now().toString(),
           empId: emp.id,
           empName: `${emp.fullName} ${emp.nickname ? `(${emp.nickname})` : ''}`,
           checkoutDate,
           remarks: checkoutRemarks.trim() || '',
-          productKey: seatProductKey,
-          keyCode: seatKeyCode,
-          seatCost: seatCost,
-          seatDocuments: seatDocuments,
         }];
         const newStatus = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
         await updateDoc(doc(db, 'licenses', checkoutModal.assetId), {
@@ -2233,15 +2211,12 @@ function App() {
           status: newStatus,
           assignedTo: newAssignees.map(a => a.empId).join(','),
           assignedName: newAssignees.map(a => a.empName).join(', '),
-          availableKeys,
-          availableKeyCodes,
-          availableSeatCosts,
-          availableSeatDocs: newDocMap,
+          ...patch,
         });
         await addDoc(collection(db, 'licenses_transactions'), {
           empId: emp.id, assetName: item.name,
           licenseId: item.id, licenseName: item.name,
-          productKey: seatProductKey || '', keyCode: seatKeyCode || '',
+          productKey: seat.productKey || '', keyCode: seat.keyCode || '', seatId: seat.seatId,
           category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now(),
           checkoutId: newAssignees[newAssignees.length - 1].checkoutId,   // ไทม์ไลน์รายสิทธิ์จับคู่จ่าย-คืนด้วยค่านี้
         });
@@ -2305,27 +2280,8 @@ function App() {
         setCustomAlert({ isOpen: true, title: 'ข้อผิดพลาด', message: 'สิทธิ์ License ถูกใช้งานครบแล้ว', type: 'error' });
         return;
       }
-      const availableKeys      = [...(item.availableKeys || [])];
-      const availableKeyCodes  = [...(item.availableKeyCodes || [])];
-      const availableSeatCosts = [...(item.availableSeatCosts || [])];
-      const oldDocMap          = { ...(item.availableSeatDocs || {}) };
-      const seatProductKey     = availableKeys[seatIndex]      || '';
-      const seatKeyCode        = availableKeyCodes[seatIndex]  || '';
-      const seatCost           = availableSeatCosts[seatIndex] || '';
-      const seatDocuments      = oldDocMap[String(seatIndex)]  || [];
-
-      availableKeys.splice(seatIndex, 1);
-      availableKeyCodes.splice(seatIndex, 1);
-      availableSeatCosts.splice(seatIndex, 1);
-
-      const totalAvailBefore = Math.max(0, totalQty - currentAssignees.length);
-      const newDocMap = {};
-      let newIdx = 0;
-      for (let i = 0; i < totalAvailBefore; i++) {
-        if (i === seatIndex) continue;
-        if (oldDocMap[String(i)]) newDocMap[String(newIdx)] = oldDocMap[String(i)];
-        newIdx++;
-      }
+      // ย้ายสิทธิ์ว่างไปผูกกับเครื่อง — ทุกฟิลด์รายสิทธิ์ + seatId (utils/licenseSeats.js)
+      const { seat, patch } = takeSeat(item, seatIndex);
 
       // ── ถ้า asset นั้นถูก checkout อยู่แล้ว ให้ใส่ empId/empName ทันที ──
       const currentAsset   = assets.find(a => a.id === assetId);
@@ -2333,6 +2289,7 @@ function App() {
       const currentEmpName = currentAsset?.assignedName || null;
 
       const newAssignee = {
+        ...seat,
         checkoutId:        Date.now().toString(),
         empId:             currentEmpId,
         empName:           currentEmpName,
@@ -2341,10 +2298,6 @@ function App() {
         assignedAssetName: assetName,
         checkoutDate:      formatDateShort(new Date()),
         remarks:           remarks.trim(),
-        productKey:        seatProductKey,
-        keyCode:           seatKeyCode,
-        seatCost,
-        seatDocuments,
       };
       const newAssignees = [...currentAssignees, newAssignee];
       const newStatus    = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
@@ -2355,16 +2308,13 @@ function App() {
         assignedTo:        newAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
         assignedName:      newAssignees.filter(a => a.empName || a.assignedAssetName)
                              .map(a => a.empName || a.assignedAssetName).join(', ') || null,
-        availableKeys,
-        availableKeyCodes,
-        availableSeatCosts,
-        availableSeatDocs: newDocMap,
+        ...patch,
       });
       await addDoc(collection(db, 'licenses_transactions'), {
         // 🆕 ใส่ empId ของผู้ถือเครื่อง ณ ตอนผูก เพื่อให้ขึ้นใน history พนักงาน
         empId: currentEmpId, empName: currentEmpName,
         assetId, assetName, licenseId: item.id, licenseName: item.name,
-        productKey: seatProductKey || '', keyCode: seatKeyCode || '',
+        productKey: seat.productKey || '', keyCode: seat.keyCode || '', seatId: seat.seatId,
         category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ',
         remarks: remarks.trim() || '-', timestamp: Date.now(), isAssetBound: true,
         checkoutId: newAssignee.checkoutId,
@@ -2384,32 +2334,23 @@ function App() {
     try {
       const item = licenses.find(l => l.id === licenseId);
       if (!item) return;
-      const seat = (item.assignees || []).find(a => a.checkoutId === checkoutId);
-      if (!seat) return;
+      const found = (item.assignees || []).find(a => a.checkoutId === checkoutId);
+      if (!found) return;
+      const seat = ensureSeatId(found);
 
       const newAssignees       = (item.assignees || []).filter(a => a.checkoutId !== checkoutId);
       const totalQty           = Number(item.quantity || 1);
-      const newAvailableKeys   = [...(item.availableKeys || []),      seat.productKey || ''];
-      const newAvailKeyCodes   = [...(item.availableKeyCodes || []),  seat.keyCode    || ''];
-      const newAvailSeatCosts  = [...(item.availableSeatCosts || []), seat.seatCost   || ''];
-      const newDocMap          = { ...(item.availableSeatDocs || {}) };
-      if (seat.seatDocuments?.length > 0)
-        newDocMap[String(newAvailableKeys.length - 1)] = seat.seatDocuments;
-
       const newStatus = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
       await updateDoc(doc(db, 'licenses', licenseId), {
         assignees:         newAssignees,
         status:            newStatus,
         assignedTo:        newAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
         assignedName:      newAssignees.map(a => a.empName || a.assignedAssetName || '-').join(', '),
-        availableKeys:     newAvailableKeys,
-        availableKeyCodes: newAvailKeyCodes,
-        availableSeatCosts:newAvailSeatCosts,
-        availableSeatDocs: newDocMap,
+        ...returnSeats(item, [seat]),   // สิทธิ์กลับเป็นสิทธิ์ว่างพร้อมทุกฟิลด์ + seatId
       });
       await addDoc(collection(db, 'licenses_transactions'), {
         empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName, checkoutId: seat.checkoutId || '',
-        productKey: seat.productKey || '', keyCode: seat.keyCode || '',
+        productKey: seat.productKey || '', keyCode: seat.keyCode || '', seatId: seat.seatId,
         licenseId: item.id, licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
         remarks: '-', timestamp: Date.now(), isAssetBound: true,
       });
@@ -2452,22 +2393,15 @@ function App() {
             });
 
           // คืน seat data กลับ available pools (เฉพาะ regular)
-          const newKeys      = [...(item.availableKeys      || [])];
-          const newKeyCodes  = [...(item.availableKeyCodes  || [])];
-          const newSeatCosts = [...(item.availableSeatCosts || [])];
-          const newDocMap    = { ...(item.availableSeatDocs || {}) };
+          // (ทุกฟิลด์รายสิทธิ์ + seatId — utils/licenseSeats.js)
+          const returning = regularToRemove.map(ensureSeatId);
+          const seatPatch = returnSeats(item, returning);
 
-          for (const a of regularToRemove) {
-            const idx = newKeys.length;
-            newKeys.push(a.productKey || '');
-            newKeyCodes.push(a.keyCode || '');
-            newSeatCosts.push(a.seatCost || '');
-            if (a.seatDocuments?.length > 0) newDocMap[String(idx)] = a.seatDocuments;
-
+          for (const a of returning) {
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
               licenseId: item.id, licenseName: item.name,
-              productKey: a.productKey || '', keyCode: a.keyCode || '',
+              productKey: a.productKey || '', keyCode: a.keyCode || '', seatId: a.seatId,
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
             });
@@ -2477,7 +2411,7 @@ function App() {
             await addDoc(collection(db, 'licenses_transactions'), {
               empId: a.empId, assetName: item.name,
               licenseId: item.id, licenseName: item.name,
-              productKey: a.productKey || '', keyCode: a.keyCode || '',
+              productKey: a.productKey || '', keyCode: a.keyCode || '', seatId: a.seatId || '',
               category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
               remarks: '-', timestamp: Date.now(), checkoutId: a.checkoutId,
               isAssetBound: true,
@@ -2492,10 +2426,7 @@ function App() {
             assignedTo:        newAssignees.filter(a => a.empId).map(a => a.empId).join(',') || null,
             assignedName:      newAssignees.filter(a => a.empName || a.assignedAssetName)
                                  .map(a => a.empName || a.assignedAssetName).join(', ') || null,
-            availableKeys:      newKeys,
-            availableKeyCodes:  newKeyCodes,
-            availableSeatCosts: newSeatCosts,
-            availableSeatDocs:  newDocMap,
+            ...seatPatch,
           });
 
         } else {
@@ -2532,6 +2463,8 @@ function App() {
       if (collectionName === 'accessories' || collectionName === 'licenses') {
         const newAssignees = item.assignees ? item.assignees.filter(a => a.checkoutId !== returnModal.checkoutId) : [];
         const returnedItem = item.assignees ? item.assignees.find(a => a.checkoutId === returnModal.checkoutId) : null;
+        // License: ผู้ถือรุ่นก่อนยังไม่มี seatId → ให้ตอนคืน ใช้ค่าเดียวกันทั้งสิทธิ์ว่างและ transaction
+        const returnedSeat = collectionName === 'licenses' && returnedItem ? ensureSeatId(returnedItem) : null;
         const updateData = { assignees: newAssignees };
 
         if (collectionName === 'accessories') {
@@ -2564,17 +2497,8 @@ function App() {
           updateData.status = newAssignees.length >= totalQty ? 'ถูกใช้งาน' : 'พร้อมใช้งาน';
           updateData.assignedTo = newAssignees.length > 0 ? newAssignees.map(a => a.empId).join(',') : null;
           updateData.assignedName = newAssignees.length > 0 ? newAssignees.map(a => a.empName).join(', ') : null;
-          // Move returned assignee's per-seat data back to available arrays
-          if (returnedItem) {
-            const currentAvailCount = Math.max(0, totalQty - item.assignees.length);
-            const newAvailCount = currentAvailCount + 1;
-            updateData.availableKeys = [...(item.availableKeys || []), returnedItem.productKey || ''];
-            updateData.availableKeyCodes = [...(item.availableKeyCodes || []), returnedItem.keyCode || ''];
-            updateData.availableSeatCosts = [...(item.availableSeatCosts || []), returnedItem.seatCost || ''];
-            const newDocMap = { ...(item.availableSeatDocs || {}) };
-            if (returnedItem.seatDocuments?.length > 0) newDocMap[String(newAvailCount - 1)] = returnedItem.seatDocuments;
-            updateData.availableSeatDocs = newDocMap;
-          }
+          // สิทธิ์กลับเป็นสิทธิ์ว่างพร้อมทุกฟิลด์ + seatId (utils/licenseSeats.js)
+          if (returnedSeat) Object.assign(updateData, returnSeats(item, [returnedSeat]));
         } else {
           updateData.status = 'พร้อมใช้งาน'; updateData.assignedTo = null; updateData.assignedName = null;
         }
@@ -2593,6 +2517,7 @@ function App() {
           ...(collectionName === 'licenses' ? {
             licenseId: returnModal.assetId, licenseName: returnModal.assetName,
             productKey: returnedItem?.productKey || '', keyCode: returnedItem?.keyCode || '',
+            seatId: returnedSeat?.seatId || '',
           } : {}),
         });
 

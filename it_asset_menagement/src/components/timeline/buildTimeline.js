@@ -341,8 +341,12 @@ export function buildSeatTimeline(license, seat, transactions = [], employees = 
   const allKeys = [...(license.availableKeys || []), ...(license.assignees || []).map((x) => x.productKey)];
   const byKey = !!key && allKeys.filter((k) => norm(k) === key).length <= 1;
   const a = seat.assignee;
+  // seatId = รหัสประจำสิทธิ์ ติดไปทุกการจ่าย/คืน (utils/licenseSeats.js · บันทึกใน transaction ตั้งแต่ 11/2026)
+  // ตามสิทธิ์ที่ไม่มี Product Key ได้ — เดิมสิทธิ์แบบนี้พอคืนจนว่าง ไทม์ไลน์ว่างเปล่า
+  const seatId = seat.seatId || a?.seatId || '';
   const tx = transactions.filter((t) => {
     if (t.category !== 'licenses') return false;
+    if (seatId && t.seatId) return t.seatId === seatId;
     if (byKey) return norm(t.productKey) === key;
     if (!a || norm(t.productKey) !== key) return false;
     if (t.checkoutId) return t.checkoutId === a.checkoutId;
@@ -358,7 +362,8 @@ export function buildSeatTimeline(license, seat, transactions = [], employees = 
     cost: seat.seatCost || '',
   }, tx, employees);
   // reason ให้ UI อธิบายได้ตรงสาเหตุ: ไม่มี Key เลย / Key ซ้ำกับสิทธิ์อื่น
-  return { events, partial: !byKey, reason: byKey ? '' : (key ? 'dupKey' : 'noKey') };
+  const partial = !byKey && !seatId;
+  return { events, partial, reason: partial ? (key ? 'dupKey' : 'noKey') : '' };
 }
 
 export function buildAccessoryItemTimeline(accessory, item, transactions = [], employees = []) {

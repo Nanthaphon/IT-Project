@@ -319,6 +319,60 @@ export function buildLicenseTimeline(license, transactions = [], employees = [])
   return out.sort((a, b) => b.ms - a.ms);
 }
 
+/* ── ไทม์ไลน์ของรายการย่อย (รายตัว) ─────────────────────────
+   ตัวตนของสิทธิ์ 1 ตัว = Product Key · ชิ้นอุปกรณ์เสริม 1 ชิ้น = SN
+   ตำแหน่งในอาร์เรย์ใช้ไม่ได้ (จ่าย/คืนแล้วสลับที่กันตลอด)
+   ไม่มี Product Key / SN → เห็นได้แค่รอบที่ถืออยู่ตอนนี้ (จับคู่ด้วย checkoutId / ผู้ถือ)
+   คืน { events, partial } — partial = ระบุตัวไม่ได้ ประวัติอาจไม่ครบ ให้ UI บอกผู้ใช้ */
+const norm = (v) => String(v ?? '').trim().toLowerCase();
+
+export function buildSeatTimeline(license, seat, transactions = [], employees = []) {
+  if (!license?.id || !seat) return { events: [], partial: false };
+  const key = norm(seat.productKey);
+  // Key ซ้ำกันหลายสิทธิ์ (volume key) = ใช้ระบุตัวไม่ได้
+  const allKeys = [...(license.availableKeys || []), ...(license.assignees || []).map((x) => x.productKey)];
+  const byKey = !!key && allKeys.filter((k) => norm(k) === key).length <= 1;
+  const a = seat.assignee;
+  const tx = transactions.filter((t) => {
+    if (t.category !== 'licenses') return false;
+    if (byKey) return norm(t.productKey) === key;
+    if (!a || norm(t.productKey) !== key) return false;
+    if (t.checkoutId) return t.checkoutId === a.checkoutId;
+    // รายการจ่ายรุ่นก่อนไม่ได้เก็บ checkoutId — ใช้ผู้ถือ/เครื่องเดียวกันแทน
+    return t.action === 'เบิกจ่าย' && (a.isAssetBound
+      ? !!t.isAssetBound && t.assetId === a.assignedAssetId
+      : !t.isAssetBound && t.empId === a.empId);
+  });
+  const events = buildLicenseTimeline({
+    ...license,
+    purchaseDate: seat.seatPurchaseDate || license.purchaseDate,
+    supplier: seat.seatSupplier || license.supplier,
+    cost: seat.seatCost || '',
+  }, tx, employees);
+  return { events, partial: !byKey };
+}
+
+export function buildAccessoryItemTimeline(accessory, item, transactions = [], employees = []) {
+  if (!accessory?.id || !item) return { events: [], partial: false };
+  const coId = item.assignee?.checkoutId;
+  const mine = transactions.filter((t) => t.assetId === accessory.id && !t.isAssetBound);
+  const snOf = snByCheckout(mine, accessory.assignees || []);
+  const sn = norm(item.sn);
+  const tx = mine.filter((t) => {
+    if (sn) return norm(snOfTx(t) || (t.checkoutId && snOf.get(t.checkoutId))) === sn;
+    return !!coId && t.checkoutId === coId;
+  });
+  const events = buildAssetTimeline({
+    id: accessory.id,
+    assignees: accessory.assignees,
+    purchaseHistoryLog: [],
+    purchaseDate: item.purchaseDate,
+    cost: item.itemCost,
+    vendor: accessory.vendor,
+  }, tx, [], [], employees);
+  return { events, partial: !sn };
+}
+
 /* ── ไทม์ไลน์ของพนักงาน 1 คน ────────────────────────────────
    ตอบคำถาม "คนนี้เคยถือของอะไร ได้สิทธิ์อะไร คืนเมื่อไหร่"
    ใช้แทนแท็บ "ประวัติเบิก-คืน" เดิม ซึ่งเป็นรายการแบน ๆ ไม่เห็นช่วงเวลา

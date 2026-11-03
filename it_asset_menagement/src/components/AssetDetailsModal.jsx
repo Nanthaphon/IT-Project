@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
-import { Banknote, Building2, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, CornerUpLeft, Printer, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
+import { Banknote, Building2, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, CornerUpLeft, Printer, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, Info, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
@@ -13,7 +13,7 @@ import ImageViewer from '../ui/ImageViewer.jsx';
 import { Popover } from '../ui/earthUI.jsx';
 import SeatTable from './licenses/SeatTable.jsx';
 import ItemsToolbar from './list/ItemsToolbar.jsx';
-import { buildAssetTimeline, buildLicenseTimeline } from './timeline/buildTimeline.js';
+import { buildAssetTimeline, buildLicenseTimeline, buildSeatTimeline, buildAccessoryItemTimeline } from './timeline/buildTimeline.js';
 
 /* ── Purchase-history document storage helpers ── */
 const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
@@ -2381,6 +2381,7 @@ export default function AssetDetailsModal({
         <SeatDetailModal
           seat={seatDetailModal}
           license={currentAssetDetail}
+          timeline={buildSeatTimeline(currentAssetDetail, seatDetailModal, transactions, employees)}
           checkLicenseExpiration={checkLicenseExpiration}
           calculateAge={calculateAge}
           onClose={() => setSeatDetailModal(null)}
@@ -2433,6 +2434,7 @@ export default function AssetDetailsModal({
         <AccessoryItemDetailModal
           item={accItemDetailModal}
           accessoryName={currentAssetDetail.name}
+          timeline={buildAccessoryItemTimeline(currentAssetDetail, accItemDetailModal, transactions, employees)}
           calcAccessoryAge={calcAccessoryAge}
           onClose={() => { setAccItemDetailModal(null); setEditingItemId(null); setTempAccDocs([]); }}
           isEditing={editingItemId === accItemDetailModal.id}
@@ -2475,6 +2477,48 @@ export default function AssetDetailsModal({
   );
 }
 
+/* ── แท็บของหน้าต่างรายการย่อย: ข้อมูล / ไทม์ไลน์รายตัว ── */
+function SubTabs({ tab, setTab, count }) {
+  const btn = (key, label) => (
+    <button
+      type="button" onClick={() => setTab(key)}
+      className={`-mb-px border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${tab === key ? 'border-clay-600 text-clay-600' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="flex gap-1 border-b border-stone-100 px-4 sm:px-5" role="tablist">
+      {btn('info', 'ข้อมูล')}
+      {btn('timeline', `ไทม์ไลน์ (${count})`)}
+    </div>
+  );
+}
+
+/* timeline = { events, partial } จาก buildSeatTimeline / buildAccessoryItemTimeline
+   partial = ไม่มี Product Key / SN ระบุตัว → เห็นเฉพาะรอบที่ถืออยู่ตอนนี้ */
+function SubTimeline({ timeline, isSeat }) {
+  return (
+    <div className="space-y-4">
+      {timeline.partial && (
+        <p className="flex items-start gap-2 rounded-xl bg-ochre-50 px-4 py-3 text-[13px] text-ochre-700">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+          {isSeat
+            ? 'สิทธิ์นี้ไม่มี Product Key (หรือ Key ซ้ำกับสิทธิ์อื่น) จึงแสดงได้เฉพาะรอบที่ใช้งานอยู่ตอนนี้'
+            : 'ชิ้นนี้ไม่มี SN จึงแสดงได้เฉพาะรอบที่ถืออยู่ตอนนี้'}
+        </p>
+      )}
+      <Timeline
+        events={timeline.events}
+        holderLabel={isSeat ? 'ผู้/เครื่องที่เคยใช้สิทธิ์' : 'ผู้เคยถือครอง'}
+        holderKinds={isSeat ? ['seatOn', 'licOn'] : ['checkout']}
+        assignLabel={isSeat ? 'จ่ายสิทธิ์ไปแล้ว' : 'เบิกจ่ายไปแล้ว'}
+        emptyHint={isSeat ? 'ยังไม่มีประวัติของสิทธิ์นี้' : 'ยังไม่มีประวัติของชิ้นนี้'}
+      />
+    </div>
+  );
+}
+
 /* ════════════════════════════════════════════════
    🆕 SeatDetailModal — Modal สวยๆ แสดงรายละเอียด + edit ของ seat
 ════════════════════════════════════════════════ */
@@ -2490,7 +2534,9 @@ export function SeatDetailModal({
   tempLicenseNote, setTempLicenseNote,
   tempLicenseSeatDocs, setTempLicenseSeatDocs,
   handleLicenseSeatDocUpload, isSavingItem, onCancelEdit, onSaveEdit,
+  timeline = { events: [], partial: false },
 }) {
+  const [tab, setTab] = useState('info');
   // 🔒 lock background scroll — ใช้ global observer แทนแล้ว
 
   const seatSupplier = seat.seatSupplier || license.supplier || '-';
@@ -2513,7 +2559,7 @@ export function SeatDetailModal({
       <div className="bg-white rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header — ขาวสะอาด ธีมเดียวกับฝั่ง user */}
-        <div className="px-7 py-5 border-b border-stone-100">
+        <div className={`px-7 pt-5 ${isEditing ? 'pb-5 border-b border-stone-100' : 'pb-1'}`}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5 min-w-0">
               <div className="w-11 h-11 rounded-xl bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
@@ -2556,6 +2602,8 @@ export function SeatDetailModal({
             </button>
           </div>
         </div>
+
+        {!isEditing && <SubTabs tab={tab} setTab={setTab} count={timeline.events.length} />}
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto bg-white">
@@ -2624,6 +2672,8 @@ export function SeatDetailModal({
                 </div>
               </section>
             </div>
+          ) : tab === 'timeline' ? (
+            <div className="px-6 sm:px-7 py-6"><SubTimeline timeline={timeline} isSeat={true} /></div>
           ) : (
             <div className="px-6 sm:px-7 divide-y divide-stone-100">
               {/* VIEW MODE — clean */}
@@ -2767,7 +2817,9 @@ export function AccessoryItemDetailModal({
   tempWarrantyDateValue, setTempWarrantyDateValue,
   tempAccDocs, setTempAccDocs,
   handleAccItemDocUpload, handleOpenAccDoc, isSavingItem,
+  timeline = { events: [], partial: false },
 }) {
+  const [tab, setTab] = useState('info');
   const statusBadge = item.type === 'available'
     ? { label: 'พร้อมใช้งาน', cls: 'bg-olive-50 text-olive-700', dot: 'bg-olive-500' }
     : item.type === 'assigned'
@@ -2781,7 +2833,7 @@ export function AccessoryItemDetailModal({
       <div className="bg-white rounded-lg border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
         {/* Header */}
-        <div className="px-7 py-5 border-b border-stone-100">
+        <div className={`px-7 pt-5 ${isEditing ? 'pb-5 border-b border-stone-100' : 'pb-1'}`}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5 min-w-0">
               <div className="w-11 h-11 rounded-xl bg-clay-600/[0.08] text-clay-600 flex items-center justify-center shrink-0">
@@ -2812,6 +2864,8 @@ export function AccessoryItemDetailModal({
             </button>
           </div>
         </div>
+
+        {!isEditing && <SubTabs tab={tab} setTab={setTab} count={timeline.events.length} />}
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto bg-white">
@@ -2862,6 +2916,8 @@ export function AccessoryItemDetailModal({
                 </div>
               </section>
             </div>
+          ) : tab === 'timeline' ? (
+            <div className="px-6 sm:px-7 py-6"><SubTimeline timeline={timeline} isSeat={false} /></div>
           ) : (
             <div className="px-6 sm:px-7 divide-y divide-stone-100">
               {item.type === 'assigned' && item.assignee

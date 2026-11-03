@@ -2246,7 +2246,8 @@ function App() {
           empId: emp.id, assetName: item.name,
           licenseId: item.id, licenseName: item.name,
           productKey: seatProductKey || '', keyCode: seatKeyCode || '',
-          category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now()
+          category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ', remarks: checkoutRemarks.trim() || '-', timestamp: Date.now(),
+          checkoutId: newAssignees[newAssignees.length - 1].checkoutId,   // ไทม์ไลน์รายสิทธิ์จับคู่จ่าย-คืนด้วยค่านี้
         });
       } else {
         const itemToCheckout = assets.find(a => a.id === checkoutModal.assetId);
@@ -2370,6 +2371,7 @@ function App() {
         productKey: seatProductKey || '', keyCode: seatKeyCode || '',
         category: 'licenses', action: 'เบิกจ่าย', condition: 'ปกติ',
         remarks: remarks.trim() || '-', timestamp: Date.now(), isAssetBound: true,
+        checkoutId: newAssignee.checkoutId,
       });
       setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: `ผูก ${item.name} กับ ${assetName} เรียบร้อยแล้ว`, type: 'success' });
     } catch (err) {
@@ -2410,7 +2412,7 @@ function App() {
         availableSeatDocs: newDocMap,
       });
       await addDoc(collection(db, 'licenses_transactions'), {
-        empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName,
+        empId: null, assetId: seat.assignedAssetId, assetName: seat.assignedAssetName, checkoutId: seat.checkoutId || '',
         productKey: seat.productKey || '', keyCode: seat.keyCode || '',
         licenseId: item.id, licenseName: item.name, category: 'licenses', action: 'รับคืน', condition: 'ปกติ',
         remarks: '-', timestamp: Date.now(), isAssetBound: true,

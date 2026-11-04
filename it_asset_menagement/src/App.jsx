@@ -1043,7 +1043,6 @@ function App() {
             if (approvalMeta.pickedItems?.length && missing > 0) {
               throw new Error('ชิ้นที่เลือกถูกเบิกออกไปแล้ว — กรุณาเปิดหน้าต่างอนุมัติแล้วเลือกใหม่');
             }
-            payload.givenItems = pickedItems.map(it => ({ sn: it.sn || '', model: it.model || '' }));
             const assigneesToAdd = [];
             for (let i = 0; i < qty; i++) {
               const picked = pickedItems[i] || {};
@@ -1066,6 +1065,10 @@ function App() {
                 returnDate: finalType === 'borrow' ? (finalReturnDate || null) : null,
               });
             }
+            // checkoutId — หน้าคำขอใช้ดูว่าของที่ยืมคืนแล้วหรือยัง (utils/borrowStatus.js)
+            payload.givenItems = pickedItems.map((it, i) => ({
+              sn: it.sn || '', model: it.model || '', checkoutId: assigneesToAdd[i]?.checkoutId || '',
+            }));
             await updateDoc(doc(db, 'accessories', req.accessoryId), {
               assignees:      [...(acc.assignees || []), ...assigneesToAdd],
               availableItems: items,

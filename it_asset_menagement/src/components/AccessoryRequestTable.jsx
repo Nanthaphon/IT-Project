@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock, ImageIcon, Package, PlusCircle, Repeat, RotateCcw, Trash2, X, XCircle } from 'lucide-react';
+import { AlertTriangle, CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock, ImageIcon, Package, PlusCircle, Repeat, RotateCcw, Trash2, X, XCircle } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
 import { formatDateShort } from '../utils/formatDate.js';
 import ApproveAccessoryModal from './accessories/ApproveAccessoryModal.jsx';
+import { borrowState } from '../utils/borrowStatus.js';
 
 /* ─── Status config ─────────────────────────────────────── */
 const STATUS = {
@@ -46,15 +47,23 @@ export default function AccessoryRequestTable({
   const [rejectModal, setRejectModal] = useState({ open: false, req: null, reason: '' });
   const [approveFor, setApproveFor] = useState(null);   // คำขอที่กำลังเลือกชิ้นเพื่ออนุมัติ
 
+  // ยืมที่อนุมัติแล้ว: คืนแล้ว / เลยกำหนด / ยังไม่ถึงกำหนด — ดูจากผู้ถือในอุปกรณ์ (คำขอไม่ถูกแก้ตอนรับคืน)
+  const borrowStates = useMemo(() => {
+    const m = {};
+    accessoryRequests.forEach(r => { m[r.id] = borrowState(r, accessories.find(a => a.id === r.accessoryId)); });
+    return m;
+  }, [accessoryRequests, accessories]);
+
   const filtered = useMemo(() => {
     return accessoryRequests.filter(r => {
-      if (statusFilter !== 'ทั้งหมด' && r.status !== statusFilter) return false;
+      if (statusFilter === 'เลยกำหนดคืน') { if (!borrowStates[r.id]?.overdue) return false; }
+      else if (statusFilter !== 'ทั้งหมด' && r.status !== statusFilter) return false;
       // "เบิก" รวมค่าเก่าทั้งหมด (new จากฟอร์มพนักงาน · request/add จากการอนุมัติ/ข้อมูลเดิม)
       const typeKey = ['new', 'add', 'request'].includes(r.requestType) ? 'request' : r.requestType;
       if (typeFilter !== 'ทั้งหมด' && typeKey !== typeFilter) return false;
       return true;
     });
-  }, [accessoryRequests, statusFilter, typeFilter]);
+  }, [accessoryRequests, statusFilter, typeFilter, borrowStates]);
 
   // 🆕 Pagination — 10 รายการ/หน้า
   const PAGE_SIZE = 10;
@@ -72,7 +81,8 @@ export default function AccessoryRequestTable({
     pending: accessoryRequests.filter(r => r.status === 'รอดำเนินการ').length,
     approved: accessoryRequests.filter(r => r.status === 'อนุมัติแล้ว').length,
     rejected: accessoryRequests.filter(r => r.status === 'ปฏิเสธคำขอ').length,
-  }), [accessoryRequests]);
+    overdue: accessoryRequests.filter(r => borrowStates[r.id]?.overdue).length,
+  }), [accessoryRequests, borrowStates]);
 
   const openRejectModal = (req) => setRejectModal({ open: true, req, reason: '' });
   const confirmReject = () => {
@@ -97,6 +107,9 @@ export default function AccessoryRequestTable({
         <SummaryChip label="รอดำเนินการ" value={counts.pending} color="var(--color-ochre-600)" active={statusFilter === 'รอดำเนินการ'} onClick={() => setStatusFilter('รอดำเนินการ')} />
         <SummaryChip label="อนุมัติแล้ว" value={counts.approved} color="var(--color-olive-600)" active={statusFilter === 'อนุมัติแล้ว'} onClick={() => setStatusFilter('อนุมัติแล้ว')} />
         <SummaryChip label="ปฏิเสธ" value={counts.rejected} color="var(--color-rose-500)" active={statusFilter === 'ปฏิเสธคำขอ'} onClick={() => setStatusFilter('ปฏิเสธคำขอ')} />
+        {(counts.overdue > 0 || statusFilter === 'เลยกำหนดคืน') && (
+          <SummaryChip label="เลยกำหนดคืน" value={counts.overdue} color="var(--color-rose-700)" danger active={statusFilter === 'เลยกำหนดคืน'} onClick={() => setStatusFilter('เลยกำหนดคืน')} />
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-stone-500 font-medium">ประเภท:</span>
@@ -145,16 +158,18 @@ export default function AccessoryRequestTable({
                 const isExpanded = expandedId === req.id;
                 const acc = accessories.find(a => a.id === req.accessoryId);
                 // เหตุผล/วันคืน/เหตุผลปฏิเสธ อยู่ในแถวแล้ว — ปุ่มขยายเหลือไว้สำหรับรายละเอียดเสริมเท่านั้น
+                const borrow = borrowStates[req.id];
                 const hasExtra = !!req.damagePhoto || (req.requestType === 'replace' && !!req.oldAccessoryName);
 
                 return (
                   <React.Fragment key={req.id}>
-                    <tr className={`border-t border-stone-100 align-middle transition-colors ${isExpanded ? 'bg-sand-50' : 'hover:bg-sand-50/60'}`}>
+                    <tr className={`border-t border-stone-100 align-middle transition-colors ${
+                      borrow?.overdue ? 'bg-rose-50/60 hover:bg-rose-50' : isExpanded ? 'bg-sand-50' : 'hover:bg-sand-50/60'}`}>
 
                       {/* อุปกรณ์ */}
                       <td className="py-3.5 pl-5 pr-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-1 h-10 rounded-full ${status.bar} shrink-0`} />
+                          <div className={`w-1 h-10 rounded-full ${borrow?.overdue ? 'bg-brick-600' : status.bar} shrink-0`} />
                           {acc?.image ? (
                             <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-stone-200 shrink-0 bg-white p-1" />
                           ) : (
@@ -192,8 +207,21 @@ export default function AccessoryRequestTable({
                           <TypeIcon className="h-3 w-3" strokeWidth={2} /> {reqType.label}
                         </span>
                         {req.requestType === 'borrow' && req.returnDate && (
-                          <p className="mt-1 flex items-center gap-1 text-[11px] text-stone-500">
-                            <CalendarDays className="h-3 w-3" strokeWidth={2} /> คืน {formatDate(req.returnDate)}
+                          borrow?.overdue ? (
+                            <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-rose-700">
+                              <AlertTriangle className="h-3 w-3" strokeWidth={2} /> เลยกำหนดคืน {borrow.days} วัน
+                            </p>
+                          ) : borrow?.returned ? (
+                            <p className="mt-1 flex items-center gap-1 text-[11px] text-olive-700">
+                              <CheckCircle2 className="h-3 w-3" strokeWidth={2} /> คืนของแล้ว
+                            </p>
+                          ) : null
+                        )}
+                        {req.requestType === 'borrow' && req.returnDate && !borrow?.returned && (
+                          <p className={`mt-1 flex items-center gap-1 text-[11px] tabular-nums ${
+                            borrow?.overdue ? 'text-rose-700' : borrow?.daysLeft === 0 ? 'text-ochre-700' : 'text-stone-500'}`}>
+                            <CalendarDays className="h-3 w-3" strokeWidth={2} />
+                            {borrow?.daysLeft === 0 ? 'ครบกำหนดคืนวันนี้' : `คืน ${formatDate(req.returnDate)}`}
                           </p>
                         )}
                       </td>
@@ -413,13 +441,14 @@ export default function AccessoryRequestTable({
   );
 }
 
-function SummaryChip({ label, value, color, active, onClick }) {
+function SummaryChip({ label, value, color, danger, active, onClick }) {
   return (
     <button
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-colors ${
         active
-          ? 'bg-clay-600 text-white shadow-sm'
+          ? (danger ? 'bg-brick-600 text-white shadow-sm' : 'bg-clay-600 text-white shadow-sm')
+          : danger ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
           : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
       }`}
     >

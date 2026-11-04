@@ -9,6 +9,11 @@ import { createRoot } from 'react-dom/client';
 import AccessoryRequestTable from './components/AccessoryRequestTable.jsx';
 import { getAvailableItems, takeItems } from './utils/accessoryItems.js';
 
+function isoDay(offset) {
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 const ACCESSORIES = [
   { id: 'a1', name: 'Anitech W227 Wireless', type: 'เมาส์', quantity: 5, assignees: [{}, {}],
     availableItems: [
@@ -17,6 +22,13 @@ const ACCESSORIES = [
       { sn: '', model: 'W227', cost: 290 },
     ] },
   { id: 'a2', name: 'Wise MT-201', type: 'เมาส์', quantity: 1, assignees: [{}], availableItems: [] },   // หมดสต็อก
+  // ยืมที่อนุมัติแล้ว — co1 เลยกำหนด · co3 ครบกำหนดวันนี้ · SN M0002 คำขอรุ่นเก่า (ไม่มี checkoutId) เลยกำหนด · co2 คืนแล้ว (ไม่อยู่ใน assignees)
+  { id: 'a3', name: 'Logitech M331', type: 'เมาส์', quantity: 5, availableItems: [],
+    assignees: [
+      { checkoutId: 'co1', isBorrow: true, returnDate: isoDay(-4) },
+      { checkoutId: 'co3', isBorrow: true, returnDate: isoDay(0) },
+      { checkoutId: 'old', isBorrow: true, returnDate: isoDay(-15), serialNumber: 'M0002' },
+    ] },
 ];
 
 const now = Date.now(), h = 3600e3;
@@ -30,6 +42,15 @@ const REQS = [
   { id: 'r3cccccc', empId: '1010006', empName: 'นายณัฐภพ หนองเหล็ก', nickname: 'Noom', department: 'Operation Team',
     accessoryId: 'a2', accessoryName: 'Wise MT-201', requestType: 'new', quantity: 1,
     reason: 'เมาส์ใช้งานไม่ได้', status: 'รอดำเนินการ', timestamp: now - 80 * h },
+  ...[
+    ['r4', 'ทำพัง', isoDay(-4), [{ sn: '', checkoutId: 'co1' }]],
+    ['r5', 'ลืมเอามาจากบ้าน', isoDay(-15), [{ sn: 'M0002' }]],
+    ['r6', 'ประชุมนอกสถานที่', isoDay(0), [{ sn: '', checkoutId: 'co3' }]],
+    ['r7', 'ยืมชั่วคราว', isoDay(-10), [{ sn: '', checkoutId: 'co2' }]],
+  ].map(([id, reason, returnDate, givenItems], i) => ({
+    id: id + 'xxxxxx', empId: '1010122', empName: 'นายกษิดิศ จรัสทรัพย์', nickname: 'Best', department: 'Business Development',
+    accessoryId: 'a3', accessoryName: 'Logitech M331', requestType: 'borrow', quantity: 1, reason, returnDate, givenItems,
+    status: 'อนุมัติแล้ว', timestamp: now - (100 + i * 24) * h })),
 ];
 
 function Harness() {

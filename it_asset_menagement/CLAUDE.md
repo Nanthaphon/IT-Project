@@ -258,6 +258,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - **อนุมัติคำขออุปกรณ์เสริม = เลือกชิ้นในสต็อก** (`accessories/ApproveAccessoryModal.jsx`) ส่ง `pickedItems: [{index, sn}]`
   ตัดสต็อกด้วย `takeItems()` ใน `utils/accessoryItems.js` (ตรวจ SN ซ้ำ — ชิ้นถูกเบิกไประหว่างเปิดหน้าต่าง = หยุด ไม่ให้ของผิดชิ้น)
   ยืม = assignee.isBorrow + returnDate → หน้าพนักงานติดป้าย "ยืม · คืน …" (เลยกำหนด = แดง)
+  หน้าคำขอ: แถวยืมที่เลยกำหนดและยังไม่คืน = แดง + ชิป "เลยกำหนดคืน" — `utils/borrowStatus.js` ดูจาก assignees ของอุปกรณ์
+  (คำขอไม่ถูกแก้ตอนรับคืน) · `givenItems[].checkoutId` จับตรงตัว คำขอรุ่นเก่าเทียบ ยืม + วันคืน + SN
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login
   อ่าน/เขียนผ่าน `utils/employeeSecrets.js` เท่านั้น (`loadM365Password` / `saveM365Password` / `splitM365Password`)
   rules ห้ามสร้างพนักงานที่มี `m365Password` ในเอกสาร · ตรวจสิทธิ์ด้วย `npm run test:rules` (ต้องเปิด emulator)

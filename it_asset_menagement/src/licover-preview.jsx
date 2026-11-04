@@ -28,6 +28,10 @@ const LICENSES = [
   { id: 'l2', name: 'Adobe Acrobat Pro', supplier: 'Adobe', cost: '', quantity: 1, purchaseDate: '2025-12-10', expirationDate: '2026-12-10',
     assignees: [{ checkoutId: 'c4', empId: 'e1', checkoutDate: '10/12/2025', seatCost: '9,990' }] },
   { id: 'l3', name: 'AutoCAD LT', supplier: 'Autodesk', cost: 18000, quantity: 2, purchaseDate: '2025-10-20', expirationDate: '2026-10-20', assignees: [] },
+  // ใกล้หมดอายุ ≤ 30 วัน (นับจากวันที่เปิดหน้า) · ไม่ใกล้หมด (ไม่มีป้าย)
+  { id: 'l4', name: 'Artlist Generate AI', supplier: 'Artlist', cost: 4500, quantity: 1, expirationDate: new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10),
+    assignees: [{ checkoutId: 'c5', empId: 'e2', checkoutDate: '01/03/2026' }] },
+  { id: 'l5', name: 'Zoom Pro', supplier: 'Zoom', cost: 5000, quantity: 1, expirationDate: new Date(Date.now() + 200 * 864e5).toISOString().slice(0, 10), assignees: [] },
 ];
 
 function App() {

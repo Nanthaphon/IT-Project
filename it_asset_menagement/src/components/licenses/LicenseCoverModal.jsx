@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FileText, Printer, Search } from 'lucide-react';
+import { CalendarClock, FileText, Printer, Search } from 'lucide-react';
 import { CheckMark, Checkbox } from '../../ui/earthUI.jsx';
 import DateField from '../DateField.jsx';
 import { formatDateShort } from '../../utils/formatDate.js';
@@ -20,6 +20,19 @@ const toNum = (v) => {
   const n = Number(String(v).replace(/[,฿\s]/g, ''));
   return Number.isFinite(n) ? n : null;
 };
+
+/* ใกล้หมดอายุ — เกณฑ์เดียวกับ checkLicenseExpiration ของ App (≤ 90 วัน) · ≤ 30 วันแดง · เลยแล้วแดงทึบ
+   วันของแถว: สิทธิ์ที่ถืออยู่ → ระดับ License → วันที่กรอกในใบคลุม */
+const DAY = 864e5;
+const rowExpiry = (it, entry) => it.seat?.seatExpirationDate || it.license.expirationDate || entry?.expiry || '';
+function expiryInfo(date) {
+  if (!date) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const days = Math.ceil((new Date(date) - today) / DAY);
+  if (!Number.isFinite(days) || days > 90) return null;
+  if (days < 0) return { text: 'หมดอายุแล้ว', cls: 'bg-brick-600 text-white' };
+  return { text: days === 0 ? 'หมดวันนี้' : `เหลือ ${days} วัน`, cls: days <= 30 ? 'bg-rose-50 text-rose-700' : 'bg-ochre-50 text-ochre-700' };
+}
 
 const SAVE_TEXT = {
   loading: { text: 'กำลังโหลดข้อมูลที่บันทึกไว้…', cls: 'text-stone-500' },
@@ -46,6 +59,7 @@ export default function LicenseCoverModal({
   const [entries, setEntries] = useState({});   // { [key]: { start, expiry, cost } }
   const [saveState, setSaveState] = useState('loading');
   const [q, setQ] = useState('');
+  const [onlyExpiring, setOnlyExpiring] = useState(false);
 
   /* โหลดค่าที่เคยกรอก · บันทึกอัตโนมัติหลังหยุดพิมพ์ · ปิดหน้าต่างระหว่างรอ → บันทึกทันที */
   const [loaded, setLoaded] = useState(false);   // false = ห้ามบันทึก (ยังไม่รู้ของเดิม)
@@ -83,10 +97,18 @@ export default function LicenseCoverModal({
     setEntries((cur) => ({ ...cur, [key]: { ...cur[key], [field]: value } }));
   };
 
+  const expiryOf = useMemo(() => {
+    const m = {};
+    items.forEach((it) => { const date = rowExpiry(it, entries[it.key]); m[it.key] = { date, info: expiryInfo(date) }; });
+    return m;
+  }, [items, entries]);
+  const expiringCount = items.filter((it) => expiryOf[it.key]?.info).length;
+
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return s ? items.filter((it) => `${it.license.name || ''} ${it.license.supplier || ''} ${it.holder} ${it.holderSub}`.toLowerCase().includes(s)) : items;
-  }, [items, q]);
+    return items.filter((it) => (!onlyExpiring || expiryOf[it.key]?.info)
+      && (!s || `${it.license.name || ''} ${it.license.supplier || ''} ${it.holder} ${it.holderSub}`.toLowerCase().includes(s)));
+  }, [items, q, onlyExpiring, expiryOf]);
 
   const toggle = (key) => setPicked((p) => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; });
   const allShown = shown.length > 0 && shown.every((it) => picked.has(it.key));
@@ -139,6 +161,15 @@ export default function LicenseCoverModal({
               className="w-full rounded-lg border border-stone-200/60 bg-white py-2 pl-9 pr-3 text-sm text-stone-700 outline-none placeholder:text-stone-400 focus:border-clay-600/40 focus:ring-2 focus:ring-clay-600/10"
             />
           </div>
+          {(expiringCount > 0 || onlyExpiring) && (
+            <button
+              type="button" aria-pressed={onlyExpiring} onClick={() => setOnlyExpiring((v) => !v)}
+              className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
+                onlyExpiring ? 'bg-brick-600 text-white' : 'border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'}`}
+            >
+              <CalendarClock className="size-4" strokeWidth={2} /> ใกล้หมดอายุ {expiringCount}
+            </button>
+          )}
         </div>
 
         <ul className="flex-1 divide-y divide-stone-100 overflow-y-auto" aria-label="รายการใบคลุม">
@@ -146,6 +177,7 @@ export default function LicenseCoverModal({
           {shown.map((it) => {
             const on = picked.has(it.key);
             const saved = entries[it.key] || {};
+            const exp = expiryOf[it.key];
             return (
               <li key={it.key} className={on ? 'bg-clay-50/60' : ''}>
                 <button
@@ -159,8 +191,15 @@ export default function LicenseCoverModal({
                       {it.holder ? [it.holder, it.holderSub, it.department].filter(Boolean).join(' · ') : 'ยังไม่มีผู้ถือครอง'}
                     </span>
                   </span>
-                  {!on && saved.expiry && (
-                    <span className="shrink-0 text-xs tabular-nums text-stone-500">หมด {formatDateShort(saved.expiry)}</span>
+                  {exp?.info ? (
+                    <span className="flex shrink-0 flex-col items-end gap-0.5">
+                      <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-0.5 text-xs font-medium tabular-nums ${exp.info.cls}`}>
+                        {exp.info.text}
+                      </span>
+                      <span className="text-[11px] tabular-nums text-stone-500">หมด {formatDateShort(exp.date)}</span>
+                    </span>
+                  ) : !on && exp?.date && (
+                    <span className="shrink-0 text-xs tabular-nums text-stone-500">หมด {formatDateShort(exp.date)}</span>
                   )}
                 </button>
                 {on && (

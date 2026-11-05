@@ -428,6 +428,10 @@ function App() {
   const [assetFilterType, setAssetFilterType]           = useState(() => loadLS('filter:assetType', []));
   const [assetFilterStatus, setAssetFilterStatus]       = useState(() => loadLS('filter:assetStatus', []));
   const [assetFilterDepartment, setAssetFilterDepartment] = useState(() => loadLS('filter:assetDept', []));
+  // ครุภัณฑ์สำนักงานมีตัวกรองชุดของตัวเอง — ประเภทคนละชุดกับทรัพย์สิน ใช้ร่วมกันแล้วค่าค้างข้ามหน้า
+  const [furnFilterType, setFurnFilterType]             = useState(() => loadLS('filter:furnType', []));
+  const [furnFilterStatus, setFurnFilterStatus]         = useState(() => loadLS('filter:furnStatus', []));
+  const [furnFilterDepartment, setFurnFilterDepartment] = useState(() => loadLS('filter:furnDept', []));
   const [repairFilterStatus, setRepairFilterStatus] = useState('ทั้งหมด'); 
   const [supplyFilterStatus, setSupplyFilterStatus] = useState('ทั้งหมด');
   const [repairFilterYear, setRepairFilterYear]   = useState('ทั้งหมด');
@@ -446,6 +450,13 @@ function App() {
   useEffect(() => { try { localStorage.setItem('filter:assetType',   JSON.stringify(assetFilterType)); } catch {} }, [assetFilterType]);
   useEffect(() => { try { localStorage.setItem('filter:assetStatus', JSON.stringify(assetFilterStatus)); } catch {} }, [assetFilterStatus]);
   useEffect(() => { try { localStorage.setItem('filter:assetDept',   JSON.stringify(assetFilterDepartment)); } catch {} }, [assetFilterDepartment]);
+  useEffect(() => {
+    try {
+      localStorage.setItem('filter:furnType',   JSON.stringify(furnFilterType));
+      localStorage.setItem('filter:furnStatus', JSON.stringify(furnFilterStatus));
+      localStorage.setItem('filter:furnDept',   JSON.stringify(furnFilterDepartment));
+    } catch { /* localStorage ใช้ไม่ได้ (โหมดส่วนตัว / เต็ม) */ }
+  }, [furnFilterType, furnFilterStatus, furnFilterDepartment]);
   useEffect(() => { try { localStorage.setItem('filter:accType',     JSON.stringify(accFilterType)); } catch {} }, [accFilterType]);
   useEffect(() => { try { localStorage.setItem('filter:licenseExp',  JSON.stringify(licenseExpFilter)); } catch {} }, [licenseExpFilter]);
   useEffect(() => { try { localStorage.setItem('cols:asset',         JSON.stringify(visibleAssetColumns)); } catch {} }, [visibleAssetColumns]);
@@ -1916,20 +1927,25 @@ function App() {
   // 🆕 multi-select helper
   const _inArr = (arr, val) => !arr || arr.length === 0 || arr.includes(val);
   const _filterText = (arr) => (!arr || arr.length === 0) ? 'ทั้งหมด' : arr.join(', ');
+  // ตัวกรองของหน้าที่เปิดอยู่ (ทรัพย์สิน / ครุภัณฑ์ แยกชุดกัน)
+  const isFurn = activeMenu === 'furniture';
+  const listFilterType   = isFurn ? furnFilterType : assetFilterType;
+  const listFilterStatus = isFurn ? furnFilterStatus : assetFilterStatus;
+  const listFilterDept   = isFurn ? furnFilterDepartment : assetFilterDepartment;
 
   // 🆕 ส่งออก PDF — รายงานทรัพย์สินพร้อมรูปเอกสารแนบ (ใช้ browser print → save as PDF)
   const handleExportAssetsPDF = async () => {
     const filtered = assets.filter(item =>
       (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
-      _inArr(assetFilterType, item.type) &&
-      _inArr(assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
-      _inArr(assetFilterDepartment, item.forDepartment)
+      _inArr(listFilterType, item.type) &&
+      _inArr(listFilterStatus, item.status || 'พร้อมใช้งาน') &&
+      _inArr(listFilterDept, item.forDepartment)
     );
     const { printAssetReport } = await import('./utils/printAssetReport.js');
     printAssetReport({
       assets: filtered,
       visibleColumns: visibleAssetColumns,
-      filters: { type: _filterText(assetFilterType), status: _filterText(assetFilterStatus), department: _filterText(assetFilterDepartment) },
+      filters: { type: _filterText(listFilterType), status: _filterText(listFilterStatus), department: _filterText(listFilterDept) },
     });
   };
 
@@ -1952,9 +1968,9 @@ function App() {
   const handleExportAssets = () => {
     const filtered = assets.filter(item =>
       (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
-      _inArr(assetFilterType, item.type) &&
-      _inArr(assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
-      _inArr(assetFilterDepartment, item.forDepartment)
+      _inArr(listFilterType, item.type) &&
+      _inArr(listFilterStatus, item.status || 'พร้อมใช้งาน') &&
+      _inArr(listFilterDept, item.forDepartment)
     );
 
     // 🆕 Map ของแต่ละคอลัมน์ → header label + value getter (ตามที่ user เลือกใน "คอลัมน์")
@@ -2674,6 +2690,15 @@ function App() {
   }, [searchTerm]);
 
   // ⚡ Memoize filtered/searched/sorted data — re-compute เฉพาะตอน dep เปลี่ยน ⚡
+  /* ประเภทของครุภัณฑ์ = ที่มีอยู่จริงในข้อมูล (ฟอร์มเลือกจากรายการเดียวกับทรัพย์สิน แต่ข้อมูลเก่ามีประเภทอื่นปน)
+     เรียงตามลำดับรายการมาตรฐานก่อน ที่เหลือเรียงตามตัวอักษร */
+  const furnitureTypeOptions = useMemo(() => {
+    const present = new Set(assets.filter(a => a.assetGroup === 'office' && a.type).map(a => a.type));
+    const std = ASSET_TYPE_OPTIONS.filter(t => present.has(t));
+    const rest = [...present].filter(t => !ASSET_TYPE_OPTIONS.includes(t)).sort((a, b) => a.localeCompare(b, 'th'));
+    return [...std, ...rest];
+  }, [assets]);
+
   const currentData = useMemo(() => {
     let baseData = [];
     // 🆕 multi-select helper: empty array = no filter (ทั้งหมด)
@@ -2681,10 +2706,10 @@ function App() {
     if (activeMenu === 'assets' || activeMenu === 'furniture') baseData = assets.filter(item =>
       // 🆕 ทรัพย์สินหลัก = ไม่ใช่ครุภัณฑ์ (assetGroup !== 'office')  |  ครุภัณฑ์ = assetGroup === 'office'
       (activeMenu === 'furniture' ? item.assetGroup === 'office' : item.assetGroup !== 'office') &&
-      // ครุภัณฑ์ไม่มีฟิลเตอร์ประเภท/สถานะ (ซ่อนไว้) — ข้ามไม่ให้ค่าที่ค้างจากเมนูทรัพย์สินมากรอง
-      (activeMenu === 'furniture' || inFilter(assetFilterType, item.type)) &&
-      (activeMenu === 'furniture' || inFilter(assetFilterStatus, item.status || 'พร้อมใช้งาน')) &&
-      inFilter(assetFilterDepartment, item.forDepartment)
+      // ครุภัณฑ์ใช้ตัวกรองชุดของตัวเอง (furnFilter*) ไม่ปนกับทรัพย์สิน
+      inFilter(activeMenu === 'furniture' ? furnFilterType : assetFilterType, item.type) &&
+      inFilter(activeMenu === 'furniture' ? furnFilterStatus : assetFilterStatus, item.status || 'พร้อมใช้งาน') &&
+      inFilter(activeMenu === 'furniture' ? furnFilterDepartment : assetFilterDepartment, item.forDepartment)
     );
     else if (activeMenu === 'licenses') {
       baseData = licenses.filter(item => {
@@ -2783,6 +2808,7 @@ function App() {
   }, [
     activeMenu, assets, accessories, employees, deletedEmployees, licenses, officeSupplies,
     assetFilterType, assetFilterStatus, assetFilterDepartment,
+    furnFilterType, furnFilterStatus, furnFilterDepartment,
     accFilterType, showDeletedEmployees, officeSupplyStockFilter, licenseExpFilter,
     debouncedSearch,
   ]);
@@ -2793,7 +2819,7 @@ function App() {
   // reset page เมื่อ menu / filter / search เปลี่ยน
   useEffect(() => {
     setTablePage(1);
-  }, [activeMenu, debouncedSearch, assetFilterType, assetFilterStatus, assetFilterDepartment, accFilterType, showDeletedEmployees, officeSupplyStockFilter, licenseExpFilter]);
+  }, [activeMenu, debouncedSearch, assetFilterType, assetFilterStatus, assetFilterDepartment, furnFilterType, furnFilterStatus, furnFilterDepartment, accFilterType, showDeletedEmployees, officeSupplyStockFilter, licenseExpFilter]);
   const tableTotalPages = Math.max(1, Math.ceil(currentData.length / TABLE_ITEMS_PER_PAGE));
   // ป้องกัน page เกิน
   useEffect(() => {
@@ -3563,14 +3589,14 @@ function App() {
               canEdit={canEdit}
               searchTerm={searchTerm}
               onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
-              filterType={assetFilterType}
-              onFilterTypeChange={(v) => { setAssetFilterType(v); setTablePage(1); }}
-              typeOptions={activeMenu === 'furniture' ? [] : ASSET_TYPE_OPTIONS}
-              filterStatus={assetFilterStatus}
-              onFilterStatusChange={(v) => { setAssetFilterStatus(v); setTablePage(1); }}
-              statusOptions={activeMenu === 'furniture' ? [] : ASSET_STATUS_OPTIONS}
-              filterDepartment={assetFilterDepartment}
-              onFilterDepartmentChange={(v) => { setAssetFilterDepartment(v); setTablePage(1); }}
+              filterType={listFilterType}
+              onFilterTypeChange={(v) => { (isFurn ? setFurnFilterType : setAssetFilterType)(v); setTablePage(1); }}
+              typeOptions={isFurn ? furnitureTypeOptions : ASSET_TYPE_OPTIONS}
+              filterStatus={listFilterStatus}
+              onFilterStatusChange={(v) => { (isFurn ? setFurnFilterStatus : setAssetFilterStatus)(v); setTablePage(1); }}
+              statusOptions={ASSET_STATUS_OPTIONS}
+              filterDepartment={listFilterDept}
+              onFilterDepartmentChange={(v) => { (isFurn ? setFurnFilterDepartment : setAssetFilterDepartment)(v); setTablePage(1); }}
               departmentOptions={fieldOptions.forDepartments || []}
               page={tablePage}
               pageSize={TABLE_ITEMS_PER_PAGE}

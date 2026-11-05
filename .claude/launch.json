@@ -8,6 +8,12 @@
       "port": 5180
     },
     {
+      "name": "IT Asset Management (emulator)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "it_asset_menagement", "run", "dev:emu", "--", "--port", "5182", "--strictPort"],
+      "port": 5182
+    },
+    {
       "name": "Dx Project (mock)",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "set VITE_DATA_SOURCE=local&& npm --prefix C:/Users/IT/Desktop/Dx_project/frontend run dev -- --port 5181 --strictPort"],

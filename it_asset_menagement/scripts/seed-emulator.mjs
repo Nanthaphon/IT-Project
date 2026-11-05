@@ -181,11 +181,21 @@ const accessoryReq = Array.from({ length: 4 }, (_, i) => ({
   createdAt: d(2026, i + 5, 8),
 }));
 
+/* ครุภัณฑ์สำนักงาน = assets ที่ assetGroup 'office' (เมนูครุภัณฑ์) — ประเภท/สถานะ/แผนกหลากหลายไว้ตรวจตัวกรอง */
+const FURN = [['โต๊ะทำงาน L-Shape', 'อุปกรณ์สำนักงาน'], ['เก้าอี้สำนักงาน', 'อุปกรณ์สำนักงาน'], ['ตู้เก็บเอกสาร', 'เฟอร์นิเจอร์'], ['ลิ้นชัก 3 ชั้น', 'เฟอร์นิเจอร์']];
+const furniture = Array.from({ length: 10 }, (_, i) => ({
+  id: `furn${i + 1}`, assetGroup: 'office',
+  assetTag: `FN-${200 + i}`, name: `${pick(FURN, i)[0]} #${i + 1}`, type: pick(FURN, i)[1],
+  status: ['พร้อมใช้งาน', 'ถูกใช้งาน', 'ชำรุดเสียหาย'][i % 3],
+  company: pick(COMPANIES, i), forDepartment: pick(DEPTS, i), department: pick(DEPTS, i),
+  assignedTo: '', assignedName: '', cost: 2400 + i * 300, documents: [],
+}));
+
 /* ── เขียนลง emulator ─────────────────────────────────────── */
 const COLLECTIONS = {
   employees,
   employee_secrets: employeeSecrets,
-  assets,
+  assets: [...assets, ...furniture],
   licenses,
   accessories,
   office_supplies: officeSupplies,

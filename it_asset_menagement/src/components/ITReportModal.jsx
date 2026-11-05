@@ -5,6 +5,7 @@ import { BRAND } from '../ui/theme.js';
 import DateField from './DateField.jsx';
 import ITReportPreview from './ITReportPreview.jsx';
 import { firestoreDraftStore } from '../utils/reportDraftStore.js';
+import { BASE_KEY, applyNotes, legacyNotes, monthKey, setNote, stripNotes } from '../utils/reportNotes.js';
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -300,9 +301,12 @@ function GrowCell({ value, onChange, placeholder, className }) {
    ข้อมูลชุดนี้หน้าตาเป็นตารางอยู่แล้ว (ลงสไลด์ก็เป็นตาราง)
    จึงทำเป็นตารางจริง 1 แถว = 1 รายการ สูงราว 44px
    จอแคบ (< md) ถอยไปใช้การ์ดเหมือนเดิม เพราะตาราง 7 คอลัมน์ไม่พอที่ */
-function DataRowsEditor({ rows, onChange, columns, makeEmpty, addLabel, itemLabel }) {
+function DataRowsEditor({ rows, onChange, onNoteEdit, columns, makeEmpty, addLabel, itemLabel }) {
   const num = (v) => (v === '' || isNaN(Number(v)) ? 0 : Number(v));
-  const update = (i, k, v) => onChange(rows.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
+  const update = (i, k, v) => {
+    if (k === 'note' && onNoteEdit?.(rows[i], v)) return;   // หมายเหตุเก็บแยกรายเดือน (utils/reportNotes.js)
+    onChange(rows.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
+  };
   const remove = (i) => onChange(rows.filter((_, idx) => idx !== i));
   const add = () => onChange([...rows, makeEmpty()]);
 
@@ -521,11 +525,16 @@ export default function ITReportPage({
   const [hwEdit, setHwEdit]       = useState(null);
   const [swEdit, setSwEdit]       = useState(null);
   const [expEdit, setExpEdit]     = useState(null);   // 🆕 ซอฟต์แวร์ใกล้หมดอายุ
+  // หมายเหตุฮาร์ดแวร์/ซอฟต์แวร์ — แยกรายเดือน ไม่ผูกกับตาราง จึงไม่หายตอนกด "ดึงจากระบบ"
+  const [notes, setNotes]         = useState({ hw: {}, sw: {} });
 
   const stats = statsEdit ?? autoStats;
   const hw    = hwEdit ?? autoHw;
   const sw    = swEdit ?? autoSw;
   const exp   = expEdit ?? autoExp;
+  const mk     = monthKey(year, month);
+  const hwView = useMemo(() => applyNotes(hw, notes.hw, mk, 'type'), [hw, notes.hw, mk]);
+  const swView = useMemo(() => applyNotes(sw, notes.sw, mk, 'name'), [sw, notes.sw, mk]);
 
   /* โหลดร่างชุดร่วม "ครั้งเดียว" ตอนเปิดหน้า — ไม่โหลดใหม่ตอนเปลี่ยนเดือน
      loaded กัน autosave เขียนทับด้วยค่าว่างระหว่างรอโหลด
@@ -542,6 +551,7 @@ export default function ITReportPage({
     companyName: d.companyName ?? DEFAULT_COMPANY,
     bigIssues: d.bigIssues ?? [], rdProjects: d.rdProjects ?? [], followUps: d.followUps ?? [],
     stats: d.stats ?? null, hw: d.hw ?? null, sw: d.sw ?? null, exp: d.exp ?? null,
+    notes: d.notes ?? null,
   });
 
   useEffect(() => {
@@ -549,6 +559,9 @@ export default function ITReportPage({
     draftStore.load().then(({ draft, pushLocal, error }) => {
       if (!alive) return;
       const d = shape(draft || {});
+      // ร่างรุ่นก่อน: หมายเหตุที่กรอกไว้ในตาราง → ค่าตั้งต้นของทุกเดือน
+      if (!d.notes) d.notes = { hw: { [BASE_KEY]: legacyNotes(d.hw, 'type') }, sw: { [BASE_KEY]: legacyNotes(d.sw, 'name') } };
+      setNotes(d.notes);
       setCompanyName(d.companyName);
       setBigIssues(d.bigIssues); setRdProjects(d.rdProjects); setFollowUps(d.followUps);
       setStatsEdit(d.stats); setHwEdit(d.hw); setSwEdit(d.sw); setExpEdit(d.exp);
@@ -569,7 +582,7 @@ export default function ITReportPage({
   // ร่างที่จะเขียน — ไม่เก็บ month/year (เปิดที่เดือนปัจจุบันเสมอ) จึงใช้ร่วมได้ทุกเดือน
   const buildDraft = () => shape({
     companyName, bigIssues, rdProjects, followUps,
-    stats: statsEdit, hw: hwEdit, sw: swEdit, exp: expEdit,
+    stats: statsEdit, hw: hwEdit, sw: swEdit, exp: expEdit, notes,
   });
 
   const pushRemote = (draft) => {
@@ -594,7 +607,7 @@ export default function ITReportPage({
     setSync('saving');
     clearTimeout(timer.current);
     timer.current = setTimeout(() => pushRemote(draft), 1200);
-  }, [loaded, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit, expEdit]); // eslint-disable-line
+  }, [loaded, companyName, bigIssues, rdProjects, followUps, statsEdit, hwEdit, swEdit, expEdit, notes]); // eslint-disable-line
 
   // ออกจากหน้าระหว่างรอ → เขียนที่ค้างให้เลย (ในเครื่องมี _savedAt ใหม่กว่าเป็นสำรองอยู่แล้ว)
   useEffect(() => () => {
@@ -605,8 +618,15 @@ export default function ITReportPage({
   const reportDate = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
   const editStat = (k, v) => { setStatsEdit({ ...stats, [k]: v }); setSaved(false); };
-  const editHw   = (rows) => { setHwEdit(rows); setSaved(false); };
-  const editSw   = (rows) => { setSwEdit(rows); setSaved(false); };
+  const editHw   = (rows) => { setHwEdit(stripNotes(rows, hw, 'type')); setSaved(false); };
+  const editSw   = (rows) => { setSwEdit(stripNotes(rows, sw, 'name')); setSaved(false); };
+  /* แก้หมายเหตุ → เก็บที่เดือนที่เลือกอยู่ · แถวที่ยังไม่มีชื่อ ให้ตารางเก็บไปตามเดิม (false) */
+  const editNote = (kind, keyField) => (row, text) => {
+    if (!row?.[keyField]) return false;
+    setNotes((n) => ({ ...n, [kind]: setNote(n[kind], mk, row[keyField], text) }));
+    setSaved(false);
+    return true;
+  };
   const editExp  = (rows) => { setExpEdit(rows); setSaved(false); };
 
   // ข้อมูลที่ส่งให้ preview + generator (แหล่งเดียว)
@@ -616,7 +636,7 @@ export default function ITReportPage({
 
   const previewData = {
     company: companyName, month, year, reportDate,
-    stats, hwSummary: hw, swSummary: sw, expSummary: exp, bigIssues, rdProjects, followUps,
+    stats, hwSummary: hwView, swSummary: swView, expSummary: exp, bigIssues, rdProjects, followUps,
     repair,
   };
 
@@ -627,7 +647,7 @@ export default function ITReportPage({
         month, year, companyName,
         employees, repairRequests, assets, accessories, licenses,
         bigIssues, rdProjects, followUps,
-        supportStats: stats, hardwareSummary: hw, softwareSummary: sw, expirySummary: exp,
+        supportStats: stats, hardwareSummary: hwView, softwareSummary: swView, expirySummary: exp,
       });
       setShowPreview(false);
     } catch (err) {
@@ -649,7 +669,9 @@ export default function ITReportPage({
   };
 
   const clearDraft = () => {
-    if (!window.confirm('ล้างข้อมูลที่กรอกทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง) ใช่หรือไม่?')) return;
+    if (!window.confirm('ล้างข้อมูลที่กรอกทั้งหมด (Issue / Project / Follow-up / ตัวเลขที่แก้เอง / หมายเหตุของเดือนนี้) ใช่หรือไม่?')) return;
+    const dropMonth = (m) => { const { [mk]: _drop, ...rest } = m || {}; return rest; };
+    setNotes((n) => ({ hw: dropMonth(n.hw), sw: dropMonth(n.sw) }));
     setBigIssues([]); setRdProjects([]); setFollowUps([]);
     setStatsEdit(null); setHwEdit(null); setSwEdit(null); setExpEdit(null);
   };
@@ -732,10 +754,10 @@ export default function ITReportPage({
         </div>
 
         {/* ตารางฮาร์ดแวร์ / ซอฟต์แวร์ — เต็มความกว้าง ตารางจึงไม่ถูกบีบ */}
-        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc="สไลด์ 5"
+        <PanelCard icon={Monitor} tint="#EAF5F2" color="#2C5D53" title="ฮาร์ดแวร์" desc={`สไลด์ 5 · หมายเหตุเก็บแยกของเดือน${TH_MONTHS[month]}`}
           right={<RefreshBtn onClick={() => { setHwEdit(null); setSaved(false); }} />}>
           <DataRowsEditor
-            rows={hw} onChange={editHw} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
+            rows={hwView} onChange={editHw} onNoteEdit={editNote('hw', 'type')} itemLabel="อุปกรณ์" addLabel="เพิ่มประเภทอุปกรณ์"
             makeEmpty={() => ({ type: '', total: 0, inUse: 0, avail: 0, broken: 0, note: '–' })}
             columns={[
               { key: 'type', label: 'ประเภทอุปกรณ์', span: 'full', ph: 'เช่น โน้ตบุ๊ค' },
@@ -748,10 +770,10 @@ export default function ITReportPage({
           />
         </PanelCard>
 
-        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc="สไลด์ 6"
+        <PanelCard icon={Package} tint="#DFEAEF" color="#225462" title="ซอฟต์แวร์ / ลิขสิทธิ์" desc={`สไลด์ 6 · หมายเหตุเก็บแยกของเดือน${TH_MONTHS[month]}`}
           right={<RefreshBtn onClick={() => { setSwEdit(null); setSaved(false); }} />}>
           <DataRowsEditor
-            rows={sw} onChange={editSw} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
+            rows={swView} onChange={editSw} onNoteEdit={editNote('sw', 'name')} itemLabel="ซอฟต์แวร์" addLabel="เพิ่มซอฟต์แวร์"
             makeEmpty={() => ({ name: '', stock: 0, active: 0, inactive: 0, note: '–' })}
             columns={[
               { key: 'name', label: 'ซอฟต์แวร์', span: 'full', ph: 'เช่น Microsoft 365' },
@@ -797,7 +819,7 @@ export default function ITReportPage({
         </div>
 
         <div className="flex items-center justify-between gap-3 px-1">
-          <p className="text-xs text-stone-400">ข้อมูลที่กรอกบันทึกในระบบอัตโนมัติ ใช้ร่วมทุกเดือนและทุกเครื่อง — เดือนหน้าปรับเฉพาะปัญหา/โปรเจค</p>
+          <p className="text-xs text-stone-400">ข้อมูลที่กรอกบันทึกในระบบอัตโนมัติ ใช้ร่วมทุกเดือนและทุกเครื่อง ยกเว้นหมายเหตุฮาร์ดแวร์/ซอฟต์แวร์ที่เก็บแยกรายเดือน</p>
           <button onClick={clearDraft} className="text-xs font-medium text-stone-500 hover:text-rose-600 transition-colors shrink-0">
             ล้างข้อมูลที่กรอก
           </button>

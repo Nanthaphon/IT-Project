@@ -255,6 +255,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - **ร่าง IT Monthly Report เก็บที่ Firestore `it_report/shared`** (admin เท่านั้น — rules แยกจาก settings/ ที่อ่านได้สาธารณะ)
   localStorage เป็นแค่สำรอง/ย้ายครั้งแรก · กติกาเลือกร่างอยู่ที่ `utils/reportDraftPick.js` (มีเทสต์) — **ร่างว่างของเครื่องใหม่ห้ามเขียนทับของจริง**
   autosave เขียนเฉพาะเมื่อแก้จริง (เทียบกับ lastJson) และหน่วง 1.2 วิ ไม่เขียนทุกตัวอักษร
+  **หมายเหตุตารางฮาร์ดแวร์/ซอฟต์แวร์แยกรายเดือน** — `draft.notes.{hw,sw}['YYYY-MM'][ชื่อแถว]` (`utils/reportNotes.js` มีเทสต์)
+  ผูกกับชื่อแถว ไม่ใช่ตาราง → "ดึงจากระบบ" ไม่ลบ · เดือนที่ยังไม่แก้ยกยอดจากเดือนก่อน · `0000-00` = หมายเหตุที่ย้ายจากร่างรุ่นก่อน
 - **อนุมัติคำขออุปกรณ์เสริม = เลือกชิ้นในสต็อก** (`accessories/ApproveAccessoryModal.jsx`) ส่ง `pickedItems: [{index, sn}]`
   ตัดสต็อกด้วย `takeItems()` ใน `utils/accessoryItems.js` (ตรวจ SN ซ้ำ — ชิ้นถูกเบิกไประหว่างเปิดหน้าต่าง = หยุด ไม่ให้ของผิดชิ้น)
   ยืม = assignee.isBorrow + returnDate → หน้าพนักงานติดป้าย "ยืม · คืน …" (เลยกำหนด = แดง)

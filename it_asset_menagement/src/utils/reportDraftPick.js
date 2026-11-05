@@ -11,7 +11,8 @@
 export function hasContent(d) {
   if (!d) return false;
   return ['bigIssues', 'rdProjects', 'followUps'].some((k) => Array.isArray(d[k]) && d[k].length > 0)
-    || ['stats', 'hw', 'sw', 'exp'].some((k) => d[k] != null);
+    || ['stats', 'hw', 'sw', 'exp'].some((k) => d[k] != null)
+    || ['hw', 'sw'].some((k) => Object.values(d.notes?.[k] || {}).some((m) => Object.keys(m || {}).length > 0));
 }
 
 /** @returns {{ draft: object|null, source: 'remote'|'local'|'none', pushLocal: boolean }} */

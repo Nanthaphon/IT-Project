@@ -26,11 +26,19 @@ import { pickDraft } from './utils/reportDraftPick.js';
 
 /* ที่เก็บร่างจำลอง (แทน Firestore it_report/shared) — window.__remote ไว้ตรวจว่าเขียนขึ้นอะไร
    ?remote=filled เริ่มด้วยร่างในระบบ · ?local=old เริ่มด้วยร่างเก่าในเครื่อง (ทดสอบการย้ายครั้งแรก)
-   ?fail=1 จำลองเขียนขึ้นระบบไม่สำเร็จ */
+   ?fail=1 จำลองเขียนขึ้นระบบไม่สำเร็จ
+   ?remote=legacy ร่างรุ่นก่อน (หมายเหตุอยู่ในตารางฮาร์ดแวร์) → ต้องย้ายเป็นหมายเหตุตั้งต้น และกด "ดึงจากระบบ" แล้วไม่หาย */
 const q = new URLSearchParams(location.search);
 window.__remote = q.get('remote') === 'filled'
   ? { companyName: 'Globe Syndicate (Thailand) Company Limited', bigIssues: [{ issue: 'จากระบบ', raiseBy: 'All', status: '⏳ In Progress', due: '' }], rdProjects: [], followUps: [], stats: null, hw: null, sw: null, exp: null, _savedAt: 1000 }
-  : null;
+  : q.get('remote') === 'legacy'
+    ? { companyName: 'Globe Syndicate (Thailand) Company Limited', bigIssues: [], rdProjects: [], followUps: [], stats: null, sw: null, exp: null, _savedAt: 1000,
+        hw: [
+          { type: 'โน๊ตบุ๊ค', total: 3, inUse: 1, avail: 1, broken: 0, note: 'สำรอง 1' },
+          { type: 'หน้าจอ', total: 9, inUse: 1, avail: 1, broken: 0, note: 'จอมอนิเตอร์สำหรับพนักงาน' },
+          { type: 'ปริ้นเตอร์', total: 9, inUse: 0, avail: 1, broken: 0, note: 'ปริ้นท์เตอร์ 4 ตัว Epson 3 , HP 1' },
+        ] }
+    : null;
 window.__remoteWrites = 0;
 if (q.get('local') === 'old') localStorage.setItem('it_report_shared', JSON.stringify({ bigIssues: [{ issue: 'จากเครื่องนี้ (ร่างเก่า)', raiseBy: 'All', status: '⏳ In Progress', due: '' }] }));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -55,8 +63,13 @@ const LICENSES = [
   { id: 'l6', name: 'Microsoft Office 2021 Professional Plus (Globe)', quantity: 34, assignees: Array(28).fill({}) },
 ];
 
+const ASSETS = [
+  { type: 'โน๊ตบุ๊ค', status: 'ถูกใช้งาน' }, { type: 'โน๊ตบุ๊ค', status: 'สำรอง' }, { type: 'โน๊ตบุ๊ค' },
+  { type: 'หน้าจอ', status: 'ถูกใช้งาน' }, { type: 'หน้าจอ' }, { type: 'ปริ้นเตอร์' },
+];
+
 createRoot(document.getElementById('root')).render(
   <div className="min-h-screen bg-sand-50">
-    <ITReportPage licenses={LICENSES} draftStore={fakeStore} />
+    <ITReportPage licenses={LICENSES} assets={ASSETS} draftStore={fakeStore} />
   </div>,
 );

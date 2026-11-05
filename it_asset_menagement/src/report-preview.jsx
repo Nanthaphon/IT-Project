@@ -61,6 +61,8 @@ const LICENSES = [
     assignees: [{ seatExpirationDate: d(6) }, {}] },
   { id: 'l5', name: 'Claude', quantity: 2, expirationDate: d(200), assignees: [] },
   { id: 'l6', name: 'Microsoft Office 2021 Professional Plus (Globe)', quantity: 34, assignees: Array(28).fill({}) },
+  // ต่ออายุแล้ว แต่อาร์เรย์สิทธิ์ว่างมีวันปีก่อนค้าง (ข้อมูลรุ่นเก่า) → ต้องไม่ขึ้นในสไลด์ใกล้หมดอายุ
+  { id: 'l7', name: '3Ds Max 2026 (ต่ออายุแล้ว)', quantity: 1, expirationDate: d(280), availableSeatExpirationDates: [d(-84)], assignees: [{}] },
 ];
 
 const ASSETS = [

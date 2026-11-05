@@ -1,5 +1,6 @@
 import PptxGenJS from 'pptxgenjs';
 import { formatDateShort } from './formatDate.js';
+import { EXPIRY_WINDOW_DAYS, expiryStatus, getExpirySummary } from './licenseExpiry.js';
 
 /* ═══════════════════════════════════
    PALETTE
@@ -733,60 +734,8 @@ function slide5(pptx, ctx, startPageNum) {
 /* ═══════════════════════════════════
    SLIDE 5b – ซอฟต์แวร์ใกล้หมดอายุ (ต่อจากสรุปซอฟต์แวร์)
 ═══════════════════════════════════ */
-export const EXPIRY_WINDOW_DAYS = 90;
-
-const ymd = (d) => {
-  const x = new Date(d);
-  if (isNaN(x)) return '';
-  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
-};
-
-/* สถานะจากวันหมดอายุ (คิดสดทุกครั้ง — ผู้ใช้แก้วันที่ได้ สถานะต้องตาม)
-   @returns { days, label, tone: 'expired' | 'soon' | 'later' | 'none' } */
-export function expiryStatus(expiry, asOf = new Date()) {
-  if (!expiry) return { days: null, label: 'ไม่ระบุวันที่', tone: 'none' };
-  const d = new Date(expiry); d.setHours(0, 0, 0, 0);
-  if (isNaN(d)) return { days: null, label: 'วันที่ไม่ถูกต้อง', tone: 'none' };
-  const t = new Date(asOf); t.setHours(0, 0, 0, 0);
-  const days = Math.round((d - t) / 86400000);
-  if (days < 0)   return { days, label: `หมดอายุแล้ว ${-days} วัน`, tone: 'expired' };
-  if (days === 0) return { days, label: 'หมดอายุวันนี้', tone: 'expired' };
-  return { days, label: `อีก ${days} วัน`, tone: days <= 30 ? 'soon' : 'later' };
-}
-
-/* 🆕 ซอฟต์แวร์ที่ต้องต่ออายุ/ตัดสินใจเร็ว ๆ นี้ (ใช้ร่วม PPTX + Preview + หน้ากรอก)
-   ต่อ License หยิบวันหมดอายุ "ที่ต้องสนใจที่สุด" 1 วัน จากวันหลัก + วันของแต่ละ seat
-   - หมดในอีก ≤ 90 วัน → แสดง
-   - หมดไปแล้ว แต่ยังมีคนใช้สิทธิ์อยู่ → แสดง (ด่วน)
-   - หมดไปแล้วและไม่มีคนใช้ → ถือว่าเลิกใช้ ไม่แสดง (ไม่งั้นเต็มไปด้วยของที่ยุติไปแล้ว)
-   seats = จำนวนสิทธิ์ที่หมดในวันนั้น (วันหลักของ License = ทั้งก้อน)
-   @returns [{ name, expiry: 'YYYY-MM-DD', seats, note }] เรียงวันใกล้สุดก่อน */
-export function getExpirySummary(licenses = [], asOf = new Date(), windowDays = EXPIRY_WINDOW_DAYS) {
-  const out = [];
-  (licenses || []).forEach((lic) => {
-    const active = (lic.assignees || []).length;
-    const seatDates = [
-      ...(lic.availableSeatExpirationDates || []),
-      ...(lic.assignees || []).map((a) => a.seatExpirationDate),
-    ].map(ymd).filter(Boolean);
-    const mainDate = ymd(lic.expirationDate);
-    const candidates = [...new Set([mainDate, ...seatDates].filter(Boolean))].sort();
-
-    const pick = candidates.find((d) => {
-      const { days } = expiryStatus(d, asOf);
-      if (days == null) return false;
-      if (days < 0) return active > 0;
-      return days <= windowDays;
-    });
-    if (!pick) return;
-
-    const seats = pick === mainDate
-      ? Number(lic.quantity || 0) || seatDates.length || 1
-      : seatDates.filter((d) => d === pick).length;
-    out.push({ name: lic.name || '–', expiry: pick, seats, note: '' });
-  });
-  return out.sort((a, b) => a.expiry.localeCompare(b.expiry));
-}
+/* วันหมดอายุ / สถานะ / รายการใกล้หมด — อยู่ที่ utils/licenseExpiry.js (ไม่ import pptx จึงเทสต์ได้) */
+export { EXPIRY_WINDOW_DAYS, expiryStatus, getExpirySummary };
 
 function slideExpiry(pptx, ctx, startPageNum) {
   const { licenses, expirySummary } = ctx;

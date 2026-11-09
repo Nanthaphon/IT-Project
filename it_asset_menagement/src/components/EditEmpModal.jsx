@@ -5,6 +5,7 @@ import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import MultiOptionField from './MultiOptionField.jsx';
 import DateField from './DateField.jsx';
+import { NAME_PREFIXES } from '../utils/employeeTemplate.js';
 
 export default function EditEmpModal({
   editEmpModal,
@@ -44,6 +45,9 @@ export default function EditEmpModal({
               <Field label="รหัสพนักงาน" required>
                 <input type="text" name="empId" value={data.empId || ''} onChange={handleEditEmpChange} required className={cls.input} />
               </Field>
+              <Field label="คำนำหน้า">
+                <FieldOptionSelect name="namePrefix" value={data.namePrefix || ''} onChange={handleEditEmpChange} options={NAME_PREFIXES} placeholder="เลือก..." />
+              </Field>
               <Field label="ชื่อจริง (TH)" required>
                 <input type="text" name="firstName" value={data.firstName || ''} onChange={handleEditEmpChange} required className={cls.input} placeholder="เช่น ณัฐพงศ์" />
               </Field>
@@ -64,6 +68,9 @@ export default function EditEmpModal({
               </Field>
               <Field label="วันที่เริ่มงาน">
                 <DateField value={data.startDate || ''} onChange={(v) => handleEditEmpChange({ target: { name: 'startDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
+              </Field>
+              <Field label="วันที่ออก" hint="ตั้งล่วงหน้าได้ · ถึงวันนั้นสถานะเป็น &quot;ออกแล้ว&quot; เอง">
+                <DateField value={data.resignDate || ''} onChange={(v) => handleEditEmpChange({ target: { name: 'resignDate', value: v } })} inputClassName={cls.input + ' pr-9'} />
               </Field>
             </div>
           </section>

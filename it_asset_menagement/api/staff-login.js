@@ -79,6 +79,13 @@ export default async function handler(req, res) {
 
     const empData = empDoc.data();
     const empIdFromDb = String(empData.empId || '').trim();
+
+    // ถึง "วันที่ออก" แล้ว (ตั้งล่วงหน้าได้) = ออกแล้ว เข้าระบบไม่ได้ — เหมือนคนที่ถูกลบ (src/utils/employeeStatus.js)
+    const resign = String(empData.resignDate || '').trim();
+    const todayTH = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);   // วันนี้ตามเวลาไทย
+    if (/^\d{4}-\d{2}-\d{2}$/.test(resign) && resign <= todayTH) {
+      return res.status(403).json({ error: 'พนักงานคนนี้ออกจากบริษัทแล้ว — ติดต่อฝ่าย IT' });
+    }
     let mustChangePassword = false;
 
     // ตรวจ password

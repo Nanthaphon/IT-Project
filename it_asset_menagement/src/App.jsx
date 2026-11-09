@@ -3,9 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { db, auth, VERCEL_API_BASE } from './firebase.js';
 
 /* ── URL routing: เมนู ↔ path (ให้แถบ URL บอกว่าอยู่หน้าไหน) ── */
-/* สถานะพนักงานในหน้ารายชื่อ (ตัวกรอง + CSV) — "ออกแล้ว" = อยู่ใน deleted_employees */
-const EMP_ACTIVE = 'ทำงานอยู่';
-const EMP_LEFT = 'ออกแล้ว';
+/* สถานะพนักงาน (ตัวกรอง + CSV) — "ออกแล้ว" = อยู่ใน deleted_employees หรือถึงวันที่ออกแล้ว (utils/employeeStatus.js) */
 const tsMillis = (t) => t?.toMillis?.() ?? (t?.seconds ? t.seconds * 1000 : (t || null));
 
 const MENU_PATH = {
@@ -35,12 +33,16 @@ function parseRoute(pathname) {
   return { menu, assetId, assetEdit, employeeId, licenseId, licenseEdit, accessoryId, accessoryEdit, furnitureId, furnitureEdit };
 }
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField, writeBatch } from 'firebase/firestore';
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
 import { COMPANIES } from './ui/theme.js';
-import { empKey, managerCodeOf, managerLookup } from './utils/managers.js';
-import { brandsText, brandCsvHeaders, brandCsvField, collectImportedBrands } from './utils/brands.js';
+import { managerCodeOf } from './utils/managers.js';
+import { brandsText } from './utils/brands.js';
+import { EMP_ACTIVE, EMP_LEFT, empStatus, resignDateOf, todayYmd, ymdOf } from './utils/employeeStatus.js';
+import { EMPLOYEE_IMPORT_MAP, planEmployeeImport } from './utils/employeeImport.js';
+import { EMPLOYEE_HEADERS } from './utils/employeeTemplate.js';
+import EmployeeImportConfirm from './components/employees/EmployeeImportConfirm.jsx';
 
 // ═══════════════════════════════════════════════════════════════
 // 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
@@ -204,7 +206,7 @@ function App() {
     firstName: '', lastName: '', firstNameEng: '', lastNameEng: '',
     fullName: '', fullNameEng: '', empId: '', department: '',
     company: '', position: '', nickname: '', manager: '', phone: '',
-    m365Email: '', m365Password: '', startDate: ''
+    m365Email: '', m365Password: '', startDate: '', namePrefix: '', resignDate: ''
   });
   const [licenseForm, setLicenseForm] = useState({
     name: '', productKey: '', keyCode: '', supplier: '', purchaseDate: '', expirationDate: '', cost: '', quantity: 1, note: ''
@@ -293,6 +295,7 @@ function App() {
   }, [routeLicenseEdit]);
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [empImportPlan, setEmpImportPlan] = useState(null);   // สรุปนำเข้าพนักงานที่รอผู้ใช้ยืนยัน (planEmployeeImport)
   const [isHistoryImportOpen, setIsHistoryImportOpen] = useState(false); // 🆕 นำเข้าประวัติถือครอง
   const [isSnipeITImportOpen, setIsSnipeITImportOpen] = useState(false);
   const [checkoutEmpId, setCheckoutEmpId] = useState('');
@@ -1285,7 +1288,7 @@ function App() {
         const [pub, m365Password] = splitM365Password(empForm);
         const ref = await addDoc(collection(db, 'employees'), { ...pub, fullName, fullNameEng, createdAt: serverTimestamp() });
         if (m365Password) await saveM365Password(ref.id, m365Password);
-        setEmpForm({ firstName: '', lastName: '', firstNameEng: '', lastNameEng: '', fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '', startDate: '' });
+        setEmpForm({ firstName: '', lastName: '', firstNameEng: '', lastNameEng: '', fullName: '', fullNameEng: '', empId: '', department: '', company: '', position: '', nickname: '', manager: '', phone: '', m365Email: '', m365Password: '', startDate: '', namePrefix: '', resignDate: '' });
         setIsAddModalOpen(false); setCustomAlert({ isOpen: true, title: 'บันทึกสำเร็จ!', message: 'เพิ่มข้อมูลพนักงานใหม่ลงระบบเรียบร้อยแล้ว', type: 'success' });
       } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังบันทึก...');
@@ -1448,19 +1451,23 @@ function App() {
     const picked = selectedEmployeeIds.length > 0
       ? currentData.filter(e => selectedEmployeeIds.includes(e.id))
       : currentData;
-    const rows = [[
-      'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
-      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'รหัสหัวหน้า', 'ชื่อหัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
-      'แบรนด์ที่ดูแล', 'สถานะ', 'วันที่ออก',
-    ]];
+    // คอลัมน์ = template นำเข้า (EMPLOYEE_HEADERS) — แก้ไฟล์ที่ส่งออกแล้วนำเข้ากลับได้ทันที · วันที่เป็น YYYY-MM-DD
+    const today = todayYmd();
+    const rows = [EMPLOYEE_HEADERS];
     picked.forEach(emp => {
+      const removed = !activeIds.has(emp.id);
       const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
       const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
+      const delMs = removed ? tsMillis(emp.deletedAt) : null;
+      // วันที่ออก: ที่ตั้งไว้ก่อน · ลบโดยไม่ได้ตั้ง = วันที่ลบ
+      const leftOn = resignDateOf(emp) || emp.resignDate || (delMs ? ymdOf(new Date(delMs)) : '');
       rows.push([
-        emp.company || '', th.first || '', th.last || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
-        emp.nickname || '', emp.empId || '', emp.department || '', managerCodeOf(emp, everyone), emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '',
+        emp.company || '', emp.empId || '', emp.namePrefix || '', th.first || '', th.last || '', emp.fullName || '', emp.nickname || '',
+        en.first || '', en.last || '', emp.fullNameEng || '', emp.position || '', emp.department || '', emp.m365Email || '', emp.phone || '',
+        emp.startDate || '', leftOn,
         brandsText(emp.brands),   // คอลัมน์เดียว คั่นจุลภาค เช่น "Hitachi, Sharp, Aux"
-        activeIds.has(emp.id) ? EMP_ACTIVE : EMP_LEFT, activeIds.has(emp.id) ? '' : formatDateShort(tsMillis(emp.deletedAt)),
+        empStatus(emp, { removed, today }),   // ถึงวันที่ออกแล้ว = ออกแล้ว อัตโนมัติ
+        managerCodeOf(emp, everyone), emp.manager || '',
       ]);
     });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -1682,6 +1689,47 @@ function App() {
     const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
   };
 
+  /* ยืนยันนำเข้าพนักงาน — withUpdates=false = เพิ่มเฉพาะคนใหม่ (ไม่แตะคนที่มีรหัสอยู่แล้ว)
+     อัปเดต = แก้เฉพาะช่องที่ต่าง (patch) ในเอกสารเดิม · คนที่ลบแล้วแก้ที่ deleted_employees (ยังเป็นออกแล้ว) */
+  const handleConfirmEmpImport = async (withUpdates) => {
+    const plan = empImportPlan;
+    if (!plan) return;
+    setEmpImportPlan(null);
+    const updates = withUpdates ? plan.updates : [];
+    await withLoading(async () => {
+      try {
+        const passwords = [];
+        const ops = [
+          ...plan.creates.map(c => (batch) => {
+            const ref = doc(collection(db, 'employees'));
+            batch.set(ref, { ...c.rec, createdAt: serverTimestamp() });
+            if (c.password) passwords.push([ref.id, c.password]);
+          }),
+          ...updates.filter(u => Object.keys(u.patch).length).map(u => (batch) => {
+            batch.update(doc(db, u.removed ? 'deleted_employees' : 'employees', u.id), { ...u.patch, updatedAt: serverTimestamp() });
+          }),
+        ];
+        updates.forEach(u => { if (u.password) passwords.push([u.id, u.password]); });
+        for (let i = 0; i < ops.length; i += 400) {   // batch ละไม่เกิน 500 ครั้ง
+          const batch = writeBatch(db);
+          ops.slice(i, i + 400).forEach(op => op(batch));
+          await batch.commit();
+        }
+        for (const [id, pw] of passwords) await saveM365Password(id, pw);   // รหัส M365 แยกเก็บที่ employee_secrets
+
+        const msg = [`เพิ่มใหม่ ${plan.creates.length} คน · อัปเดต ${updates.length} คน`];
+        if (!withUpdates && plan.updates.length) msg.push(`ไม่ได้อัปเดต ${plan.updates.length} คนที่มีรหัสอยู่แล้ว`);
+        if (plan.unknownManagers.length) {
+          msg.push(`\nไม่พบรหัสหัวหน้า ${plan.unknownManagers.length} แถว (ยังไม่มีหัวหน้า): ` +
+            plan.unknownManagers.slice(0, 5).map(u => `แถว ${u.row} (${u.code})`).join(', ') + (plan.unknownManagers.length > 5 ? ' ...' : ''));
+        }
+        setCustomAlert({ isOpen: true, title: 'นำเข้าเสร็จสิ้น', message: msg.join('\n'), type: 'success' });
+      } catch (err) {
+        setCustomAlert({ isOpen: true, title: 'นำเข้าไม่สำเร็จ', message: err.message, type: 'error' });
+      }
+    }, 'กำลังนำเข้า...');
+  };
+
   const handleImportEmployees = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1765,20 +1813,7 @@ function App() {
             'บริษัท': 'company',
             'ราคา': 'cost', 'วันที่ซื้อ': 'purchaseDate', 'ผู้จัดจำหน่าย': 'vendor', 'หมายเหตุ': 'note',
           },
-          employees: {
-            'รหัสพนักงาน': 'empId',
-            'ชื่อจริง': 'firstName', 'นามสกุล': 'lastName',
-            'ชื่อจริง (EN)': 'firstNameEng', 'นามสกุล (EN)': 'lastNameEng',
-            'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
-            'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
-            'ตำแหน่ง': 'position', 'เบอร์โทร': 'phone',
-            'รหัสหัวหน้า': 'managerCode',   // แปลงเป็นชื่อหัวหน้าตอนนำเข้า (ดูด้านล่าง)
-            'หัวหน้า': 'manager',           // ไฟล์รุ่นก่อน: ใส่ชื่อตรง ๆ
-            'M365 Email': 'm365Email', 'M365 Password': 'm365Password',
-            'วันที่เริ่มงาน': 'startDate', 'แบรนด์ที่ดูแล': 'brands', 'แบรนด์': 'brands',   // คอลัมน์เดียวคั่นจุลภาค (template / ส่งออก)
-            // ไฟล์ที่แยก "แบรนด์ 1..N" ก็ยังรับ → brand1..N แล้วรวมเป็น brands (collectImportedBrands)
-            ...Object.fromEntries(brandCsvHeaders(20).map((h, i) => [h, brandCsvField(i)])),
-          },
+          employees: EMPLOYEE_IMPORT_MAP,   // utils/employeeImport.js (มีเทสต์)
         };
 
         const colName = (activeMenu === 'assets' || activeMenu === 'furniture') ? 'assets'
@@ -1807,9 +1842,6 @@ function App() {
 
         // ── สร้าง index ของข้อมูลที่มีอยู่แล้ว เพื่อตรวจ duplicate ──
         // (ใช้ snapshot ปัจจุบันที่ subscribe ผ่าน useFirebaseData → ไม่ต้อง re-read Firestore)
-        const existingEmpIds = new Set(
-          (employees || []).map(e => String(e.empId || '').trim().toLowerCase()).filter(Boolean)
-        );
         const existingAssetTags = new Set(
           (assets || []).map(a => String(a.assetTag || '').trim().toLowerCase()).filter(Boolean)
         );
@@ -1828,20 +1860,18 @@ function App() {
         // ── เก็บ key ของรายการที่เพิ่งนำเข้าใน batch นี้ — ป้องกัน duplicate ภายในไฟล์เดียวกัน ──
         const seenInBatch = new Set();
 
-        /* รหัสหัวหน้า → ชื่อ: หาจากพนักงานในระบบ (รวมคนที่ออกแล้ว) และคนในไฟล์เดียวกัน
-           (นำเข้าหัวหน้าพร้อมลูกทีมได้ แม้หัวหน้าอยู่แถวหลัง) */
-        const managerNames = managerLookup([...employees, ...deletedEmployees]);
+        /* พนักงาน: วางแผนก่อน (รหัสตรง = อัปเดต · ไม่ตรง = เพิ่ม) แล้วให้ผู้ใช้ยืนยันในหน้าต่างสรุป — ยังไม่เขียนอะไร */
         if (colName === 'employees') {
-          for (let i = 1; i < lines.length; i++) {
-            const vals = parseRow(lines[i]);
-            const r = {};
-            headers.forEach((h, idx) => { const f = fieldMap[h]; if (f) r[f] = (vals[idx] || '').trim(); });
-            const th = resolveName(r.firstName, r.lastName, r.fullName);
-            const name = joinName(th.first, th.last) || r.fullName;
-            if (empKey(r.empId) && name && !managerNames.has(empKey(r.empId))) managerNames.set(empKey(r.empId), name);
-          }
+          const plan = planEmployeeImport({
+            headers,
+            rows: lines.slice(1).map((l, i) => ({ row: i + 2, vals: parseRow(l) })),
+            existing: employees, removed: deletedEmployees,
+          });
+          setIsImportModalOpen(false);
+          setEmpImportPlan(plan);
+          return;
         }
-        const unknownManagers = [];   // { row, code } — รหัสหัวหน้าที่หาไม่เจอ
+
 
         for (let i = 1; i < lines.length; i++) {
           const vals = parseRow(lines[i]);
@@ -1852,7 +1882,6 @@ function App() {
             const f = fieldMap[h];
             if (f) rec[f] = (vals[idx] || '').trim();
           });
-          if (colName === 'employees') collectImportedBrands(rec);
 
           // ── Validate required ──
           const hasName = (rec.name || rec.fullName || rec.firstName || '').trim();
@@ -1861,14 +1890,7 @@ function App() {
           // ── Duplicate check ──
           let dupKey = null;
           let dupReason = '';
-          if (colName === 'employees') {
-            const empId = (rec.empId || '').trim().toLowerCase();
-            if (empId) {
-              dupKey = `emp:${empId}`;
-              if (existingEmpIds.has(empId)) dupReason = `รหัสพนักงาน "${rec.empId}" มีอยู่ในระบบแล้ว`;
-              else if (seenInBatch.has(dupKey)) dupReason = `รหัสพนักงาน "${rec.empId}" ซ้ำในไฟล์`;
-            }
-          } else if (colName === 'assets') {
+          if (colName === 'assets') {
             const tag = (rec.assetTag || '').trim().toLowerCase();
             const sn  = (rec.sn       || '').trim().toLowerCase();
             if (tag && existingAssetTags.has(tag)) { dupKey = `tag:${tag}`; dupReason = `Asset Tag "${rec.assetTag}" มีอยู่แล้ว`; }
@@ -1936,30 +1958,11 @@ function App() {
             rec.unit           = rec.unit || 'ชิ้น';
             rec.status         = 'พร้อมใช้งาน';
           }
-          else if (colName === 'employees') {
-            // 🆕 แยกชื่อจริง/นามสกุล จาก fullName (space) — คง fullName ไว้ให้ส่วนอื่นใช้
-            const th = resolveName(rec.firstName, rec.lastName, rec.fullName);
-            const en = resolveName(rec.firstNameEng, rec.lastNameEng, rec.fullNameEng);
-            rec.firstName = th.first; rec.lastName = th.last;
-            rec.firstNameEng = en.first; rec.lastNameEng = en.last;
-            rec.fullName = joinName(th.first, th.last) || (rec.fullName || '');
-            rec.fullNameEng = joinName(en.first, en.last) || (rec.fullNameEng || '');
-            // รหัสหัวหน้า → ชื่อหัวหน้า (ระบบเก็บเป็นชื่อ) + managerEmpId · หาไม่เจอ = เว้นว่าง แล้วแจ้งท้ายการนำเข้า
-            if (rec.managerCode) {
-              const name = managerNames.get(empKey(rec.managerCode));
-              if (name) { rec.manager = name; rec.managerEmpId = rec.managerCode; }
-              else unknownManagers.push({ row: i + 1, code: rec.managerCode });
-            }
-            delete rec.managerCode;
-          }
 
           rec.createdAt = serverTimestamp();
           // 🆕 ถ้าไฟล์ระบุจำนวน > 1 → สร้างหลายชิ้น (แต่ละ doc = 1 ชิ้น)
-          // พนักงาน: คอลัมน์ M365 Password ไปลง employee_secrets ไม่ใช่ employees
-          const [pubRec, importedPassword] = colName === 'employees' ? splitM365Password(rec) : [rec];
           for (let c = 0; c < importCopies; c++) {
-            const ref = await addDoc(collection(db, colName), pubRec);
-            if (importedPassword) await saveM365Password(ref.id, importedPassword);
+            await addDoc(collection(db, colName), rec);
             count++;
           }
         }
@@ -1970,10 +1973,6 @@ function App() {
           const examples = skippedDuplicate.slice(0, 3).map(s => `แถวที่ ${s.row}: ${s.reason}`).join('\n');
           const more = skippedDuplicate.length > 3 ? `\n...และอีก ${skippedDuplicate.length - 3} แถว` : '';
           msgParts.push(`\n⚠️ ข้ามรายการซ้ำ ${skippedDuplicate.length} แถว:\n${examples}${more}`);
-        }
-        if (unknownManagers.length > 0) {
-          const ex = unknownManagers.slice(0, 5).map(u => `แถวที่ ${u.row}: ${u.code}`).join('\n');
-          msgParts.push(`\n⚠️ ไม่พบรหัสหัวหน้า ${unknownManagers.length} แถว (นำเข้าแล้ว แต่ยังไม่มีหัวหน้า):\n${ex}${unknownManagers.length > 5 ? '\n...' : ''}`);
         }
         if (skippedNoName.length > 0) {
           msgParts.push(`\nℹ️ ข้ามแถวที่ไม่มีชื่อ ${skippedNoName.length} แถว: ${skippedNoName.slice(0, 5).join(', ')}${skippedNoName.length > 5 ? '...' : ''}`);
@@ -2761,6 +2760,14 @@ function App() {
   // พนักงานที่ออกแล้ว = ไม่อยู่ใน employees (อยู่ใน deleted_employees)
   const activeEmpIds = useMemo(() => new Set(employees.map(e => e.id)), [employees]);
   const isLeftEmp = useCallback((emp) => !activeEmpIds.has(emp.id), [activeEmpIds]);
+  /* วันนี้ — เปลี่ยนเองตอนข้ามเที่ยงคืน (เปิดหน้าค้างไว้ คนที่ถึงวันที่ออกก็เปลี่ยนเป็น "ออกแล้ว") */
+  const [empToday, setEmpToday] = useState(todayYmd);
+  useEffect(() => {
+    const t = setInterval(() => setEmpToday(prev => (prev === todayYmd() ? prev : todayYmd())), 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
+  // สถานะที่แสดง: ลบแล้ว หรือถึงวันที่ออก = ออกแล้ว
+  const empStatusOf = useCallback((emp) => empStatus(emp, { removed: !activeEmpIds.has(emp.id), today: empToday }), [activeEmpIds, empToday]);
 
   const furnitureTypeOptions = useMemo(() => {
     const present = new Set(assets.filter(a => a.assetGroup === 'office' && a.type).map(a => a.type));
@@ -2810,7 +2817,7 @@ function App() {
       // ทำงานอยู่ก่อน แล้วต่อด้วยคนที่ออกแล้ว · id ซ้ำ (ระหว่างกู้คืน) ใช้ของ employees
       const activeIds = new Set(employees.map(e => e.id));
       baseData = [...employees, ...deletedEmployees.filter(e => !activeIds.has(e.id))].filter(e =>
-        inFilter(empFilterStatus, activeIds.has(e.id) ? EMP_ACTIVE : EMP_LEFT) &&
+        inFilter(empFilterStatus, empStatus(e, { removed: !activeIds.has(e.id), today: empToday })) &&
         inFilter(empFilterDept, e.department)
       );
     }
@@ -2886,7 +2893,7 @@ function App() {
     activeMenu, assets, accessories, employees, deletedEmployees, licenses, officeSupplies,
     assetFilterType, assetFilterStatus, assetFilterDepartment,
     furnFilterType, furnFilterStatus, furnFilterDepartment,
-    accFilterType, empFilterStatus, empFilterDept, officeSupplyStockFilter, licenseExpFilter,
+    accFilterType, empFilterStatus, empFilterDept, empToday, officeSupplyStockFilter, licenseExpFilter,
     debouncedSearch,
   ]);
 
@@ -3645,6 +3652,8 @@ function App() {
               onFilterDepartmentChange={(v) => { setEmpFilterDept(v); setTablePage(1); }}
               departmentOptions={fieldOptions.departments || []}
               isLeft={isLeftEmp}
+              statusOf={empStatusOf}
+              today={empToday}
               selectedIds={selectedEmployeeIds}
               onSelect={(id) => handleSelectEmployee({ target: { checked: !selectedEmployeeIds.includes(id) } }, id)}
               onSelectAll={(on) => handleSelectAllEmployees({ target: { checked: on } })}
@@ -3754,6 +3763,13 @@ function App() {
           />
         </Suspense>
       )}
+
+      {/* นำเข้าพนักงาน — สรุปเพิ่ม/อัปเดตให้ยืนยันก่อนเขียนจริงทุกครั้ง */}
+      <EmployeeImportConfirm
+        plan={empImportPlan}
+        onCancel={() => setEmpImportPlan(null)}
+        onConfirm={handleConfirmEmpImport}
+      />
 
       {/* 🆕 นำเข้าประวัติการถือครอง (CSV) */}
       <HistoryImportModal

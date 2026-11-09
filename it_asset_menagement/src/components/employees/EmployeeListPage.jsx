@@ -4,16 +4,18 @@ import { text } from '../../ui/earth.js';
 import { CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
 import { brandsText } from '../../utils/brands.js';
+import { EMP_LEFT, upcomingResignDate } from '../../utils/employeeStatus.js';
+import { formatDateShort } from '../../utils/formatDate.js';
 
 /* ════════════════════════════════════════════════════════════════
    หน้ารายการพนักงาน — ธีม v3 · config ของ ListPage
 
    5 คอลัมน์หลัก — ชื่อ (รหัส + ชื่อเล่นเป็นบรรทัดรอง) / ตำแหน่ง / แผนก / แบรนด์ที่ดูแล / บริษัท
-   คนที่ออกแล้ว (deleted_employees) อยู่ในรายการเดียวกัน — ป้าย "ออกแล้ว" ใต้ชื่อ
+   คนที่ออกแล้ว (ลบแล้ว หรือถึงวันที่ออก) อยู่ในรายการเดียวกัน — ป้าย "ออกแล้ว" · ตั้งวันที่ออกล่วงหน้า = ป้าย "จะออก …"
    กรองด้วยตัวกรองสถานะ (เดิมแยกเป็นปุ่มถังขยะ) · เมนูแถวของคนที่ออกแล้ว = กู้คืน / ลบถาวร
    ════════════════════════════════════════════════════════════════ */
 
-const buildColumns = (isLeft) => [
+const buildColumns = (statusOf, today) => [
   {
     key: 'name', label: 'ชื่อพนักงาน',
     render: e => (
@@ -22,7 +24,11 @@ const buildColumns = (isLeft) => [
           title={e.fullName}
           sub={[e.empId, e.nickname && `(${e.nickname})`].filter(Boolean).join(' · ')}
         />
-        {isLeft(e) && <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">ออกแล้ว</span>}
+        {statusOf(e) === EMP_LEFT
+          ? <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">ออกแล้ว</span>
+          : upcomingResignDate(e, today) && (
+            <span className="shrink-0 rounded-lg bg-ochre-50 px-2 py-0.5 text-xs font-medium text-ochre-700">จะออก {formatDateShort(upcomingResignDate(e, today))}</span>
+          )}
       </div>
     ),
   },
@@ -40,14 +46,16 @@ export default function EmployeeListPage({
   searchTerm, onSearchChange,
   filterStatus = [], onFilterStatusChange, statusOptions = [],
   filterDepartment = [], onFilterDepartmentChange, departmentOptions = [],
-  isLeft = () => false,
+  isLeft = () => false,          // อยู่ใน deleted_employees → เมนูแถว กู้คืน / ลบถาวร
+  statusOf = () => '',           // สถานะที่แสดง (ลบแล้ว หรือถึงวันที่ออก = ออกแล้ว)
+  today,
   page, pageSize, onPageChange,
   selectedIds = [], onSelect, onSelectAll, onClearSelection, onBulkDelete,
   onAdd, onExportCsv, onImport,
   onOpen, onEdit, onDelete, onRestore, onPermanentDelete,
   canEdit = false,
 }) {
-  const columns = React.useMemo(() => buildColumns(isLeft), [isLeft]);
+  const columns = React.useMemo(() => buildColumns(statusOf, today), [statusOf, today]);
   return (
     <ListPage
       title="พนักงาน"

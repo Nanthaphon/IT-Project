@@ -13,6 +13,7 @@ import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
 import Timeline from './timeline/Timeline.jsx';
 import EmployeeLinks from './employees/EmployeeLinks.jsx';
 import { brandsText } from '../utils/brands.js';
+import { isResignedByDate, resignDateOf, upcomingResignDate } from '../utils/employeeStatus.js';
 import { buildEmployeeTimeline, spanLabel, toMillis, thaiDate } from './timeline/buildTimeline.js';
 
 /* สีจุดของรายการในการ์ด "ความเคลื่อนไหวล่าสุด" — ตามชนิดเหตุการณ์ */
@@ -297,8 +298,10 @@ export default function EmployeeDetailsModal({
                   {tenure && (
                     <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" strokeWidth={2} />{tenure}</span>
                   )}
-                  {selectedEmployee.deletedAt && (
+                  {(selectedEmployee.deletedAt || isResignedByDate(selectedEmployee)) ? (
                     <span className="rounded-lg bg-rose-50 px-2 py-0.5 font-medium text-rose-700">ออกแล้ว</span>
+                  ) : upcomingResignDate(selectedEmployee) && (
+                    <span className="rounded-lg bg-ochre-50 px-2 py-0.5 font-medium text-ochre-700">จะออก {formatDateShort(upcomingResignDate(selectedEmployee))}</span>
                   )}
                 </p>
               </div>
@@ -512,6 +515,10 @@ export default function EmployeeDetailsModal({
                   <DetailRow label="หัวหน้างาน"    value={selectedEmployee.manager} />
                   <DetailRow label="เริ่มงาน"
                     value={selectedEmployee.startDate ? formatDateShort(selectedEmployee.startDate) : ''} />
+                  {selectedEmployee.resignDate && (
+                    <DetailRow label="วันที่ออก"
+                      value={resignDateOf(selectedEmployee) ? formatDateShort(resignDateOf(selectedEmployee)) : selectedEmployee.resignDate} />
+                  )}
                 </DetailCard>
 
                 {(selectedEmployee.m365Email || m365Password) && (

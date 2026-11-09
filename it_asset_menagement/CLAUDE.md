@@ -270,6 +270,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - **หัวหน้างาน** — ระบบเก็บ `employees.manager` = ชื่อหัวหน้า (+ `managerEmpId` เมื่อเลือกจากรายการ/นำเข้า) · ไฟล์นำเข้า/ส่งออกใช้ "รหัสหัวหน้า"
   นำเข้าแปลงรหัส → ชื่อ จากพนักงานในระบบ + คนในไฟล์เดียวกัน (หาไม่เจอ = เว้นว่าง แจ้งท้าย) · ส่งออกหารหัสด้วย `managerCodeOf` (`utils/managers.js`)
   template มี sheet "รายชื่อพนักงาน" ไว้หารหัส
+- **ช่องที่ดึงจากตัวเลือกฟิลด์ (บริษัท/แผนก/ตำแหน่ง/ผู้จำหน่าย/แบรนด์ ฯลฯ) สร้างค่าใหม่ในฟอร์มไม่ได้** — `FieldOptionSelect` default `allowCustom=false`
+  ต้องเพิ่มที่ ตั้งค่า → ตัวเลือกฟิลด์ ก่อน (ผู้ใช้สั่ง) · ค่าเดิมที่ไม่อยู่ในรายการยังแสดง/บันทึกต่อได้ · นำเข้า CSV/Excel ยังไม่ตรวจกับรายการ
 - **แบรนด์ที่ดูแล** — `employees.brands` = อาร์เรย์ (เลือกได้หลายค่า · `MultiOptionField`) ตัวเลือกที่ `fieldOptions.brands`
   CSV/Excel ใช้คอลัมน์เดียว "แบรนด์ที่ดูแล" คั่นจุลภาค (template + ส่งออก) · นำเข้ารับ "แบรนด์" / "แบรนด์ 1..N" ด้วย (`collectImportedBrands`) · อ่าน/แสดงผ่าน `toBrands` / `brandsText` (`utils/brands.js`)
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login

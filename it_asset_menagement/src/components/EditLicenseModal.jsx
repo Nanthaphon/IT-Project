@@ -86,7 +86,7 @@ export default function EditLicenseModal({
                   value={editLicenseModal.data.supplier || ''}
                   onChange={handleEditLicenseChange}
                   options={fieldOptions.vendors || []}
-                  placeholder="เลือกหรือพิมพ์ใหม่"
+                  placeholder="เลือก..."
                 />
               </Field>
             </div>

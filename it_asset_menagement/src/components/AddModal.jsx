@@ -312,7 +312,7 @@ export default function AddModal({
                       value={company}
                       onChange={setCompany}
                       options={fieldOptions.companies || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   <Field label="สำหรับแผนก">
@@ -320,7 +320,7 @@ export default function AddModal({
                       value={assetDepartment}
                       onChange={setAssetDepartment}
                       options={fieldOptions.forDepartments || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
@@ -328,7 +328,7 @@ export default function AddModal({
                       value={vendor}
                       onChange={setVendor}
                       options={fieldOptions.vendors || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   {menu === 'assets' && (
@@ -432,7 +432,7 @@ export default function AddModal({
                     value={vendor || ''}
                     onChange={setVendor}
                     options={fieldOptions.vendors || []}
-                    placeholder="เลือกหรือพิมพ์ใหม่"
+                    placeholder="เลือก..."
                   />
                 </Field>
               </section>

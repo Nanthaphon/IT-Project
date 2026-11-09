@@ -12,7 +12,8 @@ import { ChevronDown, Check, Search, Plus, X } from 'lucide-react';
  * - options:      array of string  ['DX', 'HR', ...]
  * - placeholder:  ข้อความเมื่อยังไม่เลือก
  * - name:         (optional) ใช้กับ event-style onChange
- * - allowCustom:  ให้พิมพ์ค่าใหม่ได้ (default: true) — false = ต้องเลือกจาก options เท่านั้น
+ * - allowCustom:  ให้พิมพ์ค่าใหม่ได้ (default: false) — ตัวเลือกต้องกำหนดที่ ตั้งค่า → ตัวเลือกฟิลด์ ก่อน
+ *                 (เดิม default true — ฟอร์มสร้างค่าเองได้ เช่น ตำแหน่ง "อ" ทำให้ตัวเลือกไม่เป็นชุดเดียวกัน)
  * - required:     attribute สำหรับ form validation
  * - disabled:     disable ทั้ง field
  * - icon:         (optional) lucide icon component แสดงด้านซ้าย
@@ -23,7 +24,7 @@ export default function FieldOptionSelect({
   options = [],
   placeholder = 'เลือก...',
   name,
-  allowCustom = true,
+  allowCustom = false,
   required = false,
   disabled = false,
   icon: Icon,
@@ -213,8 +214,9 @@ export default function FieldOptionSelect({
             className="max-h-56 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-stone-200 [&::-webkit-scrollbar-thumb]:rounded-full"
           >
             {filtered.length === 0 && !allowCustom && (
-              <div className="px-3 py-6 text-center text-[13px] text-stone-400">
-                ไม่พบรายการ
+              <div className="px-3 py-5 text-center text-[13px] text-stone-500">
+                {options.length === 0 ? 'ยังไม่มีตัวเลือก' : 'ไม่พบรายการ'}
+                <p className="mt-1 text-xs text-stone-400">เพิ่มได้ที่ ตั้งค่า → ตัวเลือกฟิลด์</p>
               </div>
             )}
 

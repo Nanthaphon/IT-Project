@@ -76,7 +76,7 @@ export default function EditEmpModal({
                 value={data.company || ''}
                 onChange={handleEditEmpChange}
                 options={fieldOptions.companies || []}
-                placeholder="เลือกหรือพิมพ์ใหม่"
+                placeholder="เลือก..."
               />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -222,7 +222,7 @@ export default function EditAssetModal({
                       value={editAssetModal.data.company || ''}
                       onChange={handleEditAssetChange}
                       options={fieldOptions.companies || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   <Field label="สำหรับแผนก">
@@ -231,7 +231,7 @@ export default function EditAssetModal({
                       value={editAssetModal.data.forDepartment || ''}
                       onChange={handleEditAssetChange}
                       options={fieldOptions.forDepartments || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   <Field label="ผู้จัดจำหน่าย (Vendor)">
@@ -240,7 +240,7 @@ export default function EditAssetModal({
                       value={editAssetModal.data.vendor || ''}
                       onChange={handleEditAssetChange}
                       options={fieldOptions.vendors || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   {isAssets && (
@@ -425,7 +425,7 @@ export default function EditAssetModal({
                       value={editAssetModal.data.vendor || ''}
                       onChange={handleEditAssetChange}
                       options={fieldOptions.vendors || []}
-                      placeholder="เลือกหรือพิมพ์ใหม่"
+                      placeholder="เลือก..."
                     />
                   </Field>
                   <Field label="วันที่ซื้อ">

@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import { toBrands } from '../utils/brands.js';
 
-/* เลือกได้หลายค่า (เช่น แบรนด์ที่ดูแล) — ค่าที่เลือกเป็นชิป กด × เอาออก · ช่องด้านล่างเลือก/พิมพ์เพิ่ม
+/* เลือกได้หลายค่า (เช่น แบรนด์ที่ดูแล) — ค่าที่เลือกเป็นชิป กด × เอาออก · ช่องด้านล่างเลือกเพิ่ม (เฉพาะค่าในตัวเลือกฟิลด์)
    onChange คืนอาร์เรย์ใหม่ทั้งชุด */
 export default function MultiOptionField({ value, onChange, options = [], placeholder = 'เลือกเพิ่ม...' }) {
   const list = toBrands(value);

@@ -298,14 +298,14 @@ export default function EmployeeDetailsModal({
                     <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" strokeWidth={2} />{tenure}</span>
                   )}
                   {selectedEmployee.deletedAt && (
-                    <span className="rounded-lg bg-rose-50 px-2 py-0.5 font-medium text-rose-700">ลบออกจากระบบแล้ว</span>
+                    <span className="rounded-lg bg-rose-50 px-2 py-0.5 font-medium text-rose-700">ออกแล้ว</span>
                   )}
                 </p>
               </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              {/* ลบ — ใช้ขั้นตอนเดียวกับหน้ารายการ (ย้ายไปถังขยะ + คืนของที่ถือเข้าคลัง) · คนที่ลบแล้วไม่มีปุ่มนี้ */}
+              {/* ลบ — ใช้ขั้นตอนเดียวกับหน้ารายการ (ย้ายเป็น "ออกแล้ว" + คืนของที่ถือเข้าคลัง) · คนที่ลบแล้วไม่มีปุ่มนี้ */}
               {!selectedEmployee.deletedAt && onDelete && (
                 <button onClick={() => onDelete(selectedEmployee, { heldCount: allHeld.length })}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-white px-3.5 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">

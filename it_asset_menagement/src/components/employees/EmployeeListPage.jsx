@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Download, Upload, Trash2, Undo2 } from 'lucide-react';
+import { Plus, Download, Upload } from 'lucide-react';
 import { text } from '../../ui/earth.js';
 import { CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
@@ -9,17 +9,21 @@ import { brandsText } from '../../utils/brands.js';
    หน้ารายการพนักงาน — ธีม v3 · config ของ ListPage
 
    5 คอลัมน์หลัก — ชื่อ (รหัส + ชื่อเล่นเป็นบรรทัดรอง) / ตำแหน่ง / แผนก / แบรนด์ที่ดูแล / บริษัท
-   โหมดถังขยะใช้หน้าเดียวกัน แค่สลับชุด action เป็น กู้คืน / ลบถาวร
+   คนที่ออกแล้ว (deleted_employees) อยู่ในรายการเดียวกัน — ป้าย "ออกแล้ว" ใต้ชื่อ
+   กรองด้วยตัวกรองสถานะ (เดิมแยกเป็นปุ่มถังขยะ) · เมนูแถวของคนที่ออกแล้ว = กู้คืน / ลบถาวร
    ════════════════════════════════════════════════════════════════ */
 
-const COLUMNS = [
+const buildColumns = (isLeft) => [
   {
     key: 'name', label: 'ชื่อพนักงาน',
     render: e => (
-      <CellTitle
-        title={e.fullName}
-        sub={[e.empId, e.nickname && `(${e.nickname})`].filter(Boolean).join(' · ')}
-      />
+      <div className="flex min-w-0 items-center gap-2">
+        <CellTitle
+          title={e.fullName}
+          sub={[e.empId, e.nickname && `(${e.nickname})`].filter(Boolean).join(' · ')}
+        />
+        {isLeft(e) && <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">ออกแล้ว</span>}
+      </div>
     ),
   },
   { key: 'position', label: 'ตำแหน่ง', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => <Clamp width={200}>{e.position || '—'}</Clamp> },
@@ -34,27 +38,29 @@ const COLUMNS = [
 export default function EmployeeListPage({
   rows, totalCount,
   searchTerm, onSearchChange,
+  filterStatus = [], onFilterStatusChange, statusOptions = [],
   filterDepartment = [], onFilterDepartmentChange, departmentOptions = [],
+  isLeft = () => false,
   page, pageSize, onPageChange,
   selectedIds = [], onSelect, onSelectAll, onClearSelection, onBulkDelete,
   onAdd, onExportCsv, onImport,
-  onOpen, onEdit, onDelete,
-  /* โหมดถังขยะ */
-  showDeleted = false, onToggleDeleted, onRestore, onPermanentDelete,
+  onOpen, onEdit, onDelete, onRestore, onPermanentDelete,
   canEdit = false,
 }) {
+  const columns = React.useMemo(() => buildColumns(isLeft), [isLeft]);
   return (
     <ListPage
-      title={showDeleted ? 'พนักงาน — ถังขยะ' : 'พนักงาน'}
+      title="พนักงาน"
       rows={rows}
       totalCount={totalCount}
       unit="คน"
-      emptyText={showDeleted ? 'ถังขยะว่าง' : 'ไม่พบพนักงานที่ตรงกับเงื่อนไข'}
-      columns={COLUMNS}
+      emptyText="ไม่พบพนักงานที่ตรงกับเงื่อนไข"
+      columns={columns}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       searchPlaceholder="ค้นหา ชื่อ / รหัสพนักงาน"
       filters={[
+        { key: 'status', label: 'สถานะ', selected: filterStatus, options: statusOptions, onChange: onFilterStatusChange },
         { key: 'dept', label: 'แผนก', selected: filterDepartment, options: departmentOptions, onChange: onFilterDepartmentChange },
       ]}
       page={page} pageSize={pageSize} onPageChange={onPageChange}
@@ -62,26 +68,19 @@ export default function EmployeeListPage({
       onSelect={onSelect}
       onSelectAll={onSelectAll}
       onClearSelection={onClearSelection}
-      bulkActions={canEdit && onBulkDelete && !showDeleted
-        ? [{ key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete }]
-        : []}
+      bulkActions={[
+        onExportCsv && { key: 'csv', label: 'ส่งออก CSV ที่เลือก', onSelect: onExportCsv },
+        canEdit && onBulkDelete && { key: 'del', label: 'ลบที่เลือก', tone: 'danger', onSelect: onBulkDelete },
+      ].filter(Boolean)}
       toolbar={[
-        onToggleDeleted && {
-          key: 'trash',
-          label: showDeleted ? 'กลับหน้ารายชื่อ' : 'ถังขยะ',
-          icon: showDeleted
-            ? <Undo2 className="size-5" strokeWidth={2} />
-            : <Trash2 className="size-5" strokeWidth={2} />,
-          onSelect: () => onToggleDeleted(!showDeleted),
-        },
-        !showDeleted && onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
-        !showDeleted && canEdit && onImport && { key: 'imp', label: 'นำเข้า', icon: <Upload className="size-5" strokeWidth={2} />, onSelect: onImport },
-        !showDeleted && canEdit && onAdd && { key: 'add', label: 'เพิ่มพนักงาน', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
+        onExportCsv && { key: 'csv', label: 'CSV', icon: <Download className="size-5" strokeWidth={2} />, onSelect: onExportCsv },
+        canEdit && onImport && { key: 'imp', label: 'นำเข้า', icon: <Upload className="size-5" strokeWidth={2} />, onSelect: onImport },
+        canEdit && onAdd && { key: 'add', label: 'เพิ่มพนักงาน', icon: <Plus className="size-5" strokeWidth={2} />, onSelect: onAdd, primary: true },
       ].filter(Boolean)}
       onOpen={onOpen}
       rowActions={(item) => {
         if (!canEdit) return [];
-        if (showDeleted) {
+        if (isLeft(item)) {
           return [
             { key: 'restore', label: 'กู้คืน', onSelect: () => onRestore?.(item) },
             { key: 'purge', label: 'ลบถาวร', tone: 'danger', onSelect: () => onPermanentDelete?.(item) },

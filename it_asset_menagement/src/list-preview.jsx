@@ -196,7 +196,7 @@ function Harness() {
           selectedIds={emp.ids} onSelect={emp.toggle} onSelectAll={emp.all} onClearSelection={emp.clear}
           onBulkDelete={() => console.log('ลบพนักงานที่เลือก', emp.ids.length)}
           onAdd={() => console.log('เพิ่ม')} onExportCsv={() => console.log('csv')} onImport={() => console.log('นำเข้า')}
-          showDeleted={false} onToggleDeleted={(on) => console.log('ถังขยะ', on)}
+          statusOptions={['ทำงานอยู่', 'ออกแล้ว']} isLeft={(e) => e.id === 'e3'}
           onOpen={log('เปิด')} onEdit={log('แก้ไข')} onDelete={log('ลบ')}
         />
       )}

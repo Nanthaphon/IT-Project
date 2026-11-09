@@ -262,6 +262,9 @@ api/                         Vercel Functions (staff auth, Teams notify)
   ยืม = assignee.isBorrow + returnDate → หน้าพนักงานติดป้าย "ยืม · คืน …" (เลยกำหนด = แดง)
   หน้าคำขอ: แถวยืมที่เลยกำหนดและยังไม่คืน = แดง + ชิป "เลยกำหนดคืน" — `utils/borrowStatus.js` ดูจาก assignees ของอุปกรณ์
   (คำขอไม่ถูกแก้ตอนรับคืน) · `givenItems[].checkoutId` จับตรงตัว คำขอรุ่นเก่าเทียบ ยืม + วันคืน + SN
+- **พนักงานที่ออกแล้ว** — ยังเก็บที่ `deleted_employees` (ลบ = ย้ายไปที่นั่น) แต่หน้ารายชื่อแสดงรวมกับคนที่ทำงานอยู่ (ไม่มีถังขยะแยกแล้ว)
+  ตัวกรอง "สถานะ" ทำงานอยู่/ออกแล้ว (`empFilterStatus`) · ระบุว่าออกแล้วจาก "ไม่อยู่ใน employees" (`isLeftEmp`) ไม่ใช่ `deletedAt` (serverTimestamp ยัง pending ได้)
+  CSV ส่งออก = ที่ติ๊กเลือก หรือทั้งหมดตามตัวกรอง/ค้นหา · มีคอลัมน์ สถานะ + วันที่ออก
 - **แบรนด์ที่ดูแล** — `employees.brands` = อาร์เรย์ (เลือกได้หลายค่า · `MultiOptionField`) ตัวเลือกที่ `fieldOptions.brands`
   CSV นำเข้าเป็นข้อความคั่นจุลภาค → อ่าน/แสดงผ่าน `toBrands` / `brandsText` (`utils/brands.js`) เสมอ
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login

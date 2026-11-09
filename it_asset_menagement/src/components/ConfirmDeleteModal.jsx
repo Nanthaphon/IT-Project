@@ -26,7 +26,7 @@ export default function ConfirmDeleteModal({ confirmDeleteModal, setConfirmDelet
               </p>
             )}
             {confirmDeleteModal.softDelete && (
-              <p className="text-[13px] text-stone-400">ย้ายไปถังขยะ กู้คืนได้ภายหลัง แต่ของที่ถือครองจะไม่กลับมาผูกเอง</p>
+              <p className="text-[13px] text-stone-400">ยังเห็นในหน้าพนักงาน (สถานะ "ออกแล้ว") กู้คืนได้ภายหลัง แต่ของที่ถือครองจะไม่กลับมาผูกเอง</p>
             )}
           </div>
         ) : (

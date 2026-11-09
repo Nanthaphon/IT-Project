@@ -3,6 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { db, auth, VERCEL_API_BASE } from './firebase.js';
 
 /* ── URL routing: เมนู ↔ path (ให้แถบ URL บอกว่าอยู่หน้าไหน) ── */
+/* สถานะพนักงานในหน้ารายชื่อ (ตัวกรอง + CSV) — "ออกแล้ว" = อยู่ใน deleted_employees */
+const EMP_ACTIVE = 'ทำงานอยู่';
+const EMP_LEFT = 'ออกแล้ว';
+const tsMillis = (t) => t?.toMillis?.() ?? (t?.seconds ? t.seconds * 1000 : (t || null));
+
 const MENU_PATH = {
   dashboard: '/', assets: '/assets', furniture: '/furniture', licenses: '/licenses', accessories: '/accessories',
   office_supplies: '/office-supplies', supply_requests: '/supply-requests',
@@ -444,7 +449,15 @@ function App() {
   const [officeSupplyStockFilter, setOfficeSupplyStockFilter] = useState('ทั้งหมด');
   // 🆕 Multi-select: array ของค่า ['หมดอายุแล้ว','30','60','90','ไม่ระบุ'] — persist
   const [licenseExpFilter, setLicenseExpFilter] = useState(() => loadLS('filter:licenseExp', []));
-  const [showDeletedEmployees, setShowDeletedEmployees] = useState(false);
+  // พนักงาน: คนที่ออกแล้ว (deleted_employees) แสดงรวมในหน้าเดียวกัน กรองด้วยสถานะ — แทนถังขยะเดิม
+  const [empFilterStatus, setEmpFilterStatus] = useState(() => loadLS('filter:empStatus', []));
+  const [empFilterDept, setEmpFilterDept]     = useState(() => loadLS('filter:empDept', []));
+  useEffect(() => {
+    try {
+      localStorage.setItem('filter:empStatus', JSON.stringify(empFilterStatus));
+      localStorage.setItem('filter:empDept',   JSON.stringify(empFilterDept));
+    } catch { /* localStorage ใช้ไม่ได้ */ }
+  }, [empFilterStatus, empFilterDept]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // 🆕 Sync filters + columns ลง localStorage ทุกครั้งที่เปลี่ยน
@@ -640,7 +653,6 @@ function App() {
     setRepairFilterYear('ทั้งหมด'); setRepairFilterMonth('ทั้งหมด'); setRepairFilterDay('ทั้งหมด');
     setSupplyFilterYear('ทั้งหมด'); setSupplyFilterMonth('ทั้งหมด'); setSupplyFilterDay('ทั้งหมด');
     setOfficeSupplyStockFilter('ทั้งหมด');
-    setShowDeletedEmployees(false);
     setSelectedEmployeeIds([]); setSelectedAccessoryIds([]); setSelectedOfficeSupplyIds([]); setSelectedLicenseIds([]);
     // 🆕 ไม่ reset multi-select filters (assetFilterType/Status/Department, accFilterType, licenseExpFilter)
     //    เพื่อให้ persistence ใน localStorage ทำงานได้ + เก็บค่าที่ user เลือกข้าม session
@@ -1409,11 +1421,11 @@ function App() {
     } catch (error) { setCustomAlert({ isOpen: true, title: 'ผิดพลาด', message: error.message, type: 'error' }); }
   };
 
-  // 🆕 ลบถาวรจากถังขยะ — หายไปเลย ไม่เก็บประวัติ
+  // ลบถาวร (คนที่ออกแล้ว) — หายไปเลย ไม่เก็บประวัติ
   const handlePermanentDeleteEmployee = (emp) => {
     showConfirm(
       'ลบถาวร',
-      `ลบ "${emp.fullName || emp.id}" ออกจากถังขยะถาวร?\n\nข้อมูลจะหายไปทั้งหมด ไม่สามารถกู้คืนได้`,
+      `ลบ "${emp.fullName || emp.id}" (ออกแล้ว) ออกจากระบบถาวร?\n\nข้อมูลจะหายไปทั้งหมด ไม่สามารถกู้คืนได้`,
       async () => {
         try {
           await deleteDoc(doc(db, 'deleted_employees', emp.id));
@@ -1427,17 +1439,24 @@ function App() {
     );
   };
 
+  /* ส่งออกตามที่เห็น: ติ๊กเลือกไว้ = เฉพาะที่เลือก · ไม่ได้เลือก = ทั้งหมดตามตัวกรอง/ค้นหา (รวมคนที่ออกแล้วถ้าตัวกรองรวมไว้) */
   const handleExportEmployees = () => {
+    const activeIds = new Set(employees.map(e => e.id));
+    const picked = selectedEmployeeIds.length > 0
+      ? currentData.filter(e => selectedEmployeeIds.includes(e.id))
+      : currentData;
     const rows = [[
       'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
       'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน', 'แบรนด์ที่ดูแล',
+      'สถานะ', 'วันที่ออก',
     ]];
-    employees.forEach(emp => {
+    picked.forEach(emp => {
       const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
       const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
       rows.push([
         emp.company || '', th.first || '', th.last || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
         emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '', brandsText(emp.brands),
+        activeIds.has(emp.id) ? EMP_ACTIVE : EMP_LEFT, activeIds.has(emp.id) ? '' : formatDateShort(tsMillis(emp.deletedAt)),
       ]);
     });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -2694,6 +2713,10 @@ function App() {
   // ⚡ Memoize filtered/searched/sorted data — re-compute เฉพาะตอน dep เปลี่ยน ⚡
   /* ประเภทของครุภัณฑ์ = ที่มีอยู่จริงในข้อมูล (ฟอร์มเลือกจากรายการเดียวกับทรัพย์สิน แต่ข้อมูลเก่ามีประเภทอื่นปน)
      เรียงตามลำดับรายการมาตรฐานก่อน ที่เหลือเรียงตามตัวอักษร */
+  // พนักงานที่ออกแล้ว = ไม่อยู่ใน employees (อยู่ใน deleted_employees)
+  const activeEmpIds = useMemo(() => new Set(employees.map(e => e.id)), [employees]);
+  const isLeftEmp = useCallback((emp) => !activeEmpIds.has(emp.id), [activeEmpIds]);
+
   const furnitureTypeOptions = useMemo(() => {
     const present = new Set(assets.filter(a => a.assetGroup === 'office' && a.type).map(a => a.type));
     const std = ASSET_TYPE_OPTIONS.filter(t => present.has(t));
@@ -2738,7 +2761,14 @@ function App() {
         });
       });
     }
-    else if (activeMenu === 'employees') baseData = showDeletedEmployees ? deletedEmployees : employees;
+    else if (activeMenu === 'employees') {
+      // ทำงานอยู่ก่อน แล้วต่อด้วยคนที่ออกแล้ว · id ซ้ำ (ระหว่างกู้คืน) ใช้ของ employees
+      const activeIds = new Set(employees.map(e => e.id));
+      baseData = [...employees, ...deletedEmployees.filter(e => !activeIds.has(e.id))].filter(e =>
+        inFilter(empFilterStatus, activeIds.has(e.id) ? EMP_ACTIVE : EMP_LEFT) &&
+        inFilter(empFilterDept, e.department)
+      );
+    }
     else if (activeMenu === 'accessories') baseData = accessories.filter(item => inFilter(accFilterType, item.type));
     else if (activeMenu === 'office_supplies') {
       baseData = officeSupplies.filter(item => {
@@ -2811,7 +2841,7 @@ function App() {
     activeMenu, assets, accessories, employees, deletedEmployees, licenses, officeSupplies,
     assetFilterType, assetFilterStatus, assetFilterDepartment,
     furnFilterType, furnFilterStatus, furnFilterDepartment,
-    accFilterType, showDeletedEmployees, officeSupplyStockFilter, licenseExpFilter,
+    accFilterType, empFilterStatus, empFilterDept, officeSupplyStockFilter, licenseExpFilter,
     debouncedSearch,
   ]);
 
@@ -2821,7 +2851,7 @@ function App() {
   // reset page เมื่อ menu / filter / search เปลี่ยน
   useEffect(() => {
     setTablePage(1);
-  }, [activeMenu, debouncedSearch, assetFilterType, assetFilterStatus, assetFilterDepartment, furnFilterType, furnFilterStatus, furnFilterDepartment, accFilterType, showDeletedEmployees, officeSupplyStockFilter, licenseExpFilter]);
+  }, [activeMenu, debouncedSearch, assetFilterType, assetFilterStatus, assetFilterDepartment, furnFilterType, furnFilterStatus, furnFilterDepartment, accFilterType, empFilterStatus, empFilterDept, officeSupplyStockFilter, licenseExpFilter]);
   const tableTotalPages = Math.max(1, Math.ceil(currentData.length / TABLE_ITEMS_PER_PAGE));
   // ป้องกัน page เกิน
   useEffect(() => {
@@ -3563,23 +3593,29 @@ function App() {
               onPageChange={setTablePage}
               searchTerm={searchTerm}
               onSearchChange={(v) => { setSearchTerm(v); setTablePage(1); }}
-              filterDepartment={assetFilterDepartment}
-              onFilterDepartmentChange={(v) => { setAssetFilterDepartment(v); setTablePage(1); }}
-              departmentOptions={fieldOptions.forDepartments || []}
+              filterStatus={empFilterStatus}
+              onFilterStatusChange={(v) => { setEmpFilterStatus(v); setTablePage(1); }}
+              statusOptions={[EMP_ACTIVE, EMP_LEFT]}
+              filterDepartment={empFilterDept}
+              onFilterDepartmentChange={(v) => { setEmpFilterDept(v); setTablePage(1); }}
+              departmentOptions={fieldOptions.departments || []}
+              isLeft={isLeftEmp}
               selectedIds={selectedEmployeeIds}
               onSelect={(id) => handleSelectEmployee({ target: { checked: !selectedEmployeeIds.includes(id) } }, id)}
               onSelectAll={(on) => handleSelectAllEmployees({ target: { checked: on } })}
-              onBulkDelete={() => setConfirmDeleteModal({ isOpen: true, id: selectedEmployeeIds, collectionName: 'employees' })}
+              /* ลบได้เฉพาะคนที่ยังทำงานอยู่ — คนที่ออกแล้วในรายการที่เลือกข้ามไป */
+              onBulkDelete={() => {
+                const ids = selectedEmployeeIds.filter(id => employees.some(e => e.id === id));
+                if (ids.length) setConfirmDeleteModal({ isOpen: true, id: ids, collectionName: 'employees' });
+              }}
               onAdd={() => setIsAddModalOpen(true)}
               onExportCsv={handleExportEmployees}
               onImport={() => setIsImportModalOpen(true)}
-              showDeleted={showDeletedEmployees}
-              onToggleDeleted={(on) => { setShowDeletedEmployees(on); setTablePage(1); }}
               onRestore={handleRestoreEmployee}
               onPermanentDelete={handlePermanentDeleteEmployee}
               onOpen={(emp) => { setEmpModalTab('info'); navigate(`/employees/${encodeURIComponent(emp.id)}`); }}
               onEdit={openEditEmpModal}
-              onDelete={(emp) => setConfirmDeleteModal({ isOpen: true, id: emp.id, collectionName: 'employees' })}
+              onDelete={(emp) => setConfirmDeleteModal({ isOpen: true, id: emp.id, collectionName: 'employees', itemName: emp.fullName, softDelete: true })}
             />
           ) : (activeMenu === 'assets' || activeMenu === 'furniture') ? (
             /* ธีม v3 — แทนของเดิม (ActionBar + AssetTable + TablePagination ที่ลบไปแล้ว)

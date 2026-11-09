@@ -16,6 +16,8 @@ import {
   TrendingUp,
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
+  Settings,
 } from 'lucide-react';
 
 const NAV_ITEMS = {
@@ -45,7 +47,6 @@ const NAV_ITEMS = {
       group: 'รายงาน',
       items: [
         { id: 'kpi_dashboard', label: 'รายงาน KPI',      icon: TrendingUp },
-        { id: 'field_options', label: 'ตัวเลือกฟิลด์',   icon: SlidersHorizontal },
         { id: 'it_report',     label: 'IT Report', icon: FileBarChart2 },
       ],
     },
@@ -84,16 +85,81 @@ export default function Sidebar({
     items: group.items.filter(item => !allowedMenus || allowedMenus.includes(item.id)),
   })).filter(group => group.items.length > 0);
 
-  const adminItems = [];
-  if (isSuperAdmin || canManageUsers) {
-    adminItems.push({ id: 'users', label: 'จัดการผู้ใช้', icon: ShieldCheck });
-  }
-  const superAdminGroup = adminItems.length > 0 ? [{
-    group: 'ผู้ดูแลระบบ',
-    items: adminItems,
-  }] : [];
+  const groups = filteredGroups;
 
-  const groups = [...filteredGroups, ...superAdminGroup];
+  /* ── ตั้งค่า — รวมเมนูตั้งค่าไว้กลุ่มเดียว พับ/กางได้ ท้ายแถบ ──
+     สิทธิ์เหมือนเดิม: ตัวเลือกฟิลด์ตาม allowedMenus (admin) · จัดการผู้ใช้เฉพาะ super/ผู้จัดการรหัส · เปลี่ยนรหัสผ่านทุกคน
+     เปิดเมนูข้างในอยู่ → กางเอง (ผู้ใช้ไม่ต้องหาว่าอยู่ตรงไหน) */
+  const settingsItems = [
+    authRole === 'admin' && (!allowedMenus || allowedMenus.includes('field_options'))
+      && { id: 'field_options', label: 'ตัวเลือกฟิลด์', icon: SlidersHorizontal },
+    (isSuperAdmin || canManageUsers) && { id: 'users', label: 'จัดการผู้ใช้', icon: ShieldCheck },
+    { id: '__changepwd__', label: 'เปลี่ยนรหัสผ่าน', icon: KeyRound, onClick: handleChangePassword },
+  ].filter(Boolean);
+  const settingsActive = settingsItems.some(i => i.id === activeMenu);
+  const [settingsPref, setSettingsPref] = useState(null);   // null = ตามหน้าที่เปิดอยู่
+  const settingsOpen = settingsPref ?? settingsActive;
+
+  const renderItem = ({ id, label, icon: Icon, onClick }, nested = false) => {
+    const active = activeMenu === id;
+    const hovered = hoveredId === id;
+    const count = Number(menuCounts[id] || 0);
+    const isExpiryBadge = id === 'licenses';
+    return (
+      <button
+        key={id}
+        onClick={onClick || (() => handleMenuClick(id))}
+        onMouseEnter={() => setHoveredId(id)}
+        onMouseLeave={() => setHoveredId(null)}
+        className={`relative w-full flex items-center gap-3 ${nested ? 'py-2 pl-5 pr-3' : 'py-2.5 px-3'} rounded-xl text-[13px] transition-colors group
+          ${active
+            ? 'font-medium text-white bg-white/15 border border-white/15'
+            : hovered
+              ? 'font-medium text-white bg-white/8'
+              : 'font-medium text-stone-100/85 hover:text-white'
+          }`}
+      >
+        {/* Icon container */}
+        <span className="relative flex items-center justify-center w-7 h-7 rounded-lg shrink-0">
+          <Icon className="h-[16px] w-[16px]" strokeWidth={active ? 2.4 : 2} />
+          {/* จุดสีบน icon เมื่อมีค้าง (ไม่ active) */}
+          {!active && count > 0 && (
+            <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-clay-800 ${
+              isExpiryBadge ? 'bg-clay-400' : 'bg-rose-400'
+            }`} />
+          )}
+        </span>
+
+        <span className="truncate flex-1 text-left">{label}</span>
+
+        {/* Count badge */}
+        {count > 0 && (
+          <span
+            className={`text-[10px] font-medium tabular-nums px-1.5 min-w-[20px] h-[19px] inline-flex items-center justify-center rounded-full shrink-0 ${
+              active
+                ? 'bg-white/25 text-white'
+                : isExpiryBadge
+                  ? 'bg-clay-200 text-clay-900'
+                  : 'bg-rose-100 text-rose-700'
+            }`}
+            title={isExpiryBadge ? `${count} รายการใกล้หมดอายุ` : `${count} รายการรอดำเนินการ`}
+          >
+            {count > 99 ? '99+' : count}
+          </span>
+        )}
+
+        {/* Arrow ตอน hover (เฉพาะไม่ active และไม่มี badge) */}
+        {!active && hovered && count === 0 && (
+          <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2} />
+        )}
+
+        {/* Active dot indicator */}
+        {active && count === 0 && (
+          <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+        )}
+      </button>
+    );
+  };
 
   return (
     <>
@@ -141,66 +207,7 @@ export default function Sidebar({
           {groups.map((group, gi) => (
             <div key={group.group}>
               <div className="space-y-0.5">
-                {group.items.map(({ id, label, icon: Icon }) => {
-                  const active = activeMenu === id;
-                  const hovered = hoveredId === id;
-                  const count = Number(menuCounts[id] || 0);
-                  const isExpiryBadge = id === 'licenses';
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => handleMenuClick(id)}
-                      onMouseEnter={() => setHoveredId(id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-colors group
-                        ${active
-                          ? 'font-medium text-white bg-white/15 border border-white/15'
-                          : hovered
-                            ? 'font-medium text-white bg-white/8'
-                            : 'font-medium text-stone-100/85 hover:text-white'
-                        }`}
-                    >
-                      {/* Icon container */}
-                      <span className="relative flex items-center justify-center w-7 h-7 rounded-lg shrink-0">
-                        <Icon className="h-[16px] w-[16px]" strokeWidth={active ? 2.4 : 2} />
-                        {/* จุดสีบน icon เมื่อมีค้าง (ไม่ active) */}
-                        {!active && count > 0 && (
-                          <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-clay-800 ${
-                            isExpiryBadge ? 'bg-clay-400' : 'bg-rose-400'
-                          }`} />
-                        )}
-                      </span>
-
-                      <span className="truncate flex-1 text-left">{label}</span>
-
-                      {/* Count badge */}
-                      {count > 0 && (
-                        <span
-                          className={`text-[10px] font-medium tabular-nums px-1.5 min-w-[20px] h-[19px] inline-flex items-center justify-center rounded-full shrink-0 ${
-                            active
-                              ? 'bg-white/25 text-white'
-                              : isExpiryBadge
-                                ? 'bg-clay-200 text-clay-900'
-                                : 'bg-rose-100 text-rose-700'
-                          }`}
-                          title={isExpiryBadge ? `${count} รายการใกล้หมดอายุ` : `${count} รายการรอดำเนินการ`}
-                        >
-                          {count > 99 ? '99+' : count}
-                        </span>
-                      )}
-
-                      {/* Arrow ตอน hover (เฉพาะไม่ active และไม่มี badge) */}
-                      {!active && hovered && count === 0 && (
-                        <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2} />
-                      )}
-
-                      {/* Active dot indicator */}
-                      {active && count === 0 && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
+                {group.items.map((item) => renderItem(item))}
               </div>
 
               {/* แถบเส้นแบ่งระหว่างกลุ่ม */}
@@ -210,27 +217,30 @@ export default function Sidebar({
             </div>
           ))}
 
-          {/* ─── บัญชี ─── */}
+          {/* ─── ตั้งค่า ─── */}
           <div>
             <div className="mt-2 mx-3 h-px bg-white/10 mb-2" />
             <button
-              onClick={handleChangePassword}
-              onMouseEnter={() => setHoveredId('__changepwd__')}
+              type="button"
+              onClick={() => setSettingsPref(!settingsOpen)}
+              aria-expanded={settingsOpen}
+              onMouseEnter={() => setHoveredId('__settings__')}
               onMouseLeave={() => setHoveredId(null)}
               className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
-                hoveredId === '__changepwd__'
-                  ? 'bg-white/8 text-white'
-                  : 'text-stone-100/85 hover:text-white'
+                hoveredId === '__settings__' ? 'bg-white/8 text-white' : settingsActive ? 'text-white' : 'text-stone-100/85 hover:text-white'
               }`}
             >
               <span className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0">
-                <KeyRound className="h-[16px] w-[16px]" strokeWidth={2} />
+                <Settings className="h-[16px] w-[16px]" strokeWidth={2} />
               </span>
-              <span className="truncate flex-1 text-left">เปลี่ยนรหัสผ่าน</span>
-              {hoveredId === '__changepwd__' && (
-                <ChevronRight className="h-3.5 w-3.5 text-stone-200/60 shrink-0" strokeWidth={2} />
-              )}
+              <span className="truncate flex-1 text-left">ตั้งค่า</span>
+              <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-stone-200/60 transition-transform ${settingsOpen ? 'rotate-180' : ''}`} strokeWidth={2} />
             </button>
+            {settingsOpen && (
+              <div className="mt-0.5 ml-[26px] space-y-0.5 border-l border-white/10 pl-1.5">
+                {settingsItems.map((item) => renderItem(item, true))}
+              </div>
+            )}
           </div>
         </nav>
 

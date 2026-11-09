@@ -20,8 +20,10 @@ test('แถวตัวอย่างใช้บริษัท/แบรน�
   assert.equal(rows[1][0], 'Globe Syndicate');
   assert.equal(rows[2][0], 'Besthrm');
   assert.equal(rows[1][7], '10101XX');
-  assert.deepEqual(rows[0].slice(-5), ['แบรนด์ 1', 'แบรนด์ 2', 'แบรนด์ 3', 'แบรนด์ 4', 'แบรนด์ 5']);
-  assert.deepEqual(rows[1].slice(-5, -3), ['E', 'G']);
+  // แบรนด์ = คอลัมน์สุดท้ายคอลัมน์เดียว คั่นจุลภาค
+  assert.equal(rows[0].at(-1), 'แบรนด์ที่ดูแล');
+  assert.equal(rows[1].at(-1), 'E, G, I');
+  assert.equal(rows[2].at(-1), 'A');
 });
 
 test('นำเข้าเลือก sheet "พนักงาน" แม้ไม่ได้อยู่ลำดับแรก', () => {

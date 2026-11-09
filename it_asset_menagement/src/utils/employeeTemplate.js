@@ -3,7 +3,6 @@
    sheet "ข้อมูลอ้างอิง"  — ค่าที่ใช้ได้ (บริษัท / แบรนด์ / แผนก / ตำแหน่ง) ให้ลอกไปใส่ ไม่ต้องเดาตัวสะกด
    นำเข้าอ่านเฉพาะ sheet "พนักงาน" (ไม่มีชื่อนี้ = sheet แรก) — ดู pickImportSheet
    ไม่ import xlsx ตรง ๆ — รับ XLSX เข้ามา (หน้าเว็บโหลดแบบ dynamic import · เทสต์ส่งของ node) */
-import { brandCsvHeaders } from './brands.js';
 
 export const MAIN_SHEET = 'พนักงาน';
 export const REF_SHEET = 'ข้อมูลอ้างอิง';
@@ -14,16 +13,17 @@ export const DEFAULT_BRANDS = ['Aux', 'Beko', 'Bosch', 'Carrier', 'Haier', 'Hise
 export const EMPLOYEE_HEADERS = [
   'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
   'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)',
-  'วันที่เริ่มงาน', 'M365 Password', ...brandCsvHeaders(),
+  'วันที่เริ่มงาน', 'M365 Password', 'แบรนด์ที่ดูแล',
 ];
 
+/* แบรนด์ = คอลัมน์เดียว คั่นด้วยจุลภาค เช่น "Haier, Hitachi" */
 export function employeeExamples(companies, brands) {
-  const b = (i) => brands[i] || '';
+  const b = (...idx) => idx.map((i) => brands[i]).filter(Boolean).join(', ');
   return [
     [companies[0] || 'Globe Syndicate', 'ตัวอย่าง', 'ทดสอบ', 'IT Support', 'sample@globesyndicate.co.th', '081-234-5678',
-      'ทอม', '10101XX', 'IT', '', 'Sample', 'Test', '2024-01-15', '', b(4), b(6), '', '', ''],
+      'ทอม', '10101XX', 'IT', '', 'Sample', 'Test', '2024-01-15', '', b(4, 6, 8)],
     [companies[1] || companies[0] || 'Besthrm', 'ตัวอย่างสอง', 'ทดสอบ', 'PC', 'sample2@besthrm.co.th', '089-876-5432',
-      'บี', '10101XX', 'Operation', '', 'Sample', 'Two', '2024-02-01', '', b(8), '', '', '', ''],
+      'บี', '10101XX', 'Operation', '', 'Sample', 'Two', '2024-02-01', '', b(0)],
   ];
 }
 

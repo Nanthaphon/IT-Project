@@ -5,8 +5,8 @@ export const toBrands = (v) => (Array.isArray(v) ? v : String(v || '').split(','
 
 export const brandsText = (v) => toBrands(v).join(', ');
 
-/* CSV พนักงาน: แบรนด์แยกคอลัมน์ "แบรนด์ 1" … "แบรนด์ 5" (template / ส่งออก)
-   นำเข้ารับทั้งแบบแยกคอลัมน์ และคอลัมน์เดียว "แบรนด์ที่ดูแล" คั่นจุลภาค (ไฟล์รุ่นก่อน) */
+/* CSV/Excel พนักงาน: template และส่งออกใช้คอลัมน์เดียว "แบรนด์ที่ดูแล" คั่นจุลภาค (brandsText)
+   นำเข้ารับแบบแยกคอลัมน์ "แบรนด์ 1" … "แบรนด์ N" ด้วย (ไฟล์ที่ทำไว้ก่อนหน้า) */
 export const BRAND_CSV_COLS = 5;
 export const brandCsvHeaders = (n = BRAND_CSV_COLS) => Array.from({ length: n }, (_, i) => `แบรนด์ ${i + 1}`);
 export const brandCsvField = (i) => `brand${i + 1}`;   // ชื่อฟิลด์ชั่วคราวตอนนำเข้า

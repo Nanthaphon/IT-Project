@@ -39,7 +39,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc,
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
 import { COMPANIES } from './ui/theme.js';
-import { brandsText, toBrands, brandCsvHeaders, brandCsvField, collectImportedBrands, BRAND_CSV_COLS } from './utils/brands.js';
+import { brandsText, brandCsvHeaders, brandCsvField, collectImportedBrands } from './utils/brands.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
@@ -1446,12 +1446,10 @@ function App() {
     const picked = selectedEmployeeIds.length > 0
       ? currentData.filter(e => selectedEmployeeIds.includes(e.id))
       : currentData;
-    // แบรนด์แยกคอลัมน์เหมือน template — อย่างน้อย 5 · ใครดูแลมากกว่านั้นเพิ่มคอลัมน์ให้พอ
-    const brandCols = Math.max(BRAND_CSV_COLS, ...picked.map(e => toBrands(e.brands).length));
     const rows = [[
       'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
       'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
-      'สถานะ', 'วันที่ออก', ...brandCsvHeaders(brandCols),
+      'แบรนด์ที่ดูแล', 'สถานะ', 'วันที่ออก',
     ]];
     picked.forEach(emp => {
       const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
@@ -1459,8 +1457,8 @@ function App() {
       rows.push([
         emp.company || '', th.first || '', th.last || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
         emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '',
+        brandsText(emp.brands),   // คอลัมน์เดียว คั่นจุลภาค เช่น "Hitachi, Sharp, Aux"
         activeIds.has(emp.id) ? EMP_ACTIVE : EMP_LEFT, activeIds.has(emp.id) ? '' : formatDateShort(tsMillis(emp.deletedAt)),
-        ...Array.from({ length: brandCols }, (_, i) => toBrands(emp.brands)[i] || ''),
       ]);
     });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -1772,8 +1770,8 @@ function App() {
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
             'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
             'M365 Email': 'm365Email', 'M365 Password': 'm365Password',
-            'วันที่เริ่มงาน': 'startDate', 'แบรนด์ที่ดูแล': 'brands',   // ไฟล์รุ่นก่อน: คอลัมน์เดียวคั่นจุลภาค
-            // แบรนด์ 1..N → brand1..N แล้วรวมเป็น brands (collectImportedBrands)
+            'วันที่เริ่มงาน': 'startDate', 'แบรนด์ที่ดูแล': 'brands', 'แบรนด์': 'brands',   // คอลัมน์เดียวคั่นจุลภาค (template / ส่งออก)
+            // ไฟล์ที่แยก "แบรนด์ 1..N" ก็ยังรับ → brand1..N แล้วรวมเป็น brands (collectImportedBrands)
             ...Object.fromEntries(brandCsvHeaders(20).map((h, i) => [h, brandCsvField(i)])),
           },
         };

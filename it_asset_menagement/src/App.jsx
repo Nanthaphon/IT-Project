@@ -39,6 +39,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc,
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
 import { COMPANIES } from './ui/theme.js';
+import { empKey, managerCodeOf, managerLookup } from './utils/managers.js';
 import { brandsText, brandCsvHeaders, brandCsvField, collectImportedBrands } from './utils/brands.js';
 
 // ═══════════════════════════════════════════════════════════════
@@ -1443,12 +1444,13 @@ function App() {
   /* ส่งออกตามที่เห็น: ติ๊กเลือกไว้ = เฉพาะที่เลือก · ไม่ได้เลือก = ทั้งหมดตามตัวกรอง/ค้นหา (รวมคนที่ออกแล้วถ้าตัวกรองรวมไว้) */
   const handleExportEmployees = () => {
     const activeIds = new Set(employees.map(e => e.id));
+    const everyone = [...employees, ...deletedEmployees];   // หารหัสหัวหน้าจากชื่อ (หัวหน้าอาจออกไปแล้ว)
     const picked = selectedEmployeeIds.length > 0
       ? currentData.filter(e => selectedEmployeeIds.includes(e.id))
       : currentData;
     const rows = [[
       'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
-      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
+      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'รหัสหัวหน้า', 'ชื่อหัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
       'แบรนด์ที่ดูแล', 'สถานะ', 'วันที่ออก',
     ]];
     picked.forEach(emp => {
@@ -1456,7 +1458,7 @@ function App() {
       const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
       rows.push([
         emp.company || '', th.first || '', th.last || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
-        emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '',
+        emp.nickname || '', emp.empId || '', emp.department || '', managerCodeOf(emp, everyone), emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '',
         brandsText(emp.brands),   // คอลัมน์เดียว คั่นจุลภาค เช่น "Hitachi, Sharp, Aux"
         activeIds.has(emp.id) ? EMP_ACTIVE : EMP_LEFT, activeIds.has(emp.id) ? '' : formatDateShort(tsMillis(emp.deletedAt)),
       ]);
@@ -1663,6 +1665,7 @@ function App() {
           brands: fieldOptions.brands || [],
           departments: fieldOptions.departments || [],
           positions: fieldOptions.positions || [],
+          people: employees,   // sheet รายชื่อพนักงาน — ไว้หารหัสหัวหน้า
         });
         XLSX.writeFile(wb, 'template_employees.xlsx');
       }).catch((err) => setCustomAlert({ isOpen: true, title: 'สร้างไฟล์ไม่สำเร็จ', message: err.message, type: 'error' }));
@@ -1768,7 +1771,9 @@ function App() {
             'ชื่อจริง (EN)': 'firstNameEng', 'นามสกุล (EN)': 'lastNameEng',
             'ชื่อ-นามสกุล': 'fullName', 'ชื่อภาษาอังกฤษ': 'fullNameEng',
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
-            'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
+            'ตำแหน่ง': 'position', 'เบอร์โทร': 'phone',
+            'รหัสหัวหน้า': 'managerCode',   // แปลงเป็นชื่อหัวหน้าตอนนำเข้า (ดูด้านล่าง)
+            'หัวหน้า': 'manager',           // ไฟล์รุ่นก่อน: ใส่ชื่อตรง ๆ
             'M365 Email': 'm365Email', 'M365 Password': 'm365Password',
             'วันที่เริ่มงาน': 'startDate', 'แบรนด์ที่ดูแล': 'brands', 'แบรนด์': 'brands',   // คอลัมน์เดียวคั่นจุลภาค (template / ส่งออก)
             // ไฟล์ที่แยก "แบรนด์ 1..N" ก็ยังรับ → brand1..N แล้วรวมเป็น brands (collectImportedBrands)
@@ -1822,6 +1827,21 @@ function App() {
 
         // ── เก็บ key ของรายการที่เพิ่งนำเข้าใน batch นี้ — ป้องกัน duplicate ภายในไฟล์เดียวกัน ──
         const seenInBatch = new Set();
+
+        /* รหัสหัวหน้า → ชื่อ: หาจากพนักงานในระบบ (รวมคนที่ออกแล้ว) และคนในไฟล์เดียวกัน
+           (นำเข้าหัวหน้าพร้อมลูกทีมได้ แม้หัวหน้าอยู่แถวหลัง) */
+        const managerNames = managerLookup([...employees, ...deletedEmployees]);
+        if (colName === 'employees') {
+          for (let i = 1; i < lines.length; i++) {
+            const vals = parseRow(lines[i]);
+            const r = {};
+            headers.forEach((h, idx) => { const f = fieldMap[h]; if (f) r[f] = (vals[idx] || '').trim(); });
+            const th = resolveName(r.firstName, r.lastName, r.fullName);
+            const name = joinName(th.first, th.last) || r.fullName;
+            if (empKey(r.empId) && name && !managerNames.has(empKey(r.empId))) managerNames.set(empKey(r.empId), name);
+          }
+        }
+        const unknownManagers = [];   // { row, code } — รหัสหัวหน้าที่หาไม่เจอ
 
         for (let i = 1; i < lines.length; i++) {
           const vals = parseRow(lines[i]);
@@ -1924,6 +1944,13 @@ function App() {
             rec.firstNameEng = en.first; rec.lastNameEng = en.last;
             rec.fullName = joinName(th.first, th.last) || (rec.fullName || '');
             rec.fullNameEng = joinName(en.first, en.last) || (rec.fullNameEng || '');
+            // รหัสหัวหน้า → ชื่อหัวหน้า (ระบบเก็บเป็นชื่อ) + managerEmpId · หาไม่เจอ = เว้นว่าง แล้วแจ้งท้ายการนำเข้า
+            if (rec.managerCode) {
+              const name = managerNames.get(empKey(rec.managerCode));
+              if (name) { rec.manager = name; rec.managerEmpId = rec.managerCode; }
+              else unknownManagers.push({ row: i + 1, code: rec.managerCode });
+            }
+            delete rec.managerCode;
           }
 
           rec.createdAt = serverTimestamp();
@@ -1943,6 +1970,10 @@ function App() {
           const examples = skippedDuplicate.slice(0, 3).map(s => `แถวที่ ${s.row}: ${s.reason}`).join('\n');
           const more = skippedDuplicate.length > 3 ? `\n...และอีก ${skippedDuplicate.length - 3} แถว` : '';
           msgParts.push(`\n⚠️ ข้ามรายการซ้ำ ${skippedDuplicate.length} แถว:\n${examples}${more}`);
+        }
+        if (unknownManagers.length > 0) {
+          const ex = unknownManagers.slice(0, 5).map(u => `แถวที่ ${u.row}: ${u.code}`).join('\n');
+          msgParts.push(`\n⚠️ ไม่พบรหัสหัวหน้า ${unknownManagers.length} แถว (นำเข้าแล้ว แต่ยังไม่มีหัวหน้า):\n${ex}${unknownManagers.length > 5 ? '\n...' : ''}`);
         }
         if (skippedNoName.length > 0) {
           msgParts.push(`\nℹ️ ข้ามแถวที่ไม่มีชื่อ ${skippedNoName.length} แถว: ${skippedNoName.slice(0, 5).join(', ')}${skippedNoName.length > 5 ? '...' : ''}`);

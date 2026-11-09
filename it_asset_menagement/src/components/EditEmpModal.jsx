@@ -130,7 +130,7 @@ export default function EditEmpModal({
                         key={emp.id}
                         className="px-4 py-2.5 hover:bg-stone-50/60 cursor-pointer text-sm border-b border-stone-50 last:border-b-0 transition-colors"
                         onClick={() => {
-                          handleEditEmpChange({ target: { name: 'manager', value: emp.fullName } });
+                          handleEditEmpChange({ target: { name: 'manager', value: emp.fullName } }); handleEditEmpChange({ target: { name: 'managerEmpId', value: emp.empId || '' } });
                           setIsManagerDropdownOpen(false);
                         }}
                       >

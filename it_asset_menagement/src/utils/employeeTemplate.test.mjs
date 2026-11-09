@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as XLSX from 'xlsx';
-import { buildEmployeeTemplate, DEFAULT_BRANDS, MAIN_SHEET, pickImportSheet, REF_SHEET, referenceRows } from './employeeTemplate.js';
+import { buildEmployeeTemplate, DEFAULT_BRANDS, MAIN_SHEET, PEOPLE_SHEET, peopleRows, pickImportSheet, REF_SHEET, referenceRows } from './employeeTemplate.js';
 
 const opts = { companies: ['Globe Syndicate', 'Besthrm'], departments: ['IT', 'HR'], positions: ['IT Support'] };
 
 test('2 sheet: กรอกข้อมูล + ข้อมูลอ้างอิง · ไม่ได้ตั้งแบรนด์ = รายการตั้งต้น', () => {
   const wb = buildEmployeeTemplate(XLSX, opts);
-  assert.deepEqual(wb.SheetNames, [MAIN_SHEET, REF_SHEET]);
+  assert.deepEqual(wb.SheetNames, [MAIN_SHEET, REF_SHEET, PEOPLE_SHEET]);
   const ref = XLSX.utils.sheet_to_json(wb.Sheets[REF_SHEET], { header: 1 });
   assert.deepEqual(ref[0], ['บริษัท', 'แบรนด์ที่ดูแล', 'แผนก', 'ตำแหน่ง']);
   assert.deepEqual(ref.slice(1).map((r) => r[1]), DEFAULT_BRANDS);
@@ -45,4 +45,12 @@ test('sheetToCsv: ช่องที่ Excel แปลงเป็นวัน�
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'พนักงาน');
   const back = XLSX.read(XLSX.write(wb, { type: 'array', bookType: 'xlsx', cellDates: true }), { type: 'array', cellDates: true });
   assert.equal(sheetToCsv(XLSX, pickImportSheet(back)), 'รหัส,วันที่เริ่มงาน\n1010911,2024-01-15');
+});
+
+test('รายชื่อพนักงาน: เรียงตามรหัส ข้ามคนไม่มีรหัส · หัวคอลัมน์รหัสหัวหน้าใน sheet หลัก', () => {
+  const rows = peopleRows([{ empId: 1010010, fullName: 'ข' }, { empId: '1010002', fullName: 'ก', nickname: 'เอ' }, { fullName: 'ไม่มีรหัส' }]);
+  assert.deepEqual(rows.slice(1).map((r) => r[0]), ['1010002', '1010010']);
+  const wb = buildEmployeeTemplate(XLSX, opts);
+  const head = XLSX.utils.sheet_to_json(wb.Sheets[MAIN_SHEET], { header: 1 })[0];
+  assert.ok(head.includes('รหัสหัวหน้า') && !head.includes('หัวหน้า'));
 });

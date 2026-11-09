@@ -267,6 +267,9 @@ api/                         Vercel Functions (staff auth, Teams notify)
   CSV ส่งออก = ที่ติ๊กเลือก หรือทั้งหมดตามตัวกรอง/ค้นหา · มีคอลัมน์ สถานะ + วันที่ออก
 - **Template นำเข้าพนักงานเป็น .xlsx 2 sheet** (`utils/employeeTemplate.js` มีเทสต์) — sheet "พนักงาน" กรอก · sheet "ข้อมูลอ้างอิง" = บริษัท (COMPANIES) / แบรนด์ / แผนก / ตำแหน่ง จาก fieldOptions
   นำเข้ารับ .xlsx (อ่าน sheet "พนักงาน" → `sheetToCsv` → ขั้นตอน CSV เดิม) และ .csv · โหลด `xlsx` แบบ dynamic import เท่านั้น (ไฟล์ ~420KB)
+- **หัวหน้างาน** — ระบบเก็บ `employees.manager` = ชื่อหัวหน้า (+ `managerEmpId` เมื่อเลือกจากรายการ/นำเข้า) · ไฟล์นำเข้า/ส่งออกใช้ "รหัสหัวหน้า"
+  นำเข้าแปลงรหัส → ชื่อ จากพนักงานในระบบ + คนในไฟล์เดียวกัน (หาไม่เจอ = เว้นว่าง แจ้งท้าย) · ส่งออกหารหัสด้วย `managerCodeOf` (`utils/managers.js`)
+  template มี sheet "รายชื่อพนักงาน" ไว้หารหัส
 - **แบรนด์ที่ดูแล** — `employees.brands` = อาร์เรย์ (เลือกได้หลายค่า · `MultiOptionField`) ตัวเลือกที่ `fieldOptions.brands`
   CSV/Excel ใช้คอลัมน์เดียว "แบรนด์ที่ดูแล" คั่นจุลภาค (template + ส่งออก) · นำเข้ารับ "แบรนด์" / "แบรนด์ 1..N" ด้วย (`collectImportedBrands`) · อ่าน/แสดงผ่าน `toBrands` / `brandsText` (`utils/brands.js`)
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login

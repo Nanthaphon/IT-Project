@@ -54,6 +54,7 @@ const FIELDS_BY_MENU = {
       'ชื่อภาษาอังกฤษ', 'ชื่อเล่น', 'แผนก',
       'บริษัท', 'ตำแหน่ง', 'หัวหน้า',
       'เบอร์โทร', 'M365 Email', 'M365 Password',
+      'วันที่เริ่มงาน', 'แบรนด์ 1 – แบรนด์ 5 (ช่องละ 1 แบรนด์ เว้นว่างได้)',
     ],
   },
 };
@@ -103,7 +104,7 @@ export default function ImportModal({
                 ))}
               </div>
               <p className="text-[11px] text-stone-500 mt-2 leading-snug">
-                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> Template มีแถวตัวอย่าง 1 แถว ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
+                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> Template มีแถวตัวอย่าง ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
               </p>
             </div>
           </div>

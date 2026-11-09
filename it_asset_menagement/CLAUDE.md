@@ -266,7 +266,7 @@ api/                         Vercel Functions (staff auth, Teams notify)
   ตัวกรอง "สถานะ" ทำงานอยู่/ออกแล้ว (`empFilterStatus`) · ระบุว่าออกแล้วจาก "ไม่อยู่ใน employees" (`isLeftEmp`) ไม่ใช่ `deletedAt` (serverTimestamp ยัง pending ได้)
   CSV ส่งออก = ที่ติ๊กเลือก หรือทั้งหมดตามตัวกรอง/ค้นหา · มีคอลัมน์ สถานะ + วันที่ออก
 - **แบรนด์ที่ดูแล** — `employees.brands` = อาร์เรย์ (เลือกได้หลายค่า · `MultiOptionField`) ตัวเลือกที่ `fieldOptions.brands`
-  CSV นำเข้าเป็นข้อความคั่นจุลภาค → อ่าน/แสดงผ่าน `toBrands` / `brandsText` (`utils/brands.js`) เสมอ
+  CSV ใช้คอลัมน์ "แบรนด์ 1..5" (template/ส่งออก) · นำเข้ารับทั้งแบบแยกคอลัมน์และ "แบรนด์ที่ดูแล" คั่นจุลภาค (`collectImportedBrands`) · อ่าน/แสดงผ่าน `toBrands` / `brandsText` (`utils/brands.js`)
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login
   อ่าน/เขียนผ่าน `utils/employeeSecrets.js` เท่านั้น (`loadM365Password` / `saveM365Password` / `splitM365Password`)
   rules ห้ามสร้างพนักงานที่มี `m365Password` ในเอกสาร · ตรวจสิทธิ์ด้วย `npm run test:rules` (ต้องเปิด emulator)

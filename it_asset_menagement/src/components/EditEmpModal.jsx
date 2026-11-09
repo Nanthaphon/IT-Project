@@ -3,6 +3,7 @@ import { Pencil, ShieldCheck, Link2, PlusCircle, X } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import MultiOptionField from './MultiOptionField.jsx';
 import DateField from './DateField.jsx';
 
 export default function EditEmpModal({
@@ -98,6 +99,14 @@ export default function EditEmpModal({
                 />
               </Field>
             </div>
+            <Field label="แบรนด์ที่ดูแล">
+              <MultiOptionField
+                value={data.brands}
+                onChange={(v) => handleEditEmpChange({ target: { name: 'brands', value: v } })}
+                options={fieldOptions.brands || []}
+                placeholder="เลือกแบรนด์..."
+              />
+            </Field>
 
             <Field label="ชื่อหัวหน้างาน">
               <div ref={managerRef} className="relative">

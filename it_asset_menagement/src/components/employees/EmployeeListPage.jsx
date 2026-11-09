@@ -3,11 +3,12 @@ import { Plus, Download, Upload, Trash2, Undo2 } from 'lucide-react';
 import { text } from '../../ui/earth.js';
 import { CellTitle, Clamp } from '../../ui/earthUI.jsx';
 import ListPage from '../list/ListPage.jsx';
+import { brandsText } from '../../utils/brands.js';
 
 /* ════════════════════════════════════════════════════════════════
    หน้ารายการพนักงาน — ธีม v3 · config ของ ListPage
 
-   4 คอลัมน์หลัก — ชื่อ (รหัส + ชื่อเล่นเป็นบรรทัดรอง) / ตำแหน่ง / แผนก / บริษัท
+   5 คอลัมน์หลัก — ชื่อ (รหัส + ชื่อเล่นเป็นบรรทัดรอง) / ตำแหน่ง / แผนก / แบรนด์ที่ดูแล / บริษัท
    โหมดถังขยะใช้หน้าเดียวกัน แค่สลับชุด action เป็น กู้คืน / ลบถาวร
    ════════════════════════════════════════════════════════════════ */
 
@@ -23,6 +24,7 @@ const COLUMNS = [
   },
   { key: 'position', label: 'ตำแหน่ง', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => <Clamp width={200}>{e.position || '—'}</Clamp> },
   { key: 'department', label: 'แผนก', width: 'w-52', cellClass: 'text-sm text-stone-600', render: e => <Clamp width={200}>{e.department || '—'}</Clamp> },
+  { key: 'brands', label: 'แบรนด์ที่ดูแล', width: 'w-44', cellClass: 'text-sm text-stone-600', render: e => <Clamp width={170}>{brandsText(e.brands) || '—'}</Clamp> },
   {
     key: 'company', label: 'บริษัท', width: 'w-44',
     render: e => (e.company ? <span className="text-sm text-stone-600">{e.company}</span> : <span className={text.faint}>—</span>),

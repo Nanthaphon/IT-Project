@@ -12,6 +12,7 @@ import PreReturnAssessmentModal from './PreReturnAssessmentModal.jsx';
 import PrintedDocumentsTab from './PrintedDocumentsTab.jsx';
 import Timeline from './timeline/Timeline.jsx';
 import EmployeeLinks from './employees/EmployeeLinks.jsx';
+import { brandsText } from '../utils/brands.js';
 import { buildEmployeeTimeline, spanLabel, toMillis, thaiDate } from './timeline/buildTimeline.js';
 
 /* สีจุดของรายการในการ์ด "ความเคลื่อนไหวล่าสุด" — ตามชนิดเหตุการณ์ */
@@ -284,6 +285,9 @@ export default function EmployeeDetailsModal({
                 </h1>
                 <p className="mt-0.5 truncate text-sm text-stone-600">
                   {[selectedEmployee.position, selectedEmployee.department].filter(Boolean).join(' · ') || '—'}
+                  {brandsText(selectedEmployee.brands) && (
+                    <span className="text-stone-400"> · ดูแล {brandsText(selectedEmployee.brands)}</span>
+                  )}
                 </p>
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-400">
                   <span className="inline-flex items-center gap-1.5 tabular-nums"><Hash className="size-3.5" strokeWidth={2} />{selectedEmployee.empId || '—'}</span>

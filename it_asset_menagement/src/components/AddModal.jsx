@@ -3,6 +3,7 @@ import { Image as ImageIcon, Plus, Recycle, ShieldCheck, Sparkles, X as XIcon } 
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls, COMPANIES } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
+import MultiOptionField from './MultiOptionField.jsx';
 import DateField from './DateField.jsx';
 import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
 
@@ -131,6 +132,14 @@ export default function AddModal({
                   />
                 </Field>
               </div>
+              <Field label="แบรนด์ที่ดูแล">
+                <MultiOptionField
+                  value={empForm.brands}
+                  onChange={(v) => handleEmpChange({ target: { name: 'brands', value: v } })}
+                  options={fieldOptions.brands || []}
+                  placeholder="เลือกแบรนด์..."
+                />
+              </Field>
 
               <Field label="ชื่อหัวหน้างาน">
                 <div ref={managerRef} className="relative">

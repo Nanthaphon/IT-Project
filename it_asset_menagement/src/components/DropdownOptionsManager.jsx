@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, CheckCircle2, Loader2, Briefcase, Link2, ExternalLink } from 'lucide-react';
+import { Building2, Truck, LayoutList, UserCheck, MapPin, Plus, X, CheckCircle2, Loader2, Briefcase, Link2, ExternalLink, Tag } from 'lucide-react';
 import { normalizeUrl, hostOf, newLinkId } from '../utils/links.js';
 
 const CATEGORIES = [
@@ -42,6 +42,14 @@ const CATEGORIES = [
     color: 'amber',
     description: 'ใช้ในฟอร์มพนักงาน',
     placeholder: 'เช่น Developer, Designer, Manager...',
+  },
+  {
+    key: 'brands',
+    label: 'แบรนด์ที่ดูแล',
+    icon: Tag,
+    color: 'emerald',
+    description: 'ใช้ในฟอร์มพนักงาน (เลือกได้หลายแบรนด์)',
+    placeholder: 'เช่น Haier, Hitachi, Samsung...',
   },
   {
     key: 'locations',

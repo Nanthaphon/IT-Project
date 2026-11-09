@@ -33,6 +33,7 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCust
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField } from 'firebase/firestore';
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
+import { brandsText, toBrands } from './utils/brands.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
@@ -1429,14 +1430,14 @@ function App() {
   const handleExportEmployees = () => {
     const rows = [[
       'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ชื่อ-นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
-      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน',
+      'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)', 'ชื่อภาษาอังกฤษ', 'วันที่เริ่มงาน', 'แบรนด์ที่ดูแล',
     ]];
     employees.forEach(emp => {
       const th = resolveName(emp.firstName, emp.lastName, emp.fullName);
       const en = resolveName(emp.firstNameEng, emp.lastNameEng, emp.fullNameEng);
       rows.push([
         emp.company || '', th.first || '', th.last || '', emp.fullName || '', emp.position || '', emp.m365Email || '', emp.phone || '',
-        emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '',
+        emp.nickname || '', emp.empId || '', emp.department || '', emp.manager || '', en.first || '', en.last || '', emp.fullNameEng || '', emp.startDate || '', brandsText(emp.brands),
       ]);
     });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -1636,12 +1637,12 @@ function App() {
       headers = [
         'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
         'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)',
-        'วันที่เริ่มงาน', 'M365 Password',
+        'วันที่เริ่มงาน', 'M365 Password', 'แบรนด์ที่ดูแล',
       ];
       example = [
         'Globe Syndicate (Thailand) Co., Ltd.', 'ตัวอย่าง', 'ทดสอบ', 'IT Support', 'sample@globesyndicate.com', '081-234-5678',
         'ทอม', 'EMP001', 'IT', '', 'Sample', 'Test',
-        '2024-01-15', '',
+        '2024-01-15', '', 'Haier, Hitachi',
       ];
       filename = 'template_employees.csv';
     }
@@ -1738,7 +1739,7 @@ function App() {
             'ชื่อเล่น': 'nickname', 'แผนก': 'department', 'บริษัท': 'company',
             'ตำแหน่ง': 'position', 'หัวหน้า': 'manager', 'เบอร์โทร': 'phone',
             'M365 Email': 'm365Email', 'M365 Password': 'm365Password',
-            'วันที่เริ่มงาน': 'startDate',
+            'วันที่เริ่มงาน': 'startDate', 'แบรนด์ที่ดูแล': 'brands',   // ข้อความคั่นจุลภาค — อ่านผ่าน toBrands()
           },
         };
 
@@ -1798,6 +1799,7 @@ function App() {
             const f = fieldMap[h];
             if (f) rec[f] = (vals[idx] || '').trim();
           });
+          if (colName === 'employees' && 'brands' in rec) rec.brands = toBrands(rec.brands);
 
           // ── Validate required ──
           const hasName = (rec.name || rec.fullName || rec.firstName || '').trim();
@@ -2757,7 +2759,7 @@ function App() {
         if (activeMenu === 'employees') {
           return matchAny(
             item.fullName, item.fullNameEng, item.empId,
-            item.nickname, item.department, item.position,
+            item.nickname, item.department, item.position, brandsText(item.brands),
           );
         }
         // 🆕 License — รวมค้นหารายการย่อย (productKey, seat label, assignee, supplier)

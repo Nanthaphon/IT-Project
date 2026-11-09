@@ -262,6 +262,8 @@ api/                         Vercel Functions (staff auth, Teams notify)
   ยืม = assignee.isBorrow + returnDate → หน้าพนักงานติดป้าย "ยืม · คืน …" (เลยกำหนด = แดง)
   หน้าคำขอ: แถวยืมที่เลยกำหนดและยังไม่คืน = แดง + ชิป "เลยกำหนดคืน" — `utils/borrowStatus.js` ดูจาก assignees ของอุปกรณ์
   (คำขอไม่ถูกแก้ตอนรับคืน) · `givenItems[].checkoutId` จับตรงตัว คำขอรุ่นเก่าเทียบ ยืม + วันคืน + SN
+- **แบรนด์ที่ดูแล** — `employees.brands` = อาร์เรย์ (เลือกได้หลายค่า · `MultiOptionField`) ตัวเลือกที่ `fieldOptions.brands`
+  CSV นำเข้าเป็นข้อความคั่นจุลภาค → อ่าน/แสดงผ่าน `toBrands` / `brandsText` (`utils/brands.js`) เสมอ
 - **รหัสผ่าน M365 อยู่ที่ `employee_secrets/{empDocId}` ไม่ใช่ใน `employees`** — `employees` อ่านได้ทุกคนที่ login
   อ่าน/เขียนผ่าน `utils/employeeSecrets.js` เท่านั้น (`loadM365Password` / `saveM365Password` / `splitM365Password`)
   rules ห้ามสร้างพนักงานที่มี `m365Password` ในเอกสาร · ตรวจสิทธิ์ด้วย `npm run test:rules` (ต้องเปิด emulator)

@@ -38,6 +38,7 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCust
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField } from 'firebase/firestore';
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
+import { COMPANIES } from './ui/theme.js';
 import { brandsText, toBrands, brandCsvHeaders, brandCsvField, collectImportedBrands, BRAND_CSV_COLS } from './utils/brands.js';
 
 // ═══════════════════════════════════════════════════════════════
@@ -1656,21 +1657,18 @@ function App() {
       filename = 'template_office_supplies.csv';
     }
     else {
-      headers = [
-        'บริษัท', 'ชื่อจริง', 'นามสกุล', 'ตำแหน่ง', 'M365 Email', 'เบอร์โทร',
-        'ชื่อเล่น', 'รหัสพนักงาน', 'แผนก', 'หัวหน้า', 'ชื่อจริง (EN)', 'นามสกุล (EN)',
-        'วันที่เริ่มงาน', 'M365 Password', ...brandCsvHeaders(),
-      ];
-      // บริษัทใช้ชื่อเดียวกับตัวเลือกในฟอร์ม (COMPANIES) · แบรนด์ 1 คอลัมน์ต่อ 1 แบรนด์ ว่างได้
-      example = [
-        ['Globe Syndicate', 'ตัวอย่าง', 'ทดสอบ', 'IT Support', 'sample@globesyndicate.co.th', '081-234-5678',
-          'ทอม', '10101XX', 'IT', '', 'Sample', 'Test',
-          '2024-01-15', '', 'Haier', 'Hitachi', '', '', ''],
-        ['Besthrm', 'ตัวอย่างสอง', 'ทดสอบ', 'PC', 'sample2@besthrm.co.th', '089-876-5432',
-          'บี', '10101XX', 'Operation', '', 'Sample', 'Two',
-          '2024-02-01', '', 'Samsung', '', '', '', ''],
-      ];
-      filename = 'template_employees.csv';
+      /* พนักงาน = ไฟล์ Excel 2 sheet (กรอกข้อมูล + ตารางอ้างอิง บริษัท/แบรนด์/แผนก/ตำแหน่ง)
+         CSV มี sheet เดียว ใส่ตารางอ้างอิงไม่ได้ — ดู utils/employeeTemplate.js */
+      Promise.all([import('xlsx'), import('./utils/employeeTemplate.js')]).then(([XLSX, t]) => {
+        const wb = t.buildEmployeeTemplate(XLSX, {
+          companies: COMPANIES,
+          brands: fieldOptions.brands || [],
+          departments: fieldOptions.departments || [],
+          positions: fieldOptions.positions || [],
+        });
+        XLSX.writeFile(wb, 'template_employees.xlsx');
+      }).catch((err) => setCustomAlert({ isOpen: true, title: 'สร้างไฟล์ไม่สำเร็จ', message: err.message, type: 'error' }));
+      return;
     }
 
     const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
@@ -1688,13 +1686,21 @@ function App() {
     if (!file) return;
     e.target.value = '';
 
+    // รับ .xlsx ด้วย (template พนักงานเป็น Excel) — แปลง sheet ที่กรอกเป็น CSV แล้วใช้ขั้นตอนเดิมทั้งหมด
+    const isExcel = /\.xlsx?$/i.test(file.name);
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
-        const text = evt.target.result.replace(/^﻿/, ''); // strip BOM
+        let raw = evt.target.result;
+        if (isExcel) {
+          const [XLSX, { pickImportSheet, sheetToCsv }] = await Promise.all([import('xlsx'), import('./utils/employeeTemplate.js')]);
+          // cellDates: ช่องที่ Excel แปลงเป็นวันที่ → sheetToCsv คืนเป็น YYYY-MM-DD เหมือนใน template
+          raw = sheetToCsv(XLSX, pickImportSheet(XLSX.read(raw, { type: 'array', cellDates: true })));
+        }
+        const text = raw.replace(/^﻿/, ''); // strip BOM
         const lines = text.split(/\r?\n/).filter(l => l.trim());
         if (lines.length < 2) {
-          return setCustomAlert({ isOpen: true, title: 'ไฟล์ว่างเปล่า', message: 'ไม่พบข้อมูลในไฟล์ CSV', type: 'error' });
+          return setCustomAlert({ isOpen: true, title: 'ไฟล์ว่างเปล่า', message: 'ไม่พบข้อมูลในไฟล์', type: 'error' });
         }
 
         // ── CSV row parser — handles quoted fields with commas / newlines ──
@@ -1953,7 +1959,7 @@ function App() {
         setCustomAlert({ isOpen: true, title: 'นำเข้าไม่สำเร็จ', message: err.message, type: 'error' });
       }
     };
-    reader.readAsText(file, 'UTF-8');
+    if (isExcel) reader.readAsArrayBuffer(file); else reader.readAsText(file, 'UTF-8');
   };
   // 🆕 multi-select helper
   const _inArr = (arr, val) => !arr || arr.length === 0 || arr.includes(val);

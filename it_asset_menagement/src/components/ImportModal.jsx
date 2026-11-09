@@ -104,7 +104,9 @@ export default function ImportModal({
                 ))}
               </div>
               <p className="text-[11px] text-stone-500 mt-2 leading-snug">
-                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> Template มีแถวตัวอย่าง ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง
+                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> {activeMenu === 'employees'
+                  ? 'กรอกใน sheet "พนักงาน" · sheet "ข้อมูลอ้างอิง" มีชื่อบริษัท / แบรนด์ / แผนก / ตำแหน่งให้ลอก · ลบแถวตัวอย่างก่อนนำเข้า'
+                  : 'Template มีแถวตัวอย่าง ใช้ดู format แล้วลบทิ้งหรือแก้ไขก่อน import จริง'}
               </p>
             </div>
           </div>
@@ -124,7 +126,7 @@ export default function ImportModal({
               className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-white border border-clay-600/30 text-clay-600 rounded-lg font-medium text-sm hover:bg-stone-50/60 hover:border-clay-600/50 transition-colors"
             >
               <Download className="h-4 w-4" strokeWidth={2} />
-              โหลด Template.csv
+              {activeMenu === 'employees' ? 'โหลด Template (Excel)' : 'โหลด Template.csv'}
             </button>
           </div>
         </div>
@@ -140,7 +142,7 @@ export default function ImportModal({
           <div className="pl-10 relative">
             <input
               type="file"
-              accept=".csv"
+              accept={activeMenu === 'employees' ? '.xlsx,.csv' : '.csv'}
               onChange={handleImportEmployees}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               style={{ marginLeft: '2.5rem' }}

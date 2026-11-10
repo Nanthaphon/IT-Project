@@ -64,6 +64,12 @@ const cases = [
   ['admin แก้รหัส M365',                      true,  () => patch(admin, 'employee_secrets/emp3', { m365Password: 'by-admin' })],
   ['admin สร้างพนักงานโดยไม่มีรหัสในเอกสาร',   true,  () => create(admin, 'employees', rid(), { empId: 'T1', fullName: 'ทดสอบ' })],
   ['admin สร้างพนักงานพร้อม m365Password',     false, () => create(admin, 'employees', rid(), { empId: 'T2', m365Password: 'x' })],
+  // ไฟล์แนบใหญ่ที่แบ่งเป็นชิ้น (subcollection chunks) — เดิมตกกฎปฏิเสธทั้งหมด ไฟล์ใหญ่บันทึกไม่ได้
+  ['admin บันทึกชิ้นไฟล์แนบประวัติถือครอง',     true,  () => create(admin, 'transaction_attachments/ta1/chunks', rid(), { data: 'AAAA' })],
+  ['admin บันทึกชิ้นเอกสารการซื้อ',            true,  () => create(admin, 'asset_purchase_docs/pd1/chunks', rid(), { data: 'AAAA' })],
+  ['admin อ่านชิ้นเอกสารการซื้อ',              true,  () => get(admin, 'asset_purchase_docs/pd1/chunks')],
+  ['staff บันทึกชิ้นไฟล์แนบ',                  false, () => create(staff2, 'transaction_attachments/ta1/chunks', rid(), { data: 'AAAA' })],
+  ['staff อ่านชิ้นเอกสารการซื้อ',              false, () => get(staff2, 'asset_purchase_docs/pd1/chunks')],
   // คนนอก / ไม่ login
   ['บัญชีที่สมัครเอง อ่านรหัส M365',           false, () => get(stranger, 'employee_secrets/emp1')],
   ['ไม่ login อ่านรหัส M365',                 false, () => get(null, 'employee_secrets/emp1')],

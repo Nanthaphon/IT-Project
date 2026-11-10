@@ -16,7 +16,8 @@
     "migrate:m365": "node scripts/migrate-m365-secrets.mjs",
     "test": "node --test src/**/*.test.mjs",
     "test:supabase": "node --test scripts/supabase/*.test.mjs",
-    "smoke:supabase": "node scripts/supabase/smoke-test.mjs"
+    "smoke:supabase": "node scripts/supabase/smoke-test.mjs",
+    "verify:supabase": "node scripts/supabase/verify-import.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

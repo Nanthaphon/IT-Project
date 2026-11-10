@@ -16,7 +16,10 @@ loadEnv();   // GOOGLE_APPLICATION_CREDENTIALS อ่านจาก .env.migrat
 
 const PROJECT = 'it-asset-management-dc883';
 const prod = process.argv.includes('--prod');
-if (!prod) process.env.FIRESTORE_EMULATOR_HOST ||= '127.0.0.1:8080';
+if (!prod) {
+  process.env.FIRESTORE_EMULATOR_HOST ||= '127.0.0.1:8080';
+  process.env.FIREBASE_AUTH_EMULATOR_HOST ||= '127.0.0.1:9099';
+}
 if (prod && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   console.error('❌ --prod ต้องตั้ง GOOGLE_APPLICATION_CREDENTIALS เป็นไฟล์ service account ก่อน (ใน terminal หรือ .env.migration.local)');
   process.exit(1);
@@ -43,6 +46,18 @@ for (const col of await db.listCollections()) {
   // collection ที่ไม่มีตารางรองรับ — เก็บไว้ดูแยก ไม่ทิ้ง
   (TOP_TABLES.includes(col.id) ? out.tables : out.unknown)[col.id] = rows;
   counts[col.id] = rows.length;
+}
+
+/* ผู้ดูแลที่เอกสารไม่มีอีเมล (เช่น Super Admin ที่สร้างไว้ก่อนมีหน้าจัดการผู้ใช้)
+   → หาอีเมลจากระบบล็อกอินของ Firebase ด้วย uid · สคริปต์นำเข้าต้องใช้อีเมลสร้างบัญชีใน Supabase */
+for (const row of out.tables.admin_users || []) {
+  if (String(row.data.email || '').trim()) continue;
+  try {
+    const u = await admin.auth().getUser(row.id);
+    if (u.email) { row.data.email = u.email; console.log(`ℹ️ admin_users/${row.id.slice(0, 6)}… ใช้อีเมลจากระบบล็อกอิน`); }
+  } catch (e) {
+    console.warn(`⚠️ admin_users/${row.id.slice(0, 6)}… ไม่มีอีเมลและหาในระบบล็อกอินไม่เจอ (${e.code || e.message})`);
+  }
 }
 
 mkdirSync('.supabase-export', { recursive: true });

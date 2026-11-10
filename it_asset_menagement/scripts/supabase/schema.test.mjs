@@ -3,10 +3,8 @@
    แต่ละเคสเทียบกับกฎเดิมใน firestore.rules */
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { PGlite } from '@electric-sql/pglite';
+import { createTestDb } from './pgliteBackend.mjs';
 
-const MIGRATION = new URL('../../supabase/migrations/20261110000000_init.sql', import.meta.url);
 let db;
 
 const ADMIN = { role: 'authenticated', sub: 'admin-uid' };
@@ -25,9 +23,7 @@ async function as(claims, sql, params = []) {
 const denied = (p) => assert.rejects(p, /row-level security|permission denied|staff แก้ได้|แก้ได้เฉพาะ/);
 
 before(async () => {
-  db = new PGlite();
-  for (const r of ['anon', 'authenticated', 'service_role']) await db.exec(`create role ${r} nologin`);
-  await db.exec(readFileSync(MIGRATION, 'utf8'));
+  db = await createTestDb();   // รันทุกไฟล์ใน supabase/migrations ตามลำดับ
   await db.exec(`
     insert into admin_users (id, data) values ('admin-uid', '{"email":"a@x"}'), ('super-uid', '{"email":"s@x","isSuperAdmin":true}');
     insert into employees (id, data) values ('emp-a', '{"empId":"1010001","fullName":"ก","manager":"ข"}'),

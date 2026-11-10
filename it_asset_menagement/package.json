@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@supabase/supabase-js": "^2.119.0",
     "firebase": "^12.11.0",
     "firebase-admin": "^12.7.0",
     "jszip": "^3.10.1",

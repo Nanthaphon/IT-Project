@@ -1,6 +1,6 @@
 # ย้ายฐานข้อมูลจาก Firebase ไป Supabase
 
-สถานะ: **ระยะที่ 1 เสร็จ** (โครงสร้างฐานข้อมูล + สิทธิ์ + สคริปต์ย้ายข้อมูล) · อยู่บน branch `supabase-migration`
+สถานะ: **ระยะที่ 1 เสร็จ · ระยะที่ 2 เสร็จส่วนที่ไม่ต้องใช้โปรเจคจริง** · อยู่บน branch `supabase-migration`
 เว็บจริงยังใช้ Firebase ตามเดิม จนกว่าจะถึงวันสลับระบบ (ระยะที่ 5)
 
 ## แนวทางที่เลือก
@@ -25,7 +25,8 @@
 | | งาน | สถานะ |
 |---|---|---|
 | 1 | โครงสร้างตาราง + สิทธิ์ (RLS แปลจาก `firestore.rules` ทีละข้อ) · สคริปต์ส่งออก/นำเข้าข้อมูล | ✅ เทสต์ผ่าน |
-| 2 | ชั้นเชื่อม `src/db/` (หน้าตาเหมือน `firebase/firestore`) + realtime แทน onSnapshot · เปลี่ยน import 14 ไฟล์ | ⬜ รอโปรเจค Supabase |
+| 2 | ชั้นเชื่อม `src/db/compat.js` (หน้าตาเหมือน `firebase/firestore`) + realtime แทน onSnapshot | ✅ เทสต์ผ่านบน Postgres จริง (PGlite) |
+| 2b | เปลี่ยน import 14 ไฟล์ → `src/db/compat.js` · ตรวจ realtime กับ Supabase จริง | ⬜ รอโปรเจค Supabase |
 | 3 | เข้าสู่ระบบ: admin → Supabase Auth · พนักงาน → `api/staff-login` ออก JWT ของ Supabase · ฟังก์ชัน `api/` 8 ไฟล์เปลี่ยนจาก firebase-admin | ⬜ |
 | 4 | รูป/ไฟล์แนบ → Supabase Storage (แก้ปัญหา Firebase Storage ที่เปิดไม่ได้มาตลอด) | ⬜ |
 | 5 | วันสลับระบบ: หยุดแก้ข้อมูล ~1 ชม. → ส่งออกข้อมูลจริง → นำเข้า → เปลี่ยนค่าตั้งค่า → ตรวจ · Firebase เก็บไว้อ่านอย่างเดียว 30 วันเผื่อย้อนกลับ | ⬜ |
@@ -64,10 +65,14 @@ node scripts/supabase/import-to-supabase.mjs <ไฟล์>              # น�
 | ไฟล์ | หน้าที่ |
 |---|---|
 | `supabase/migrations/20261110000000_init.sql` | ตาราง 23 + `doc_chunks` (ไฟล์แนบแบ่งชิ้นทุกแบบ) · สิทธิ์ · trigger · realtime |
-| `scripts/supabase/schema.test.mjs` | เทสต์สิทธิ์ 12 กรณีเทียบ `firestore.rules` |
+| `scripts/supabase/schema.test.mjs` | เทสต์สิทธิ์ 12 กรณีเทียบ `firestore.rules` (รันทุกไฟล์ migration) |
 | `scripts/supabase/export-firestore.mjs` | Firestore → JSON (อ่านอย่างเดียว) |
 | `scripts/supabase/import-to-supabase.mjs` | JSON → Supabase · สร้างบัญชีผู้ดูแลจากอีเมลเดิม |
 | `src/db/codec.js` | แปลง Timestamp ↔ JSON · path → ตาราง (ใช้ร่วมสคริปต์ + ชั้นเชื่อม) |
+| `supabase/migrations/20261110000100_doc_write.sql` | ฟังก์ชันเขียนเอกสารแบบ Firestore (create/set/merge/update · path ลึก · ลบฟิลด์) ภายใต้ RLS |
+| `src/db/compat.js` | คำสั่งแบบ Firestore บน backend ใดก็ได้ — ข้อต่างจาก Firestore เขียนไว้หัวไฟล์ |
+| `src/db/supabaseBackend.js` · `supabaseClient.js` | backend จริง (supabase-js · realtime) · ตั้งค่าจาก `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` |
+| `scripts/supabase/compat.test.mjs` · `pgliteBackend.mjs` | เทสต์ชั้นเชื่อม 8 กรณี บน PGlite + RLS |
 
 ## สิ่งที่ต้องรู้
 

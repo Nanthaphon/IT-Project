@@ -1,0 +1,16 @@
+# อัปขึ้น Vercel เฉพาะไฟล์ที่ต้องใช้ build/รัน — ที่เหลือห้ามขึ้น (รายการอนุญาต)
+# กันหลุด: .env*.local (คีย์ service role) · .supabase-export (ข้อมูลส่วนบุคคล) · ไฟล์ preview
+/*
+!/package.json
+!/package-lock.json
+!/index.html
+!/vite.config.js
+!/vercel.json
+!/src
+!/public
+!/api
+!/scripts
+/scripts/*
+!/scripts/supabase
+/scripts/supabase/*
+!/scripts/supabase/loadEnv.mjs

@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════════════════
    ชั้นเชื่อมฐานข้อมูล — หน้าตาเหมือน 'firebase/firestore' แต่ข้างในคุยกับ Supabase
-   วันสลับระบบ: เปลี่ยน import { ... } from 'firebase/firestore' → from '../db/compat.js'
+   แอปทั้งหมด import คำสั่งฐานข้อมูลจากไฟล์นี้แล้ว (branch supabase-migration)
    โค้ดหน้าจอเดิมไม่ต้องแก้
 
    รองรับเฉพาะที่แอปใช้จริง: collection · doc · addDoc · setDoc (merge) · updateDoc (path แบบ "a.b")

@@ -9,7 +9,8 @@ import {
 } from '../../src/db/compat.js';
 
 const ADMIN = { role: 'authenticated', sub: 'admin-uid' };
-const STAFF = { role: 'authenticated', sub: 'emp-a', app_role: 'staff', emp_id: '1010001', emp_doc_id: 'emp-a' };
+// เหมือน JWT ที่ Supabase Auth ออกให้พนักงาน (api/staff-login ตั้ง app_metadata) — sub = uid ของบัญชี ไม่ใช่ id พนักงาน
+const STAFF = { role: 'authenticated', sub: 'staff-uid-a', app_metadata: { provider: 'email', app_role: 'staff', emp_id: '1010001', emp_doc_id: 'emp-a' } };
 let pg; let adminBe; let staffBe;
 const db = getFirestore();
 const asAdmin = () => configureBackend(adminBe);

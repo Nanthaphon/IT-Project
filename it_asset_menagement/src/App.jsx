@@ -32,8 +32,8 @@ function parseRoute(pathname) {
   const furnitureEdit = !!(furnitureId && seg[2] === 'edit'); // /furniture/:id/edit
   return { menu, assetId, assetEdit, employeeId, licenseId, licenseEdit, accessoryId, accessoryEdit, furnitureId, furnitureEdit };
 }
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField, writeBatch } from 'firebase/firestore';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithStaffSession, onPasswordRecovery } from './db/auth.js';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc, getDoc, onSnapshot, deleteField, writeBatch } from './db/compat.js';
 import { loadM365Password, saveM365Password, splitM365Password, SECRETS_COLLECTION } from './utils/employeeSecrets.js';
 import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
 import { COMPANIES } from './ui/theme.js';
@@ -315,6 +315,9 @@ function App() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: 'ยืนยัน', cancelText: 'ยกเลิก', icon: 'warning' });
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
   const [changePasswordModal, setChangePasswordModal] = useState(false);
+  // เปิดจากลิงก์ "ลืมรหัสผ่าน" ในอีเมล → หน้าต่างตั้งรหัสใหม่ที่ไม่ต้องกรอกรหัสเดิม
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
+  useEffect(() => onPasswordRecovery(() => { setPasswordRecovery(true); setChangePasswordModal(true); }), []);
 
   // 🆕 localStorage helper (ต้องประกาศก่อน useState ที่เรียกใช้)
   //    type-check ค่าที่ load มา ต้องตรงกับ shape ของ fallback (Array/Object)
@@ -512,7 +515,8 @@ function App() {
         } else {
           // Admin/HR — อ่าน admin_users เฉพาะเมื่อ email ขึ้นต้น hr@ เท่านั้น
           //   (isManagedAdmin มีผลต่อการแยก hr/admin เฉพาะเคส hr@ — admin ปกติไม่ต้องอ่าน → ลด 1 round trip)
-          const isHrEmail = !!user.email && user.email.toLowerCase().startsWith('hr@');
+          //   บัญชี HR บน Supabase ตั้ง app_metadata.app_role = 'hr' (RLS ให้อ่านได้ — docs/SUPABASE-MIGRATION.md)
+          const isHrEmail = role === 'hr' || (!!user.email && user.email.toLowerCase().startsWith('hr@'));
           let isManagedAdmin = false;
           if (isHrEmail) {
             try {
@@ -676,7 +680,7 @@ function App() {
   };
 
   const handleLogout = async () => {
-    // ทุก role ที่ใช้ Firebase auth (admin/hr/staff) ให้ signOut
+    // ทุก role เป็นผู้ใช้ Supabase Auth (admin/hr/staff) ให้ signOut
     if (authRole === 'admin' || authRole === 'hr' || authRole === 'staff') {
       try { await signOut(auth); } catch (e) { /* ignore */ }
     }
@@ -697,7 +701,7 @@ function App() {
     }
     setLoginError(''); setLoginLoading(true);
     try {
-      // เรียก Vercel API /api/staff-login เพื่อรับ Firebase custom token
+      // เรียก Vercel API /api/staff-login — ตรวจรหัสแล้วคืน session ของ Supabase Auth
       const resp = await fetch(`${VERCEL_API_BASE}/api/staff-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -705,11 +709,11 @@ function App() {
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'เข้าสู่ระบบไม่สำเร็จ');
-      const { token, empDocId, mustChangePassword } = data;
-      if (!token) throw new Error('ระบบไม่ได้คืน token');
+      const { session, empDocId, mustChangePassword } = data;
+      if (!session?.access_token) throw new Error('ระบบไม่ได้คืน session');
 
-      // Sign in ด้วย custom token → request.auth.token.role === 'staff'
-      await signInWithCustomToken(auth, token);
+      // ตั้ง session ของพนักงาน → JWT มี app_metadata.app_role = 'staff' (RLS ใช้ตัวนี้)
+      await signInWithStaffSession(session);
 
       // ดึง employee doc มา set currentStaff
       const foundEmp = employees.find(emp => emp.id === empDocId);
@@ -3745,7 +3749,8 @@ function App() {
         confirmDeleteModal={confirmDeleteModal} setConfirmDeleteModal={setConfirmDeleteModal} executeDelete={executeDelete}
         confirmModal={confirmModal} handleConfirmModalOk={handleConfirmModalOk} closeConfirmModal={closeConfirmModal}
         resetPasswordModal={resetPasswordModal} setResetPasswordModal={setResetPasswordModal}
-        changePasswordModal={changePasswordModal} setChangePasswordModal={setChangePasswordModal}
+        changePasswordModal={changePasswordModal} setChangePasswordModal={(v) => { setChangePasswordModal(v); if (!v) setPasswordRecovery(false); }}
+        passwordRecovery={passwordRecovery}
         handleAssignLicenseToAsset={handleAssignLicenseToAsset}
         handleRevokeLicenseFromAsset={handleRevokeLicenseFromAsset}
         bundledItems={bundledItems} handleAddBundledItem={handleAddBundledItem} handleDeleteBundledItem={handleDeleteBundledItem}

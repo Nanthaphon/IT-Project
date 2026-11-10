@@ -6,7 +6,7 @@
 
    รูปแบบ: { entries: { [itemKey]: { start, expiry, cost } }, _savedAt }
    itemKey = `${licenseId}::${checkoutId}` (ดู licenseCoverItems) — คงที่ตราบที่ยังไม่คืน seat */
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from '../db/compat.js';
 import { db } from '../firebase.js';
 
 const REMOTE = () => doc(db, 'it_report', 'license_cover');

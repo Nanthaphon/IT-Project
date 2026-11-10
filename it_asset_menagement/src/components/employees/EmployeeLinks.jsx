@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ExternalLink, Link2, Plus, X } from 'lucide-react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from '../../db/compat.js';
 import { db } from '../../firebase.js';
 import { Popover } from '../../ui/earthUI.jsx';
 import { normalizeUrl, hostOf, newLinkId, linkLabel, cleanLinks } from '../../utils/links.js';

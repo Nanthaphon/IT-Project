@@ -1,58 +1,20 @@
 // Vercel serverless function — Staff change own password
-// (ใช้ Firebase ID token verify ตัวตน, ตรวจ current password, อัปเดต hash + clear mustChangePassword)
-import admin from 'firebase-admin';
-import crypto from 'node:crypto';
-
-if (!admin.apps.length) {
-  try {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT env var ไม่ได้ถูกตั้งค่า');
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
-  } catch (err) { console.error('Firebase Admin init failed:', err); }
-}
-
-const PBKDF2_ITERATIONS = 100_000;
-const PBKDF2_KEYLEN = 32;
-function hashPassword(password, salt) {
-  return crypto
-    .pbkdf2Sync(String(password), salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, 'sha256')
-    .toString('hex');
-}
-function timingSafeEqual(a, b) {
-  const ab = Buffer.from(String(a), 'utf8');
-  const bb = Buffer.from(String(b), 'utf8');
-  if (ab.length !== bb.length) return false;
-  return crypto.timingSafeEqual(ab, bb);
-}
-
-function isAllowedOrigin(origin) {
-  if (!origin) return false;
-  const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-  const defaults = ['http://localhost:5173', 'http://localhost:4173'];
-  return allowed.includes(origin) || defaults.includes(origin);
-}
+// (ตรวจ token ของ Supabase Auth · ตรวจรหัสเดิม · อัปเดต hash + ล้าง mustChangePassword)
+import {
+  preflight, bearer, verifyCaller, getData, patchData, nowTs,
+  hashPassword, timingSafeEqual, newSalt, PBKDF2_ITERATIONS,
+} from './_lib/supabaseAdmin.js';
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  if (isAllowedOrigin(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (preflight(req, res)) return;
 
-  if (!admin.apps.length) return res.status(500).json({ error: 'Firebase Admin not initialized' });
+  const token = bearer(req);
+  if (!token) return res.status(401).json({ error: 'Missing auth token' });
+  const caller = await verifyCaller(token).catch(() => null);
+  if (!caller) return res.status(401).json({ error: 'Invalid or expired token' });
 
-  // verify caller is signed-in staff
-  const idToken = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
-  if (!idToken) return res.status(401).json({ error: 'Missing auth token' });
-
-  let decoded;
-  try { decoded = await admin.auth().verifyIdToken(idToken); }
-  catch { return res.status(401).json({ error: 'Invalid or expired token' }); }
-
-  // ต้องเป็น role='staff' เท่านั้น
-  if (decoded.role !== 'staff' || !decoded.empDocId) {
+  // ต้องเป็นพนักงานเท่านั้น
+  if (caller.role !== 'staff' || !caller.empDocId) {
     return res.status(403).json({ error: 'ใช้สำหรับ staff เท่านั้น' });
   }
 
@@ -62,29 +24,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'กรุณากรอกรหัสผ่านเดิม' });
     }
 
-    const dbRef = admin.firestore();
-    const pwdSnap = await dbRef.collection('staff_passwords').doc(decoded.empDocId).get();
-    if (!pwdSnap.exists) return res.status(404).json({ error: 'ไม่พบข้อมูลรหัสผ่าน' });
-
-    const { hash, salt } = pwdSnap.data();
-    const inputHash = hashPassword(currentPassword, salt);
-    if (!timingSafeEqual(inputHash, hash)) {
+    const pwd = await getData('staff_passwords', caller.empDocId);
+    if (!pwd) return res.status(404).json({ error: 'ไม่พบข้อมูลรหัสผ่าน' });
+    if (!pwd.salt || !timingSafeEqual(hashPassword(currentPassword, pwd.salt), pwd.hash)) {
       return res.status(403).json({ error: 'รหัสผ่านเดิมไม่ถูกต้อง' });
     }
 
-    // ── โหมด "reset to default": ตั้งรหัสผ่านกลับเป็น empId ──
     let finalNewPassword;
     let isDefault = false;
     if (resetToDefault === true) {
-      // ดึง empId จาก employees doc (อย่าใช้ claim เผื่อข้อมูลเปลี่ยน)
-      const empSnap = await dbRef.collection('employees').doc(decoded.empDocId).get();
-      if (!empSnap.exists) return res.status(404).json({ error: 'ไม่พบข้อมูลพนักงาน' });
-      const empId = String(empSnap.data().empId || '').trim();
+      // ── ตั้งกลับเป็นรหัสพนักงาน — อ่านจาก employees (ไม่ใช้ค่าใน token เผื่อข้อมูลเปลี่ยน) ──
+      const emp = await getData('employees', caller.empDocId);
+      if (!emp) return res.status(404).json({ error: 'ไม่พบข้อมูลพนักงาน' });
+      const empId = String(emp.empId || '').trim();
       if (!empId) return res.status(500).json({ error: 'ไม่พบรหัสพนักงาน' });
       finalNewPassword = empId;
       isDefault = true;
     } else {
-      // ── โหมดตั้งรหัสผ่านใหม่ ──
       if (typeof newPassword !== 'string' || newPassword.length < 6) {
         return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' });
       }
@@ -94,20 +50,17 @@ export default async function handler(req, res) {
       finalNewPassword = newPassword;
     }
 
-    // generate new salt + hash, clear mustChangePassword
-    const newSalt = crypto.randomBytes(16).toString('hex');
-    const newHash = hashPassword(finalNewPassword, newSalt);
-
-    await dbRef.collection('staff_passwords').doc(decoded.empDocId).set({
-      hash: newHash,
-      salt: newSalt,
+    const salt = newSalt();
+    await patchData('staff_passwords', caller.empDocId, {
+      hash: hashPassword(finalNewPassword, salt),
+      salt,
       iterations: PBKDF2_ITERATIONS,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedBy: decoded.uid,
+      updatedAt: nowTs(),
+      updatedBy: caller.uid,
       mustChangePassword: false,
       isDefault,
-      plaintext: finalNewPassword,  // ⚠️ visibility สำหรับ admin
-    }, { merge: true });
+      plaintext: finalNewPassword,  // ⚠️ ให้ admin เห็น
+    });
 
     return res.status(200).json({ success: true, isDefault });
   } catch (err) {

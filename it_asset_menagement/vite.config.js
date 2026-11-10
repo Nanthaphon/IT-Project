@@ -1,27 +1,40 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
+import { Buffer } from 'node:buffer'
+import { loadEnv as loadMigrationEnv } from './scripts/supabase/loadEnv.mjs'
 
-/* ตอน dev ให้ vite ส่งต่อ /api ไปที่ Vercel เอง
-   เดิมเบราว์เซอร์เรียก Vercel ตรง ซึ่ง CORS อนุญาตแค่ localhost:5173
-   พอพอร์ตเปลี่ยน (5173 ถูกโปรเจคอื่นใช้ → vite ขยับไป 5174/5175) เข้าสู่ระบบพนักงานขึ้น "Failed to fetch"
-   ผ่าน proxy แล้วเบราว์เซอร์เห็นเป็น origin เดียวกัน ใช้ได้ทุกพอร์ต
-   โหมด emulator ไม่ใช้ proxy — ไม่งั้นจะไปเรียก API ตัวจริงที่ผูกกับ Firestore จริง */
-const VERCEL_API = 'https://itassetmenagement.vercel.app'
+/* ตอน dev รันฟังก์ชันใน api/ ในเครื่องเอง (แบบเดียวกับ Vercel) ต่อ Supabase ตาม .env.local
+   เดิม proxy ไป Vercel ตัวจริง — ตัวจริงยังผูก Firebase จนถึงวันสลับ เรียกจากที่นี่จะได้ token คนละระบบ
+   ค่าลับ SUPABASE_SERVICE_ROLE_KEY อ่านจาก .env.migration.local (ไม่ขึ้น git · ไม่เข้า bundle หน้าเว็บ)
+   ไม่มีค่าลับในเครื่อง → ฟังก์ชันตอบ 500 "ระบบยังไม่พร้อม" (หน้าอื่นยังใช้ได้ ยกเว้นล็อกอินพนักงาน/จัดการรหัส) */
+function localApi() {
+  return {
+    name: 'local-vercel-api',
+    configureServer(server) {
+      loadMigrationEnv()
+      server.middlewares.use('/api', async (req, res, next) => {
+        const name = (req.url || '').split('?')[0].replace(/^\/+|\/+$/g, '')
+        if (!/^[a-z0-9-]+$/.test(name)) return next()
+        let mod
+        try { mod = await server.ssrLoadModule(`/api/${name}.js`) } catch { return next() }
+        const chunks = []
+        for await (const c of req) chunks.push(c)
+        const raw = Buffer.concat(chunks).toString('utf8')
+        try { req.body = raw && /json/.test(req.headers['content-type'] || '') ? JSON.parse(raw) : raw } catch { req.body = {} }
+        res.status = (code) => { res.statusCode = code; return res }
+        res.json = (obj) => { if (!res.getHeader('Content-Type')) res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(obj)); return res }
+        try { await mod.default(req, res) } catch (e) {
+          console.error(`[api/${name}]`, e)
+          if (!res.headersSent) res.status(500).json({ error: e.message })
+        }
+      })
+    },
+  }
+}
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   plugins: [
     tailwindcss(),
+    localApi(),
   ],
-  server: mode === 'emulator' ? {} : {
-    proxy: {
-      '/api': {
-        target: VERCEL_API,
-        changeOrigin: true,
-        configure: (proxy) => {
-          // ไม่ส่ง Origin ของ localhost ต่อ — ฝั่ง Vercel มองเป็นคำขอจากเซิร์ฟเวอร์ ไม่ใช่เบราว์เซอร์
-          proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
-        },
-      },
-    },
-  },
 }))

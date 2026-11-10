@@ -2,24 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { db, auth, VERCEL_API_BASE } from '../firebase.js';
 import {
   collection, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp,
-} from 'firebase/firestore';
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+} from '../db/compat.js';
 import { Plus, Pencil, Trash2, Users, Shield, Eye, CheckSquare, Square, X, KeyRound } from 'lucide-react';
 import { cls, BRAND } from '../ui/theme.js';
 import { formatDateShort } from '../utils/formatDate.js';
 
-/* ── Firebase secondary app (to create users without logging out) ── */
-const firebaseConfig = {
-  apiKey: "AIzaSyAyOWP7fsCUYh2cevBPBpehP85p7tuy-hM",
-  authDomain: "it-asset-management-dc883.firebaseapp.com",
-  projectId: "it-asset-management-dc883",
-  storageBucket: "it-asset-management-dc883.firebasestorage.app",
-  messagingSenderId: "897937967642",
-  appId: "1:897937967642:web:9b0ccc5ca28a8c57f55fa3",
-};
-const secondaryApp = getApps().find(a => a.name === 'Secondary') || initializeApp(firebaseConfig, 'Secondary');
-const secondaryAuth = getAuth(secondaryApp);
+/* สร้างบัญชีเข้าสู่ระบบของผู้ดูแล — ทำที่ api/create-admin-user (Supabase service role)
+   ไม่สร้างจากหน้าเว็บเอง: ผู้ดูแลที่กดสร้างไม่หลุดจากระบบ และปิดการสมัครเองใน Supabase ได้
+   Email มีบัญชีอยู่แล้ว (เช่น เคยลบแค่สิทธิ์) → API ตั้งรหัสผ่านใหม่ให้แล้วใช้บัญชีเดิม */
+async function createAdminAccount(email, password) {
+  const idToken = await auth.currentUser.getIdToken();
+  const resp = await fetch(`${VERCEL_API_BASE}/api/create-admin-user`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(data.error || `สร้างบัญชีไม่สำเร็จ (HTTP ${resp.status})`);
+  return data.uid;
+}
 
 /* ── Menu definitions ── */
 const ALL_MENU_IDS = [
@@ -143,7 +144,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       if (!resp.ok) {
         const fallback =
           resp.status === 404
-            ? 'ไม่พบ API endpoint (/api/set-password) — ต้อง deploy บน Vercel หรือรัน `vercel dev` ในเครื่อง'
+            ? 'ไม่พบ API endpoint (/api/set-password) — ต้อง deploy บน Vercel หรือรัน npm run dev'
             : `รีเซ็ตรหัสผ่านไม่สำเร็จ (HTTP ${resp.status})`;
         throw new Error(data.error || fallback);
       }
@@ -179,33 +180,7 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
         if (!form.password.trim()) { setError('กรุณากรอกรหัสผ่าน'); setSaving(false); return; }
         if (form.password.length < 6) { setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); setSaving(false); return; }
 
-        let newUid;
-        try {
-          // สร้าง Auth account ใหม่
-          const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email.trim(), form.password);
-          newUid = cred.user.uid;
-          await secondaryAuth.signOut();
-        } catch (authErr) {
-          if (authErr.code === 'auth/email-already-in-use') {
-            // Auth account ยังอยู่ (เช่น ลบ Firestore แต่ไม่ได้ลบ Auth)
-            // → ให้ admin reset password ผ่าน set-password API แล้ว reuse account นั้น
-            // ดึง UID จาก email ผ่าน Vercel API (Admin SDK getUserByEmail)
-            const idToken = await auth.currentUser.getIdToken();
-            const lookupResp = await fetch(`${VERCEL_API_BASE}/api/set-password`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-              body: JSON.stringify({ idToken, targetEmail: form.email.trim(), newPassword: form.password, lookupByEmail: true }),
-            });
-            if (!lookupResp.ok) {
-              const d = await lookupResp.json().catch(() => ({}));
-              throw new Error('Email นี้มีบัญชีอยู่แล้วในระบบ Firebase Auth — กรุณาลบบัญชีเก่าให้ถูกต้องก่อน หรือติดต่อผู้ดูแลระบบ\n(' + (d.error || '') + ')');
-            }
-            const d = await lookupResp.json();
-            newUid = d.uid;
-          } else {
-            throw authErr;
-          }
-        }
+        const newUid = await createAdminAccount(form.email.trim(), form.password);
 
         await setDoc(doc(db, 'admin_users', newUid), {
           uid: newUid,
@@ -219,17 +194,16 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
       setModalOpen(false);
     } catch (err) {
       console.error(err);
-      if (err.code === 'auth/invalid-email') setError('รูปแบบ Email ไม่ถูกต้อง');
-      else setError(err.message || 'เกิดข้อผิดพลาด');
+      setError(err.message || 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }
   }
 
-  /* ── Delete — ลบทั้ง Firestore doc + Firebase Auth account ── */
+  /* ── Delete — ลบทั้งแถว admin_users + บัญชีเข้าสู่ระบบ ── */
   async function handleDelete(user) {
     try {
-      // 1. ลบ Firebase Auth account ผ่าน Vercel API (ต้องใช้ Admin SDK)
+      // 1. ลบบัญชีเข้าสู่ระบบผ่าน Vercel API (service role)
       try {
         const idToken = await auth.currentUser.getIdToken();
         const resp = await fetch(`${VERCEL_API_BASE}/api/delete-user`, {
@@ -246,10 +220,10 @@ export default function UserManagementPage({ isSuperAdmin = false, canManagePass
         }
       } catch (authErr) {
         // ถ้าลบ Auth ไม่ได้ (เช่น endpoint ยังไม่ deploy) ก็ยังลบ Firestore ต่อ
-        console.warn('delete Firebase Auth failed (continuing):', authErr.message);
+        console.warn('delete auth account failed (continuing):', authErr.message);
       }
 
-      // 2. ลบ Firestore doc
+      // 2. ลบแถว admin_users
       await deleteDoc(doc(db, 'admin_users', user.id));
       setConfirmDelete(null);
     } catch (err) {

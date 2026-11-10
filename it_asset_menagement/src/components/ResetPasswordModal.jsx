@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { getAuth, sendPasswordResetEmail } from '../db/auth.js';
 import { KeyRound } from 'lucide-react';
 import { BRAND, cls } from '../ui/theme.js';
 

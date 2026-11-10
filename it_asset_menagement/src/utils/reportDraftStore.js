@@ -7,7 +7,7 @@
    localStorage ยังเขียนคู่ไว้เป็นสำรอง (ออฟไลน์ / Firestore ล้ม) และใช้ย้ายข้อมูลครั้งแรก
    ทุกร่างมี _savedAt (ms) — โหลดแล้วเลือกก้อนที่ใหม่กว่า
    ร่างเก่าใน localStorage ไม่มี _savedAt → ถือว่าเก่ากว่าของใน Firestore เสมอ */
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from '../db/compat.js';
 import { db } from '../firebase.js';
 import { pickDraft } from './reportDraftPick.js';
 export { hasContent } from './reportDraftPick.js';

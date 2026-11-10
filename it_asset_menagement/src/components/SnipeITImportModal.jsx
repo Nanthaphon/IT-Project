@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AlertTriangle, Banknote, Building2, Calendar, CheckCircle2, CircleSlash, ClipboardList, Eye, FileSpreadsheet, Layers, Loader2, Package, Upload, X } from 'lucide-react';
 import { db } from '../firebase.js';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from '../db/compat.js';
 
 /* ════════════════════════════════════════════════
    CSV parser — รองรับ quoted fields + comma in fields

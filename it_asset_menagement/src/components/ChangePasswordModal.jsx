@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { getAuth, verifyPassword, updatePassword } from '../db/auth.js';
 import { KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
 import { BRAND, cls } from '../ui/theme.js';
 
-export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onError }) {
+/* recovery = เปิดจากลิงก์ "ลืมรหัสผ่าน" ในอีเมล — ยืนยันตัวตนด้วยลิงก์แล้ว ไม่ต้องกรอกรหัสเดิม */
+export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onError, recovery = false }) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword]         = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,6 +29,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
     { label: 'มีตัวเลข 0-9',              ok: /\d/.test(newPassword) },
     { label: 'ไม่เหมือนรหัสผ่านเดิม',       ok: newPassword.length > 0 && newPassword !== currentPassword },
   ];
+  if (recovery) rules.pop();   // ไม่รู้รหัสเดิม — ข้ามข้อ "ไม่เหมือนรหัสผ่านเดิม"
   const passedAll = rules.every(r => r.ok);
   const matchOk   = confirmPassword.length > 0 && newPassword === confirmPassword;
 
@@ -45,24 +47,27 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
       const user = auth.currentUser;
       if (!user || !user.email) throw new Error('ไม่พบข้อมูลผู้ใช้ปัจจุบัน');
 
-      // 1) re-authenticate (ความปลอดภัย: ต้องยืนยันรหัสเก่า)
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
+      // 1) ยืนยันรหัสเก่า (ความปลอดภัย) — โหมดลิงก์จากอีเมลยืนยันตัวตนแล้ว ข้ามได้
+      if (!recovery) await verifyPassword(user.email, currentPassword);
 
       // 2) update password
-      await updatePassword(user, newPassword);
+      await updatePassword(newPassword);
 
       onSuccess('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
       handleClose();
     } catch (error) {
       const code = error?.code || '';
       let msg = error?.message || 'เกิดข้อผิดพลาดที่ไม่รู้จัก';
-      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      if (code === 'invalid_credentials') {
         msg = 'รหัสผ่านปัจจุบันไม่ถูกต้อง';
-      } else if (code === 'auth/weak-password') {
+      } else if (code === 'weak_password') {
         msg = 'รหัสผ่านใหม่ไม่ปลอดภัย (สั้นเกินไป)';
-      } else if (code === 'auth/requires-recent-login') {
+      } else if (code === 'same_password') {
+        msg = 'รหัสผ่านใหม่ต้องไม่เหมือนรหัสผ่านเดิม';
+      } else if (code === 'reauthentication_needed' || code === 'session_not_found') {
         msg = 'กรุณาออกจากระบบและเข้าสู่ระบบใหม่ก่อนเปลี่ยนรหัสผ่าน';
+      } else if (code === 'over_request_rate_limit') {
+        msg = 'ลองหลายครั้งเกินไป — รอสักครู่แล้วลองใหม่';
       }
       setFieldError(msg);
       onError?.(msg);
@@ -86,7 +91,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             <KeyRound className="h-6 w-6" strokeWidth={2} />
           </div>
           <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
-            เปลี่ยนรหัสผ่าน
+            {recovery ? 'ตั้งรหัสผ่านใหม่' : 'เปลี่ยนรหัสผ่าน'}
           </h3>
         </div>
 
@@ -102,7 +107,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
           )}
 
           {/* current password */}
-          <Field label="รหัสผ่านปัจจุบัน" required>
+          {!recovery && <Field label="รหัสผ่านปัจจุบัน" required>
             <PasswordInput
               value={currentPassword}
               onChange={setCurrentPassword}
@@ -111,7 +116,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
               placeholder="ใส่รหัสผ่านปัจจุบัน"
               autoFocus
             />
-          </Field>
+          </Field>}
 
           {/* new password */}
           <Field label="รหัสผ่านใหม่" required>
@@ -170,7 +175,7 @@ export default function ChangePasswordModal({ isOpen, onClose, onSuccess, onErro
             </button>
             <button
               type="submit"
-              disabled={isLoading || !passedAll || !matchOk || !currentPassword}
+              disabled={isLoading || !passedAll || !matchOk || (!recovery && !currentPassword)}
               className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: BRAND.primary, boxShadow: `0 4px 12px ${BRAND.primary}40` }}
             >

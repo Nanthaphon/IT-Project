@@ -65,7 +65,7 @@
 
 `#52ab98` เหมาะเป็น **พื้นอ่อน/จุดสถานะ/เส้นกราฟ** ไม่ใช่พื้นปุ่มที่มีตัวอักษรขาว
 
-## การรันเพื่อทดสอบ — ใช้ emulator เสมอ
+## การรันเพื่อทดสอบ — ใช้ emulator เสมอ (เฉพาะ branch main ที่ยังเป็น Firebase · branch supabase-migration ดูหัวข้อ Supabase ท้ายไฟล์)
 
 `npm run dev` ต่อ **Firestore ตัวจริง** การแก้ UI แล้ว hot-reload ซ้ำ ๆ
 จึงกินโควตาจนระบบใช้งานไม่ได้
@@ -241,7 +241,7 @@ src/
     printLicenseCover.js     ใบคลุมต่ออายุโปรแกรม — รายการละ โปรแกรม + ผู้ถือครอง 1 คน · หลายรายการรวมหน้าเดียว 2 คอลัมน์ ไม่มีลายเซ็น · วันที่/ราคาผู้ใช้กรอกเอง (ว่าง = เส้นจุด) บันทึกอัตโนมัติที่ it_report/license_cover (licenseCoverStore.js) ไม่แตะ licenses (ปุ่ม "ใบคลุม" / "พิมพ์ใบคลุม" หน้า License)
     printLicenseList.js      รายการโปรแกรม + ผู้ถือครองทั้งหมดแบบตาราง (A4 แนวนอน) — ปุ่ม "พิมพ์รายการ" ตอนติ๊กโปรแกรม · วันที่/ราคาใช้ค่าที่กรอกในใบคลุมก่อน ไม่มีค่อยใช้ข้อมูลระบบ · รวมราคาท้ายตาราง
     uploadPhoto.js           อัปโหลดรูป — ตอนนี้เก็บ base64 ตรง (Storage ยังไม่ได้เปิด: bucket 404 · `STORAGE_ENABLED=false`)
-api/                         Vercel Functions (staff auth, Teams notify)
+api/                         Vercel Functions (staff auth, Teams notify) · branch supabase-migration: service role ผ่าน api/_lib/
 ```
 
 ### หมายเหตุสำคัญ
@@ -296,11 +296,16 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 
-### ย้ายไป Supabase (กำลังทำ — branch `supabase-migration`)
+### ย้ายไป Supabase (branch `supabase-migration` — ใช้ Supabase แล้ว · main ยังเป็น Firebase)
 
-แผน + สิ่งที่เจ้าของต้องทำ: `docs/SUPABASE-MIGRATION.md` · แนวทาง = 1 collection = 1 ตาราง (`id`, `data jsonb`)
-แก้สิทธิ์ใน `firestore.rules` ต้องแก้ `supabase/migrations/*.sql` คู่กัน แล้วรัน `npm run test:supabase` (PGlite ไม่ต้องมี Docker)
-เพิ่ม collection ใหม่ = เพิ่มตารางใน migration + `TOP_TABLES` ใน `src/db/codec.js`
+แผน + เช็กลิสต์วันสลับ + env: `docs/SUPABASE-MIGRATION.md` · แนวทาง = 1 collection = 1 ตาราง (`id`, `data jsonb`)
+- **บน branch นี้ไม่มี Firebase ในหน้าเว็บแล้ว** — `src/firebase.js` (ชื่อเดิม) ส่งออก `db` = compat · `auth` = `src/db/auth.js`
+  import คำสั่งฐานข้อมูลจาก `src/db/compat.js` (หน้าตาเหมือน `firebase/firestore`) · ห้าม import `firebase/*` ใน src อีก
+- สิทธิ์อยู่ที่ `supabase/migrations/*.sql` (ไม่ใช่ `firestore.rules`) → แก้แล้วรัน `npm run test:supabase` + สร้าง `supabase/setup.sql` ใหม่ (รวมทุกไฟล์)
+  migration ใหม่ต้องให้เจ้าของวางใน SQL Editor เอง (ไม่มีรหัสฐานข้อมูลในเครื่อง)
+- เพิ่ม collection ใหม่ = เพิ่มตารางใน migration + `TOP_TABLES` ใน `src/db/codec.js`
+- `api/` ใช้ service role ผ่าน `api/_lib/supabaseAdmin.js` · `npm run dev` รัน `api/` ในเครื่อง (vite.config.js) ค่าลับจาก `.env.migration.local`
+- พนักงาน = ผู้ใช้ Supabase Auth ที่ `api/staff-login` สร้าง (`app_metadata.app_role = 'staff'`) · ข้อมูลใน Supabase ตอนนี้เป็นสำเนาซ้อม
 
 ### ตรวจ syntax เร็วๆ หลังแก้ JSX
 ```bash

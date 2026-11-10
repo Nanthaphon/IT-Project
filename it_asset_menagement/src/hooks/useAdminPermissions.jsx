@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase.js';
 import {
   doc, getDoc, setDoc, getDocs, collection, serverTimestamp,
-} from 'firebase/firestore';
+} from '../db/compat.js';
 
 export const ALL_MENU_IDS = [
   'dashboard', 'assets', 'licenses', 'accessories', 'office_supplies',

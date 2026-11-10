@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, onSnapshot, getFirestore, doc } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { collection, onSnapshot, getFirestore, doc } from '../db/compat.js';
+import { getAuth, onAuthStateChanged } from '../db/auth.js';
 import { planCollections } from './firebaseNeeds.js';
 
 /**
@@ -17,7 +17,7 @@ export default function useFirebaseData(authRole = null, activeMenu = 'dashboard
   const auth = getAuth();
   const isSignedIn = authRole === 'admin' || authRole === 'hr' || authRole === 'staff';
 
-  // 🆕 รอจนกว่า Firebase Auth SDK จะ ready จริง (มี currentUser) ก่อน subscribe
+  // 🆕 รอจนกว่าระบบล็อกอิน (src/db/auth.js) ยืนยันว่ามี currentUser ก่อน subscribe
   //    แก้บั๊ก: login ครั้งแรก authRole='staff' แต่ Firestore SDK ยังไม่มี token
   //    → subscription ถูก reject เงียบๆ → ต้อง refresh page
   const [authUserReady, setAuthUserReady] = useState(!!auth.currentUser);

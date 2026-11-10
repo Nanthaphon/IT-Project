@@ -50,6 +50,7 @@ export default function ModalsContainer(props) {
       <ChangePasswordModal
         isOpen={props.changePasswordModal}
         onClose={() => props.setChangePasswordModal(false)}
+        recovery={props.passwordRecovery}
         onSuccess={(msg) => props.setCustomAlert({ isOpen: true, title: 'สำเร็จ!', message: msg, type: 'success' })}
         onError={(msg) => props.setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: msg, type: 'error' })}
       />

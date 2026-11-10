@@ -4,7 +4,7 @@
 
    ช่วงเปลี่ยนผ่าน (ก่อนรัน scripts/migrate-m365-secrets.mjs) ยังมีค่าเก่าค้างใน
    employees — loadM365Password จึง fallback ไปอ่านค่านั้นถ้ายังไม่มีเอกสารใหม่ */
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from '../db/compat.js';
 import { db } from '../firebase.js';
 
 export const SECRETS_COLLECTION = 'employee_secrets';

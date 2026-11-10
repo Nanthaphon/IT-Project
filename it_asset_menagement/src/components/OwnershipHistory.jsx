@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, ArrowLeft, ArrowRight, Calendar, Camera, CheckCircle2, ChevronDown, ChevronUp, Clock, Download, File, FileText, Image, MessageSquare, Paperclip, Pencil, Plus, Printer, Save, Trash2, TriangleAlert, Upload, User, X } from 'lucide-react';
 import ImageViewer from '../ui/ImageViewer.jsx';
-import { doc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { doc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy } from '../db/compat.js';
 import { db } from '../firebase.js';
 import { formatDateShort } from '../utils/formatDate.js';
 import DateField from './DateField.jsx';

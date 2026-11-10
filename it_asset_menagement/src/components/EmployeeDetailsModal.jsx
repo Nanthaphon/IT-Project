@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Hash, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Trash2, Unlock, X } from 'lucide-react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from '../db/compat.js';
 import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
 import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';

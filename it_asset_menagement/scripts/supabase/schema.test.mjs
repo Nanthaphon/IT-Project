@@ -9,7 +9,8 @@ let db;
 
 const ADMIN = { role: 'authenticated', sub: 'admin-uid' };
 const SUPER = { role: 'authenticated', sub: 'super-uid' };
-const STAFF = { role: 'authenticated', sub: 'emp-a', app_role: 'staff', emp_id: '1010001', emp_doc_id: 'emp-a' };
+// เหมือน JWT ที่ Supabase Auth ออกให้พนักงาน (api/staff-login ตั้ง app_metadata) — sub = uid ของบัญชี ไม่ใช่ id พนักงาน
+const STAFF = { role: 'authenticated', sub: 'staff-uid-a', app_metadata: { provider: 'email', app_role: 'staff', emp_id: '1010001', emp_doc_id: 'emp-a' } };
 const ANON = { role: 'anon' };
 
 /* รันคำสั่งในนามผู้ใช้ (เหมือน PostgREST: ตั้ง role + claims ต่อ transaction) */
@@ -104,6 +105,36 @@ test('admin_users: เฉพาะ SuperAdmin เพิ่ม/ลบ · admin �
 test('staff ที่ปลอม sub ให้ตรง admin ก็ไม่ได้สิทธิ์ admin', async () => {
   const fake = { ...STAFF, sub: 'admin-uid' };
   await denied(as(fake, `insert into assets (id, data) values ('z', '{}')`));
+});
+
+test('บัญชีที่ระบบไม่รู้จัก (สมัครเอง) อ่านอะไรไม่ได้ · hr อ่านได้แต่เขียนไม่ได้', async () => {
+  const STRANGER = { role: 'authenticated', sub: 'nobody', app_metadata: { provider: 'email' } };
+  assert.equal((await as(STRANGER, 'select * from employees')).rows.length, 0);
+  assert.equal((await as(STRANGER, 'select * from repair_requests')).rows.length, 0);
+  assert.equal((await as(STRANGER, 'select * from settings')).rows.length, 1);   // หน้า login ยังอ่านได้
+  const HR = { role: 'authenticated', sub: 'hr-uid', app_metadata: { app_role: 'hr' } };
+  assert.ok((await as(HR, 'select * from employees')).rows.length >= 2);
+  await denied(as(HR, `insert into assets (id, data) values ('h', '{}')`));
+  // ค่าใน user_metadata (ผู้ใช้แก้เองได้) ไม่มีผล
+  const SELF = { role: 'authenticated', sub: 'nobody', user_metadata: { app_role: 'staff', emp_doc_id: 'emp-a' } };
+  assert.equal((await as(SELF, 'select * from employees')).rows.length, 0);
+});
+
+test('พนักงานที่ถึงวันที่ออก / ถูกลบ หมดสิทธิ์ทันทีแม้ token ยังไม่หมดอายุ', async () => {
+  const LEFT = { ...STAFF, app_metadata: { ...STAFF.app_metadata, emp_id: '1010002', emp_doc_id: 'emp-b' } };
+  assert.equal((await as(LEFT, 'select * from employees')).rows.length > 0, true);
+  await db.exec(`update employees set data = data || '{"resignDate":"2020-01-31"}' where id = 'emp-b'`);
+  assert.equal((await as(LEFT, 'select * from employees')).rows.length, 0);
+  await denied(as(LEFT, `insert into repair_requests (data) values ('{"empId":"1010002","empName":"ข"}')`));
+  await db.exec(`update employees set data = data || '{"resignDate":"2999-12-31"}' where id = 'emp-b'`);
+  assert.equal((await as(LEFT, 'select * from employees')).rows.length > 0, true);   // ตั้งล่วงหน้า = ยังทำงาน
+  const GONE = { ...STAFF, app_metadata: { ...STAFF.app_metadata, emp_doc_id: 'deleted-x' } };
+  assert.equal((await as(GONE, 'select * from assets')).rows.length, 0);
+});
+
+test('claims รุ่นเก่า (คีย์บนสุด) ยังอ่านได้', async () => {
+  const LEGACY = { role: 'authenticated', sub: 'x', app_role: 'staff', emp_id: '1010001', emp_doc_id: 'emp-a' };
+  assert.ok((await as(LEGACY, 'select * from employees')).rows.length >= 2);
 });
 
 test('ไฟล์แนบแบ่งชิ้น (doc_chunks): admin เท่านั้น', async () => {

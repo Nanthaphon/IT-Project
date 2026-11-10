@@ -9,7 +9,7 @@ import { db } from '../firebase.js';
 import {
   collection, addDoc, doc, setDoc, getDoc, getDocs,
   query, where, orderBy, serverTimestamp, deleteDoc,
-} from 'firebase/firestore';
+} from '../db/compat.js';
 
 const CHUNK_SIZE = 700_000;  // 700KB/chunk — เผื่อ headroom จาก Firestore 1MB limit
 

@@ -2,26 +2,7 @@
 // ใช้ Adaptive Card ยิงผ่าน Power Automate Workflow webhook
 // HR channel = คำขอเบิกอุปกรณ์
 // IT channel = แจ้งซ่อม / License หมดอายุ / คำขอเปลี่ยนเครื่อง / อุปกรณ์เสริม
-import admin from 'firebase-admin';
-
-if (!admin.apps.length) {
-  try {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT env var ไม่ได้ถูกตั้งค่า');
-    const serviceAccount = JSON.parse(raw);
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  } catch (err) {
-    console.error('Firebase Admin init failed:', err);
-  }
-}
-
-function isAllowedOrigin(origin) {
-  if (!origin) return false;
-  const allowed = (process.env.ALLOWED_ORIGINS || '')
-    .split(',').map(s => s.trim()).filter(Boolean);
-  const defaults = ['http://localhost:5173', 'http://localhost:4173'];
-  return allowed.includes(origin) || defaults.includes(origin);
-}
+import { preflight, bearer, verifyCaller } from './_lib/supabaseAdmin.js';
 
 const VALID_KINDS = new Set(['repair', 'supply', 'replacement', 'license', 'accessory_request']);
 
@@ -215,21 +196,12 @@ async function sendTeamsMessage(webhookUrl, cardPayload) {
 // Handler
 // ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  if (isAllowedOrigin(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (preflight(req, res)) return;
 
-  if (!admin.apps.length) return res.status(500).json({ error: 'Firebase Admin not initialized' });
-
-  // ── ตรวจ caller ต้อง login (staff หรือ admin) ──
-  const idToken = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
+  // ── ตรวจ caller ต้อง login (staff หรือ admin) — token ของ Supabase Auth ──
+  const idToken = bearer(req);
   if (!idToken) return res.status(401).json({ error: 'Missing auth token' });
-  try { await admin.auth().verifyIdToken(idToken); }
-  catch { return res.status(401).json({ error: 'Invalid or expired token' }); }
+  if (!(await verifyCaller(idToken).catch(() => null))) return res.status(401).json({ error: 'Invalid or expired token' });
 
   try {
     const { kind, facts, groups, summary } = req.body || {};

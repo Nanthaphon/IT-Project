@@ -171,9 +171,16 @@ service cloud.firestore {
     }
     match /transaction_attachments/{id} {
       allow read, write: if isAdmin();
+      // ไฟล์ใหญ่แบ่งเป็นชิ้น — กฎของเอกสารแม่ไม่ครอบ subcollection (เดิมตกกฎปฏิเสธ ไฟล์ใหญ่บันทึกไม่ได้)
+      match /chunks/{chunkId} {
+        allow read, write: if isAdmin();
+      }
     }
     match /asset_purchase_docs/{id} {
       allow read, write: if isAdmin();
+      match /chunks/{chunkId} {
+        allow read, write: if isAdmin();
+      }
     }
     match /printed_documents/{docId} {
       allow read, write: if isAdmin();

@@ -117,3 +117,14 @@ test('updated_at เปลี่ยนเองเมื่อแก้', async 
   const r = await db.query(`select updated_at > now() - interval '1 minute' as fresh from assets where id = 'a1'`);
   assert.equal(r.rows[0].fresh, true);
 });
+
+test('report.* (view ไม่มี data) ใช้สิทธิ์ของคนดู — RLS กั้นเท่าตารางจริง', async () => {
+  const cols = (await db.query(`select column_name from information_schema.columns where table_schema = 'report' and table_name = 'employees' order by ordinal_position`)).rows.map((r) => r.column_name);
+  assert.equal(cols[0], 'id');
+  assert.ok(cols.includes('emp_id') && cols.includes('full_name') && !cols.includes('data'));
+  assert.deepEqual(cols.slice(-2), ['created_at', 'updated_at']);
+  assert.equal((await as(STAFF, 'select * from report.deleted_employees')).rows.length, 0);
+  assert.equal((await as(ADMIN, 'select * from report.deleted_employees')).rows.length, 1);
+  assert.equal((await as(STAFF, 'select emp_id from report.employees')).rows.length >= 2, true);
+  await assert.rejects(as(ANON, 'select * from report.employees'), /permission denied/);
+});

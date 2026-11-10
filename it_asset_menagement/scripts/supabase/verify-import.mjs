@@ -3,6 +3,7 @@
    รัน: node scripts/supabase/verify-import.mjs .supabase-export/firestore-xxx.json */
 import { readFileSync } from 'node:fs';
 import { loadEnv } from './loadEnv.mjs';
+import { prepareDump } from './prepareDump.mjs';
 import { CHUNK_TABLE } from '../../src/db/codec.js';
 
 loadEnv();
@@ -10,6 +11,7 @@ const [file] = process.argv.slice(2);
 const { SUPABASE_URL: URL_, SUPABASE_SERVICE_ROLE_KEY: KEY } = process.env;
 if (!file || !URL_ || !KEY) { console.error('ใช้: node scripts/supabase/verify-import.mjs <ไฟล์ export> (ต้องมี .env.migration.local)'); process.exit(1); }
 const dump = JSON.parse(readFileSync(file, 'utf8'));
+prepareDump(dump);   // ปรับแบบเดียวกับตอนนำเข้า (ย้ายรหัส M365) ให้ตัวเลขเทียบกันได้
 const headers = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 
 async function count(table) {

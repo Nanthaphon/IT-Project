@@ -15,6 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { CHUNK_TABLE } from '../../src/db/codec.js';
 import { loadEnv } from './loadEnv.mjs';
+import { prepareDump } from './prepareDump.mjs';
 
 loadEnv();   // SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY อ่านจาก .env.migration.local ได้ (ไม่ต้องพิมพ์ใน terminal)
 
@@ -26,6 +27,8 @@ const { SUPABASE_URL: URL_, SUPABASE_SERVICE_ROLE_KEY: KEY } = process.env;
 if (!dry && (!URL_ || !KEY)) { console.error('❌ ตั้ง SUPABASE_URL และ SUPABASE_SERVICE_ROLE_KEY ก่อน (ใน terminal หรือ .env.migration.local)'); process.exit(1); }
 
 const dump = JSON.parse(readFileSync(file, 'utf8'));
+const prep = prepareDump(dump);
+console.log(`รหัส M365 ที่ค้างในข้อมูลพนักงาน: ย้ายไป employee_secrets ${prep.moved} · ลบฟิลด์ออก ${prep.stripped} รายการ`);
 const headers = { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };
 
 /* created_at ของแถว = createdAt ในเอกสาร (ถ้ามี) — ให้เรียงตามเวลาสร้างจริงได้ */

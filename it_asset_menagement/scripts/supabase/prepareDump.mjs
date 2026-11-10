@@ -4,7 +4,7 @@
    → ย้ายไป employee_secrets (อ่านได้เฉพาะ admin + เจ้าของ) แล้วลบออกจากข้อมูลพนักงาน
    มี employee_secrets อยู่แล้ว = ไม่เขียนทับ (ค่าที่แก้ทีหลังชนะ) — กติกาเดียวกับ scripts/migrate-m365-secrets.mjs */
 
-export function prepareDump(dump, now = new Date()) {
+export function prepareDump(dump, now = new Date(dump.exportedAt || Date.now())) {   // เวลาส่งออก = คงที่ (import กับ verify ได้ค่าเดียวกัน)
   const secrets = (dump.tables.employee_secrets ||= []);
   const have = new Set(secrets.map((r) => r.id));
   let moved = 0;

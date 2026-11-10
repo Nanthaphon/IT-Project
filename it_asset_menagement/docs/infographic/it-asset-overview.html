@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1754" />
+<title>IT Asset Management — ภาพรวมระบบ</title>
+<!--
+  ต้นฉบับภาพสรุประบบ 1 หน้า (A4 แนวนอน · ผืนงาน 1754×1240 px)
+  แก้ข้อความในไฟล์นี้ได้เลย แล้วรัน:  node docs/infographic/build.mjs
+  จะได้ it-asset-overview.png (3508×2480 = A4 300dpi) และ it-asset-overview.pdf
+  ไอคอน: ใส่ <i data-icon="ชื่อ lucide"></i> แล้วเพิ่มชื่อใน ICONS ของ build.mjs
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-0: #0A1E25;
+    --bg-1: #0F2A33;
+    --card: #133541;
+    --card-2: #173E4B;
+    --line: #2C5A69;
+    --line-hi: #52AB98;
+    --text: #FFFFFF;
+    --text-2: #D6E4EA;
+    --text-3: #A9C2CC;
+    --brand: #6BBBA9;      /* olive-400 จากธีมระบบ */
+    --brand-2: #8ACABB;
+    --clay: #9FBDCB;
+    --ochre: #E2B865;
+    --ochre-soft: #F5E7C6;
+    /* สีบทบาท */
+    --r-staff: #8ACABB;
+    --r-it: #9FC3F0;
+    --r-hr: #E2B865;
+    --r-exec: #F0A99F;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg-0); }
+  body { font-family: 'Bai Jamjuree', 'Leelawadee UI', sans-serif; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .nw { white-space: nowrap; }
+  svg.ic { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+
+  .page {
+    width: 1754px; height: 1240px; position: relative; overflow: hidden;
+    padding: 30px 36px 22px;
+    background:
+      radial-gradient(900px 520px at 50% 52%, rgba(82,171,152,.16), transparent 70%),
+      radial-gradient(700px 300px at 50% 0%, rgba(66,124,145,.35), transparent 70%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    display: flex; flex-direction: column;
+  }
+
+  /* ── หัว ── */
+  .head { display: grid; grid-template-columns: 1fr auto; align-items: start; }
+  .eyebrow { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 600; color: var(--brand-2); }
+  .eyebrow .bar { width: 34px; height: 3px; border-radius: 2px; background: var(--brand); }
+  .eyebrow .sep { color: var(--line); font-weight: 400; }
+  .eyebrow .scope { color: var(--text-2); font-weight: 500; }
+  h1 { font-size: 50px; line-height: 1.18; font-weight: 700; margin-top: 8px; }
+  h1 .hl { color: var(--brand); }
+  .sub { font-size: 25px; line-height: 1.35; font-weight: 500; color: var(--text-2); margin-top: 4px; }
+  .problem { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 17px; color: var(--text-3); }
+  .problem b { color: var(--ochre); font-weight: 600; }
+  .problem .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
+  .logo { display: flex; align-items: center; gap: 12px; margin-top: 2px; }
+  .logo img { height: 54px; filter: invert(1); }
+  .logo .name { font-size: 18px; font-weight: 700; line-height: 1.15; }
+  .logo .name small { display: block; font-size: 14px; font-weight: 500; color: var(--text-3); }
+
+  /* ── หัวคอลัมน์ ── */
+  .cols-head, .grid { display: grid; grid-template-columns: 468px 420px 352px 370px; column-gap: 24px; }
+  .cols-head { margin-top: 16px; }
+  .ch { position: relative; display: flex; align-items: center; gap: 12px; height: 50px; padding: 0 16px 0 6px;
+        border: 1.5px solid var(--line); border-radius: 25px; background: rgba(19,53,65,.85); }
+  .ch .n { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--bg-0); font-size: 17px; font-weight: 700; }
+  .ch .t { font-size: 20px; font-weight: 600; }
+  .ch .t small { font-size: 15px; font-weight: 500; color: var(--text-3); margin-left: 6px; }
+  .ch:not(:last-child)::after { content: ''; position: absolute; right: -19px; top: 50%; width: 10px; height: 10px; border-top: 3px solid var(--brand); border-right: 3px solid var(--brand); transform: translateY(-50%) rotate(45deg); }
+
+  /* ── ตารางหลัก ── */
+  .grid { margin-top: 14px; flex: 1; grid-template-rows: repeat(6, minmax(0, 1fr)); row-gap: 10px; min-height: 0; }
+  .card { position: relative; background: linear-gradient(180deg, var(--card-2), var(--card)); border: 1.5px solid var(--line); border-radius: 10px; }
+
+  /* ส่วนที่ 1 ฟีเจอร์ */
+  .feat { grid-column: 1; display: grid; grid-template-columns: 58px 1fr; column-gap: 14px; align-items: center; padding: 10px 16px 10px 12px; }
+  .feat .ico { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 27px; color: var(--brand-2);
+               border: 2px solid var(--brand); background: radial-gradient(circle, rgba(82,171,152,.25), rgba(10,30,37,.6)); position: relative; }
+  .feat .ico .no { position: absolute; top: -6px; left: -6px; width: 24px; height: 24px; border-radius: 50%; background: var(--ochre); color: var(--bg-0); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+  .feat .tt { display: flex; align-items: center; gap: 6px; }
+  .feat .tt h3 { margin-right: auto; white-space: nowrap; }
+  .role { white-space: nowrap; flex: none; }
+  .feat h3 { font-size: 20px; font-weight: 600; line-height: 1.25; }
+  .feat p { font-size: 16px; line-height: 1.38; color: var(--text-2); margin-top: 3px; }
+  .feat::after { content: ''; position: absolute; right: -25px; top: 50%; width: 24px; height: 2px; background: var(--line-hi); opacity: .7; }
+  .feat::before { content: ''; position: absolute; right: -29px; top: calc(50% - 4px); width: 8px; height: 8px; border-radius: 50%; background: var(--line-hi); z-index: 2; }
+
+  .role { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 5px; font-size: 13.5px; font-weight: 600; color: var(--bg-0); }
+  .role.staff { background: var(--r-staff); } .role.it { background: var(--r-it); } .role.hr { background: var(--r-hr); } .role.exec { background: var(--r-exec); }
+
+  /* ส่วนที่ 2 ภาพรวม */
+  .hub { grid-column: 2; grid-row: 1 / 7; display: flex; flex-direction: column; padding: 14px 16px 14px;
+         border: 2px solid var(--line-hi); border-radius: 14px;
+         background: linear-gradient(180deg, rgba(23,62,75,.95), rgba(15,42,51,.95));
+         box-shadow: 0 0 0 6px rgba(82,171,152,.08), 0 0 50px rgba(82,171,152,.18); }
+  .core { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; border-bottom: 1.5px solid var(--line); }
+  .core .ico { width: 66px; height: 66px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 32px; color: var(--bg-0); background: var(--brand); box-shadow: 0 0 0 6px rgba(107,187,169,.22); }
+  .core h2 { font-size: 24px; font-weight: 700; line-height: 1.2; }
+  .core p { font-size: 15.5px; color: var(--text-3); margin-top: 2px; }
+  .lbl { font-size: 15px; font-weight: 600; color: var(--brand-2); margin: 14px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .lbl::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .tiles { display: flex; flex-direction: column; gap: 5px; }
+  .tile { display: flex; gap: 10px; align-items: center; padding: 0 10px; height: 38px; border-radius: 7px; background: rgba(10,30,37,.55); border: 1px solid var(--line); white-space: nowrap; }
+  .tile .i { font-size: 18px; color: var(--brand-2); flex: none; }
+  .tile span { font-size: 15px; color: var(--text-2); }
+  .tile b { color: var(--text); font-weight: 600; margin-right: 6px; }
+  .views { display: flex; flex-direction: column; gap: 9px; }
+  .view { white-space: nowrap; display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px; font-size: 15px; line-height: 1.3; color: var(--text-2); }
+  .view .role { justify-content: center; height: 24px; font-size: 14px; }
+  .acts { display: flex; flex-direction: column; gap: 6px; }
+  .act { white-space: nowrap; display: grid; grid-template-columns: 1fr 18px 1.05fr; align-items: center; gap: 6px; padding: 9px 10px; border-radius: 8px; background: rgba(226,184,101,.10); border: 1px solid rgba(226,184,101,.35); font-size: 15px; line-height: 1.28; }
+  .act .s { color: var(--ochre-soft); }
+  .act .a { color: var(--ochre); font-size: 16px; }
+  .act .d { color: var(--text); font-weight: 500; }
+
+  /* ส่วนที่ 3 ประโยชน์ */
+  .ben { grid-column: 3; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; padding: 10px 14px 10px 12px; }
+  .ben .no { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ochre); color: var(--ochre); font-size: 14px; font-weight: 700; display: grid; place-items: center; }
+  .ben h3 { white-space: nowrap; font-size: 18.5px; font-weight: 600; line-height: 1.25; }
+  .ben p { font-size: 15.5px; line-height: 1.36; color: var(--text-2); margin-top: 3px; }
+  .ben::before { content: ''; position: absolute; left: -25px; top: 50%; width: 24px; height: 2px; background: var(--line-hi); opacity: .7; }
+  .ben::after { content: ''; position: absolute; left: -29px; top: calc(50% - 4px); width: 8px; height: 8px; border-radius: 50%; background: var(--line-hi); }
+
+  /* ส่วนที่ 4 คุณค่า */
+  .vals { grid-column: 4; grid-row: 1 / 7; display: grid; grid-template-rows: repeat(4, 1fr); gap: 10px; }
+  .val { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; padding: 12px 16px 12px 14px; }
+  .val .ico { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 30px; color: var(--text); border: 2px solid var(--brand); background: radial-gradient(circle, rgba(107,187,169,.35), rgba(10,30,37,.7)); }
+  .val h3 { font-size: 20px; white-space: nowrap; font-weight: 700; line-height: 1.22; }
+  .val p { font-size: 15.5px; line-height: 1.38; color: var(--text-2); margin-top: 4px; }
+  .from { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-size: 13.5px; color: var(--text-3); }
+  .from i { font-style: normal; height: 20px; min-width: 28px; padding: 0 6px; border-radius: 10px; border: 1.5px solid var(--ochre); color: var(--ochre); font-weight: 700; font-size: 12.5px; display: inline-grid; place-items: center; }
+
+  /* ── ล่าง ── */
+  .flow { margin-top: 14px; height: 70px; border: 2px solid var(--line-hi); border-radius: 35px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; padding: 0 22px;
+          background: linear-gradient(90deg, rgba(23,62,75,.9), rgba(19,53,65,.9)); box-shadow: 0 0 30px rgba(82,171,152,.15); }
+  .step { position: relative; display: flex; align-items: center; gap: 12px; padding-left: 8px; }
+  .step .ico { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: var(--bg-0); background: var(--brand-2); flex: none; }
+  .step b { display: block; font-size: 20px; font-weight: 700; line-height: 1.15; }
+  .step span { display: block; font-size: 14.5px; color: var(--text-3); line-height: 1.2; }
+  .step:not(:last-child)::after { content: ''; position: absolute; right: 14px; top: 50%; width: 11px; height: 11px; border-top: 3px solid var(--brand); border-right: 3px solid var(--brand); transform: translateY(-50%) rotate(45deg); }
+  .access { margin: 10px auto 0; width: 1240px; height: 44px; border-radius: 22px; background: #2B6777; display: flex; align-items: center; justify-content: center; gap: 26px; font-size: 18px; font-weight: 600; }
+  .access .it { display: flex; align-items: center; gap: 8px; }
+  .access .it svg { font-size: 20px; color: var(--ochre-soft); }
+  .note { text-align: center; font-size: 14px; color: var(--text-3); margin-top: 7px; }
+
+  @page { size: 297mm 210mm; margin: 0; }
+  @media print { html, body { width: 297mm; height: 210mm; } .page { zoom: 0.63995; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══ หัว: ชื่อระบบ · คุณค่าหลัก · จากไหนไปไหน ═══ -->
+  <header class="head">
+    <div>
+      <div class="eyebrow"><span class="bar"></span>IT ASSET MANAGEMENT <span class="sep">|</span> <span class="scope">ระบบทรัพย์สิน IT · คำขออุปกรณ์ · งานแจ้งซ่อม</span></div>
+      <h1>อุปกรณ์ IT ทุกชิ้น <span class="hl">รู้ว่าอยู่กับใคร สภาพเป็นอย่างไร ในที่เดียว</span></h1>
+      <div class="sub">จากการส่งมอบและคำขอของพนักงานในแต่ละวัน สู่ข้อมูลสำหรับติดตามงาน IT และตัดสินใจของผู้บริหาร</div>
+      <div class="problem"><b>แก้ปัญหา:</b> ข้อมูลเครื่องกระจายหลายไฟล์ <span class="dot"></span> ไม่รู้ว่าเครื่องไหนอยู่กับใคร <span class="dot"></span> License หมดอายุโดยไม่ทันรู้ <span class="dot"></span> คำขอและงานซ่อมต้องตามผ่านแชท</div>
+    </div>
+    <div class="logo">
+      <img src="../../public/gb_icon.svg" alt="" />
+      <div class="name">GLOBE SYNDICATE<small>(THAILAND) CO., LTD.</small></div>
+    </div>
+  </header>
+
+  <!-- ═══ หัว 4 ส่วน (อ่านซ้าย → ขวา) ═══ -->
+  <div class="cols-head">
+    <div class="ch"><span class="n">01</span><span class="t">ใครทำอะไรในระบบ<small>ฟีเจอร์หลัก</small></span></div>
+    <div class="ch"><span class="n">02</span><span class="t">ข้อมูลรวมเป็นภาพเดียว<small>ใช้บริหาร</small></span></div>
+    <div class="ch"><span class="n">03</span><span class="t">ประโยชน์ต่อคนทำงาน</span></div>
+    <div class="ch"><span class="n">04</span><span class="t">คุณค่าต่อองค์กร</span></div>
+  </div>
+
+  <main class="grid">
+
+    <!-- ── ส่วนที่ 1: ฟีเจอร์ (เลขบนไอคอน = เลขประโยชน์ในส่วนที่ 3) ── -->
+    <div class="card feat" style="grid-row:1">
+      <div class="ico"><span class="no">01</span><i data-icon="qr-code"></i></div>
+      <div><div class="tt"><h3>ทะเบียนทรัพย์สิน &amp; License</h3><span class="role it">ทีม IT</span></div>
+        <p>บันทึกคอมพิวเตอร์ ครุภัณฑ์ อุปกรณ์เสริม และ License รายสิทธิ์พร้อมวันหมดอายุ · พิมพ์ป้าย QR ติดเครื่อง</p></div>
+    </div>
+    <div class="card feat" style="grid-row:2">
+      <div class="ico"><span class="no">02</span><i data-icon="clipboard-check"></i></div>
+      <div><div class="tt"><h3>ส่งมอบ – รับคืนอุปกรณ์</h3><span class="role it">ทีม IT</span></div>
+        <p>ตรวจสภาพ 100 จุด ถ่ายรูป 6 มุม แล้วออกใบส่งมอบ / ใบรับคืนพร้อมเลขที่เอกสาร</p></div>
+    </div>
+    <div class="card feat" style="grid-row:3">
+      <div class="ico"><span class="no">03</span><i data-icon="shopping-cart"></i></div>
+      <div><div class="tt"><h3>เบิก ยืม เปลี่ยนเครื่อง</h3><span class="role staff">พนักงาน</span><span class="role it">ทีม IT</span></div>
+        <p>พนักงานขอเบิกอุปกรณ์สำนักงาน ยืมอุปกรณ์เสริม หรือขอเปลี่ยนเครื่อง · อนุมัติแล้วระบบตัดสต็อกให้</p></div>
+    </div>
+    <div class="card feat" style="grid-row:4">
+      <div class="ico"><span class="no">04</span><i data-icon="wrench"></i></div>
+      <div><div class="tt"><h3>แจ้งปัญหา IT + ให้คะแนน</h3><span class="role staff">พนักงาน</span><span class="role it">ทีม IT</span></div>
+        <p>พนักงานแจ้งปัญหา ทีม IT อัปเดตสถานะจนซ่อมเสร็จ แล้วพนักงานให้คะแนนความเร็ว คุณภาพ บริการ</p></div>
+    </div>
+    <div class="card feat" style="grid-row:5">
+      <div class="ico"><span class="no">05</span><i data-icon="id-card"></i></div>
+      <div><div class="tt"><h3>ข้อมูลพนักงาน</h3><span class="role it">ทีม IT</span><span class="role staff">พนักงาน</span></div>
+        <p>นำเข้า – ส่งออกด้วยไฟล์ ตั้งวันที่ออกล่วงหน้า ระบบปิดการเข้าใช้เอง · พนักงานดูอุปกรณ์ที่ตัวเองถือ</p></div>
+    </div>
+    <div class="card feat" style="grid-row:6">
+      <div class="ico"><span class="no">06</span><i data-icon="bell"></i></div>
+      <div><div class="tt"><h3>แจ้งเตือน &amp; รายงาน</h3><span class="role it">ทีม IT</span><span class="role exec">ผู้บริหาร</span></div>
+        <p>ส่งคำขอใหม่เข้า Microsoft Teams · เตือน License <span class="nw">ใกล้หมด</span> · สร้างรายงาน IT รายเดือนเป็น PowerPoint</p></div>
+    </div>
+
+    <!-- ── ส่วนที่ 2: ภาพรวม ── -->
+    <section class="hub">
+      <div class="core">
+        <div class="ico"><i data-icon="layers"></i></div>
+        <div><h2>ภาพรวมทรัพย์สิน<br />และงานบริการ IT</h2><p>ข้อมูลจากส่วนที่ 01 รวมเป็นชุดเดียว</p></div>
+      </div>
+
+      <div class="lbl">สิ่งที่ระบบแสดงให้เห็น</div>
+      <div class="tiles">
+        <div class="tile"><i class="i" data-icon="monitor"></i><span><b>สถานะเครื่อง</b>พร้อมส่งมอบ · ใช้งาน · ชำรุด</span></div>
+        <div class="tile"><i class="i" data-icon="history"></i><span><b>ใครถืออะไร</b>พร้อมประวัติผู้ถือรายเครื่อง</span></div>
+        <div class="tile"><i class="i" data-icon="calendar-clock"></i><span><b>License ใกล้หมด</b>ภายใน 30 · 60 · 90 วัน</span></div>
+        <div class="tile"><i class="i" data-icon="clipboard-check"></i><span><b>รายการค้าง</b>รออนุมัติ · ซ่อมค้าง · ยืมเกินกำหนด</span></div>
+        <div class="tile"><i class="i" data-icon="package"></i><span><b>สต็อก</b>หมด / ใกล้หมด · ยอดเบิกแยกแผนก</span></div>
+        <div class="tile"><i class="i" data-icon="trending-up"></i><span><b>KPI งานซ่อม</b>อัตราปิดงาน · คะแนน · แนวโน้ม 6 เดือน</span></div>
+      </div>
+
+      <div class="lbl">แต่ละบทบาทเห็นไม่เท่ากัน</div>
+      <div class="views">
+        <div class="view"><span class="role staff">พนักงาน</span><span>เห็นเฉพาะคำขอและอุปกรณ์ของตัวเอง</span></div>
+        <div class="view"><span class="role it">ทีม IT</span><span>เมนูตามสิทธิ์ที่ได้รับ · อนุมัติ ส่งมอบ ปิดงาน</span></div>
+        <div class="view"><span class="role hr">HR</span><span>รายชื่อพนักงาน · สต็อกและคำขอเบิก</span></div>
+        <div class="view"><span class="role exec">ผู้บริหาร</span><span>แดชบอร์ด · KPI · รายงาน (สิทธิ์ดูอย่างเดียว)</span></div>
+      </div>
+
+      <div class="lbl">เห็นแล้วทำอะไรต่อ</div>
+      <div class="acts">
+        <div class="act"><span class="s">License ใกล้หมดอายุ</span><i class="a" data-icon="arrow-right"></i><span class="d">พิมพ์ใบปะหน้าขอต่ออายุ</span></div>
+        <div class="act"><span class="s">สต็อกใกล้หมด</span><i class="a" data-icon="arrow-right"></i><span class="d">สั่งซื้อเพิ่มก่อนของขาด</span></div>
+        <div class="act"><span class="s">เครื่องชำรุด / ขอเปลี่ยน</span><i class="a" data-icon="arrow-right"></i><span class="d">จ่ายเครื่องที่พร้อมส่งมอบ</span></div>
+        <div class="act"><span class="s">พนักงานลาออก</span><i class="a" data-icon="arrow-right"></i><span class="d">เรียกคืนตามรายการที่ถือ</span></div>
+      </div>
+    </section>
+
+    <!-- ── ส่วนที่ 3: ประโยชน์ (เลขตรงกับฟีเจอร์ในแถวเดียวกัน) ── -->
+    <div class="card ben" style="grid-row:1"><span class="no">01</span><div><h3>หาได้ทันทีว่าเครื่องอยู่กับใคร</h3><p>ค้นจากชื่อ SN หรือสแกน QR บนเครื่อง แทนการเปิดหลายไฟล์</p></div></div>
+    <div class="card ben" style="grid-row:2"><span class="no">02</span><div><h3>ลดข้อโต้แย้งเรื่องสภาพเครื่อง</h3><p>มีรูปและผลตรวจ<span class="nw">ตอนส่งมอบ</span> ไว้เทียบ<span class="nw">ตอนรับคืน</span></p></div></div>
+    <div class="card ben" style="grid-row:3"><span class="no">03</span><div><h3>เห็นคำขอรออนุมัติในที่เดียว</h3><p>ลดการขอผ่านแชทและกระดาษ สต็อกถูกตัดทันทีที่อนุมัติ</p></div></div>
+    <div class="card ben" style="grid-row:4"><span class="no">04</span><div><h3>ลดการตามงานซ่อมผ่านแชท</h3><p>พนักงานเห็นสถานะเคสเอง ทีม IT ได้คะแนนกลับหลังปิดงาน</p></div></div>
+    <div class="card ben" style="grid-row:5"><span class="no">05</span><div><h3>ลดการพิมพ์รายชื่อซ้ำ</h3><p>อัปเดตทั้งบริษัทจากไฟล์เดียว คนที่ออกถูกปิดสิทธิ์ตามวันที่ตั้งไว้</p></div></div>
+    <div class="card ben" style="grid-row:6"><span class="no">06</span><div><h3>ลดเวลาทำรายงานประจำเดือน</h3><p>ระบบดึงตัวเลขทำสไลด์ให้แล้วแก้ต่อได้ <span class="nw">ไม่พลาดวันหมดอายุ</span></p></div></div>
+
+    <!-- ── ส่วนที่ 4: คุณค่าต่อองค์กร (มาจาก = เลขประโยชน์) ── -->
+    <section class="vals">
+      <div class="card val"><div class="ico"><i data-icon="shield-check"></i></div><div><h3>ควบคุมทรัพย์สินบริษัท</h3><p>รู้ผู้รับผิดชอบอุปกรณ์ทุกชิ้น เห็นรายการที่ต้อง<span class="nw">เรียกคืน</span>เมื่อพนักงาน<span class="nw">ย้ายหรือลาออก</span></p><div class="from">มาจาก <i>01</i><i>02</i><i>05</i></div></div></div>
+      <div class="card val"><div class="ico"><i data-icon="calendar-clock"></i></div><div><h3>เตรียมงบต่ออายุทันเวลา</h3><p>เห็น License <span class="nw">ที่จะหมดอายุ</span>ก่อน <span class="nw">90 วัน</span> เตรียมงบและต่ออายุก่อนกระทบ<span class="nw">การทำงาน</span></p><div class="from">มาจาก <i>01</i><i>06</i></div></div></div>
+      <div class="card val"><div class="ico"><i data-icon="gauge"></i></div><div><h3>บริการ IT วัดผลได้</h3><p>ใช้อัตราปิดงานและคะแนน<span class="nw">ความพึงพอใจ</span> ทบทวนและปรับปรุง<span class="nw">การบริการ</span><span class="nw">รายเดือน</span></p><div class="from">มาจาก <i>04</i><i>06</i></div></div></div>
+      <div class="card val"><div class="ico"><i data-icon="file-text"></i></div><div><h3>ตรวจสอบย้อนหลังได้</h3><p>เอกสารมีเลขที่ รูปสภาพ และประวัติ<span class="nw">ผู้ถือ</span> ใช้ประกอบการประเมิน<span class="nw">ความเสียหาย</span><span class="nw">ตามนโยบาย</span></p><div class="from">มาจาก <i>02</i><i>03</i></div></div></div>
+    </section>
+  </main>
+
+  <!-- ═══ วงจรการทำงาน ═══ -->
+  <div class="flow">
+    <div class="step"><div class="ico"><i data-icon="qr-code"></i></div><div><b>ลงทะเบียน</b><span>เครื่อง · License · สต็อก</span></div></div>
+    <div class="step"><div class="ico"><i data-icon="clipboard-check"></i></div><div><b>ส่งมอบ</b><span>ตรวจสภาพ + ใบส่งมอบ</span></div></div>
+    <div class="step"><div class="ico"><i data-icon="send"></i></div><div><b>ขอ / แจ้งปัญหา</b><span>พนักงานส่งจากมือถือ</span></div></div>
+    <div class="step"><div class="ico"><i data-icon="check-check"></i></div><div><b>อนุมัติ / ติดตาม</b><span>IT ปิดงาน · ดูแดชบอร์ด</span></div></div>
+    <div class="step"><div class="ico"><i data-icon="undo-2"></i></div><div><b>รับคืน / รายงาน</b><span>ใบรับคืน · รายงานรายเดือน</span></div></div>
+  </div>
+
+  <div class="access">
+    <span class="it"><i data-icon="globe"></i>ใช้ผ่านเว็บเบราว์เซอร์ ทั้งคอมพิวเตอร์และมือถือ</span>
+    <span class="it"><i data-icon="smartphone"></i>ไม่ต้องติดตั้งแอป</span>
+    <span class="it"><i data-icon="user-cog"></i>พนักงานเข้าด้วยรหัสพนักงาน</span>
+  </div>
+  <div class="note">ภาพรวมแม่นยำเมื่อบันทึกส่งมอบ – รับคืนครบทุกครั้ง · การแจ้งเตือนส่งถึงทีม IT / HR ทาง Microsoft Teams ส่วนพนักงานดูสถานะคำขอในระบบ</div>
+</div>
+<script src="icons.js"></script>
+</body>
+</html>

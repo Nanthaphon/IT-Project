@@ -82,3 +82,26 @@ node scripts/supabase/import-to-supabase.mjs <ไฟล์>              # น�
 - **staff แก้ข้อมูลตัวเอง / ให้คะแนนแจ้งซ่อม** — RLS เทียบค่าเก่ากับใหม่ไม่ได้ จึงตรวจด้วย trigger (`app.guard_*`)
 - พบระหว่างทำ: `firestore.rules` ไม่มีสิทธิ์ให้ subcollection `chunks` ของ `transaction_attachments` / `asset_purchase_docs`
   (ตกกฎ "ปฏิเสธทั้งหมด") — ไฟล์แนบสองแบบนี้บน Firebase อาจบันทึกไม่ได้อยู่แล้ว · ฝั่ง Supabase ให้ admin เขียนได้
+
+## ขั้นตอนย้ายข้อมูลจริง (ซ้อมก่อนวันสลับระบบ)
+
+โปรเจค Supabase: `it-asset-management` (Singapore · แพ็กเกจ Pro) — URL อยู่ที่ Project Settings → API
+
+1. **สร้างตาราง** — Supabase → SQL Editor → New query → วางเนื้อหา `supabase/setup.sql` ทั้งไฟล์ → Run (ขึ้น "Success. No rows returned")
+2. **ส่งออกจาก Firebase** (อ่านอย่างเดียว ไม่แก้ข้อมูล · ใช้ราว 1–2 พันครั้งอ่าน)
+   - Firebase Console → Project settings → Service accounts → Generate new private key → เก็บไฟล์ไว้นอกโฟลเดอร์โปรเจค
+   - ```powershell
+     $env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\IT\firebase-key.json"
+     node scripts/supabase/export-firestore.mjs --prod
+     ```
+3. **ลองดูก่อน** (ไม่เขียนอะไร) แล้วนำเข้าจริง — ค่าลับใส่ใน terminal เท่านั้น ห้ามส่งในแชท
+   - ```powershell
+     $env:SUPABASE_URL="https://xxxx.supabase.co"
+     $env:SUPABASE_SERVICE_ROLE_KEY="(secret key จาก Project Settings → API Keys)"
+     node scripts/supabase/import-to-supabase.mjs .supabase-export\firestore-xxx.json --dry-run
+     node scripts/supabase/import-to-supabase.mjs .supabase-export\firestore-xxx.json
+     ```
+4. ตรวจใน Table Editor ว่าจำนวนแถวตรงกับที่สคริปต์ส่งออกรายงาน
+
+**นี่คือการซ้อม** — เว็บยังอ่าน Firebase อยู่ ข้อมูลใน Supabase เป็นสำเนา ณ ตอนนั้น
+นำเข้าซ้ำได้ (ทับ id เดิม) แต่รายการที่ถูกลบใน Firebase ทีหลังจะไม่ถูกลบตาม — วันสลับระบบจึงล้างตารางแล้วนำเข้าใหม่ทั้งหมด

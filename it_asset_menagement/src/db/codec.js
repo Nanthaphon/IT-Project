@@ -59,6 +59,7 @@ export const TOP_TABLES = [
   'assets_transactions', 'accessories_transactions', 'licenses_transactions',
   'transaction_attachments', 'asset_purchase_docs', 'printed_documents',
   'staff_passwords', 'line_users', 'admin_users',
+  'asset_handovers',   // ข้อมูลระบบรุ่นเก่า (โค้ดปัจจุบันไม่ใช้) — เก็บไว้ไม่ให้หาย
 ];
 
 export const CHUNK_TABLE = 'doc_chunks';

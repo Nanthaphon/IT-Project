@@ -36,9 +36,21 @@ const createdAt = (data) => {
   return undefined;
 };
 
+/* แบ่งส่งทีละก้อน: ไม่เกิน 500 แถว และไม่เกิน ~4 MB (ชิ้นไฟล์แนบชิ้นละ ~700 KB — ส่งรวดเดียวเซิร์ฟเวอร์ปฏิเสธ) */
+const MAX_ROWS = 500;
+const MAX_BYTES = 4 * 1024 * 1024;
+function* batches(rows) {
+  let part = []; let size = 0;
+  for (const r of rows) {
+    const n = Buffer.byteLength(JSON.stringify(r));
+    if (part.length && (part.length >= MAX_ROWS || size + n > MAX_BYTES)) { yield part; part = []; size = 0; }
+    part.push(r); size += n;
+  }
+  if (part.length) yield part;
+}
+
 async function upsert(table, rows, conflict = 'id') {
-  for (let i = 0; i < rows.length; i += 500) {
-    const part = rows.slice(i, i + 500);
+  for (const part of batches(rows)) {
     const r = await fetch(`${URL_}/rest/v1/${table}?on_conflict=${conflict}`, {
       method: 'POST',
       headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },

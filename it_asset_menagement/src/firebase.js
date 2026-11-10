@@ -9,15 +9,15 @@ import { supabase } from './db/supabaseClient.js';   // ตั้ง backend ใ
 import { getFirestore } from './db/compat.js';
 import { auth } from './db/auth.js';
 
-// ── Vercel API base URL ──
-// หน้าเว็บอยู่ Firebase Hosting (*.web.app) → เรียก Vercel functions ผ่าน URL เต็ม
-// หน้าเว็บอยู่ Vercel → relative path (host เดียวกัน)
-// ตอน `npm run dev` ใช้ path ตรง ๆ — vite.config.js รันฟังก์ชันใน api/ ในเครื่องเอง (ต่อ Supabase)
-export const VERCEL_API_BASE = import.meta.env.DEV ? '' : (
-  import.meta.env.VITE_VERCEL_API_URL ||
-  (typeof window !== 'undefined' && window.location.hostname.endsWith('.web.app')
-    ? 'https://itassetmenagement.vercel.app'
-    : ''));
+// ── ที่อยู่ของฟังก์ชัน api/ ──
+// หน้าเว็บ + api/ อยู่โปรเจคเดียวกันบน Vercel ทีมบริษัท (globe-syndicate) → path ตรง ๆ (host เดียวกัน · ไม่ติด CORS)
+// `npm run dev` ก็ path ตรง — vite.config.js รันฟังก์ชันใน api/ ในเครื่องเอง
+// เผื่อย้อนกลับไปเปิดหน้าเว็บจาก Firebase Hosting (*.web.app) เท่านั้นที่ใช้ URL เต็ม (VITE_VERCEL_API_URL)
+//   ตั้งใจไม่ใช้ค่านี้ที่อื่น — กัน build ในเครื่องที่ .env.local ยังชี้ Vercel เก่า แล้วหน้าเว็บใหม่ไปเรียก api รุ่น Firebase
+const ON_FIREBASE_HOSTING = typeof window !== 'undefined' && window.location.hostname.endsWith('.web.app');
+export const VERCEL_API_BASE = ON_FIREBASE_HOSTING
+  ? (import.meta.env.VITE_VERCEL_API_URL || 'https://itassetmenagement.vercel.app')
+  : '';
 
 export { supabase, auth };
 export const db = getFirestore();

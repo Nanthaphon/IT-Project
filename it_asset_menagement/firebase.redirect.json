@@ -1,0 +1,9 @@
+{
+  "hosting": {
+    "public": "hosting-redirect",
+    "ignore": ["**/.*"],
+    "redirects": [
+      { "source": "/:path*", "destination": "https://itassetmenagement.vercel.app/:path*", "type": 301 }
+    ]
+  }
+}

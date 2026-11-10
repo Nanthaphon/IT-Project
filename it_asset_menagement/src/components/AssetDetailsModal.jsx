@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from '../db/compat.js';
 import { Banknote, Building2, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, CornerUpLeft, Printer, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, Info, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
+import { assetQrUrl } from '../utils/publicUrl.js';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
 import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
 import { formatDateShort } from '../utils/formatDate.js';
@@ -1249,7 +1250,7 @@ export default function AssetDetailsModal({
     const rawTag = currentAssetDetail.assetTag || currentAssetDetail.sn || currentAssetDetail.name || "0";
     const barcodeDataString = rawTag.replace(/[^a-zA-Z0-9-]/g, "");
     
-    const qrDataString = `https://itassetmenagement.vercel.app/?asset=${currentAssetDetail.id}&cat=${encodeURIComponent(selectedAssetCategory || 'assets')}`;
+    const qrDataString = assetQrUrl(currentAssetDetail.id, selectedAssetCategory);
 
     return (
       <div data-modal="asset-detail" className="fixed inset-0 bg-stone-900/60 flex items-center justify-center p-4 z-[90] transition-opacity print:bg-transparent print:backdrop-blur-none" style={{ fontFamily: "Arial, sans-serif" }}>

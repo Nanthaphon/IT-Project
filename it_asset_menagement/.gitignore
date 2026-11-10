@@ -31,3 +31,6 @@ firebase-debug*.log
 firestore-debug.log
 ui-debug.log
 print-report-preview.html
+
+# ไฟล์ส่งออกข้อมูลก่อนย้ายไป Supabase — มีข้อมูลส่วนบุคคล
+.supabase-export

@@ -14,7 +14,8 @@
     "check:needs": "node scripts/check-firebase-needs.mjs",
     "test:rules": "node scripts/test-rules.mjs",
     "migrate:m365": "node scripts/migrate-m365-secrets.mjs",
-    "test": "node --test src/**/*.test.mjs"
+    "test": "node --test src/**/*.test.mjs",
+    "test:supabase": "node --test scripts/supabase/*.test.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -30,6 +31,7 @@
     "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
     "@eslint/js": "^9.39.4",
     "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.14",

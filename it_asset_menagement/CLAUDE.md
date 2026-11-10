@@ -296,6 +296,12 @@ api/                         Vercel Functions (staff auth, Teams notify)
 - คอลัมน์ตารางทรัพย์สินมีทั้ง `note` (หมายเหตุ) และ `remark` (Remark) — คนละฟิลด์กัน
 - วันที่แสดงผลรูปแบบ DD/MM/YYYY ผ่าน `utils/formatDate.js`
 
+### ย้ายไป Supabase (กำลังทำ — branch `supabase-migration`)
+
+แผน + สิ่งที่เจ้าของต้องทำ: `docs/SUPABASE-MIGRATION.md` · แนวทาง = 1 collection = 1 ตาราง (`id`, `data jsonb`)
+แก้สิทธิ์ใน `firestore.rules` ต้องแก้ `supabase/migrations/*.sql` คู่กัน แล้วรัน `npm run test:supabase` (PGlite ไม่ต้องมี Docker)
+เพิ่ม collection ใหม่ = เพิ่มตารางใน migration + `TOP_TABLES` ใน `src/db/codec.js`
+
 ### ตรวจ syntax เร็วๆ หลังแก้ JSX
 ```bash
 npx esbuild --loader:.jsx=jsx src/components/ไฟล์.jsx --outdir="$TEMP/check" --log-level=error

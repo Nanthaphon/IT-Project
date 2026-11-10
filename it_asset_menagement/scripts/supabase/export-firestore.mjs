@@ -10,12 +10,15 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import admin from 'firebase-admin';
 import { encodeValue, TOP_TABLES } from '../../src/db/codec.js';
+import { loadEnv } from './loadEnv.mjs';
+
+loadEnv();   // GOOGLE_APPLICATION_CREDENTIALS อ่านจาก .env.migration.local ได้
 
 const PROJECT = 'it-asset-management-dc883';
 const prod = process.argv.includes('--prod');
 if (!prod) process.env.FIRESTORE_EMULATOR_HOST ||= '127.0.0.1:8080';
 if (prod && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  console.error('❌ --prod ต้องตั้ง GOOGLE_APPLICATION_CREDENTIALS เป็นไฟล์ service account ก่อน');
+  console.error('❌ --prod ต้องตั้ง GOOGLE_APPLICATION_CREDENTIALS เป็นไฟล์ service account ก่อน (ใน terminal หรือ .env.migration.local)');
   process.exit(1);
 }
 

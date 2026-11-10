@@ -14,13 +14,16 @@
    หลังนำเข้า: ผู้ดูแลแต่ละคนกด "ลืมรหัสผ่าน" ตั้งรหัสใหม่ หรือ SuperAdmin ตั้งให้ */
 import { readFileSync } from 'node:fs';
 import { CHUNK_TABLE } from '../../src/db/codec.js';
+import { loadEnv } from './loadEnv.mjs';
+
+loadEnv();   // SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY อ่านจาก .env.migration.local ได้ (ไม่ต้องพิมพ์ใน terminal)
 
 const [file] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const dry = process.argv.includes('--dry-run');
 if (!file) { console.error('ใช้: node scripts/supabase/import-to-supabase.mjs <ไฟล์ export> [--dry-run]'); process.exit(1); }
 
 const { SUPABASE_URL: URL_, SUPABASE_SERVICE_ROLE_KEY: KEY } = process.env;
-if (!dry && (!URL_ || !KEY)) { console.error('❌ ตั้ง SUPABASE_URL และ SUPABASE_SERVICE_ROLE_KEY ก่อน'); process.exit(1); }
+if (!dry && (!URL_ || !KEY)) { console.error('❌ ตั้ง SUPABASE_URL และ SUPABASE_SERVICE_ROLE_KEY ก่อน (ใน terminal หรือ .env.migration.local)'); process.exit(1); }
 
 const dump = JSON.parse(readFileSync(file, 'utf8'));
 const headers = { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };

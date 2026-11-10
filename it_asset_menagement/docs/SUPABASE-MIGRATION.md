@@ -45,38 +45,35 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 
 ## ย้าย hosting ไป Vercel ทีมบริษัท (globe-syndicate)
 
-**วิธีที่เลือก: โอนโปรเจค Vercel เดิม (`it_asset_menagement`) เข้าทีมบริษัท — ไม่สร้างโปรเจคใหม่**
+ทีม Globe Syndicate เป็นแพ็กเกจ **Hobby** — เพิ่มสมาชิกไม่ได้ จึง "โอนโปรเจคเดิม" จากบัญชีส่วนตัวเข้ามาไม่ได้
+**วิธีที่ใช้: สร้างโปรเจคใหม่ในทีมบริษัท (Import จาก GitHub) แล้ววันสลับย้ายโดเมน `itassetmenagement.vercel.app` มาไว้ที่โปรเจคใหม่**
 
-| | โอนโปรเจคเดิม (เลือก) | สร้างโปรเจคใหม่ในทีม |
-|---|---|---|
-| โดเมน `itassetmenagement.vercel.app` | ตามไปด้วย | ต้องลบจากโปรเจคเดิมแล้วผูกใหม่ — ระหว่างนั้นเว็บล่ม |
-| **QR บนสติกเกอร์ที่พิมพ์แล้ว** (ชี้โดเมนนี้) | ใช้ได้ต่อทันที | เสี่ยงสแกนไม่เข้า |
-| ค่า env / ประวัติ deploy | ตามไปด้วย | ตั้งใหม่ทั้งหมด |
-| เว็บล่มระหว่างย้าย | ไม่ล่ม (deployment เดิมยังเปิด) | — |
-
-ตอนนี้โปรเจคนี้ยังเสิร์ฟเว็บรุ่น Firebase (branch main) — การโอนไม่เปลี่ยนตัวเว็บ เปลี่ยนแค่ "เจ้าของบัญชี"
-รุ่น Supabase ขึ้นเมื่อ merge `supabase-migration` เข้า main ในวันสลับ (Vercel deploy ให้เอง)
+- **QR บนสติกเกอร์ที่พิมพ์แล้วชี้โดเมนนี้** — ย้ายโดเมนตามมา สติกเกอร์ใช้ได้ต่อ (ช่วงย้ายเว็บว่างไม่กี่นาที ทำนอกเวลางาน)
+- โปรเจคเดิมในบัญชีส่วนตัวเก็บไว้ไม่แตะ = ทางย้อนกลับ (ย้ายโดเมนกลับ)
+- ⚠️ เงื่อนไข Vercel: Hobby สำหรับใช้ส่วนตัวไม่ใช่เชิงพาณิชย์ — ระบบภายในบริษัทควรอัปเป็น Pro ($20/คน/เดือน) เมื่อพร้อม
+  อัปแล้วไม่ต้องย้ายอะไรใหม่ · ข้อจำกัด Hobby ที่เกี่ยว: ฟังก์ชันไม่เกิน 12 (ใช้ 9) · ไม่มีแจ้งเตือนการใช้งาน
 
 สิ่งที่ตั้งไว้ในโค้ดแล้ว (`vercel.json`): build Vite → `dist` · ฟังก์ชันรันที่ **สิงคโปร์ (`sin1`)** ใกล้ฐานข้อมูล Supabase
 (เดิมค่าเริ่มต้นสหรัฐฯ — ทุกคำขอข้ามมหาสมุทร) · header ความปลอดภัย · แคชไฟล์ `/assets` ถาวร · `/api` ไม่แคช
 หน้าเว็บกับ `api/` อยู่ host เดียวกัน → เรียก `/api/...` ตรง ๆ ไม่ติด CORS (`ALLOWED_ORIGINS` ไม่จำเป็นแล้ว)
 
-### ขั้นตอน (เจ้าของทำ — ต้องล็อกอิน Vercel)
+### ขั้นตอนสร้างโปรเจค (เจ้าของทำ — ล็อกอิน Vercel ทีม Globe Syndicate)
 
-1. **ตรวจสิทธิ์** — บัญชี Vercel ที่เป็นเจ้าของโปรเจคเดิม ต้องเป็นสมาชิกทีม `globe-syndicate` ด้วย (Owner หรือ Member ที่สร้างโปรเจคได้)
-   ถ้ายังไม่ใช่ ให้ผู้ดูแลทีมเชิญ: vercel.com/globe-syndicate → Settings → Members → Invite
-2. **โอนโปรเจค** — vercel.com → เลือกบัญชีส่วนตัว (มุมซ้ายบน) → โปรเจค `it_asset_menagement` → Settings → General
-   → เลื่อนล่างสุด **Transfer Project** → เลือก Globe Syndicate → ยืนยัน (รอ 1–2 นาที)
-3. **ตรวจหลังโอน** (ในทีม globe-syndicate → โปรเจคเดิม)
-   - เปิด https://itassetmenagement.vercel.app ได้ตามเดิม · สแกน QR สติกเกอร์ 1 ใบได้
-   - Settings → Git: ต่อกับ GitHub `Nanthaphon/IT-Project` · Production Branch = `main` · Root Directory = `it_asset_menagement`
-     (ถ้าขึ้นให้เชื่อม GitHub ใหม่ ให้กด Connect แล้วอนุญาต Vercel ใน GitHub)
-   - ทีมแพ็กเกจ Pro: บัญชี GitHub ที่ commit (Nanthaphon) ต้องเป็นสมาชิกทีม ไม่งั้น deploy อัตโนมัติจะถูกบล็อก
-4. **ใส่ค่า env** — Settings → Environment Variables ตามตาราง "ค่าที่ต้องใส่ใน Vercel" (เลือกทั้ง Production และ Preview)
-   ใส่ล่วงหน้าได้เลย เว็บรุ่นปัจจุบันไม่อ่านค่าเหล่านี้
+1. Projects → **Import Project** → **Import** → เลือก GitHub → repo `IT-Project`
+   (ไม่เห็น repo = กด "Adjust GitHub App Permissions" แล้วอนุญาต repo นี้ · ล็อกอิน GitHub บัญชี Nanthaphon)
+2. หน้า Configure Project
+   - Project Name: `it-asset-management`
+   - **Root Directory: กด Edit → เลือกโฟลเดอร์ `it_asset_menagement`** (สำคัญ — ไม่งั้น build ไม่เจอโปรเจค)
+   - Framework Preset: Vite (ขึ้นเอง) · Build/Output ไม่ต้องแก้
+   - Environment Variables: ใส่ตามตาราง "ค่าที่ต้องใส่ใน Vercel" ด้านล่าง
+   - กด **Deploy**
+3. deploy แรกจะเป็น branch `main` (รุ่น Firebase ที่ยังไม่มี `FIREBASE_SERVICE_ACCOUNT`) — URL นี้ยังไม่มีใครใช้ ไม่เป็นไร
+4. Settings → Environment Variables: ติ๊ก **Preview** ให้ทุกค่าด้วย — ใช้ทดสอบ branch `supabase-migration` บน Vercel จริงก่อนวันสลับ
+   (หลังเจ้าของสั่ง push branch นี้ Vercel สร้าง Preview URL ให้เอง · ดูได้เฉพาะคนที่ล็อกอิน Vercel ทีมนี้)
 5. **(ไม่บังคับ) โดเมนบริษัท** — Settings → Domains → Add (เช่น `it.บริษัท.co.th`) แล้วให้ฝ่ายดูแล DNS เพิ่ม record ตามที่ Vercel บอก
-   แล้วตั้ง env `VITE_PUBLIC_APP_URL` = โดเมนนั้น (สติกเกอร์ใหม่ชี้โดเมนบริษัท · โดเมน `.vercel.app` ต้องเปิดไว้ให้สติกเกอร์เก่า)
+   แล้วตั้ง env `VITE_PUBLIC_APP_URL` = โดเมนนั้น (สติกเกอร์ใหม่ชี้โดเมนบริษัท · `itassetmenagement.vercel.app` ต้องเปิดไว้ให้สติกเกอร์เก่า)
    และเพิ่มโดเมนใน Supabase → Authentication → URL Configuration
+
 
 ## สิ่งที่เจ้าของต้องทำ — ตอนนี้ (ก่อนวันสลับ)
 
@@ -117,8 +114,10 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
    npm run verify:supabase -- .supabase-export\firestore-xxx.json
    npm run smoke:supabase
    ```
-5. ☐ ตรวจค่า env ใน Vercel ทีมบริษัทครบ (ตารางด้านล่าง) → merge branch `supabase-migration` เข้า main แล้ว push
-   → Vercel build + deploy หน้าเว็บและ `api/` พร้อมกันในครั้งเดียว (ไม่มีช่วงที่สองฝั่งคนละรุ่น)
+5. ☐ merge branch `supabase-migration` เข้า main แล้ว push → โปรเจคใหม่ในทีมบริษัท deploy หน้าเว็บ + `api/` พร้อมกัน
+   เปิด URL ของโปรเจคใหม่ ล็อกอินผู้ดูแลได้ก่อนค่อยไปต่อ
+   **ย้ายโดเมน** (ทำติดกัน ช่วงว่างไม่กี่นาที): โปรเจคเดิม (บัญชีส่วนตัว) → Settings → Domains → ลบ `itassetmenagement.vercel.app`
+   → โปรเจคใหม่ (Globe Syndicate) → Settings → Domains → Add `itassetmenagement.vercel.app` → สแกน QR สติกเกอร์ 1 ใบ
 6. ☐ เปลี่ยน Firebase Hosting เป็นหน้าพาไปที่อยู่ใหม่ (กันคนเปิดลิงก์ `*.web.app` ที่บันทึกไว้ แล้วไปแก้ข้อมูลใน Firebase เก่า)
    ```powershell
    firebase deploy --only hosting --config firebase.redirect.json
@@ -126,9 +125,9 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 7. ☐ ผู้ดูแลทุกคนตั้งรหัสผ่านใหม่ (รหัสผ่านผู้ดูแลจาก Firebase ย้ายไม่ได้) — SuperAdmin ตั้งให้จากหน้า "จัดการผู้ใช้" · พนักงานใช้รหัสเดิมได้เลย
 8. ☐ ทดสอบ: ผู้ดูแลเข้าได้ทุกเมนู · พนักงาน 1 คนเข้าได้ แจ้งซ่อมได้ · แจ้งเตือน Teams เข้า
 9. ☐ Firebase เก็บไว้อ่านอย่างเดียว 30 วันเผื่อย้อนกลับ
-   ย้อนกลับ = Vercel → Deployments → เลือก deployment ก่อน merge → **Instant Rollback** (หน้าเว็บ + api กลับเป็นรุ่น Firebase พร้อมกัน)
+   ย้อนกลับ = ย้ายโดเมน `itassetmenagement.vercel.app` กลับไปโปรเจคเดิมในบัญชีส่วนตัว (ยังเป็นรุ่น Firebase ไม่ถูกแตะ) · ห้ามลบโปรเจคเดิมจนครบ 30 วัน
 
-### ค่าที่ต้องใส่ใน Vercel ทีมบริษัท (โปรเจค it_asset_menagement → Settings → Environment Variables → Production + Preview)
+### ค่าที่ต้องใส่ใน Vercel ทีมบริษัท (โปรเจคใหม่ → Settings → Environment Variables → Production + Preview)
 
 | ชื่อ | ค่า | |
 |---|---|---|
@@ -136,10 +135,10 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 | `SUPABASE_SERVICE_ROLE_KEY` | Secret key (Project Settings → API Keys) — **ห้ามส่งในแชท** | ใหม่ |
 | `VITE_SUPABASE_URL` · `VITE_SUPABASE_ANON_KEY` | ค่าเดียวกับ `.env.local` (เปิดเผยได้) — Vercel build หน้าเว็บด้วย ไม่ใส่ = หน้าเว็บบน Vercel ขาว | ใหม่ |
 | `STAFF_EMAIL_DOMAIN` | ไม่ต้องใส่ (ค่าเริ่มต้น `staff.itasset.invalid`) — ห้ามเปลี่ยนหลังใช้งานจริง | ไม่บังคับ |
-| `TEAMS_IT_WEBHOOK_URL` · `TEAMS_HR_WEBHOOK_URL` | ค่าเดิม (ตามมากับการโอนโปรเจค) | คงไว้ |
+| `TEAMS_IT_WEBHOOK_URL` · `TEAMS_HR_WEBHOOK_URL` | คัดลอกจากโปรเจคเดิม (บัญชีส่วนตัว → Settings → Environment Variables) | คัดลอก |
 | `VITE_PUBLIC_APP_URL` | ไม่ต้องใส่ จนกว่าจะมีโดเมนบริษัท (ค่าเริ่มต้น `https://itassetmenagement.vercel.app`) | ไม่บังคับ |
 | `ALLOWED_ORIGINS` · `VITE_VERCEL_API_URL` | ไม่จำเป็นแล้ว (หน้าเว็บกับ api อยู่ host เดียวกัน) — คงไว้ไม่เสียหาย | เลิกใช้ |
-| `FIREBASE_SERVICE_ACCOUNT` | ลบได้หลังสลับครบ 30 วัน | เลิกใช้ |
+| `FIREBASE_SERVICE_ACCOUNT` | ไม่ต้องใส่ในโปรเจคใหม่ (อยู่ที่โปรเจคเดิมเผื่อย้อนกลับ) | เลิกใช้ |
 
 หน้าเว็บ build บน Vercel เอง ใช้ค่า `VITE_*` จากตารางนี้ (ไม่ใช้ `.env.local` ในเครื่อง)
 

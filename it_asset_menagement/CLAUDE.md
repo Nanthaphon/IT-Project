@@ -305,7 +305,7 @@ api/                         Vercel Functions (staff auth, Teams notify) · bran
   migration ใหม่ต้องให้เจ้าของวางใน SQL Editor เอง (ไม่มีรหัสฐานข้อมูลในเครื่อง)
 - เพิ่ม collection ใหม่ = เพิ่มตารางใน migration + `TOP_TABLES` ใน `src/db/codec.js`
 - `api/` ใช้ service role ผ่าน `api/_lib/supabaseAdmin.js` · `npm run dev` รัน `api/` ในเครื่อง (vite.config.js) ค่าลับจาก `.env.migration.local`
-- Hosting = Vercel ทีมบริษัท `globe-syndicate` (โอนโปรเจคเดิมเข้าไป — โดเมน `itassetmenagement.vercel.app` ต้องอยู่ต่อ เพราะ QR สติกเกอร์ที่พิมพ์แล้วชี้โดเมนนี้ · `src/utils/publicUrl.js`)
+- Hosting = Vercel ทีมบริษัท `globe-syndicate` (Hobby · โปรเจคใหม่ + ย้ายโดเมนวันสลับ — โดเมน `itassetmenagement.vercel.app` ต้องอยู่ต่อ เพราะ QR สติกเกอร์ที่พิมพ์แล้วชี้โดเมนนี้ · `src/utils/publicUrl.js`)
   หน้าเว็บ + `api/` host เดียวกัน → `VERCEL_API_BASE` = '' · ตั้งค่าใน `vercel.json` (ฟังก์ชันรัน sin1)
 - พนักงาน = ผู้ใช้ Supabase Auth ที่ `api/staff-login` สร้าง (`app_metadata.app_role = 'staff'`) · ข้อมูลใน Supabase ตอนนี้เป็นสำเนาซ้อม
 

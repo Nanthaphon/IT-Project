@@ -49,11 +49,18 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 |---|---|
 | ทีม | `globe-syndicate` (ล็อกอิน `bd@globesyndicate.co.th`) · แพ็กเกจ **Hobby** |
 | โปรเจค | `it-asset-management` (`prj_yRTeKApeqFOtqUxkqaXOLTVChi9o`) |
-| โดเมนหลัก | **`it.gbos.app`** — ค่าของ `VITE_PUBLIC_APP_URL` · QR สติกเกอร์ใหม่ชี้ที่นี่ |
-| โดเมนรอง | `gbos.app` (apex) ชี้โปรเจคเดียวกัน |
+| โดเมน | **`it.gbos.app`** เท่านั้น — ค่าของ `VITE_PUBLIC_APP_URL` · QR สติกเกอร์ใหม่ชี้ที่นี่ |
 | deploy | **Vercel CLI จากเครื่อง** (`vercel --prod`) — ยังไม่ได้ผูก GitHub |
 
-`gbos.app` จดทะเบียนผ่าน Vercel และใช้ nameserver ของ Vercel → เพิ่ม subdomain แล้วออกใบรับรองเองอัตโนมัติ ไม่ต้องแก้ DNS ที่อื่น
+### `gbos.app` = โดเมนกลางของบริษัท — 1 โปรเจค 1 subdomain
+
+`gbos.app` จดทะเบียนผ่าน Vercel และใช้ nameserver ของ Vercel → เพิ่ม subdomain ให้โปรเจคไหนก็ได้ ออกใบรับรองเองอัตโนมัติ ไม่ต้องแก้ DNS ที่อื่น
+**แต่ 1 โดเมนผูกได้ 1 โปรเจคเท่านั้น** — ระบบอื่นของบริษัทจึงต้องใช้ subdomain ของตัวเอง (`hr.gbos.app`, `crm.gbos.app`, …)
+
+⚠️ **`gbos.app` (apex) ยังค้างผูกอยู่กับโปรเจคนี้ — ต้องถอดออก** เพื่อให้โปรเจคอื่นเอาไปใช้ได้
+Vercel → โปรเจค `it-asset-management` → Settings → Domains → แถว `gbos.app` → **Remove**
+(อย่าใช้ `vercel domains rm gbos.app` — คำสั่งนั้นถอดโดเมนออกจาก**ทั้งทีม** ไม่ใช่แค่โปรเจคนี้)
+ถอดแล้ว `it.gbos.app` ไม่กระทบ · apex เก็บไว้ให้เว็บบริษัท/พอร์ทัลภายหลัง
 
 - ⚠️ เงื่อนไข Vercel: Hobby สำหรับใช้ส่วนตัวไม่ใช่เชิงพาณิชย์ — ระบบภายในบริษัทควรอัปเป็น Pro ($20/คน/เดือน) เมื่อพร้อม
   อัปแล้วไม่ต้องย้ายอะไรใหม่ · ข้อจำกัด Hobby ที่เกี่ยว: ฟังก์ชันไม่เกิน 12 (ใช้ 9) · ไม่มีแจ้งเตือนการใช้งาน · เพิ่มสมาชิกในทีมไม่ได้

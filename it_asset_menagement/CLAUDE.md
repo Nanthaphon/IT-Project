@@ -305,7 +305,7 @@ api/                         Vercel Functions (staff auth, Teams notify) · bran
   migration ใหม่ต้องให้เจ้าของวางใน SQL Editor เอง (ไม่มีรหัสฐานข้อมูลในเครื่อง)
 - เพิ่ม collection ใหม่ = เพิ่มตารางใน migration + `TOP_TABLES` ใน `src/db/codec.js`
 - `api/` ใช้ service role ผ่าน `api/_lib/supabaseAdmin.js` · `npm run dev` รัน `api/` ในเครื่อง (vite.config.js) ค่าลับจาก `.env.migration.local`
-- Hosting = Vercel ทีมบริษัท `globe-syndicate` → โปรเจค `it-asset-management` · โดเมน **`it.gbos.app`**
+- Hosting = Vercel ทีมบริษัท `globe-syndicate` → โปรเจค `it-asset-management` · โดเมน **`it-assets-management.gbos.app`**
   (`gbos.app` เป็นโดเมนกลางบริษัท — ระบบอื่นใช้ subdomain ของตัวเอง · apex ห้ามผูกกับโปรเจคนี้)
   deploy ด้วย **Vercel CLI จากเครื่อง** (`vercel --prod`) ยังไม่ได้ผูก GitHub · ค่า env ส่งด้วย `node scripts/vercel-env-push.mjs`
   `.vercelignore` เป็นรายการอนุญาต — กัน `.env*.local` / `.supabase-export/` / `*-preview.html` ไม่ให้ขึ้นเซิร์ฟเวอร์

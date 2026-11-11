@@ -49,7 +49,7 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 |---|---|
 | ทีม | `globe-syndicate` (ล็อกอิน `bd@globesyndicate.co.th`) · แพ็กเกจ **Hobby** |
 | โปรเจค | `it-asset-management` (`prj_yRTeKApeqFOtqUxkqaXOLTVChi9o`) |
-| โดเมน | **`it.gbos.app`** เท่านั้น — ค่าของ `VITE_PUBLIC_APP_URL` · QR สติกเกอร์ใหม่ชี้ที่นี่ |
+| โดเมน | **`it-assets-management.gbos.app`** เท่านั้น — ค่าของ `VITE_PUBLIC_APP_URL` · QR สติกเกอร์ใหม่ชี้ที่นี่ |
 | deploy | **Vercel CLI จากเครื่อง** (`vercel --prod`) — ยังไม่ได้ผูก GitHub |
 
 ### `gbos.app` = โดเมนกลางของบริษัท — 1 โปรเจค 1 subdomain
@@ -57,10 +57,13 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 `gbos.app` จดทะเบียนผ่าน Vercel และใช้ nameserver ของ Vercel → เพิ่ม subdomain ให้โปรเจคไหนก็ได้ ออกใบรับรองเองอัตโนมัติ ไม่ต้องแก้ DNS ที่อื่น
 **แต่ 1 โดเมนผูกได้ 1 โปรเจคเท่านั้น** — ระบบอื่นของบริษัทจึงต้องใช้ subdomain ของตัวเอง (`hr.gbos.app`, `crm.gbos.app`, …)
 
-⚠️ **`gbos.app` (apex) ยังค้างผูกอยู่กับโปรเจคนี้ — ต้องถอดออก** เพื่อให้โปรเจคอื่นเอาไปใช้ได้
-Vercel → โปรเจค `it-asset-management` → Settings → Domains → แถว `gbos.app` → **Remove**
-(อย่าใช้ `vercel domains rm gbos.app` — คำสั่งนั้นถอดโดเมนออกจาก**ทั้งทีม** ไม่ใช่แค่โปรเจคนี้)
-ถอดแล้ว `it.gbos.app` ไม่กระทบ · apex เก็บไว้ให้เว็บบริษัท/พอร์ทัลภายหลัง
+`gbos.app` (apex) ถอดออกจากโปรเจคนี้แล้ว — เก็บไว้ให้เว็บบริษัท/พอร์ทัลภายหลัง (ตอนนี้เปิดแล้วเจอ 404 ของ Vercel ซึ่งปกติ)
+
+**ถอดโดเมนออกจากโปรเจคต้องทำในหน้าเว็บ**: Vercel → โปรเจค → Settings → Domains → แถวนั้น → `Edit` → **Remove**
+(อย่าใช้ `vercel domains rm <โดเมน>` — คำสั่งนั้นถอดโดเมนออกจาก**ทั้งทีม** ไม่ใช่แค่โปรเจคนี้)
+
+**`it-asset-management-xi.vercel.app`** = โดเมนแถมที่ Vercel สร้างให้ทุกโปรเจค ลบไม่ได้ (เปลี่ยนได้ด้วยการเปลี่ยนชื่อโปรเจคเท่านั้น)
+ไม่ต้องสนใจ ไม่มีใครรู้ URL นี้นอกจากคนในทีม
 
 - ⚠️ เงื่อนไข Vercel: Hobby สำหรับใช้ส่วนตัวไม่ใช่เชิงพาณิชย์ — ระบบภายในบริษัทควรอัปเป็น Pro ($20/คน/เดือน) เมื่อพร้อม
   อัปแล้วไม่ต้องย้ายอะไรใหม่ · ข้อจำกัด Hobby ที่เกี่ยว: ฟังก์ชันไม่เกิน 12 (ใช้ 9) · ไม่มีแจ้งเตือนการใช้งาน · เพิ่มสมาชิกในทีมไม่ได้
@@ -76,7 +79,7 @@ Vercel → โปรเจค `it-asset-management` → Settings → Domains →
 ### คำสั่ง deploy (ในโฟลเดอร์ `it_asset_menagement`)
 
 ```bash
-vercel --prod            # ขึ้น production (it.gbos.app + gbos.app)
+vercel --prod            # ขึ้น production (it-assets-management.gbos.app)
 vercel                   # ขึ้น preview URL เฉพาะกิจ ไม่แตะโดเมนจริง
 vercel env ls            # ดูว่ามีค่า env อะไรบ้าง (ไม่โชว์ค่า)
 node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.local / .env.migration.local ขึ้น Vercel
@@ -108,8 +111,8 @@ QR บนสติกเกอร์ที่พิมพ์ไปแล้ว�
    where email = 'อีเมลผู้ดูแลของคุณ';
    ```
    ขึ้น "Success. 1 rows affected" = ใช้ได้ · ผู้ดูแลคนอื่นตั้งให้ได้จากหน้า "จัดการผู้ใช้" → ปุ่มรีเซ็ตรหัสผ่าน หลังคุณเข้าระบบได้แล้ว
-4. **ลิงก์ "ลืมรหัสผ่าน"** — Authentication → URL Configuration → Site URL = `https://it.gbos.app`
-   Redirect URLs เพิ่มให้ครบ: `https://it.gbos.app/**` · `https://gbos.app/**` · `https://itassetmenagement.vercel.app/**` · `http://localhost:5173/**`
+4. **ลิงก์ "ลืมรหัสผ่าน"** — Authentication → URL Configuration → Site URL = `https://it-assets-management.gbos.app`
+   Redirect URLs เพิ่มให้ครบ: `https://it-assets-management.gbos.app/**` · `https://itassetmenagement.vercel.app/**` · `http://localhost:5173/**` · `http://localhost:5180/**`
    (ไม่เพิ่ม = กดลิงก์รีเซ็ตรหัสผ่านแล้วเด้งผิดที่)
 
 ## เช็กลิสต์วันสลับระบบ (ระยะที่ 5)
@@ -155,7 +158,7 @@ QR บนสติกเกอร์ที่พิมพ์ไปแล้ว�
 
 | ชื่อ | ค่า | สถานะ |
 |---|---|---|
-| `VITE_PUBLIC_APP_URL` | `https://it.gbos.app` — QR สติกเกอร์ใหม่ชี้ที่นี่ | ✅ ใส่แล้ว |
+| `VITE_PUBLIC_APP_URL` | `https://it-assets-management.gbos.app` — QR สติกเกอร์ใหม่ชี้ที่นี่ | ✅ ใส่แล้ว |
 | `SUPABASE_URL` · `VITE_SUPABASE_URL` | Project URL (`https://xxxx.supabase.co`) | สคริปต์ใส่ให้ |
 | `VITE_SUPABASE_ANON_KEY` | anon key — เปิดเผยได้ (ติดไปกับหน้าเว็บอยู่แล้ว) · ไม่ใส่ = หน้าเว็บขาว | สคริปต์ใส่ให้ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Secret key — **ห้ามส่งในแชท** · ไม่ใส่ = ล็อกอินพนักงาน/จัดการผู้ใช้พัง | สคริปต์ใส่ให้ |

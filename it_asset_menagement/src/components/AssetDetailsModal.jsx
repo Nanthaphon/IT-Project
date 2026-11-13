@@ -1564,8 +1564,8 @@ export default function AssetDetailsModal({
               License / อุปกรณ์เสริม: จอกว้างจัด 2 คอลัมน์ (ข้อมูลจำเพาะแคบซ้าย · รายการสิทธิ์/ชิ้นย่อยขวา)
               ทรัพย์สิน / ครุภัณฑ์: ผู้ครอบครอง + สรุปเต็มแถวด้านบน · ข้อมูลจำเพาะซ้าย · รูปภาพประกอบแคบขวา */}
           {activeTab === 'info' && (
-            <div className={`animate-in fade-in duration-200 ${infoLayout === 'list'
-              ? 'space-y-4 xl:space-y-0 xl:grid xl:grid-cols-[380px_minmax(0,1fr)] xl:gap-4 xl:items-start'
+            <div className={`animate-in fade-in duration-200 ${(isLicense || isAccessory)
+              ? 'space-y-4'
               : infoLayout === 'gallery'
               ? 'space-y-4 xl:space-y-0 xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-4 xl:items-start'
               : 'space-y-4'}`}>
@@ -1626,6 +1626,45 @@ export default function AssetDetailsModal({
                 </div>
               )}
 
+              {/* 🆕 สรุป License — แสดงเฉพาะข้อมูลระดับโปรแกรมที่ "ไม่ซ้ำ" กับหัวเรื่อง (ชื่อ/สถานะ/Supplier/สิทธิ์/วันหมดอายุ อยู่บนหัวแล้ว)
+                  และไม่ซ้ำกับรายการผู้ถือสิทธิ์ด้านล่าง · ถ้าไม่มีข้อมูลระดับโปรแกรมเลย = ไม่ขึ้นการ์ด ให้รายการสิทธิ์เต็มพื้นที่ */}
+              {isLicense && (() => {
+                const unitCost = Number(currentAssetDetail.cost) || 0;
+                const hasMeta = currentAssetDetail.productKey || currentAssetDetail.keyCode
+                  || currentAssetDetail.purchaseDate || unitCost > 0 || totalLicenseCost > 0
+                  || currentAssetDetail.note;
+                if (!hasMeta) return null;
+                return (
+                  <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
+                    <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
+                      <div className="w-1 h-4 rounded-full bg-clay-600" />
+                      <h4 className="text-[13px] font-medium text-stone-600">สรุป License</h4>
+                    </div>
+                    <div className="p-5 grid gap-x-4 gap-y-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+                      <div className="col-span-full"><DetailItem label="Product Key (หลัก)" value={currentAssetDetail.productKey} isMono /></div>
+                      <DetailItem label="รหัสอ้างอิง Key" value={currentAssetDetail.keyCode} />
+                      <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
+                      <DetailItem label="ราคา (บาท)" value={unitCost ? `฿${unitCost.toLocaleString()}` : '-'} />
+                      {currentAssetDetail.note && (
+                        <div className="col-span-full">
+                          <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
+                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                          </div>
+                        </div>
+                      )}
+                      {totalLicenseCost > 0 && (
+                        <div className="col-span-full flex items-center justify-between border-t border-stone-100 pt-3">
+                          <span className="text-[13px] font-medium text-stone-500">ราคารวมทั้งหมด</span>
+                          <span className="text-[15px] font-medium tabular-nums text-stone-800">฿{totalLicenseCost.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {isAssetCat && (
               <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
                 <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
                   <div className="w-1 h-4 rounded-full bg-clay-600" />
@@ -1726,6 +1765,7 @@ export default function AssetDetailsModal({
                   )}
                 </div>
               </div>
+              )}
 
               {/* 🆕 คลังรูปภาพ (Gallery) — ใช้ประกอบใน PDF (แยกจากเอกสารแนบ) */}
               {selectedAssetCategory === 'assets' && (() => {
@@ -1939,6 +1979,36 @@ export default function AssetDetailsModal({
                     )}
                   </div>
                   </div>
+                </div>
+              )}
+
+              {/* อุปกรณ์เสริม: แถบสรุปสั้นแนวนอน — ข้อมูลจริงรายชิ้นอยู่ใน "รายการชิ้นย่อย" ด้านล่าง
+                  (เดิมเป็นการ์ด "ข้อมูลจำเพาะ" คอลัมน์ซ้ายที่โล่งเมื่อไม่ได้กรอก) */}
+              {isAccessory && (
+                <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] px-5 py-4">
+                  <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+                    <div className="min-w-[200px] flex-1">
+                      <UsageBar
+                        used={currentAssetDetail.assignees?.length || 0}
+                        total={currentAssetDetail.quantity || 0}
+                        unit="ชิ้น"
+                      />
+                    </div>
+                    <DetailItem label="ผู้จัดจำหน่าย (Vendor)" value={currentAssetDetail.vendor} />
+                    <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
+                    {totalAccessoriesCost > 0 && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">มูลค่ารวม</span>
+                        <span className="text-sm font-medium text-stone-800 leading-[1.6] tabular-nums">฿{totalAccessoriesCost.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                  {currentAssetDetail.note && (
+                    <div className="mt-3 bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
+                      <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                      <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                    </div>
+                  )}
                 </div>
               )}
 

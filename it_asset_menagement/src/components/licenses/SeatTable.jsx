@@ -1,4 +1,4 @@
-import { KeyRound, Calendar, ChevronRight, Monitor, User } from 'lucide-react';
+import { KeyRound, Calendar, ChevronRight, Monitor } from 'lucide-react';
 import { statusTone } from '../../ui/earth.js';
 
 /* ตารางสิทธิ์ License
@@ -6,6 +6,9 @@ import { statusTone } from '../../ui/earth.js';
    = ที่ว่าง 69% ต่อแถว คูณ 52 แถว และเทียบข้ามแถวไม่ได้เลย
    ข้อมูลต่อสิทธิ์มี 5 อย่าง (สถานะ · ผู้ถือ · key · เบิกเมื่อ · หมดอายุ)
    -> เป็นตาราง กวาดสายตาลงคอลัมน์ได้ ใช้ความกว้างจริง
+
+   รายการสิทธิ์คือ "ของจริง" ของ License (ข้อมูลระดับโปรแกรมเป็นแค่ค่าตั้งต้น)
+   จึงให้น้ำหนักกับแถว: อวตารผู้ถือ · สิทธิ์ว่างเป็นวงกลมประ (กดจ่ายได้) · Key เป็นชิป
 
    จอแคบกว่า md กลับไปเป็นการ์ดเหมือนเดิม (ตารางอ่านไม่ได้บนมือถือ) */
 
@@ -23,9 +26,9 @@ function readSeat(seat, index) {
   if (seat.type === 'available') {
     return {
       n: `#${index + 1}`,
+      kind: 'available',
       holder: null,
       holderHint: seat.seatLabel || 'ยังไม่จ่ายสิทธิ์',
-      icon: null,
       date: '',
       status: 'พร้อมใช้งาน',
     };
@@ -34,18 +37,18 @@ function readSeat(seat, index) {
   if (a.isAssetBound) {
     return {
       n: `#${index + 1}`,
+      kind: 'asset',
       holder: a.assignedAssetName || 'ทรัพย์สิน',
       holderHint: a.empName || seat.seatLabel || 'ผูกกับเครื่อง',
-      icon: Monitor,
       date: a.checkoutDate || '',
       status: a.empId ? 'ถูกใช้งาน' : 'ติดตั้งบนเครื่อง',
     };
   }
   return {
     n: `#${index + 1}`,
+    kind: 'person',
     holder: a.empName || '—',
     holderHint: a.department || seat.seatLabel || '',
-    icon: User,
     date: a.checkoutDate || '',
     status: 'ถูกใช้งาน',
   };
@@ -57,6 +60,42 @@ function StatusChip({ status }) {
     <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-1 text-[11px] font-medium ${tone.badge}`}>
       <span className={`size-1.5 shrink-0 rounded-full ${tone.dot}`} />
       {status}
+    </span>
+  );
+}
+
+/** อวตารหน้าแถว — บอกชนิดของสิทธิ์ได้ตั้งแต่ยังไม่อ่านตัวหนังสือ */
+function SeatAvatar({ kind, name }) {
+  if (kind === 'available') {
+    return (
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-dashed border-stone-300 text-stone-300">
+        <KeyRound className="size-3.5" strokeWidth={2} />
+      </span>
+    );
+  }
+  if (kind === 'asset') {
+    return (
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sand-100 text-stone-500">
+        <Monitor className="size-3.5" strokeWidth={2} />
+      </span>
+    );
+  }
+  return (
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-clay-600 text-[11px] font-medium text-white">
+      {(name || '?').charAt(0)}
+    </span>
+  );
+}
+
+/** Product Key — ชิปโมโนสเปซ กวาดตาหาได้เร็วกว่าตัวหนังสือลอย */
+function KeyCell({ value }) {
+  if (!value) return <span className="text-[13px] text-stone-300">—</span>;
+  return (
+    <span
+      className="block w-fit max-w-full truncate rounded-lg bg-sand-100 px-2 py-1 font-mono text-[11px] text-stone-600"
+      title={value}
+    >
+      {value}
     </span>
   );
 }
@@ -109,7 +148,6 @@ export default function SeatTable({
             {seats.map((seat, index) => {
               const r = readSeat(seat, index);
               const exp = checkExpiration(seat.seatExpirationDate || licenseExpiry);
-              const Icon = r.icon;
               const selected = selectedIds.includes(seat.id);
               return (
                 <tr
@@ -117,7 +155,7 @@ export default function SeatTable({
                   onClick={() => onOpen(seat)}
                   className={`cursor-pointer border-b border-stone-100 transition-colors last:border-0 hover:[&>td]:bg-sand-50 ${selected ? '[&>td]:bg-clay-50' : ''}`}
                 >
-                  <td className="py-3 pl-4" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-3.5 pl-4" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selected}
@@ -126,44 +164,38 @@ export default function SeatTable({
                     />
                   </td>
 
-                  <td className="py-3 pr-4">
+                  <td className="py-3.5 pr-4">
                     <StatusChip status={r.status} />
                   </td>
 
-                  <td className="py-3 pr-4 text-[13px] tabular-nums text-stone-400 whitespace-nowrap">{r.n}</td>
+                  <td className="py-3.5 pr-4 text-[13px] tabular-nums text-stone-400 whitespace-nowrap">{r.n}</td>
 
-                  <td className="py-3 pr-4">
-                    {r.holder ? (
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        {Icon && <Icon className="size-3.5 shrink-0 text-stone-400" strokeWidth={2} />}
+                  <td className="py-3.5 pr-4">
+                    <div className="flex items-center gap-2.5 overflow-hidden">
+                      <SeatAvatar kind={r.kind} name={r.holder} />
+                      {r.holder ? (
                         <div className="min-w-0">
                           <p className="truncate text-[13px] font-medium text-stone-800" title={r.holder}>{r.holder}</p>
                           {r.holderHint && <p className="truncate text-[11px] text-stone-400" title={r.holderHint}>{r.holderHint}</p>}
                         </div>
-                      </div>
-                    ) : (
-                      <span className="text-[13px] text-stone-300">{r.holderHint}</span>
-                    )}
+                      ) : (
+                        <span className="truncate text-[13px] text-stone-400">{r.holderHint}</span>
+                      )}
+                    </div>
                   </td>
 
-                  <td className="py-3 pr-4">
-                    {seat.productKey ? (
-                      <span className="block truncate font-mono text-[11px] text-stone-600" title={seat.productKey}>
-                        {seat.productKey}
-                      </span>
-                    ) : (
-                      <span className="text-[13px] text-stone-300">—</span>
-                    )}
+                  <td className="py-3.5 pr-4">
+                    <KeyCell value={seat.productKey} />
                   </td>
 
-                  <td className="py-3 pr-4 text-[13px] tabular-nums text-stone-500">{r.date || '—'}</td>
+                  <td className="py-3.5 pr-4 text-[13px] tabular-nums text-stone-500">{r.date || '—'}</td>
 
-                  <td className="py-3 pr-4 text-[13px] tabular-nums text-stone-500">
+                  <td className="py-3.5 pr-4 text-[13px] tabular-nums text-stone-500">
                     <ExpiryCell seat={seat} licenseExpiry={licenseExpiry} expiring={exp} fmt={formatDate} />
                   </td>
 
                   {/* ท้ายแถว: ปุ่มรับคืน (การกระทำ) + ลูกศร — สถานะย้ายไปหน้าสุดแล้ว */}
-                  <td className="py-3 pr-4">
+                  <td className="py-3.5 pr-4">
                     <div className="flex items-center justify-end gap-1">
                       {seat.type === 'assigned' && !seat.assignee?.isAssetBound && (
                         <button
@@ -187,20 +219,17 @@ export default function SeatTable({
       <div className="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200/60 md:hidden">
         {seats.map((seat, index) => {
           const r = readSeat(seat, index);
-          const Icon = r.icon;
           return (
             <div
               key={seat.id}
               onClick={() => onOpen(seat)}
-              className="flex cursor-pointer items-center justify-between gap-2 p-3 transition-colors hover:bg-sand-50"
+              className="flex cursor-pointer items-center justify-between gap-2.5 p-3 transition-colors hover:bg-sand-50"
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  {Icon && <Icon className="size-3.5 shrink-0 text-stone-400" strokeWidth={2} />}
-                  <p className="truncate text-[13px] font-medium text-stone-800">
-                    {r.holder || `สิทธิ์ว่าง ${r.n}`}
-                  </p>
-                </div>
+              <SeatAvatar kind={r.kind} name={r.holder} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium text-stone-800">
+                  {r.holder || `สิทธิ์ว่าง ${r.n}`}
+                </p>
                 <p className="mt-0.5 flex items-center gap-2 truncate text-[11px] text-stone-400">
                   {seat.productKey && (
                     <span className="inline-flex items-center gap-1 truncate font-mono">

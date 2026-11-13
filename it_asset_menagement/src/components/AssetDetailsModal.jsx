@@ -1635,31 +1635,26 @@ export default function AssetDetailsModal({
                   || currentAssetDetail.note;
                 if (!hasMeta) return null;
                 return (
-                  <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] overflow-hidden">
-                    <div className="px-5 py-3 border-b border-stone-100 flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-clay-600" />
-                      <h4 className="text-[13px] font-medium text-stone-600">สรุป License</h4>
-                    </div>
-                    <div className="p-5 grid gap-x-4 gap-y-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-                      <div className="col-span-full"><DetailItem label="Product Key (หลัก)" value={currentAssetDetail.productKey} isMono /></div>
+                  <div className="bg-white rounded-2xl border border-stone-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] px-5 py-4">
+                    <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+                      <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">ค่าตั้งต้นระดับโปรแกรม</span>
+                      <DetailItem label="Product Key (หลัก)" value={currentAssetDetail.productKey} isMono />
                       <DetailItem label="รหัสอ้างอิง Key" value={currentAssetDetail.keyCode} />
                       <DetailItem label="วันที่ซื้อ" value={formatDateShort(currentAssetDetail.purchaseDate)} />
-                      <DetailItem label="ราคา (บาท)" value={unitCost ? `฿${unitCost.toLocaleString()}` : '-'} />
-                      {currentAssetDetail.note && (
-                        <div className="col-span-full">
-                          <div className="bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
-                            <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
-                            <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
-                          </div>
-                        </div>
-                      )}
+                      {unitCost > 0 && <DetailItem label="ราคา/สิทธิ์" value={`฿${unitCost.toLocaleString()}`} />}
                       {totalLicenseCost > 0 && (
-                        <div className="col-span-full flex items-center justify-between border-t border-stone-100 pt-3">
-                          <span className="text-[13px] font-medium text-stone-500">ราคารวมทั้งหมด</span>
-                          <span className="text-[15px] font-medium tabular-nums text-stone-800">฿{totalLicenseCost.toLocaleString()}</span>
+                        <div className="flex flex-col gap-0.5 ml-auto text-right">
+                          <span className="text-[11px] font-medium text-stone-400 leading-[1.5]">ราคารวมทั้งหมด</span>
+                          <span className="text-sm font-medium text-stone-800 leading-[1.6] tabular-nums">฿{totalLicenseCost.toLocaleString()}</span>
                         </div>
                       )}
                     </div>
+                    {currentAssetDetail.note && (
+                      <div className="mt-3 bg-clay-100/60 border border-clay-200/60 rounded-lg p-3">
+                        <p className="text-xs font-medium text-clay-600/80 mb-1">หมายเหตุ / รายละเอียดเพิ่มเติม</p>
+                        <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{currentAssetDetail.note}</p>
+                      </div>
+                    )}
                   </div>
                 );
               })()}

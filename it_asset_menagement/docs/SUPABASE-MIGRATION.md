@@ -109,10 +109,9 @@ node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.l
 | Firestore → **อ่านอย่างเดียว** (`firestore.readonly.rules` สร้างด้วย `scripts/make-readonly-rules.mjs` — สิทธิ์อ่านเดิม · เขียน = false) | ✅ |
 | ส่งออก Firebase ครั้งสุดท้ายหลังปิดเขียน → `sync-from-firebase.mjs --apply` | ✅ เพิ่ม 33 · แก้ 49 · ลบ 4 · ล้มเหลว 0 |
 | ย้ายไฟล์ของแถวที่ซิงก์มา · smoke test · ซิงก์ซ้ำ (ต้องว่าง) | ✅ |
+| ลบโปรเจค Vercel เดิม (บัญชีส่วนตัว) — `itassetmenagement.vercel.app` ตอบ 404 | ✅ |
 
 **ยังค้าง**
-- **ลบโปรเจคเดิมในบัญชี Vercel ส่วนตัว** (`itassetmenagement.vercel.app`) — เจ้าของทำเอง · ไม่ต้องย้ายโดเมน (ไม่ใช้สติกเกอร์ QR แล้ว)
-  ⚠️ ฟังก์ชัน `api/` ของโปรเจคเดิมใช้ firebase-admin ซึ่งข้ามกฎได้ — ลบเร็วที่สุด
 - อุปกรณ์เสริมที่แก้ทั้งสองระบบ (ใช้ค่า Supabase อยู่ · ค่า Firebase อยู่ใน export `firestore-2026-11-19T10-41-22-653Z.json`): **Anitech W227 Wireless** (Firebase ผู้ถือ 8 / Supabase 6) · **Logitech Mouse M171** (จำนวนเท่ากัน รายชื่อต่าง) — ตรวจกับของจริงแล้วแก้ในหน้าอุปกรณ์เสริม
 - `TEAMS_IT_WEBHOOK_URL` · `TEAMS_HR_WEBHOOK_URL` ในโปรเจคใหม่ (ไม่ใส่ = ไม่มีแจ้งเตือน Teams)
 - ผู้ดูแลคนอื่นตั้งรหัสผ่านใหม่ (หน้า "จัดการผู้ใช้") · พนักงาน 49 คนต้องเปลี่ยนรหัสตอนล็อกอินครั้งแรก

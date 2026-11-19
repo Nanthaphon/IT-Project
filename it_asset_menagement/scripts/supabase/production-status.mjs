@@ -14,7 +14,7 @@ console.log('Environment presence:', JSON.stringify(Object.fromEntries([
   'SUPABASE_ACCESS_TOKEN', 'DATABASE_URL', 'SUPABASE_DB_URL', 'GOOGLE_APPLICATION_CREDENTIALS', 'FIREBASE_SERVICE_ACCOUNT',
 ].map((name) => [name, Boolean(process.env[name])]))));
 console.log('Firebase credential file exists:', Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS && existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)));
-for (const host of ['it-assets-management.gbos.app', 'itassetmenagement.vercel.app', 'it-asset-management-dc883.web.app']) {
+for (const host of ['it-assets-management.gbos.app','it-asset-management-dc883.web.app']) {
   try {
     const res = await fetch(`https://${host}/`, { signal: AbortSignal.timeout(15000) });
     const html = await res.text();

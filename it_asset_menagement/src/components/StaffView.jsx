@@ -782,7 +782,7 @@ export default function StaffView({
         isOpen={showSetPasswordModal}
         onClose={() => setShowSetPasswordModal(false)}
         empId={currentStaff?.empId || ''}
-        vercelApiBase={(() => { try { return new URL(window.location.href).hostname.endsWith('.web.app') ? 'https://itassetmenagement.vercel.app' : ''; } catch { return ''; } })()}
+        vercelApiBase={(() => { try { return new URL(window.location.href).hostname.endsWith('.web.app') ? 'https://it-assets-management.gbos.app' : ''; } catch { return ''; } })()}
         getIdToken={async () => {
           const { auth } = await import('../firebase.js');
           return auth.currentUser?.getIdToken();

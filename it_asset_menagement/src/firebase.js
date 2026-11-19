@@ -16,7 +16,7 @@ import { auth } from './db/auth.js';
 //   ตั้งใจไม่ใช้ค่านี้ที่อื่น — กัน build ในเครื่องที่ .env.local ยังชี้ Vercel เก่า แล้วหน้าเว็บใหม่ไปเรียก api รุ่น Firebase
 const ON_FIREBASE_HOSTING = typeof window !== 'undefined' && window.location.hostname.endsWith('.web.app');
 export const VERCEL_API_BASE = ON_FIREBASE_HOSTING
-  ? (import.meta.env.VITE_VERCEL_API_URL || 'https://itassetmenagement.vercel.app')
+  ? (import.meta.env.VITE_VERCEL_API_URL || 'https://it-assets-management.gbos.app')
   : '';
 
 export { supabase, auth };

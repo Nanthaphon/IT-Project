@@ -311,7 +311,9 @@ api/                         Vercel Functions (staff auth, Teams notify) · bran
   `.vercelignore` เป็นรายการอนุญาต — กัน `.env*.local` / `.supabase-export/` / `*-preview.html` ไม่ให้ขึ้นเซิร์ฟเวอร์
   วันสลับต้องย้าย `itassetmenagement.vercel.app` (โปรเจคเดิมในบัญชีส่วนตัว) มาที่นี่ด้วย เพราะ QR สติกเกอร์ที่พิมพ์แล้วชี้โดเมนนั้น · `src/utils/publicUrl.js`
   หน้าเว็บ + `api/` host เดียวกัน → `VERCEL_API_BASE` = '' · ตั้งค่าใน `vercel.json` (ฟังก์ชันรัน sin1)
-- พนักงาน = ผู้ใช้ Supabase Auth ที่ `api/staff-login` สร้าง (`app_metadata.app_role = 'staff'`) · ข้อมูลใน Supabase ตอนนี้เป็นสำเนาซ้อม
+- พนักงาน = ผู้ใช้ Supabase Auth ที่ `api/staff-login` สร้าง (`app_metadata.app_role = 'staff'`) · ข้อมูลใน Supabase ตอนนี้เป็นสำเนาซ้อม — **อย่าแก้ข้อมูลจริงบน gbos.app ก่อนวันสลับ** (19 พ.ย. เจอแก้ไปแล้ว 7 แถว)
+- **รูป/ไฟล์แนบ (branch นี้)** อัปเข้า bucket private `it-private` ผ่าน `utils/privateStorage.js` เก็บเป็น reference · แสดงด้วย `ui/PrivateImage.jsx` / `PrivateFileLink.jsx` (signed URL) · ค่า base64 เดิมยังอ่านได้
+  ไม่เก็บรหัสพนักงานแบบอ่านออกแล้ว (admin ใช้ "รีเซ็ต") · ก่อน `vercel --prod` ต้องผ่าน `node scripts/supabase/check-release.mjs` (อ่านอย่างเดียว)
 
 ### ตรวจ syntax เร็วๆ หลังแก้ JSX
 ```bash

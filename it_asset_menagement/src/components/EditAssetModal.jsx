@@ -1,9 +1,11 @@
+import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
+import PrivateImage from '../ui/PrivateImage.jsx';
 import { Image, Recycle, Sparkles, SquarePen, X } from 'lucide-react';
 import React from 'react';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import DateField from './DateField.jsx';
 import { COMPANIES } from '../ui/theme.js';
-import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
+import { ICON_PRESET } from '../utils/compressImage.js';
 
 const BRAND = '#2B6777';
 
@@ -63,7 +65,7 @@ export default function EditAssetModal({
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const dataUrl = await compressImage(file, ICON_PRESET);
+      const dataUrl = await compressAndUploadPhoto(file, 'catalog', ICON_PRESET);
       setEditAssetModal(prev => ({ ...prev, data: { ...prev.data, image: dataUrl } }));
     }
   };
@@ -117,7 +119,7 @@ export default function EditAssetModal({
               <div className="flex items-center gap-4">
                 {editAssetModal.data.image ? (
                   <div className="relative shrink-0">
-                    <img
+                    <PrivateImage
                       src={editAssetModal.data.image}
                       alt="Preview"
                       className="w-20 h-20 rounded-lg object-cover border border-stone-200"

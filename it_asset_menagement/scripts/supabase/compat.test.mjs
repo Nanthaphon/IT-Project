@@ -19,6 +19,7 @@ const asStaff = () => configureBackend(staffBe);
 before(async () => {
   pg = await createTestDb();
   await pg.exec(`insert into admin_users (id, data) values ('admin-uid', '{"email":"a@x"}')`);
+  await pg.exec(`insert into staff_passwords (id,data) values ('emp-a','{"isDefault":false,"mustChangePassword":false}')`);
   adminBe = createPgliteBackend(pg, ADMIN);
   staffBe = createPgliteBackend(pg, STAFF);
 });

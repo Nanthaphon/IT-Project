@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useRef, useState } from 'react';
 import { AlertCircle, Camera, ImagePlus, NotebookPen, Plus, X } from 'lucide-react';
 import ImageViewer from '../ui/ImageViewer.jsx';
@@ -393,7 +394,7 @@ function FieldRow({ field, status, photos = [], onStatusChange, onPhotosChange, 
                 onClick={() => onPhotoClick(src)}
                 className="w-full h-full"
               >
-                <img src={src} alt={`${field.label}-${i + 1}`} className="w-full h-full object-cover" />
+                <PrivateImage src={src} alt={`${field.label}-${i + 1}`} className="w-full h-full object-cover" />
               </button>
               <button
                 type="button"

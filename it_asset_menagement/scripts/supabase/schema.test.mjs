@@ -29,6 +29,8 @@ before(async () => {
     insert into admin_users (id, data) values ('admin-uid', '{"email":"a@x"}'), ('super-uid', '{"email":"s@x","isSuperAdmin":true}');
     insert into employees (id, data) values ('emp-a', '{"empId":"1010001","fullName":"ก","manager":"ข"}'),
                                             ('emp-b', '{"empId":"1010002","fullName":"ข"}');
+    insert into staff_passwords (id,data) values ('emp-a','{"isDefault":false,"mustChangePassword":false}'),
+      ('emp-b','{"isDefault":false,"mustChangePassword":false}');
     insert into settings (id, data) values ('fieldOptions', '{"companies":["Globe"]}');
     insert into deleted_employees (id, data) values ('old', '{"empId":"9"}');
     insert into repair_requests (id, data) values

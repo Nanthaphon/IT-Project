@@ -60,12 +60,25 @@ export const bearer = (req) => (req.headers.authorization || '').replace(/^Beare
 
 /** ตรวจ access token ของ Supabase Auth → { uid, email, role, empId, empDocId } หรือ null
     role = 'staff' (พนักงาน) · 'hr' · null (ผู้ดูแล/ทั่วไป — ต้องดู admin_users ต่อ) */
-export async function verifyCaller(token) {
+export async function verifyCaller(token, { allowPasswordChange = false } = {}) {
   if (!token) return null;
   const { data, error } = await sb().auth.getUser(token);
   if (error || !data?.user) return null;
   const u = data.user;
   const m = u.app_metadata || {};
+  if (m.app_role === 'staff') {
+    let sessionMetadata;
+    // getUser validates the token but returns CURRENT app_metadata. Read the
+    // version from that verified JWT so old sessions cannot inherit a reset.
+    try { sessionMetadata = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8')).app_metadata || {}; }
+    catch { return null; }
+    const employee = m.emp_doc_id && await getData('employees', m.emp_doc_id);
+    if (!employee || hasResigned(employee)) return null;
+    const pwd = await getData('staff_passwords', m.emp_doc_id);
+    if (!pwd || (pwd.credentialVersion || 'legacy') !== (sessionMetadata.credential_version || 'legacy')
+      || sessionMetadata.emp_doc_id !== m.emp_doc_id || sessionMetadata.app_role !== 'staff') return null;
+    if (!allowPasswordChange && (pwd.isDefault !== false || pwd.mustChangePassword !== false)) return null;
+  }
   return { uid: u.id, email: u.email || null, role: m.app_role || null, empId: m.emp_id ?? null, empDocId: m.emp_doc_id ?? null };
 }
 
@@ -159,6 +172,29 @@ export function timingSafeEqual(a, b) {
   return crypto.timingSafeEqual(ab, bb);
 }
 export const newSalt = () => crypto.randomBytes(16).toString('hex');
+
+/** Durable fixed-window throttling; Vercel supplies x-vercel-forwarded-for.
+ * Untrusted x-forwarded-for is intentionally ignored outside Vercel. */
+export async function authRateLimit(req, res, identity, purpose = 'login') {
+  const platformIp = process.env.VERCEL === '1' ? req.headers['x-vercel-forwarded-for'] : null;
+  const ip = String(platformIp || req.socket?.remoteAddress || 'local').split(',')[0].trim();
+  for (const [value, limit] of [[`${purpose}:ip:${ip}`, 300], [`${purpose}:employee:${String(identity).trim().toLowerCase()}`, 10]]) {
+    const key = crypto.createHash('sha256').update(value).digest('hex');
+    const { data, error } = await sb().rpc('consume_auth_attempt', { p_key: key, p_limit: limit, p_window_seconds: 900 });
+    if (error || typeof data?.allowed !== 'boolean') throw new Error('ไม่สามารถตรวจสอบการเข้าสู่ระบบได้');
+    if (!data.allowed) {
+      res.setHeader('Retry-After', String(Math.max(1, Number(data.retryAfter) || 900)));
+      res.status(429).json({ error: 'ลองรหัสผ่านเกินจำนวนที่กำหนด กรุณาลองใหม่ภายหลัง' });
+      return false;
+    }
+  }
+  return true;
+}
+
+export function validNewStaffPassword(password, empId) {
+  return typeof password === 'string' && password.length >= 8 && password.length <= 1024
+    && password.trim() !== String(empId || '').trim() && password.trim().length >= 8;
+}
 
 /** ถึง "วันที่ออก" แล้ว (เวลาไทย) — เหมือน src/utils/employeeStatus.js และ app.staff_active() */
 export function hasResigned(empData, now = Date.now()) {

@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
@@ -188,7 +189,7 @@ export default function Sidebar({
               className="size-11 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-white/20 shadow-[0_6px_16px_-6px_rgba(0,0,0,0.45)]"
               style={{ background: 'linear-gradient(135deg, #3A8193 0%, #225462 100%)' }}
             >
-              <img
+              <PrivateImage
                 src="/gb_icon.svg"
                 alt="Logo"
                 className="size-6 object-contain"

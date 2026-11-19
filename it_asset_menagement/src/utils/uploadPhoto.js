@@ -1,21 +1,25 @@
-// 🆕 Helper สำหรับรูปประเมินสภาพ — บีบอัดแล้วเก็บเป็น base64 ในเอกสาร
+// บีบอัดรูปแล้วอัปโหลดเข้า Supabase Storage ส่วนตัว — คืน stable reference
 import { compressImage } from './compressImage.js';
+import { uploadPhotoDataUrl } from './privateStorage.js';
 
-/* ── ยังไม่มีที่เก็บไฟล์ → เก็บ base64 ตรง ─────────────────────────────────
-   Firebase Storage ไม่เคยเปิดได้ (bucket 404 · ต้องแพลน Blaze) — ตรวจ 26 ต.ค. 2026
-   ย้ายฐานข้อมูลไป Supabase แล้ว รูปยังเก็บแบบเดิม · ระยะที่ 4 (docs/SUPABASE-MIGRATION.md)
-   จะย้ายรูปไป Supabase Storage — ตอนนั้นค่อยเพิ่มการอัปโหลดในไฟล์นี้ (ทุกจุดเรียกผ่านที่นี่)
-   พารามิเตอร์ folder / preset เก็บไว้ให้ระยะที่ 4 ใช้ */
+// catalog: ภาพรายการสำหรับผู้ใช้ในระบบ · admin: หลักฐาน · staff: เจ้าของเท่านั้น
 const FALLBACK_PRESET = { maxDim: 1000, quality: 0.75 };
 
 /**
- * บีบอัดรูป → คืน data URL
+ * บีบอัดรูป → อัปโหลดส่วนตัว → คืน reference
  * อ่านไฟล์ไม่ได้ (เช่น HEIC จาก iPhone) → โยน Error ข้อความภาษาไทยให้ช่องแนบรูปแสดง
  */
-// eslint-disable-next-line no-unused-vars
 export async function compressAndUploadPhoto(file, folder = 'condition-photos', preset = FALLBACK_PRESET) {
   if (!file) return null;
-  return await compressImage(file, FALLBACK_PRESET);
+  const dataUrl = await compressImage(file, preset);
+  let target = folder === 'catalog' ? 'catalog/photos' : 'admin/photos';
+  if (folder === 'staff-photos') {
+    const { supabase } = await import('../db/supabaseClient.js');
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw new Error('กรุณาเข้าสู่ระบบอีกครั้ง');
+    target = `staff/${data.user.id}`;
+  }
+  return uploadPhotoDataUrl(dataUrl, target);
 }
 
 /**

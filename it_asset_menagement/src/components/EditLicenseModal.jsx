@@ -1,10 +1,12 @@
+import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React from 'react';
 import { Pencil, Image as ImageIcon, X as XIcon } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
 import { cls } from '../ui/theme.js';
 import FieldOptionSelect from './FieldOptionSelect.jsx';
 import DateField from './DateField.jsx';
-import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
+import { ICON_PRESET } from '../utils/compressImage.js';
 
 export default function EditLicenseModal({
   editLicenseModal,
@@ -25,7 +27,7 @@ export default function EditLicenseModal({
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const dataUrl = await compressImage(file, ICON_PRESET);
+      const dataUrl = await compressAndUploadPhoto(file, 'catalog', ICON_PRESET);
       setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: dataUrl } }));
     }
   };
@@ -44,7 +46,7 @@ export default function EditLicenseModal({
             <div className="flex items-center gap-4">
               {editLicenseModal.data.image ? (
                 <div className="relative shrink-0">
-                  <img src={editLicenseModal.data.image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
+                  <PrivateImage src={editLicenseModal.data.image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
                   <button
                     type="button"
                     onClick={() => setEditLicenseModal(prev => ({ ...prev, data: { ...prev.data, image: null } }))}

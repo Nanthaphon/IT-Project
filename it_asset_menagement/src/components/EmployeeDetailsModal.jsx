@@ -1,9 +1,9 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
+import SetStaffPasswordForm from './StaffPasswordResetForm.jsx';
 import React, { useState, useEffect } from 'react';
 import { Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Eye, EyeOff, FilePlus, Hash, Key, KeyRound, Lock, Monitor, Mouse, Printer, RotateCcw, Shield, SquarePen, Trash2, Unlock, X } from 'lucide-react';
-import { doc, onSnapshot } from '../db/compat.js';
-import { auth, db, VERCEL_API_BASE } from '../firebase.js';
 import { printHandoverForm } from '../utils/printHandoverForm.js';
-import { formatDateShort, formatDateTimeShort } from '../utils/formatDate.js';
+import { formatDateShort } from '../utils/formatDate.js';
 import { resolveName, initialOf } from '../utils/nameUtils.js';
 import { loadM365Password } from '../utils/employeeSecrets.js';
 import { Popover } from '../ui/earthUI.jsx';
@@ -435,7 +435,7 @@ export default function EmployeeDetailsModal({
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAssetDetail(); } }}
                             className="group flex cursor-pointer items-center gap-4 border-t border-stone-100 px-5 py-3.5 transition-colors first:border-t-0 hover:bg-stone-50/60">
                             {item.image ? (
-                              <img src={item.image} alt={item.name} loading="lazy"
+                              <PrivateImage src={item.image} alt={item.name} loading="lazy"
                                 className="size-11 shrink-0 rounded-xl border border-stone-200/60 bg-white object-cover" />
                             ) : (
                               <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
@@ -686,203 +686,6 @@ function DetailRow({ label, value, hint, accent, mono, copy }) {
         )}
         {hint && <p className="mt-0.5 text-[11px] text-stone-400">{hint}</p>}
       </div>
-    </div>
-  );
-}
-
-/* ── SetStaffPasswordForm — admin ดู / แก้ / รีเซ็ต รหัสผ่าน Staff Portal
-       - แสดงรหัสผ่านปัจจุบัน (sync real-time จาก Firestore)
-       - admin แก้ + กด "บันทึก" → API hash + เก็บ plaintext กลับ
-       - มีปุ่ม "ใช้รหัสพนักงาน" รีเซ็ตเร็วๆ ── */
-function SetStaffPasswordForm({ empDocId, empName, empId }) {
-  const [snapshot, setSnapshot] = useState(null);     // current data from Firestore
-  const [pwd, setPwd] = useState('');                 // input value (admin editing)
-  const [isDirty, setIsDirty] = useState(false);
-  const [show, setShow] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [resetting, setResetting] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [copied, setCopied] = useState(false);
-
-  // ── Live sync รหัสผ่านปัจจุบันจาก Firestore ──
-  useEffect(() => {
-    if (!empDocId) return;
-    const unsub = onSnapshot(doc(db, 'staff_passwords', empDocId), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setSnapshot(data);
-        if (!isDirty) setPwd(data.plaintext || '');
-      } else {
-        setSnapshot(null);
-        if (!isDirty) setPwd('');
-      }
-    });
-    return unsub;
-  }, [empDocId, isDirty]);
-
-  const currentPlaintext = snapshot?.plaintext || '';
-  const isDefault = snapshot?.isDefault === true;
-  const isUnset = !snapshot;
-  const updatedAt = snapshot?.updatedAt?.toDate?.();
-
-  const handleChange = (v) => { setPwd(v); setIsDirty(true); setMsg(null); };
-
-  const handleSave = async () => {
-    setMsg(null);
-    if (pwd.length < 6) { setMsg({ type: 'error', text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }); return; }
-    try {
-      setSaving(true);
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error('ต้อง login admin ก่อน');
-      const resp = await fetch(`${VERCEL_API_BASE}/api/set-staff-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ empDocId, newPassword: pwd }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'บันทึกไม่สำเร็จ');
-      setMsg({ type: 'success', text: `บันทึกรหัสผ่านสำหรับ ${empName || 'พนักงาน'} เรียบร้อยแล้ว` });
-      setIsDirty(false);
-    } catch (err) {
-      setMsg({ type: 'error', text: err?.message || 'เกิดข้อผิดพลาด' });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleResetToEmpId = async () => {
-    if (!empId) { setMsg({ type: 'error', text: 'ไม่พบรหัสพนักงาน' }); return; }
-    setMsg(null);
-    try {
-      setResetting(true);
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error('ต้อง login admin ก่อน');
-      const resp = await fetch(`${VERCEL_API_BASE}/api/set-staff-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ empDocId, newPassword: empId }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'รีเซ็ตไม่สำเร็จ');
-      setMsg({ type: 'success', text: `รีเซ็ตรหัสผ่านเป็น "${empId}" (รหัสพนักงาน) เรียบร้อย` });
-      setIsDirty(false);
-    } catch (err) {
-      setMsg({ type: 'error', text: err?.message || 'เกิดข้อผิดพลาด' });
-    } finally {
-      setResetting(false);
-    }
-  };
-
-  const handleCopy = async () => {
-    if (!currentPlaintext) return;
-    try {
-      await navigator.clipboard.writeText(currentPlaintext);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {}
-  };
-
-  const fmtTime = (d) => d ? formatDateTimeShort(d) : '-';
-
-  return (
-    <div className="px-4 py-3 space-y-3">
-
-
-      {/* Status badges */}
-      <div className="flex flex-wrap items-center gap-2">
-        {isUnset ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-[11px] font-medium">
-            ยังไม่เคยตั้งรหัสผ่าน
-          </span>
-        ) : isDefault ? (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-clay-100 text-clay-600 border border-clay-200 text-[11px] font-medium">
-            <Unlock className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ใช้รหัสพนักงานเป็นรหัสผ่าน
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-olive-50 text-olive-700 border border-olive-200 text-[11px] font-medium">
-            <Lock className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ตั้งรหัสผ่านส่วนตัว
-          </span>
-        )}
-        {updatedAt && (
-          <span className="text-[11px] text-stone-400">อัปเดตล่าสุด: {fmtTime(updatedAt)}</span>
-        )}
-      </div>
-
-      {/* Password input */}
-      <div>
-        <label className="block text-[11px] font-medium text-stone-500 mb-1.5">
-          รหัสผ่าน (Staff Portal)
-        </label>
-        <div className="relative">
-          <input
-            type={show ? 'text' : 'password'}
-            value={pwd}
-            onChange={e => handleChange(e.target.value)}
-            placeholder={isUnset ? 'พนักงานยังไม่เคย login — รหัสจะเป็นรหัสพนักงานอัตโนมัติ' : 'รหัสผ่าน'}
-            className="w-full bg-white border border-stone-200 pl-3 pr-24 py-2.5 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-clay-600/30 focus:border-clay-600"
-            autoComplete="new-password"
-            spellCheck={false}
-          />
-          <div className="absolute right-1 top-1 bottom-1 flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={() => setShow(v => !v)}
-              className="px-2 py-1 text-stone-400 hover:text-stone-600 transition-colors"
-              title={show ? 'ซ่อน' : 'แสดง'}
-            >
-              {show ? <EyeOff className="h-3.5 w-3.5" strokeWidth={2} /> : <Eye className="h-3.5 w-3.5" strokeWidth={2} />}
-            </button>
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={!currentPlaintext}
-              className="px-2 py-1 text-stone-400 hover:text-stone-600 disabled:opacity-30 transition-colors"
-              title="คัดลอกรหัสผ่านปัจจุบัน"
-            >
-              {copied
-                ? <CheckCircle2 className="h-3.5 w-3.5 text-olive-500" strokeWidth={2} />
-                : <Copy className="h-3.5 w-3.5" strokeWidth={2} />}
-            </button>
-          </div>
-        </div>
-        {isDirty && (
-          <p className="text-[11px] text-clay-600 mt-1.5 flex items-center gap-1">
-            ● มีการแก้ไข — กด "บันทึก" เพื่อยืนยัน
-          </p>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={handleResetToEmpId}
-          disabled={resetting || saving || !empId || (isDefault && !isDirty)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-clay-600 bg-white border border-stone-200/60 hover:bg-clay-100 hover:border-clay-300 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          title={`รีเซ็ตเป็น "${empId}" (รหัสพนักงาน)`}
-        >
-          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
-          {resetting ? 'กำลังรีเซ็ต...' : 'ใช้รหัสพนักงาน'}
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || resetting || !isDirty}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-clay-600 hover:bg-clay-700 rounded-xl shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          <Key className="h-3.5 w-3.5" strokeWidth={2} />
-          {saving ? 'กำลังบันทึก...' : 'บันทึก'}
-        </button>
-      </div>
-
-      {/* Message */}
-      {msg && (
-        <div className={`text-xs font-medium px-2.5 py-1.5 rounded-lg ${
-          msg.type === 'error'
-            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-            : 'bg-olive-50 text-olive-700 border border-olive-200'
-        }`}>{msg.text}</div>
-      )}
     </div>
   );
 }

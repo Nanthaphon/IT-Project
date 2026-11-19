@@ -2,8 +2,9 @@
 // (เรียกได้เฉพาะผู้ดูแลที่ login ผ่าน Supabase Auth และมีแถวใน admin_users)
 import {
   preflight, bearer, verifyCaller, adminRowOf, getData, setData, nowTs,
-  hashPassword, newSalt, PBKDF2_ITERATIONS,
+  hashPassword, newSalt, PBKDF2_ITERATIONS, validNewStaffPassword,
 } from './_lib/supabaseAdmin.js';
+import { ensureStaffUser } from './staff-login.js';
 
 export default async function handler(req, res) {
   if (preflight(req, res)) return;
@@ -16,29 +17,33 @@ export default async function handler(req, res) {
 
   try {
     const { empDocId, newPassword } = req.body || {};
-    if (!empDocId || typeof newPassword !== 'string' || newPassword.length < 6) {
-      return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง (รหัสผ่านอย่างน้อย 6 ตัว)' });
+    if (typeof empDocId !== 'string' || !empDocId || empDocId.length > 128) {
+      return res.status(400).json({ error: 'ข้อมูลพนักงานไม่ถูกต้อง' });
     }
 
     const emp = await getData('employees', empDocId);
     if (!emp) return res.status(404).json({ error: 'ไม่พบพนักงานคนนี้' });
+    if (!validNewStaffPassword(newPassword, emp.empId)) {
+      return res.status(400).json({ error: 'รหัสผ่านชั่วคราวต้องมี 8–1024 ตัวอักษร และไม่ใช่รหัสพนักงาน' });
+    }
 
     const salt = newSalt();
-    const empId = String(emp.empId || '').trim();
+    const credentialVersion = newSalt();
 
     await setData('staff_passwords', empDocId, {
       hash: hashPassword(newPassword, salt), salt,
       iterations: PBKDF2_ITERATIONS,
       updatedAt: nowTs(),
       updatedBy: caller.uid,
-      mustChangePassword: false,          // admin ตั้งเอง → ไม่บังคับเปลี่ยน (admin จะบอกพนักงานเอง)
-      isDefault: newPassword === empId,   // ตั้งเป็นรหัสพนักงาน
-      plaintext: newPassword,             // ⚠️ ให้ admin เห็น
+      mustChangePassword: true,
+      isDefault: false,
+      credentialVersion,
     });
+    await ensureStaffUser(empDocId, emp.empId, credentialVersion);
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('set-staff-password error:', err);
-    return res.status(500).json({ error: err.message || 'failed' });
+    console.error('set-staff-password failed:', err.code || err.name || 'error');
+    return res.status(500).json({ error: 'รีเซ็ตรหัสผ่านไม่สำเร็จ กรุณาลองใหม่' });
   }
 }

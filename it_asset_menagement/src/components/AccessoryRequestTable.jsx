@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState, useMemo, useEffect } from 'react';
 import { AlertTriangle, CalendarDays, Check, CheckCircle2, ChevronDown, ClipboardList, Clock, ImageIcon, Package, PlusCircle, Repeat, RotateCcw, Trash2, X, XCircle } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
@@ -171,7 +172,7 @@ export default function AccessoryRequestTable({
                         <div className="flex items-center gap-3">
                           <div className={`w-1 h-10 rounded-full ${borrow?.overdue ? 'bg-brick-600' : status.bar} shrink-0`} />
                           {acc?.image ? (
-                            <img src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-stone-200 shrink-0 bg-white p-1" />
+                            <PrivateImage src={acc.image} alt="" className="w-10 h-10 rounded-lg object-contain border border-stone-200 shrink-0 bg-white p-1" />
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-sand-100 flex items-center justify-center shrink-0 border border-stone-200">
                               <Package className="h-4 w-4 text-stone-400" strokeWidth={2} />
@@ -380,7 +381,7 @@ export default function AccessoryRequestTable({
           className="fixed inset-0 bg-stone-950/50 z-[95] flex items-center justify-center p-6"
           onClick={() => setPreviewPhoto(null)}
         >
-          <img src={previewPhoto} alt="damage" className="max-w-full max-h-full rounded-xl" />
+          <PrivateImage src={previewPhoto} alt="damage" className="max-w-full max-h-full rounded-xl" />
           <button
             onClick={() => setPreviewPhoto(null)}
             className="fixed top-6 right-6 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"

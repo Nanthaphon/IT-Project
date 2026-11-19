@@ -10,6 +10,16 @@ const MIG_DIR = new URL('../../supabase/migrations/', import.meta.url);
 export async function createTestDb() {
   const db = new PGlite();
   for (const r of ['anon', 'authenticated', 'service_role']) await db.exec(`create role ${r} nologin`);
+  // Supabase installs Storage itself. Minimal test-only stand-ins let the real
+  // bucket and object RLS migration run unchanged in local Postgres.
+  await db.exec(`create schema storage;
+    create table storage.buckets(id text primary key,name text,public boolean default false,
+      file_size_limit bigint,allowed_mime_types text[]);
+    create table storage.objects(id text primary key default gen_random_uuid()::text,
+      bucket_id text references storage.buckets(id),name text,metadata jsonb default '{}',unique(bucket_id,name));
+    alter table storage.objects enable row level security;
+    grant usage on schema storage to anon,authenticated,service_role;
+    grant select,insert,update,delete on storage.objects to anon,authenticated,service_role;`);
   for (const f of readdirSync(MIG_DIR).filter((f) => f.endsWith('.sql')).sort()) {
     await db.exec(readFileSync(new URL(f, MIG_DIR), 'utf8'));
   }

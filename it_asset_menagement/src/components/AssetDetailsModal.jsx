@@ -1,10 +1,15 @@
+import PrivateFileLink from '../ui/PrivateFileLink.jsx';
+import { uploadPrivateFile, downloadPrivateAttachment, parseStorageReference } from '../utils/privateStorage.js';
+import { savePrivateAttachment } from '../utils/attachmentStore.js';
+import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState, useRef, useEffect } from 'react';
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, deleteDoc } from '../db/compat.js';
+import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, query, where, orderBy, deleteDoc } from '../db/compat.js';
 import { Banknote, Building2, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, CornerUpLeft, Printer, ClipboardList, Clock, Copy, DollarSign, Download, FileText, Hash, Image, Info, KeyRound, Laptop, Loader2, LogIn, Paperclip, Pencil, Plus, Search, ShieldCheck, Sparkles, SquarePen, Tag, Trash2, TriangleAlert, User, X } from 'lucide-react';
 import OwnershipHistory from './OwnershipHistory.jsx';
 import { assetQrUrl } from '../utils/publicUrl.js';
 import AssetLicenseTab from './AssetLicenseTab.jsx';
-import { compressImage, EVIDENCE_PRESET } from '../utils/compressImage.js';
+import { EVIDENCE_PRESET } from '../utils/compressImage.js';
 import { formatDateShort } from '../utils/formatDate.js';
 import DateField from './DateField.jsx';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Field, SectionHeader } from '../ui/primitives.jsx';
@@ -18,15 +23,8 @@ import { buildAssetTimeline, buildLicenseTimeline, buildSeatTimeline, buildAcces
 import { availableArrays, availableCount, newSeatId, removeAvailableSeats } from '../utils/licenseSeats.js';
 
 /* ── Purchase-history document storage helpers ── */
-const CHUNK_B64_SIZE = 950_000; // ~693 KB binary → safe under Firestore 1 MB/doc
 const PH_MAX_BYTES   = 2_097_152; // 2 MB per file
 
-const phFileToBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload  = () => resolve(reader.result);
-  reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
-  reader.readAsDataURL(file);
-});
 
 const openPhBase64 = (dataUrl, fileName, fileType) => {
   try {
@@ -37,7 +35,7 @@ const openPhBase64 = (dataUrl, fileName, fileType) => {
     const blob = new Blob([arr], { type: fileType || 'application/octet-stream' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.target = '_blank'; a.download = fileName || 'document';
+    a.href = url; a.download = fileName || 'document';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
   } catch (e) { console.error('[openPhBase64]', e); }
@@ -202,32 +200,18 @@ export default function AssetDetailsModal({
       // ── อัปโหลด pending files ไปยัง asset_purchase_docs collection ──
       const newDocRefs = [];
       for (const pending of pendingPurchaseDocs) {
-        const dataUrl  = await phFileToBase64(pending.file);
-        const base64   = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-        const needsChunking = base64.length > CHUNK_B64_SIZE;
         const meta = {
           assetId:    currentAssetDetail.id,
           historyId,
           fileName:   pending.name,
           fileSize:   pending.size,
           fileType:   pending.type,
-          fileData:   needsChunking ? null : dataUrl,
-          isChunked:  needsChunking,
+          isChunked:  false,
           chunkCount: 0,
           uploadedAt: Date.now(),
         };
-        const phRef = await addDoc(collection(db, 'asset_purchase_docs'), meta);
-        if (needsChunking) {
-          const chunks = [];
-          for (let i = 0; i < base64.length; i += CHUNK_B64_SIZE)
-            chunks.push(base64.slice(i, i + CHUNK_B64_SIZE));
-          await Promise.all(
-            chunks.map((data, index) =>
-              addDoc(collection(db, 'asset_purchase_docs', phRef.id, 'chunks'), { index, data })
-            )
-          );
-          await updateDoc(phRef, { chunkCount: chunks.length });
-        }
+        const phRef = await savePrivateAttachment('asset_purchase_docs', pending.file, meta);
+
         newDocRefs.push({ id: phRef.id, name: pending.name, fileSize: pending.size, fileType: pending.type });
       }
 
@@ -257,6 +241,11 @@ export default function AssetDetailsModal({
   // 🟢 ฟังก์ชันเปิด / ดาวน์โหลดเอกสารแนบในประวัติจัดซื้อ
   const handleOpenPurchaseDoc = async (docItem) => {
     // Old format: inline base64 in docItem.data
+    if (parseStorageReference(docItem.data)) {
+      try { await downloadPrivateAttachment(docItem.data, docItem.name); }
+      catch (error) { setCustomAlert?.({ isOpen: true, title: 'เปิดไฟล์ไม่สำเร็จ', message: error.message, type: 'error' }); }
+      return;
+    }
     if (docItem.data) {
       openPhBase64(docItem.data, docItem.name, docItem.type || '');
       return;
@@ -269,6 +258,7 @@ export default function AssetDetailsModal({
       const metaSnap = await getDoc(doc(db2, 'asset_purchase_docs', docItem.id));
       if (!metaSnap.exists()) { setOpeningPhDocId(null); return; }
       const meta = metaSnap.data();
+      if (meta.storageRef) { await downloadPrivateAttachment(meta.storageRef, meta.fileName); return; }
       if (!meta.isChunked) {
         openPhBase64(meta.fileData, meta.fileName, meta.fileType);
       } else {
@@ -384,12 +374,7 @@ export default function AssetDetailsModal({
       e.target.value = null; return;
     }
     try {
-      const newDocs = await Promise.all(files.map(file => new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onloadend = () => res({ name: file.name, data: reader.result });
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      })));
+      const newDocs = await Promise.all(files.map(async file => ({ name: file.name, type: file.type, data: await uploadPrivateFile(file, { folder: 'admin/attachments' }) })));
       if (target === 'edit') {
         setTempAccDocs(prev => [...prev, ...newDocs]);
       } else if (target === 'new') {
@@ -400,19 +385,13 @@ export default function AssetDetailsModal({
   };
 
   /* ── เปิดไฟล์แนบในแท็บใหม่ ── */
-  const handleOpenAccDoc = (doc) => {
-    if (!doc?.data) return;
-    const w = window.open();
-    if (!w) return;
-    if (doc.data.startsWith('data:application/pdf')) {
-      w.document.write(`<iframe src="${doc.data}" style="width:100%;height:100vh;border:none"></iframe>`);
-    } else if (doc.data.startsWith('data:image/')) {
-      w.document.write(`<img src="${doc.data}" style="max-width:100%;height:auto" alt="${doc.name}">`);
-    } else {
-      // For other types, force download
-      const a = w.document.createElement('a');
-      a.href = doc.data; a.download = doc.name;
-      a.click();
+  const handleOpenAccDoc = async (item) => {
+    if (!item?.data) return;
+    try {
+      if (parseStorageReference(item.data)) await downloadPrivateAttachment(item.data, item.name);
+      else openPhBase64(item.data, item.name, item.type || 'application/octet-stream');
+    } catch (error) {
+      setCustomAlert?.({ isOpen: true, title: 'เปิดไฟล์ไม่สำเร็จ', message: error.message, type: 'error' });
     }
   };
 
@@ -528,13 +507,12 @@ export default function AssetDetailsModal({
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    // ไฟล์ที่ไม่ใช่รูปต้องไม่เกิน 900 KB (Firestore doc limit ~1 MB หลัง base64 = ~750 KB binary)
-    const NON_IMG_LIMIT = 900 * 1024;
+    const NON_IMG_LIMIT = 15 * 1024 * 1024;
     const nonImgOversized = files.filter(f => !f.type.startsWith('image/') && f.size > NON_IMG_LIMIT);
     if (nonImgOversized.length > 0) {
       if (setCustomAlert) setCustomAlert({
         isOpen: true, title: 'ไฟล์ใหญ่เกินไป',
-        message: `ไฟล์ที่ไม่ใช่รูปต้องไม่เกิน 900 KB (Firestore จำกัด 1 MB/เอกสาร)\n\nไฟล์ที่ใหญ่เกิน:\n${nonImgOversized.map(f => `• ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`).join('\n')}`,
+        message: `แต่ละไฟล์ต้องไม่เกิน 15 MB\n\nไฟล์ที่ใหญ่เกิน:\n${nonImgOversized.map(f => `• ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`).join('\n')}`,
         type: 'error',
       });
       e.target.value = null;
@@ -546,18 +524,13 @@ export default function AssetDetailsModal({
       const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
 
       // รูปภาพ → บีบด้วย EVIDENCE_PRESET (1000px/0.7 → ~80-120 KB)
-      // ไฟล์อื่น → อ่านเป็น base64 ตามปกติ
+      // PDF → อัปโหลดเข้า Storage ส่วนตัวโดยตรง
       const newDocs = await Promise.all(files.map(async (file) => {
         if (file.type.startsWith('image/')) {
-          const compressed = await compressImage(file, EVIDENCE_PRESET);
-          return { name: file.name.replace(/\.(png|webp|gif|bmp|tiff?)$/i, '.jpg'), data: compressed };
+          const compressed = await compressAndUploadPhoto(file, 'condition-photos', EVIDENCE_PRESET);
+          return { name: file.name.replace(/\.(png|webp|gif|bmp|tiff?)$/i, '.jpg'), type: 'image/jpeg', data: compressed };
         }
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve({ name: file.name, data: reader.result });
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+        return { name: file.name, type: file.type, data: await uploadPrivateFile(file, { folder: 'admin/attachments' }) };
       }));
 
       let existingDocs = currentAssetDetail.documents || [];
@@ -636,7 +609,7 @@ export default function AssetDetailsModal({
     setIsSavingItem(true);
     try {
       const docRef = doc(db, selectedAssetCategory, currentAssetDetail.id);
-      const compressed = await Promise.all(imageFiles.map(f => compressImage(f, EVIDENCE_PRESET)));
+      const compressed = await Promise.all(imageFiles.map(f => compressAndUploadPhoto(f, 'condition-photos', EVIDENCE_PRESET)));
       const existing = Array.isArray(currentAssetDetail.photoGallery) ? currentAssetDetail.photoGallery : [];
       const combined = [...existing, ...compressed];
       await updateDoc(docRef, { photoGallery: combined });
@@ -1056,12 +1029,7 @@ export default function AssetDetailsModal({
     }
     setIsSavingItem(true);
     try {
-      const newDocs = await Promise.all(files.map(file => new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onloadend = () => res({ name: file.name, data: reader.result });
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      })));
+      const newDocs = await Promise.all(files.map(async file => ({ name: file.name, type: file.type, data: await uploadPrivateFile(file, { folder: 'admin/attachments' }) })));
       setNewSeatDocs(prev => [...prev, ...newDocs]);
     } catch (err) { console.error(err); }
     finally { setIsSavingItem(false); e.target.value = null; }
@@ -1169,12 +1137,7 @@ export default function AssetDetailsModal({
     }
     setIsSavingItem(true);
     try {
-      const newDocs = await Promise.all(files.map(file => new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onloadend = () => res({ name: file.name, data: reader.result });
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      })));
+      const newDocs = await Promise.all(files.map(async file => ({ name: file.name, type: file.type, data: await uploadPrivateFile(file, { folder: 'admin/attachments' }) })));
       setTempLicenseSeatDocs(prev => [...prev, ...newDocs]);
     } catch (err) { console.error(err); }
     finally { setIsSavingItem(false); e.target.value = null; }
@@ -1281,7 +1244,7 @@ export default function AssetDetailsModal({
             <div id="printable-label-container" className="bg-white border-[3px] border-stone-800 p-2 flex flex-col w-[280px] text-stone-800 shrink-0 relative box-border overflow-hidden">
               <div className="flex gap-2.5">
                 <div className="w-[72px] h-[72px] shrink-0 border border-stone-200 p-0.5 bg-white flex items-center justify-center self-start">
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
+                  <PrivateImage src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrDataString)}&ecc=L&margin=0`} alt="QR Code" className="w-full h-full object-contain" />
                 </div>
 
                 <div className="flex flex-col text-xs leading-[1.3] font-medium w-full overflow-hidden justify-start pt-0.5 gap-[2px]">
@@ -1293,7 +1256,7 @@ export default function AssetDetailsModal({
               </div>
 
               <div className="h-[34px] w-full mt-1.5 flex justify-center overflow-hidden">
-                <img src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(barcodeDataString)}&code=Code128&hidehrt=True&unit=Fit`} alt="Barcode" className="w-full h-full object-fill" />
+                <PrivateImage src={`https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(barcodeDataString)}&code=Code128&hidehrt=True&unit=Fit`} alt="Barcode" className="w-full h-full object-fill" />
               </div>
             </div>
           </div>
@@ -1373,7 +1336,7 @@ export default function AssetDetailsModal({
                 <button type="button" onClick={() => setViewerImage({ src: currentAssetDetail.image, name: currentAssetDetail.name })}
                   className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-stone-200/60 bg-white"
                   title="ดูรูปเต็ม">
-                  <img src={currentAssetDetail.image} alt="" className="max-h-full max-w-full object-contain p-1" />
+                  <PrivateImage src={currentAssetDetail.image} alt="" className="max-h-full max-w-full object-contain p-1" />
                 </button>
               ) : (
                 <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
@@ -1793,7 +1756,7 @@ export default function AssetDetailsModal({
                       <div className={`grid gap-2 ${isAssetCat ? 'grid-cols-3 sm:grid-cols-4 xl:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'}`}>
                         {gallery.map((src, idx) => (
                           <div key={idx} className="relative group rounded-xl overflow-hidden border border-stone-200/60 aspect-square bg-stone-50">
-                            <img src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
+                            <PrivateImage src={src} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
                             <button
                               type="button"
                               onClick={() => setViewerImage({ src, name: `รูปที่ ${idx + 1}` })}
@@ -2393,12 +2356,12 @@ export default function AssetDetailsModal({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {docs.map((docItem, idx) => {
                           // 🆕 รูปภาพ → แสดง thumbnail เล็กๆ (48px) ให้เห็นว่าแนบรูปอะไร
-                          const isImg = String(docItem.data || '').startsWith('data:image/');
+                          const isImg = String(docItem.data || '').startsWith('data:image/') || String(docItem.type || '').startsWith('image/');
                           return (
                           <div key={idx} className="flex items-center justify-between bg-white border border-stone-200 p-3 rounded-lg overflow-hidden">
-                            <a href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13px] text-clay-600 font-medium hover:underline truncate mr-3 min-w-0">
+                            <PrivateFileLink href={docItem.data} download={docItem.name} target={isImg ? '_blank' : undefined} rel={isImg ? 'noreferrer' : undefined} className="flex items-center gap-3 text-[13px] text-clay-600 font-medium hover:underline truncate mr-3 min-w-0">
                               {isImg ? (
-                                <img
+                                <PrivateImage
                                   src={docItem.data}
                                   alt={docItem.name}
                                   loading="lazy"
@@ -2410,7 +2373,7 @@ export default function AssetDetailsModal({
                                 </div>
                               )}
                               <span className="truncate">{docItem.name}</span>
-                            </a>
+                            </PrivateFileLink>
                             <button onClick={() => handleRemoveDocument(idx)} disabled={isSavingItem} className="text-stone-400 hover:text-rose-500 bg-white border border-stone-200 w-7 h-7 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 transition-colors shrink-0" title="ลบเอกสารนี้">
                               <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                             </button>
@@ -2821,10 +2784,10 @@ export function SeatDetailModal({
                 {seat.documents?.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {seat.documents.map((d, i) => (
-                      <a key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1.5 bg-sand-100 px-3 py-2 rounded-xl text-[13px] font-medium text-clay-600 hover:bg-stone-50 hover:border-stone-200 transition-colors">
+                      <PrivateFileLink key={i} href={d.data} download={d.name} className="inline-flex items-center gap-1.5 bg-sand-100 px-3 py-2 rounded-xl text-[13px] font-medium text-clay-600 hover:bg-stone-50 hover:border-stone-200 transition-colors">
                         <Paperclip className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                         <span className="truncate max-w-[180px]">{d.name}</span>
-                      </a>
+                      </PrivateFileLink>
                     ))}
                   </div>
                 ) : (

@@ -1,3 +1,5 @@
+import { compressAndUploadPhoto } from '../utils/uploadPhoto.js';
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState, useRef, useEffect } from 'react';
 import { Image as ImageIcon, Plus, Recycle, ShieldCheck, Sparkles, X as XIcon } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Field, SectionHeader, Button } from '../ui/primitives.jsx';
@@ -6,7 +8,7 @@ import FieldOptionSelect from './FieldOptionSelect.jsx';
 import MultiOptionField from './MultiOptionField.jsx';
 import DateField from './DateField.jsx';
 import { NAME_PREFIXES } from '../utils/employeeTemplate.js';
-import { compressImage, ICON_PRESET } from '../utils/compressImage.js';
+import { ICON_PRESET } from '../utils/compressImage.js';
 
 export default function AddModal({
   isAddModalOpen, setIsAddModalOpen, activeMenu,
@@ -40,7 +42,7 @@ export default function AddModal({
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const dataUrl = await compressImage(file, ICON_PRESET);
+      const dataUrl = await compressAndUploadPhoto(file, 'catalog', ICON_PRESET);
       setAssetImage(dataUrl);
     }
   };
@@ -48,7 +50,7 @@ export default function AddModal({
   const handleLicenseImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const dataUrl = await compressImage(file, ICON_PRESET);
+      const dataUrl = await compressAndUploadPhoto(file, 'catalog', ICON_PRESET);
       setLicenseImage(dataUrl);
     }
   };
@@ -475,7 +477,7 @@ function ImagePicker({ image, onRemove, onUpload }) {
     <div className="flex items-center gap-4">
       {image ? (
         <div className="relative shrink-0">
-          <img src={image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
+          <PrivateImage src={image} alt="Preview" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
           <button
             type="button"
             onClick={onRemove}

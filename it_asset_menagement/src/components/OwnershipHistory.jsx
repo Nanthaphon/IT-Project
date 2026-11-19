@@ -1,3 +1,6 @@
+import { downloadPrivateAttachment } from '../utils/privateStorage.js';
+import { savePrivateAttachment } from '../utils/attachmentStore.js';
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, ArrowLeft, ArrowRight, Calendar, Camera, CheckCircle2, ChevronDown, ChevronUp, Clock, Download, File, FileText, Image, MessageSquare, Paperclip, Pencil, Plus, Printer, Save, Trash2, TriangleAlert, Upload, User, X } from 'lucide-react';
 import ImageViewer from '../ui/ImageViewer.jsx';
@@ -527,20 +530,9 @@ function PeriodCard({ period, isCurrent, assetId, onPhotoClick, onEdit, onDelete
   );
 }
 
-/* ── Firestore-based file helpers ── */
+/* ── Legacy file readers (new uploads use private Storage) ── */
 const FILE_WARN_BYTES  = 1_500_000; // 1.5 MB → แจ้งเตือน
 const FILE_MAX_BYTES   = 2_097_152; // 2 MB → บล็อก
-
-// base64 ของ ~693 KB raw ≈ 950,000 ตัวอักษร → ต่ำกว่า Firestore 1 MB/doc อย่างปลอดภัย
-const CHUNK_B64_SIZE   = 950_000;
-
-/** Read a File and return its data-URL (base64 with MIME prefix) */
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload  = () => resolve(reader.result);
-  reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
-  reader.readAsDataURL(file);
-});
 
 /** Open/download a file from a reassembled base64 data-URL */
 const openBase64File = (dataUrl, fileName, fileType) => {
@@ -553,7 +545,6 @@ const openBase64File = (dataUrl, fileName, fileType) => {
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
-    a.target   = '_blank';
     a.download = fileName || 'document';
     document.body.appendChild(a);
     a.click();
@@ -597,8 +588,7 @@ const DOC_TYPES = [
 const docTypeOf = (v) => DOC_TYPES.find(d => d.value === v) || DOC_TYPES[2];
 
 /* ══════════════════════════════════════════════════════════════════
-   Attachment Section — store files as base64 in Firestore
-   (no Firebase Storage required — works on Spark free plan)
+   Attachment Section — files in private Storage; legacy chunk reads retained
    ══════════════════════════════════════════════════════════════════ */
 function AttachmentSection({ checkoutId, assetId, attachments, setAttachments }) {
   // state ของ attachments ถูก lift ไป PeriodCard (เพื่อแสดง count badge ใน header)
@@ -632,13 +622,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
     setError('');
     setSaving(true);
     try {
-      const dataUrl  = await fileToBase64(file);
-      const base64   = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-      const mimeType = file.type || 'application/octet-stream';
-
-      // ── ต้องการ chunking เมื่อ base64 เกิน ~950 KB ──
-      const needsChunking = base64.length > CHUNK_B64_SIZE;
-
+      const mimeType = file.type;
       const dt = docTypeOf(docType);
       const meta = {
         checkoutId,
@@ -646,8 +630,7 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
         fileName:     file.name,
         fileSize:     file.size,
         fileType:     mimeType,
-        fileData:     needsChunking ? null : dataUrl, // เก็บ inline ถ้าเล็กพอ
-        isChunked:    needsChunking,
+        isChunked:    false,
         chunkCount:   0,
         uploadedAt:   Date.now(),
         docType,
@@ -655,25 +638,8 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
                         ? (otherLabel.trim() || 'เอกสารอื่นๆ')
                         : `${dt.label} (${dt.formNo})`,
       };
-      const docRef = await addDoc(collection(db, 'transaction_attachments'), meta);
-
-      if (needsChunking) {
-        // แบ่ง base64 เป็น chunk แต่ละ chunk ≤ CHUNK_B64_SIZE ตัวอักษร
-        const chunks = [];
-        for (let i = 0; i < base64.length; i += CHUNK_B64_SIZE) {
-          chunks.push(base64.slice(i, i + CHUNK_B64_SIZE));
-        }
-        // เขียนทุก chunk ลง sub-collection พร้อมกัน
-        await Promise.all(
-          chunks.map((data, index) =>
-            addDoc(collection(db, 'transaction_attachments', docRef.id, 'chunks'), { index, data })
-          )
-        );
-        await updateDoc(docRef, { chunkCount: chunks.length });
-        meta.chunkCount = chunks.length;
-      }
-
-      setAttachments(prev => [...(prev || []), { id: docRef.id, ...meta }]);
+      const saved = await savePrivateAttachment('transaction_attachments', file, meta);
+      setAttachments(prev => [...(prev || []), saved]);
       setPendingFile(null);
     } catch (err) {
       console.error('[attachment save]', err);
@@ -685,6 +651,11 @@ function AttachmentSection({ checkoutId, assetId, attachments, setAttachments })
 
   /** เปิดไฟล์ — ถ้า chunked ต้อง fetch chunks ก่อน แล้ว reassemble */
   const handleOpen = async (att) => {
+    if (att.storageRef) {
+      try { await downloadPrivateAttachment(att.storageRef, att.fileName); }
+      catch (err) { setError('เปิดไฟล์ไม่สำเร็จ: ' + err.message); }
+      return;
+    }
     if (!att.isChunked) {
       openBase64File(att.fileData, att.fileName, att.fileType);
       return;
@@ -1016,7 +987,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                 <button key={slot.key} type="button" onClick={() => onPhotoClick?.(slots[slot.key])}
                   className="aspect-square rounded-xl overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors"
                   title={slot.label}>
-                  <img src={slots[slot.key]} alt={slot.label} className="w-full h-full object-cover" />
+                  <PrivateImage src={slots[slot.key]} alt={slot.label} className="w-full h-full object-cover" />
                 </button>
               ) : null)}
             </div>
@@ -1164,7 +1135,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
                               className="w-16 h-16 rounded-lg overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors shrink-0 bg-stone-50 relative block group/photo"
                               title={`${f.label} - รูปที่ ${i + 1}`}
                             >
-                              <img src={src} alt={`${f.label}-${i + 1}`} className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform" />
+                              <PrivateImage src={src} alt={`${f.label}-${i + 1}`} className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform" />
                               <span className="absolute top-1 left-1 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded">
                                 {i + 1}
                               </span>
@@ -1208,7 +1179,7 @@ function ConditionSnapshot({ label, Icon, color, fields, photos = [], checklist 
               {photos.map((src, i) => (
                 <button key={i} type="button" onClick={() => onPhotoClick(src)}
                   className="aspect-square rounded-xl overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors">
-                  <img src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
+                  <PrivateImage src={src} alt={`p-${i}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

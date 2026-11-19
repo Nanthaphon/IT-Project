@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { readRememberedEmployee, rememberEmployee } from '../utils/staffRemember.js';
 import { ArrowRight, Building2, Check, Copy, Download, ExternalLink, Eye, EyeOff, FilePlus, FileText, ImageIcon, KeyRound, Laptop, Lightbulb, LogOut, Menu, Monitor, Mouse, Package, Pencil, PlusCircle, Printer, RefreshCw, Repeat, RotateCcw, Save, Search, Sparkles, SquarePen, Star, Trash2, User, Wrench, X } from 'lucide-react';
 import { useActiveTab } from '../hooks/useActiveTab.js';
 import SatisfactionSurveyModal from './SatisfactionSurveyModal.jsx';
@@ -7,6 +8,8 @@ import { e, safeUrl } from '../utils/htmlEscape.js';
 import { formatDateShort } from '../utils/formatDate.js';
 import { cleanLinks, linkLabel } from '../utils/links.js';
 import DateField from './DateField.jsx';
+import PrivateImage from '../ui/PrivateImage.jsx';
+import { printViaIframe } from '../utils/printViaIframe.js';
 
 /* ════════════════════════════════════════════════
    เลือก logo ตามบริษัทของพนักงาน
@@ -251,9 +254,7 @@ function printReplacementForm({ staff, currentStatus, reason, myAssets, damagePh
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=900,height=750');
-  win.document.write(html);
-  win.document.close();
+  return printViaIframe(html);
 }
 
 export default function StaffView({
@@ -273,7 +274,7 @@ export default function StaffView({
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // ── Force change password state (legacy — flag จาก admin reset) ──
+  // ── Default and temporary reset credentials require a private password. ──
   const [changePwd, setChangePwd] = useState({ current: '', next: '', confirm: '' });
   const [changeError, setChangeError] = useState('');
   const [changeSubmitting, setChangeSubmitting] = useState(false);
@@ -285,12 +286,13 @@ export default function StaffView({
   const handleForceChangePassword = async (e) => {
     e.preventDefault();
     setChangeError('');
-    if (changePwd.next.length < 6) { setChangeError('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+    if (changePwd.next.length < 8) { setChangeError('รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'); return; }
+    if (changePwd.next.trim() === currentStaff?.empId) { setChangeError('ห้ามใช้รหัสพนักงานเป็นรหัสผ่าน'); return; }
     if (changePwd.next !== changePwd.confirm) { setChangeError('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
     if (changePwd.next === changePwd.current) { setChangeError('รหัสผ่านใหม่ต้องไม่เหมือนรหัสผ่านเดิม'); return; }
     setChangeSubmitting(true);
     try {
-      const { auth, VERCEL_API_BASE } = await import('../firebase.js');
+      const { auth, supabase, VERCEL_API_BASE } = await import('../firebase.js');
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) throw new Error('Session หมดอายุ — กรุณา login ใหม่');
       const resp = await fetch(`${VERCEL_API_BASE}/api/staff-change-password`, {
@@ -303,8 +305,13 @@ export default function StaffView({
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      if (data.session) {
+        const { error } = await supabase.auth.setSession(data.session);
+        if (error) throw new Error('เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบใหม่');
+      }
       setChangePwd({ current: '', next: '', confirm: '' });
       setStaffMustChangePassword?.(false);
+      window.location.reload(); // Reopen subscriptions after RLS grants normal access.
     } catch (err) {
       setChangeError(err.message || 'เกิดข้อผิดพลาด');
     } finally {
@@ -346,10 +353,10 @@ export default function StaffView({
     }
     setIsUploadingDamagePhoto(true);
     try {
-      const { compressImage } = await import('../utils/compressImage.js');
+      const { compressAndUploadPhoto } = await import('../utils/uploadPhoto.js');
       const compressed = await Promise.all(files.map(async (f) => ({
         name: f.name,
-        data: await compressImage(f, { maxDim: 1000, quality: 0.7 }),
+        data: await compressAndUploadPhoto(f, 'staff-photos', { maxDim: 1000, quality: 0.7 }),
       })));
       setReplaceDamagePhotos(prev => [...prev, ...compressed]);
     } catch (err) {
@@ -428,26 +435,8 @@ export default function StaffView({
   }, [activeTab]);
 
   useEffect(() => {
-    if (!currentStaff) {
-      const savedData = localStorage.getItem('staffRemember');
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData);
-          // จดจำตลอด — ไม่มี expiry (รองรับข้อมูลเก่าที่มี expiry ด้วย)
-          if (!parsed.expiry || Date.now() < parsed.expiry) {
-            setStaffEmpIdInput(parsed.empId || '');
-            // ถอดรหัส password เก่า (base64 encode/decode — กัน shoulder-surfing เบื้องต้น)
-            if (parsed.password) {
-              try { setStaffPasswordInput(atob(parsed.password)); }
-              catch { /* ignore */ }
-            }
-            setRememberMe(true);
-          }
-        } catch (e) {
-          console.error('Error parsing stored login', e);
-        }
-      }
-    }
+    const savedId = readRememberedEmployee(localStorage);
+    if (!currentStaff && savedId) { setStaffEmpIdInput(savedId); setRememberMe(true); }
   }, [currentStaff, setStaffEmpIdInput, setStaffPasswordInput]);
 
   // 🆕 hard-lock: กรองอุปกรณ์ตามบริษัทของพนักงานเสมอ (ไม่ให้เลือกเปลี่ยน)
@@ -521,13 +510,9 @@ export default function StaffView({
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (rememberMe) {
-      // จดจำตลอด — encode password เบา ๆ (base64) กัน plaintext ใน localStorage
-      localStorage.setItem('staffRemember', JSON.stringify({
-        empId: staffEmpIdInput,
-        password: btoa(staffPasswordInput || ''),
-      }));
+      rememberEmployee(localStorage, staffEmpIdInput);
     } else {
-      localStorage.removeItem('staffRemember');
+      rememberEmployee(localStorage, null);
     }
     setIsLoggingIn(true);
     try {
@@ -682,7 +667,7 @@ export default function StaffView({
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-stone-300 text-clay-600 focus:ring-clay-600" />
-                <span className="text-sm text-stone-500">จดจำการเข้าสู่ระบบ</span>
+                <span className="text-sm text-stone-500">จำรหัสพนักงาน</span>
               </label>
               <button
                 type="submit"
@@ -712,8 +697,7 @@ export default function StaffView({
   }
 
   /* ========================================
-     FORCE CHANGE PASSWORD — legacy flow (เผื่อ admin reset แล้วยังตั้ง flag ไว้)
-     ปกติ default จะไม่บังคับ — staff เลือกตั้งรหัสผ่านเองได้ในเมนู "จัดการรหัสผ่าน"
+     FORCE CHANGE PASSWORD — enforced by database policies and APIs as well.
   ======================================== */
   if (staffMustChangePassword) {
     return (
@@ -727,7 +711,7 @@ export default function StaffView({
             </div>
             <h1 className="text-[21px] font-medium text-stone-800 tracking-tight">ตั้งรหัสผ่านใหม่</h1>
             <p className="text-[13px] text-stone-500 mt-1.5 text-center px-4 leading-relaxed">
-              สวัสดี <span className="font-medium text-clay-600">{currentStaff?.fullName}</span> —<br />
+              สวัสดี <span className="font-medium text-clay-600">{currentStaff?.fullName || currentStaff?.empId}</span> —<br />
               กรุณาตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัย (เข้าใช้ครั้งแรก)
             </p>
           </div>
@@ -741,16 +725,16 @@ export default function StaffView({
                   className={inputCls} placeholder="รหัสพนักงานของคุณ (ครั้งแรก)" required autoFocus />
               </div>
               <div>
-                <label className={labelCls}>รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)</label>
+                <label className={labelCls}>รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)</label>
                 <input type="password" value={changePwd.next}
                   onChange={e => setChangePwd(p => ({ ...p, next: e.target.value }))}
-                  className={inputCls} placeholder="••••••••" required minLength={6} />
+                  className={inputCls} placeholder="••••••••" required minLength={8} maxLength={1024} />
               </div>
               <div>
                 <label className={labelCls}>ยืนยันรหัสผ่านใหม่</label>
                 <input type="password" value={changePwd.confirm}
                   onChange={e => setChangePwd(p => ({ ...p, confirm: e.target.value }))}
-                  className={inputCls} placeholder="พิมพ์รหัสผ่านอีกครั้ง" required minLength={6} />
+                  className={inputCls} placeholder="พิมพ์รหัสผ่านอีกครั้ง" required minLength={8} maxLength={1024} />
               </div>
               {changeError && (
                 <div className="text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
@@ -1203,7 +1187,7 @@ export default function StaffView({
                     <div className="grid grid-cols-3 gap-2 mb-2">
                       {replaceDamagePhotos.map((p, i) => (
                         <div key={i} className="relative group/photo aspect-square rounded-xl overflow-hidden ring-1 ring-stone-200 bg-stone-50">
-                          <img src={p.data} alt={p.name} className="w-full h-full object-cover" />
+                          <PrivateImage src={p.data} alt={p.name} className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => handleRemoveDamagePhoto(i)}
@@ -1386,7 +1370,7 @@ export default function StaffView({
                         {/* รูปเตี้ยลงบนมือถือ (4:3) — เดิมสี่เหลี่ยมจัตุรัส เห็นได้ทีละ 2 แถว */}
                         <div className={`relative aspect-[4/3] sm:aspect-square bg-stone-50 flex items-center justify-center ${isOut ? 'opacity-40 grayscale' : ''}`}>
                           {item.image
-                            ? <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" loading="lazy" />
+                            ? <PrivateImage src={item.image} alt={item.name} className="w-full h-full object-contain p-2" loading="lazy" />
                             : <Package className="h-9 w-9 text-stone-300" strokeWidth={2} />
                           }
                         </div>
@@ -1443,7 +1427,7 @@ export default function StaffView({
                       <div key={cartItem.supplyId} className="px-4 py-3 space-y-2.5">
                         <div className="flex items-center gap-2.5">
                           {cartItem.image
-                            ? <img src={cartItem.image} alt={cartItem.name} className="w-10 h-10 rounded-lg object-contain bg-stone-50 p-0.5 border border-stone-200/60 shrink-0" />
+                            ? <PrivateImage src={cartItem.image} alt={cartItem.name} className="w-10 h-10 rounded-lg object-contain bg-stone-50 p-0.5 border border-stone-200/60 shrink-0" />
                             : <div className="w-10 h-10 rounded-lg bg-stone-50 border border-stone-200/60 flex items-center justify-center text-stone-300 shrink-0"><Package className="h-4 w-4" strokeWidth={2} /></div>
                           }
                           <div className="flex-1 min-w-0">
@@ -1610,7 +1594,7 @@ export default function StaffView({
                     <div key={item.uniqueKey || item.id} className="border border-stone-200 rounded-xl p-4 hover:border-clay-600/30 transition-colors flex flex-col gap-3">
                       <div className="flex items-start gap-3">
                         {item.image
-                          ? <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0" />
+                          ? <PrivateImage src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0" />
                           : <div className="w-12 h-12 rounded-xl bg-stone-50 flex items-center justify-center shrink-0 border border-stone-200 text-stone-400"><ItemIcon className="h-5 w-5" strokeWidth={2} /></div>
                         }
                         <div className="flex-1 min-w-0 pt-0.5">
@@ -2144,7 +2128,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
                 >
                   <div className="relative aspect-square bg-stone-50 flex items-center justify-center">
                     {acc.image
-                      ? <img src={acc.image} alt={acc.name} className="w-full h-full object-contain p-2" loading="lazy" />
+                      ? <PrivateImage src={acc.image} alt={acc.name} className="w-full h-full object-contain p-2" loading="lazy" />
                       : <Package className="h-10 w-10 text-stone-300" strokeWidth={2} />
                     }
                     {isSelected && (
@@ -2262,7 +2246,7 @@ function AccessoryRequestSection({ accessories = [], currentStaff, myAccessoryRe
               {/* Selected preview */}
               <div className="flex items-start gap-3 p-3 bg-stone-50 rounded-lg border border-stone-100">
                 {selectedAcc.image
-                  ? <img src={selectedAcc.image} alt={selectedAcc.name} className="w-12 h-12 rounded-lg object-contain bg-white p-0.5 border border-stone-200 shrink-0" />
+                  ? <PrivateImage src={selectedAcc.image} alt={selectedAcc.name} className="w-12 h-12 rounded-lg object-contain bg-white p-0.5 border border-stone-200 shrink-0" />
                   : <div className="w-12 h-12 rounded-lg bg-white border border-stone-200 flex items-center justify-center shrink-0">
                       <Package className="h-5 w-5 text-stone-400" strokeWidth={2} />
                     </div>

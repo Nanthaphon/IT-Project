@@ -1,3 +1,4 @@
+import PrivateImage from '../../ui/PrivateImage.jsx';
 import React, { useMemo, useState } from 'react';
 import { AlertCircle, Check, Package, PlusCircle, RotateCcw } from 'lucide-react';
 import DateField from '../DateField.jsx';
@@ -48,7 +49,7 @@ export default function ApproveAccessoryModal({ req, accessory, onClose, onConfi
         {/* หัว */}
         <div className="flex items-center gap-3 border-b border-stone-100 px-6 py-5">
           {accessory?.image ? (
-            <img src={accessory.image} alt="" className="size-11 shrink-0 rounded-xl border border-stone-200/60 bg-white object-contain p-1" />
+            <PrivateImage src={accessory.image} alt="" className="size-11 shrink-0 rounded-xl border border-stone-200/60 bg-white object-contain p-1" />
           ) : (
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">
               <Package className="size-5" strokeWidth={2} />

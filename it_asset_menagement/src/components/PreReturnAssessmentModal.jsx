@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState, useRef } from 'react';
 import { AlertCircle, ClipboardCheck, ClipboardList, ImagePlus, Plus, Printer, Trash2, X } from 'lucide-react';
 import {
@@ -542,7 +543,7 @@ function PhotoUploadSlot({ label, src, onUpload, onRemove, large = false }) {
       <div className="p-2">
         {src ? (
           <div className={`relative ${h} rounded-lg overflow-hidden bg-stone-50 border border-stone-200`}>
-            <img src={src} alt={label} className="w-full h-full object-cover" />
+            <PrivateImage src={src} alt={label} className="w-full h-full object-cover" />
           </div>
         ) : (
           <button type="button" onClick={() => ref.current?.click()} disabled={uploading}

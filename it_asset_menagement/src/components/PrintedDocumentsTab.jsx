@@ -82,7 +82,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
   const handleDownloadSigned = async (docId) => {
     setDownloadingFor(docId);
     try {
-      const { dataUrl, fileName } = await loadSignedFile(docId);
+      const { dataUrl, fileName, release } = await loadSignedFile(docId);
       // trigger download
       const a = document.createElement('a');
       a.href = dataUrl;
@@ -90,6 +90,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      setTimeout(release, 30_000);
     } catch (err) {
       alert('โหลดไฟล์ไม่สำเร็จ: ' + err.message);
     } finally {
@@ -169,7 +170,7 @@ export default function PrintedDocumentsTab({ employeeId, employeeName }) {
             : 'bg-olive-50 text-olive-700 border-olive-200';
           const Icon = isHandover ? FileText : ArrowLeftRight;
 
-          const hasSigned = !!d.signedFile?.chunks;
+          const hasSigned = !!(d.signedFile?.chunks || d.signedFile?.storageRef);
           return (
             <div key={d.id} className="p-3.5 hover:bg-stone-50/60 transition-colors">
               <div className="flex items-center gap-3">

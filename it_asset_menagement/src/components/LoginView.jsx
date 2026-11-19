@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState } from 'react';
 import { UserRound, Lock, ArrowRight, AlertCircle, KeyRound } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
@@ -157,7 +158,7 @@ function Logo() {
       className="mx-auto mb-6 flex size-16 items-center justify-center rounded-xl border border-white/50 shadow-sm shadow-clay-600/25"
       style={{ background: 'linear-gradient(135deg, #2B6777 0%, #225462 100%)' }}
     >
-      <img
+      <PrivateImage
         src="/gb_icon.svg"
         alt="Logo"
         className="size-8 object-contain"

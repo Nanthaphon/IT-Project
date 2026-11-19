@@ -1,3 +1,4 @@
+import PrivateImage from './PrivateImage.jsx';
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { MoreHorizontal, Search, ChevronLeft, ChevronRight, Check, Minus } from 'lucide-react';
 import { surface, text, button, statusTone } from './earth.js';
@@ -273,7 +274,7 @@ export function Clamp({ children, width = 220 }) {
 export function Thumb({ src, alt = '', icon: Icon, fit = 'cover' }) {
   if (src) {
     return (
-      <img
+      <PrivateImage
         src={src}
         alt={alt}
         loading="lazy"

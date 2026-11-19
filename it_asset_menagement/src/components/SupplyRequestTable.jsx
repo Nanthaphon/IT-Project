@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Trash2, ClipboardList, CheckCircle2, XCircle,
@@ -445,7 +446,7 @@ export default function SupplyRequestTable({
                               'bg-stone-100 text-stone-500'
                             }`}>{i + 1}</div>
                             {item.image ? (
-                              <img src={item.image} alt={item.name} className="w-8 h-8 rounded-xl object-cover border border-stone-200 shrink-0" />
+                              <PrivateImage src={item.image} alt={item.name} className="w-8 h-8 rounded-xl object-cover border border-stone-200 shrink-0" />
                             ) : (
                               <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center shrink-0">
                                 <Package className="h-3.5 w-3.5 text-stone-400" strokeWidth={2} />
@@ -672,7 +673,7 @@ function SupplyRow({ req, supply, employee, onUpdateStatus, onDelete, canEdit })
       {/* ── สิ่งที่ขอ ── */}
       <div className="flex min-w-0 items-center gap-3">
         {supply?.image ? (
-          <img src={supply.image} alt={req.supplyName} loading="lazy"
+          <PrivateImage src={supply.image} alt={req.supplyName} loading="lazy"
             className="size-10 shrink-0 rounded-xl border border-stone-200/60 bg-white object-contain p-0.5" />
         ) : (
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-clay-600/[0.08] text-clay-600">

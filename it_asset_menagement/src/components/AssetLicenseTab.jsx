@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState } from 'react';
 import {
   Monitor, Key, Plus, X, Search, Package, Trash2,
@@ -163,7 +164,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                     }`}
                   >
                     {lic.image ? (
-                      <img src={lic.image} alt={lic.name} className="w-9 h-9 object-contain rounded-lg shrink-0 bg-white p-1 border border-stone-200" />
+                      <PrivateImage src={lic.image} alt={lic.name} className="w-9 h-9 object-contain rounded-lg shrink-0 bg-white p-1 border border-stone-200" />
                     ) : (
                       <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center shrink-0 border border-clay-200">
                         <Package className="h-4 w-4 text-clay-500" strokeWidth={2} />
@@ -269,7 +270,7 @@ export default function AssetLicenseTab({ asset, licenses = [], onAssign, onRevo
                 <div className="flex items-center gap-3 px-4 py-3">
                   <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center shrink-0 border border-clay-200">
                     {seat.licenseImage
-                      ? <img src={seat.licenseImage} alt="" className="w-7 h-7 object-contain" />
+                      ? <PrivateImage src={seat.licenseImage} alt="" className="w-7 h-7 object-contain" />
                       : <Package className="h-4 w-4 text-clay-500" strokeWidth={2} />
                     }
                   </div>

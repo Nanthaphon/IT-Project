@@ -1,7 +1,7 @@
--- ═══ ติดตั้งฐานข้อมูล IT Asset Management บน Supabase (ไฟล์รวม — วางใน SQL Editor แล้วกด Run ครั้งเดียว) ═══
--- สร้างจาก supabase/migrations/*.sql ตามลำดับ · รันซ้ำไม่ได้ (policy ซ้ำชื่อ) — ถ้าต้องเริ่มใหม่ให้ลบตารางก่อน
+-- ติดตั้งฐานข้อมูลใหม่เท่านั้น: รวม migrations ตามลำดับ
+-- ฐานข้อมูลที่มีอยู่แล้วให้รันเฉพาะ migrations ที่ยังไม่ได้ติดตั้ง ห้ามล้างตาราง
 
--- ──────── supabase/migrations/20261110000000_init.sql ────────
+-- ===== 20261110000000_init.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- IT Asset Management — โครงสร้างฐานข้อมูลบน Supabase (ย้ายจาก Firestore)
 --
@@ -264,7 +264,8 @@ begin
   end if;
 end $$;
 
--- ──────── supabase/migrations/20261110000100_doc_write.sql ────────
+
+-- ===== 20261110000100_doc_write.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- doc_write — เขียนเอกสารแบบ Firestore ในคำสั่งเดียว (ใช้โดย src/db/compat.js)
 --   p_mode: 'create' (ต้องยังไม่มี) · 'set' (แทนทั้งก้อน) · 'merge' (setDoc merge) · 'update' (ต้องมีอยู่แล้ว)
@@ -343,7 +344,8 @@ begin
   end if;
 end $$;
 
--- ──────── supabase/migrations/20261110000200_grants_handovers.sql ────────
+
+-- ===== 20261110000200_grants_handovers.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- 1) สิทธิ์ของ service_role (สคริปต์นำเข้า / ฟังก์ชัน Vercel ใช้)
 --    โปรเจคสร้างโดยปิด "Automatically expose new tables" → ไม่มีใครได้สิทธิ์ตารางอัตโนมัติ
@@ -441,7 +443,8 @@ begin
   end if;
 end $$;
 
--- ──────── supabase/migrations/20261110000300_columns.sql ────────
+
+-- ===== 20261110000300_columns.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- แยกข้อมูลใน data (jsonb) ออกเป็นคอลัมน์ — ดูใน Table Editor / ต่อ Power BI / เขียน SQL ได้ง่าย
 --
@@ -634,7 +637,8 @@ create index if not exists employees_emp_id on public.employees (emp_id);
 create index if not exists assets_asset_tag on public.assets (asset_tag);
 create index if not exists assets_sn on public.assets (sn);
 
--- ──────── supabase/migrations/20261110000400_report_views.sql ────────
+
+-- ===== 20261110000400_report_views.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- หมวด report — ตารางสำหรับดู/ทำรายงาน (view) มีแค่คอลัมน์อ่านง่าย ไม่มีก้อน data
 --   ใช้ใน SQL Editor / Power BI / Excel: select * from report.employees
@@ -680,7 +684,8 @@ begin
   end if;
 end $$;
 
--- ──────── supabase/migrations/20261110000500_staff_auth.sql ────────
+
+-- ===== 20261110000500_staff_auth.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- ระบบเข้าสู่ระบบบน Supabase Auth (ระยะที่ 3)
 --
@@ -747,7 +752,8 @@ begin
   end if;
 end $$;
 
--- ──────── supabase/migrations/20261110000600_name_columns.sql ────────
+
+-- ===== 20261110000600_name_columns.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- ชื่อจริง / นามสกุล แยกคอลัมน์ (ไทย + อังกฤษ) — หลักเดียวกับไฟล์ส่งออก CSV (src/utils/nameUtils.js resolveName)
 --   มี firstName / lastName ในข้อมูล → ใช้ตามนั้น
@@ -818,7 +824,8 @@ begin
   end if;
 end $$;
 
--- ──────── supabase/migrations/20261110000700_column_audit.sql ────────
+
+-- ===== 20261110000700_column_audit.sql =====
 -- ═══════════════════════════════════════════════════════════════════
 -- ตรวจคอลัมน์ทั้งระบบ (11/2026) — เติมส่วนที่ขาดให้ครบเท่าไฟล์ CSV ที่เว็บส่งออก + ทุกฟิลด์ข้อความ/ตัวเลขที่มีจริง
 --   1) ตัวแปลงวันที่แบบ วัน/เดือน/ปี (วันที่เบิกสิทธิ์ License ที่ระบบสร้างเอง) — ต่างจากทรัพย์สิน Snipe-IT (เดือน/วัน/ปี)
@@ -1070,4 +1077,180 @@ begin
     revoke all on all tables in schema report from anon;
   end if;
 end $$;
+
+
+-- ===== 20261119000100_staff_security.sql =====
+-- Staff credentials: no recoverable passwords; default/reset sessions are restricted
+-- until the password is changed. All checks read current rows, not stale JWT flags.
+create or replace function app.guard_staff_password() returns trigger
+language plpgsql as $$
+begin
+  new.data := new.data - 'plaintext';
+  if (new.data->>'isDefault') is distinct from 'false'
+    or new.data->>'mustChangePassword' is null then
+    new.data := new.data || '{"mustChangePassword":true}'::jsonb;
+  end if;
+  return new;
+end $$;
+drop trigger if exists guard_staff_password on public.staff_passwords;
+create trigger guard_staff_password before insert or update on public.staff_passwords
+for each row execute function app.guard_staff_password();
+
+update public.staff_passwords p set data = (p.data - 'plaintext') ||
+  case when p.data->>'isDefault' = 'true' or exists (
+    select 1 from public.employees e where e.id=p.id and p.data->>'plaintext'=e.data->>'empId'
+  ) then '{"isDefault":true,"mustChangePassword":true}'::jsonb
+    when (p.data->>'isDefault') is distinct from 'false' or p.data->>'mustChangePassword' is null
+      then '{"mustChangePassword":true}'::jsonb else '{}'::jsonb end
+where p.data ? 'plaintext' or (p.data->>'isDefault') is distinct from 'false'
+  or p.data->>'mustChangePassword' is null;
+
+create or replace function app.staff_identity_active() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.employees e where e.id=app.emp_doc_id()
+    and not (coalesce(e.data->>'resignDate','') ~ '^\d{4}-\d{2}-\d{2}$'
+      and e.data->>'resignDate' <= to_char(now() at time zone 'Asia/Bangkok','YYYY-MM-DD')))
+    and exists(select 1 from public.staff_passwords p where p.id=app.emp_doc_id()
+      and coalesce(p.data->>'credentialVersion','legacy')=coalesce(app.claim('credential_version'),'legacy'))
+$$;
+
+create or replace function app.staff_active() returns boolean
+language sql stable security definer set search_path = public as $$
+  select app.staff_identity_active() and exists (
+    select 1 from public.staff_passwords p where p.id=app.emp_doc_id()
+      and p.data->>'isDefault'='false'
+      and p.data->>'mustChangePassword'='false')
+$$;
+
+-- Only minimal bootstrap information; no profile, hashes or password disclosure.
+create or replace function public.staff_access_status() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select case when app.claims()->>'role'='authenticated' and app.claim('app_role')='staff'
+    and app.staff_identity_active() then jsonb_build_object(
+      'empDocId',app.emp_doc_id(),
+      'empId',(select e.data->>'empId' from public.employees e where e.id=app.emp_doc_id()),
+      'mustChangePassword',not app.staff_active()) else null end
+$$;
+revoke all on function public.staff_access_status() from public, anon;
+grant execute on function public.staff_access_status() to authenticated, service_role;
+
+create table if not exists public.auth_rate_limits (
+  key text primary key,
+  attempts integer not null,
+  window_started_at timestamptz not null
+);
+alter table public.auth_rate_limits enable row level security;
+revoke all on public.auth_rate_limits from public, anon, authenticated;
+create index if not exists auth_rate_limits_expiry on public.auth_rate_limits(window_started_at);
+
+-- ON CONFLICT locks each bucket atomically, including across serverless instances.
+-- Keys are SHA-256 digests computed server-side; no raw IP or employee ID stored.
+create or replace function public.consume_auth_attempt(p_key text,p_limit integer,p_window_seconds integer)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare bucket public.auth_rate_limits; stamp timestamptz := clock_timestamp();
+begin
+  if length(p_key) not between 1 and 256 or p_limit not between 1 and 1000
+    or p_window_seconds not between 1 and 86400 then
+    raise exception 'invalid rate limit parameters';
+  end if;
+  delete from public.auth_rate_limits where window_started_at < stamp-interval '1 day';
+  insert into public.auth_rate_limits as limits(key,attempts,window_started_at)
+    values(p_key,1,stamp)
+  on conflict(key) do update set
+    attempts=case when limits.window_started_at <= stamp-make_interval(secs=>p_window_seconds)
+      then 1 else least(limits.attempts+1,p_limit+1) end,
+    window_started_at=case when limits.window_started_at <= stamp-make_interval(secs=>p_window_seconds)
+      then stamp else limits.window_started_at end
+  returning * into bucket;
+  return jsonb_build_object('allowed',bucket.attempts<=p_limit,'retryAfter',
+    case when bucket.attempts<=p_limit then 0 else greatest(1,ceil(extract(epoch from
+      bucket.window_started_at+make_interval(secs=>p_window_seconds)-stamp))::integer) end);
+end $$;
+revoke all on function public.consume_auth_attempt(text,integer,integer) from public, anon, authenticated;
+grant execute on function public.consume_auth_attempt(text,integer,integer) to service_role;
+grant execute on function app.staff_identity_active() to anon, authenticated, service_role;
+
+-- Compare the verified hash under the UPDATE row lock, so a concurrent reset wins.
+create or replace function public.change_staff_password(p_emp_id text,p_expected_hash text,p_data jsonb)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  update public.staff_passwords set data=p_data - 'plaintext'
+    where id=p_emp_id and data->>'hash'=p_expected_hash;
+  return found;
+end $$;
+revoke all on function public.change_staff_password(text,text,jsonb) from public, anon, authenticated;
+grant execute on function public.change_staff_password(text,text,jsonb) to service_role;
+
+
+-- ===== 20261119000200_private_storage.sql =====
+-- Storage is installed by Supabase. Never enable public access or persist signed URLs.
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values ('it-private','it-private',false,16777216,
+  array['image/jpeg','image/png','image/webp','image/gif','application/pdf','application/octet-stream'])
+on conflict(id) do update set public=false,file_size_limit=excluded.file_size_limit,
+  allowed_mime_types=excluded.allowed_mime_types;
+
+create or replace function app.storage_manager() returns boolean
+language sql stable as $$
+  select app.is_admin() or (app.signed_in() and app.claim('app_role')='hr')
+$$;
+
+create or replace function app.storage_path_valid(object_name text) returns boolean
+language sql immutable as $$
+  select object_name ~ '^(admin|catalog|staff)/[A-Za-z0-9_./-]+$'
+    and object_name !~ '(^|/)(\.|\.\.|)(/|$)'
+$$;
+
+create or replace function app.storage_own_photo(object_name text) returns boolean
+language sql stable as $$
+  select app.is_staff() and app.staff_active()
+    and split_part(object_name,'/',1)='staff'
+    and split_part(object_name,'/',2)=app.uid()
+$$;
+grant execute on function app.storage_manager(), app.storage_path_valid(text), app.storage_own_photo(text)
+  to anon,authenticated,service_role;
+
+drop policy if exists it_private_read on storage.objects;
+create policy it_private_read on storage.objects for select to authenticated
+using (bucket_id='it-private' and app.storage_path_valid(name) and
+  (app.storage_manager() or (app.is_staff() and
+    (name like 'catalog/%' or app.storage_own_photo(name)))));
+
+drop policy if exists it_private_insert on storage.objects;
+create policy it_private_insert on storage.objects for insert to authenticated
+with check (bucket_id='it-private' and app.storage_path_valid(name) and
+  (app.is_admin() or app.storage_own_photo(name)));
+
+drop policy if exists it_private_update on storage.objects;
+create policy it_private_update on storage.objects for update to authenticated
+using (bucket_id='it-private' and app.storage_path_valid(name) and
+  (app.is_admin() or app.storage_own_photo(name)))
+with check (bucket_id='it-private' and app.storage_path_valid(name) and
+  (app.is_admin() or app.storage_own_photo(name)));
+
+drop policy if exists it_private_delete on storage.objects;
+create policy it_private_delete on storage.objects for delete to authenticated
+using (bucket_id='it-private' and app.storage_path_valid(name) and
+  (app.is_admin() or app.storage_own_photo(name)));
+
+-- Compare the entire snapshot inside one UPDATE. A migration never overwrites
+-- a document edited since the backup/read, and never deletes legacy chunks.
+create or replace function public.storage_migrate_document(
+  p_table text,p_id text,p_expected jsonb,p_replacement jsonb) returns boolean
+language plpgsql security definer set search_path=public as $$
+declare changed integer;
+begin
+  if p_table <> all(array['assets','accessories','licenses','office_supplies','bundled_items',
+    'employees','deleted_employees','repair_requests','replacement_requests','accessory_requests',
+    'supply_requests','assets_transactions','accessories_transactions','licenses_transactions',
+    'transaction_attachments','asset_purchase_docs','printed_documents','asset_handovers','it_report','settings'])
+    then raise exception 'unsupported storage migration table'; end if;
+  execute format('update public.%I set data=$1 where id=$2 and data=$3',p_table)
+    using p_replacement,p_id,p_expected;
+  get diagnostics changed=row_count;
+  return changed=1;
+end $$;
+revoke all on function public.storage_migrate_document(text,text,jsonb,jsonb) from public,anon,authenticated;
+grant execute on function public.storage_migrate_document(text,text,jsonb,jsonb) to service_role;
+
 

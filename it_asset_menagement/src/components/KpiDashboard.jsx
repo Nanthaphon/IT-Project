@@ -5,7 +5,6 @@ import {
   ChevronDown, BarChart3,
 } from 'lucide-react';
 import { BRAND } from '../ui/theme.js';
-import { exportKpiReport } from '../utils/exportKpiReport.js';
 
 /* ── ตัวกรองช่วงเวลา ────────────────────────────────── */
 const RANGE_OPTIONS = [
@@ -150,7 +149,8 @@ export default function KpiDashboard({ repairRequests = [] }) {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      exportKpiReport({
+      const { exportKpiReport } = await import('../utils/exportKpiReport.js');
+      await exportKpiReport({
         repairRequests,
         periodLabel: getRangeLabel(rangeValue),
         range,

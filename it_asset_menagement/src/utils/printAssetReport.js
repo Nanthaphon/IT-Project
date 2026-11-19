@@ -1,3 +1,4 @@
+import { parseStorageReference } from './privateStorage.js';
 /* ════════════════════════════════════════════════════════════════════════
    printAssetReport — รายงานทรัพย์สิน (PDF ผ่าน browser print dialog)
    🆕 รองรับ dynamic columns ตาม visibleColumns + auto-scale font
@@ -13,7 +14,7 @@ const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : 
 /* ── ดึงรูปภาพประกอบ PDF (photoGallery) — เฉพาะ data:image ── */
 const getGalleryPhotos = (a) => {
   const gallery = Array.isArray(a?.photoGallery) ? a.photoGallery : [];
-  return gallery.filter(src => src && String(src).startsWith('data:image/'));
+  return gallery.filter(src => src && (String(src).startsWith('data:image/') || parseStorageReference(src)));
 };
 
 /* ── คำนวณอายุการใช้งาน ── */

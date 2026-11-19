@@ -1,3 +1,4 @@
+import PrivateImage from '../ui/PrivateImage.jsx';
 import React, { useState } from 'react';
 import {
   Trash2, RefreshCw, Mail, CheckCircle2,
@@ -197,7 +198,7 @@ function ReplacementCard({ req, onUpdateStatus, onDelete }) {
                   className="aspect-square rounded-xl overflow-hidden border border-stone-200 hover:border-clay-600 transition-colors bg-white"
                   title="คลิกเพื่อขยาย"
                 >
-                  <img src={p.data} alt={p.name || `รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
+                  <PrivateImage src={p.data} alt={p.name || `รูปที่ ${i + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

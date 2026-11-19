@@ -1,3 +1,5 @@
+import PrivateFileLink from './PrivateFileLink.jsx';
+import PrivateImage from './PrivateImage.jsx';
 import { useEffect } from 'react';
 import { X, Download } from 'lucide-react';
 
@@ -41,7 +43,7 @@ export default function ImageViewer({ src, alt = 'รูปภาพ', filename,
       aria-label={alt}
     >
       <div className="absolute right-4 top-4 flex items-center gap-2">
-        <a
+        <PrivateFileLink
           href={src}
           download={filename || 'image.jpg'}
           onClick={(e) => e.stopPropagation()}
@@ -49,7 +51,7 @@ export default function ImageViewer({ src, alt = 'รูปภาพ', filename,
           title="ดาวน์โหลดรูปนี้"
         >
           <Download className="size-5" strokeWidth={2} />
-        </a>
+        </PrivateFileLink>
         <button
           onClick={onClose}
           className="inline-flex size-10 items-center justify-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20"
@@ -59,7 +61,7 @@ export default function ImageViewer({ src, alt = 'รูปภาพ', filename,
         </button>
       </div>
 
-      <img
+      <PrivateImage
         src={src}
         alt={alt}
         onClick={(e) => e.stopPropagation()}

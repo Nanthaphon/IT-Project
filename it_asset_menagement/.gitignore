@@ -34,3 +34,6 @@ print-report-preview.html
 
 # ไฟล์ส่งออกข้อมูลก่อนย้ายไป Supabase — มีข้อมูลส่วนบุคคล
 .supabase-export
+
+# Supabase CLI local state
+supabase/.temp

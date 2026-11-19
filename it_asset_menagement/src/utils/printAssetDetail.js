@@ -1,3 +1,4 @@
+import { parseStorageReference } from './privateStorage.js';
 /* ════════════════════════════════════════════════════════════════════════
    printAssetDetail — รายละเอียดทรัพย์สิน 1 ตัว (PDF ผ่าน browser print)
    ════════════════════════════════════════════════════════════════════════ */
@@ -11,7 +12,7 @@ const fmtTHB = (n) => (n || n === 0) ? `${Number(n).toLocaleString('th-TH')}` : 
 // 🆕 ใช้ photoGallery (คลังรูปเฉพาะสำหรับ PDF) แทนเอกสารแนบทั่วไป
 function getGalleryPhotos(item) {
   const gallery = Array.isArray(item.photoGallery) ? item.photoGallery : [];
-  return gallery.filter(src => src && String(src).startsWith('data:image/'));
+  return gallery.filter(src => src && (String(src).startsWith('data:image/') || parseStorageReference(src)));
 }
 
 const calcAge = (purchaseDate) => {
@@ -229,29 +230,8 @@ export function printAssetDetail({
     เอกสารนี้สร้างจากระบบ IT Asset Management — ${e(thDate)} ${e(thTime)}
   </div>
 
-  <script>
-    /* Auto-fit: ย่อเนื้อหาทั้งหมดให้พอดี 1 หน้า A4 เสมอ
-       - พื้นที่พิมพ์แนวตั้ง = สูง 297mm - ขอบบน/ล่าง 10mm x2 = 277mm
-       - body ถูกตรึงกว้าง 190mm แล้ว → วัดความสูงบนหน้าจอตรงกับตอนพิมพ์
-       - ถ้าเนื้อหาสูงเกิน ให้ zoom ลง (ไม่ขยายเกิน 1) */
-    (function () {
-      var AVAIL_H = 277 * (96 / 25.4); // 277mm → px (~1047)
-      function fitToOnePage() {
-        var b = document.body;
-        b.style.zoom = '1';
-        var h = b.scrollHeight;
-        if (h > AVAIL_H) {
-          b.style.zoom = String(Math.max(0.4, (AVAIL_H - 2) / h));
-        }
-      }
-      window.addEventListener('load', fitToOnePage);
-      window.addEventListener('beforeprint', fitToOnePage);
-      // เผื่อรูปโหลดช้ากว่า load event
-      window.addEventListener('DOMContentLoaded', fitToOnePage);
-    })();
-  </script>
 </body>
 </html>`;
 
-  printViaIframe(html, { cleanupDelay: 1500 });
+  printViaIframe(html, { cleanupDelay: 1500, fitToOneA4Page: true });
 }

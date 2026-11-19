@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db, auth, VERCEL_API_BASE } from './firebase.js';
+import { db, auth, supabase, VERCEL_API_BASE } from './firebase.js';
 
 /* ── URL routing: เมนู ↔ path (ให้แถบ URL บอกว่าอยู่หน้าไหน) ── */
 /* สถานะพนักงาน (ตัวกรอง + CSV) — "ออกแล้ว" = อยู่ใน deleted_employees หรือถึงวันที่ออกแล้ว (utils/employeeStatus.js) */
@@ -39,6 +39,7 @@ import { takeSeat, returnSeats, ensureSeatId } from './utils/licenseSeats.js';
 import { COMPANIES } from './ui/theme.js';
 import { managerCodeOf } from './utils/managers.js';
 import { brandsText } from './utils/brands.js';
+import { readRememberedEmployee } from './utils/staffRemember.js';
 import { EMP_ACTIVE, EMP_LEFT, empStatus, resignDateOf, todayYmd, ymdOf } from './utils/employeeStatus.js';
 import { EMPLOYEE_IMPORT_MAP, planEmployeeImport } from './utils/employeeImport.js';
 import { EMPLOYEE_HEADERS } from './utils/employeeTemplate.js';
@@ -75,7 +76,7 @@ import useAdminPermissions from './hooks/useAdminPermissions.jsx';
 import useGlobalLoading from './hooks/useGlobalLoading.jsx';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay.jsx';
 import Sidebar from './components/Sidebar.jsx';
-import HistoryImportModal from './components/HistoryImportModal.jsx';
+const HistoryImportModal = lazy(() => import('./components/HistoryImportModal.jsx'));
 import { formatDateShort } from './utils/formatDate.js';
 import { splitName, joinName, resolveName } from './utils/nameUtils.js';
 import { cleanLinks } from './utils/links.js';
@@ -86,12 +87,12 @@ import TopHeader from './components/TopHeader.jsx';
 import DashboardPage from './components/dashboard/DashboardPage.jsx';   // ธีม v3 (earth tone)
 import CustomAlert from './components/CustomAlert.jsx';
 import ConfirmModal from './components/ConfirmModal.jsx';
-import AssetDetailsModal from './components/AssetDetailsModal.jsx';
-import EmployeeDetailsModal from './components/EmployeeDetailsModal.jsx';
-import EditAssetModal from './components/EditAssetModal.jsx';
-import EditLicenseModal from './components/EditLicenseModal.jsx';
+const AssetDetailsModal = lazy(() => import('./components/AssetDetailsModal.jsx'));
+const EmployeeDetailsModal = lazy(() => import('./components/EmployeeDetailsModal.jsx'));
+const EditAssetModal = lazy(() => import('./components/EditAssetModal.jsx'));
+const EditLicenseModal = lazy(() => import('./components/EditLicenseModal.jsx'));
 import LoginView from './components/LoginView.jsx';
-import ModalsContainer from './components/ModalsContainer.jsx';
+const ModalsContainer = lazy(() => import('./components/ModalsContainer.jsx'));
 
 // 🆕 Lazy load — โหลดเมื่อจำเป็นเท่านั้น เพื่อลด initial bundle size
 const StaffView             = lazy(() => import('./components/StaffView.jsx'));
@@ -101,22 +102,22 @@ const DropdownOptionsManager = lazy(() => import('./components/DropdownOptionsMa
 const UserManagementPage    = lazy(() => import('./components/UserManagementPage.jsx'));
 const SnipeITImportModal    = lazy(() => import('./components/SnipeITImportModal.jsx'));
 
-import AssetListPage from './components/assets/AssetListPage.jsx';   // ธีม v3 (earth tone)
-import LicenseListPage from './components/licenses/LicenseListPage.jsx';
-import LicenseCoverModal from './components/licenses/LicenseCoverModal.jsx';
+const AssetListPage = lazy(() => import('./components/assets/AssetListPage.jsx'));
+const LicenseListPage = lazy(() => import('./components/licenses/LicenseListPage.jsx'));
+const LicenseCoverModal = lazy(() => import('./components/licenses/LicenseCoverModal.jsx'));
 import { printLicenseList } from './utils/printLicenseList.js';
 import { firestoreLicenseCoverStore } from './utils/licenseCoverStore.js';
-import AccessoryListPage from './components/accessories/AccessoryListPage.jsx';
-import EmployeeListPage from './components/employees/EmployeeListPage.jsx';
-import OfficeSupplyListPage from './components/officeSupplies/OfficeSupplyListPage.jsx';
+const AccessoryListPage = lazy(() => import('./components/accessories/AccessoryListPage.jsx'));
+const EmployeeListPage = lazy(() => import('./components/employees/EmployeeListPage.jsx'));
+const OfficeSupplyListPage = lazy(() => import('./components/officeSupplies/OfficeSupplyListPage.jsx'));
 import {
   ASSET_TYPE_OPTIONS, ASSET_STATUS_OPTIONS, LICENSE_EXPIRY_OPTIONS, ACCESSORY_TYPE_OPTIONS,
   OFFICE_STOCK_OPTIONS,
 } from './components/list/filterOptions.js';
-import RepairTable from './components/RepairTable.jsx';
-import SupplyRequestTable from './components/SupplyRequestTable.jsx';
-import ReplacementRequestTable from './components/ReplacementRequestTable.jsx';
-import AccessoryRequestTable from './components/AccessoryRequestTable.jsx';
+const RepairTable = lazy(() => import('./components/RepairTable.jsx'));
+const SupplyRequestTable = lazy(() => import('./components/SupplyRequestTable.jsx'));
+const ReplacementRequestTable = lazy(() => import('./components/ReplacementRequestTable.jsx'));
+const AccessoryRequestTable = lazy(() => import('./components/AccessoryRequestTable.jsx'));
 
 // Fallback spinner สำหรับ lazy-loaded routes
 const LazyFallback = () => (
@@ -126,6 +127,9 @@ const LazyFallback = () => (
 );
 
 function App() {
+  useEffect(() => {
+    try { readRememberedEmployee(window.localStorage); } catch { /* Browser storage can be disabled. */ }
+  }, []);
   const [authRole, setAuthRole] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [currentUid, setCurrentUid] = useState(null);
@@ -502,6 +506,14 @@ function App() {
           // Staff signed in via custom token — set role + try to restore currentStaff จาก claim
           setAuthRole('staff');
           try {
+            const { data: access, error } = await supabase.rpc('staff_access_status');
+            if (error || !access) { await signOut(auth); throw new Error('บัญชีไม่พร้อมใช้งาน'); }
+            setStaffMustChangePassword(!!access.mustChangePassword);
+            if (access.mustChangePassword) {
+              setCurrentStaff({ id: access.empDocId, empId: access.empId });
+              setAuthLoading(false);
+              return;
+            }
             // ใช้ token เดิมที่ดึงมาแล้ว — ไม่ต้องเรียก getIdTokenResult ซ้ำ
             const empDocId = tokenResult?.claims?.empDocId;
             if (empDocId) {
@@ -716,8 +728,12 @@ function App() {
       await signInWithStaffSession(session);
 
       // ดึง employee doc มา set currentStaff
-      const foundEmp = employees.find(emp => emp.id === empDocId);
-      if (foundEmp) setCurrentStaff({ ...foundEmp, m365Password: await loadM365Password(foundEmp) });
+      if (mustChangePassword) {
+        setCurrentStaff({ id: empDocId, empId: data.empId || empId });
+      } else {
+        const foundEmp = employees.find(emp => emp.id === empDocId);
+        if (foundEmp) setCurrentStaff({ ...foundEmp, m365Password: await loadM365Password(foundEmp) });
+      }
       setStaffEmpIdInput('');
       setStaffPasswordInput('');
 
@@ -3263,6 +3279,7 @@ function App() {
         )}
 
         <div id="main-scroll-container" className={`flex-1 overflow-auto ${(routeAssetId || routeEmployeeId || routeLicenseId || routeAccessoryId || routeFurnitureId || isFullBleedMenu) ? '' : 'p-3 sm:p-4 md:p-5'}`}>
+          <Suspense fallback={<LazyFallback />}>
           {routeEmployeeId ? (
             /* 🆕 หน้าเต็มรายละเอียดพนักงาน (URL /employees/:id)
                เดิมเป็น modal ป๊อปอัพ ต่างจากทรัพย์สิน/License ที่เป็นหน้าเต็มไปแล้ว
@@ -3722,18 +3739,23 @@ function App() {
               ไม่พบหน้าที่ต้องการ
             </div>
           )}
+          </Suspense>
         </div>
       </main>
 
       {licenseCoverIds && (
+        <Suspense fallback={null}>
         <LicenseCoverModal
           licenses={licenses}
           employees={employees}
           initialIds={licenseCoverIds}
           onClose={() => setLicenseCoverIds(null)}
         />
+        </Suspense>
       )}
 
+      {(isAddModalOpen || checkoutModal?.isOpen || selectedEmployee || selectedAssetDetail || editEmpModal?.isOpen || editAssetModal?.isOpen || editLicenseModal?.isOpen || isImportModalOpen || returnModal?.isOpen || repairModal?.isOpen || confirmDeleteModal?.isOpen || confirmModal?.isOpen || resetPasswordModal || changePasswordModal) && (
+      <Suspense fallback={null}>
       <ModalsContainer
         onDuplicate={handleCloneAsset}
         isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen} activeMenu={activeMenu} handleAddEmployee={handleAddEmployee} empForm={empForm} handleEmpChange={handleEmpChange} handleAddLicense={handleAddLicense} licenseForm={licenseForm} handleLicenseChange={handleLicenseChange} licenseImage={licenseImage} setLicenseImage={setLicenseImage} handleAdd={handleAdd} name={name} setName={setName} type={type} setType={setType} cost={cost} setCost={setCost} purchaseDate={purchaseDate} setPurchaseDate={setPurchaseDate} warrantyDate={warrantyDate} setWarrantyDate={setWarrantyDate} quantity={quantity} setQuantity={setQuantity} unit={unit} setUnit={setUnit} assetImage={assetImage} setAssetImage={setAssetImage} assetDepartment={assetDepartment} setAssetDepartment={setAssetDepartment} sn={sn} setSn={setSn} company={company} setCompany={setCompany} assetTag={assetTag} setAssetTag={setAssetTag} model={model} setModel={setModel} vendor={vendor} setVendor={setVendor} note={note} setNote={setNote} remark={remark} setRemark={setRemark} assetDocument={assetDocument} setAssetDocument={setAssetDocument} purchaseCondition={purchaseCondition} setPurchaseCondition={setPurchaseCondition} scrapValue={scrapValue} setScrapValue={setScrapValue} fieldOptions={fieldOptions}
@@ -3757,6 +3779,8 @@ function App() {
         suppressEditAssetModal={routeAssetEdit || routeAccessoryEdit || routeFurnitureEdit}
         suppressEditLicenseModal={routeLicenseEdit}
       />
+      </Suspense>
+      )}
       {isSnipeITImportOpen && (
         <Suspense fallback={null}>
           <SnipeITImportModal
@@ -3777,12 +3801,12 @@ function App() {
       />
 
       {/* 🆕 นำเข้าประวัติการถือครอง (CSV) */}
-      <HistoryImportModal
+      {isHistoryImportOpen && <Suspense fallback={null}><HistoryImportModal
         isOpen={isHistoryImportOpen}
         onClose={() => setIsHistoryImportOpen(false)}
         onDownloadTemplate={handleDownloadHistoryTemplate}
         onUpload={handleImportHistory}
-      />
+      /></Suspense>}
     </div>
   );
 }

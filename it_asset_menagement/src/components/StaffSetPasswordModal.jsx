@@ -1,305 +1,71 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle2, Eye, EyeOff, KeyRound, Lightbulb, RotateCcw, ShieldCheck, X } from 'lucide-react';
-import { BRAND, cls } from '../ui/theme.js';
+import { X, KeyRound } from 'lucide-react';
 
-/**
- * Modal ให้ staff ตั้ง/เปลี่ยน/รีเซ็ตรหัสผ่านของตัวเอง
- *
- * โหมด:
- *   1. "set" → ตั้งรหัสผ่านใหม่ (ต้องกรอกรหัสเดิม + รหัสใหม่ ≥ 6 ตัว)
- *   2. "reset" → รีเซ็ตกลับเป็นรหัสพนักงาน (ต้องกรอกรหัสเดิม)
- *
- * Props:
- *   isOpen       : boolean
- *   onClose      : () => void
- *   empId        : string  (สำหรับโชว์ว่าจะรีเซ็ตเป็นอะไร)
- *   vercelApiBase: string
- *   getIdToken   : async () => string  (เอา Firebase ID token มาแนบ Authorization)
- *   onSuccess    : (msg: string) => void
- */
 export default function StaffSetPasswordModal({ isOpen, onClose, empId, vercelApiBase, getIdToken, onSuccess }) {
-  const [mode, setMode] = useState('set'); // 'set' | 'reset'
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
+  const [saving, setSaving] = useState(false);
   if (!isOpen) return null;
-
-  const reset = () => {
-    setMode('set'); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-    setShowCurrent(false); setShowNew(false); setError(''); setSubmitting(false);
+  const close = () => {
+    if (saving) return;
+    setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setError(''); onClose();
   };
-  const handleClose = () => { reset(); onClose(); };
-
-  /* ── password strength ─────────────────────────── */
-  const rules = [
-    { label: 'อย่างน้อย 6 ตัวอักษร', ok: newPassword.length >= 6 },
-    { label: 'ไม่เหมือนรหัสผ่านเดิม', ok: newPassword.length > 0 && newPassword !== currentPassword },
-  ];
-  const passedAll = rules.every(r => r.ok);
-  const matchOk = confirmPassword.length > 0 && newPassword === confirmPassword;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const save = async (event) => {
+    event.preventDefault();
     setError('');
-
-    if (!currentPassword) { setError('กรุณากรอกรหัสผ่านปัจจุบัน'); return; }
-
-    if (mode === 'set') {
-      if (!passedAll) { setError('รหัสผ่านใหม่ยังไม่ตรงตามเงื่อนไข'); return; }
-      if (!matchOk) { setError('รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน'); return; }
+    if (newPassword.trim().length < 8 || newPassword.length > 1024 || newPassword.trim() === String(empId || '').trim()) {
+      setError('ใช้รหัสผ่านอย่างน้อย 8 ตัวอักษร และห้ามใช้รหัสพนักงาน'); return;
     }
-
-    setSubmitting(true);
+    if (newPassword !== confirmPassword) { setError('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
+    if (newPassword === currentPassword) { setError('รหัสผ่านใหม่ต้องไม่เหมือนรหัสผ่านเดิม'); return; }
+    setSaving(true);
     try {
-      const idToken = await getIdToken();
-      if (!idToken) throw new Error('Session หมดอายุ — กรุณา login ใหม่');
-
-      const body = mode === 'reset'
-        ? { currentPassword, resetToDefault: true }
-        : { currentPassword, newPassword };
-
-      const resp = await fetch(`${vercelApiBase}/api/staff-change-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify(body),
+      const token = await getIdToken();
+      if (!token) throw new Error('กรุณาเข้าสู่ระบบใหม่');
+      const response = await fetch(`${vercelApiBase}/api/staff-change-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
-
-      const msg = mode === 'reset'
-        ? `รีเซ็ตรหัสผ่านกลับเป็นรหัสพนักงาน (${empId}) เรียบร้อยแล้ว`
-        : 'ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว';
-      onSuccess?.(msg);
-      handleClose();
-    } catch (err) {
-      setError(err.message || 'เกิดข้อผิดพลาด');
-    } finally {
-      setSubmitting(false);
-    }
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      if (result.session) {
+        const { supabase } = await import('../firebase.js');
+        const { error: sessionError } = await supabase.auth.setSession(result.session);
+        if (sessionError) throw new Error('เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบใหม่');
+      }
+      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+      onSuccess?.('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'); onClose();
+    } catch (err) { setError(err.message); }
+    finally { setSaving(false); }
   };
-
+  const inputClass='w-full border border-stone-200/60 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-clay-600/15';
   return (
-    <div
-      className="fixed inset-0 bg-stone-950/50 flex items-center justify-center p-4 z-[90]"
-      onClick={handleClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04),0_20px_50px_-28px_rgba(22,32,36,0.20)] max-w-md w-full overflow-hidden border border-stone-200/60 max-h-[92vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-
-        {/* ── Header ── */}
-        <div className="px-6 pt-6 pb-4 border-b border-stone-100 relative">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-xl hover:bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            <X className="h-4 w-4" strokeWidth={2} />
-          </button>
-          <div className="flex items-center gap-3">
-            <div
-              className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 border"
-              style={{ background: `${BRAND.primary}15`, color: BRAND.primary, borderColor: `${BRAND.primary}20` }}
-            >
-              <KeyRound className="h-5 w-5" strokeWidth={2} />
-            </div>
-            <div>
-              <h3 className="text-[19px] font-medium tracking-tight" style={{ color: BRAND.primary }}>
-                จัดการรหัสผ่าน
-              </h3>
-            </div>
+    <div className="fixed inset-0 z-[100] bg-stone-950/50 flex items-center justify-center p-4" onClick={close}>
+      <section role="dialog" aria-modal="true" aria-labelledby="staff-password-title" className="w-full max-w-md bg-white rounded-lg border border-stone-200/60" onClick={(event)=>event.stopPropagation()}>
+        <div className="px-7 py-5 flex items-center justify-between border-b border-stone-100">
+          <h3 id="staff-password-title" className="text-[19px] font-medium flex items-center gap-2"><KeyRound className="h-5 w-5" />เปลี่ยนรหัสผ่าน</h3>
+          <button type="button" onClick={close} aria-label="ปิด" disabled={saving}><X className="h-5 w-5" /></button>
+        </div>
+        <form onSubmit={save} className="px-7 py-5 space-y-4">
+          <p className="text-[13px] text-stone-500">ใช้รหัสส่วนตัวอย่างน้อย 8 ตัวอักษร หากลืมรหัส ให้ติดต่อ IT เพื่อรีเซ็ต</p>
+          <label className="block text-[13px] text-stone-500">รหัสผ่านปัจจุบัน
+            <input className={inputClass} type="password" value={currentPassword} onChange={(event)=>setCurrentPassword(event.target.value)} required maxLength={1024} autoComplete="current-password" />
+          </label>
+          <label className="block text-[13px] text-stone-500">รหัสผ่านใหม่
+            <input className={inputClass} type="password" value={newPassword} onChange={(event)=>setNewPassword(event.target.value)} required minLength={8} maxLength={1024} autoComplete="new-password" />
+          </label>
+          <label className="block text-[13px] text-stone-500">ยืนยันรหัสผ่านใหม่
+            <input className={inputClass} type="password" value={confirmPassword} onChange={(event)=>setConfirmPassword(event.target.value)} required minLength={8} maxLength={1024} autoComplete="new-password" />
+          </label>
+          {error && <p role="alert" className="text-[13px] text-rose-700">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={close} disabled={saving} className="rounded-xl px-4 py-2 text-sm border border-stone-200/60">ยกเลิก</button>
+            <button type="submit" disabled={saving} className="bg-clay-600 hover:bg-clay-700 text-white rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50">{saving ? 'กำลังบันทึก...' : 'เปลี่ยนรหัสผ่าน'}</button>
           </div>
-        </div>
-
-        {/* ── Mode tabs ── */}
-        <div className="px-6 pt-4 pb-2 flex gap-2">
-          <button
-            type="button"
-            onClick={() => { setMode('set'); setError(''); }}
-            className={`flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-colors flex items-center justify-center gap-1.5 ${
-              mode === 'set'
-                ? 'bg-clay-600 text-white shadow-sm'
-                : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-stone-100'
-            }`}
-          >
-            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
-            ตั้งรหัสผ่านใหม่
-          </button>
-          <button
-            type="button"
-            onClick={() => { setMode('reset'); setError(''); }}
-            className={`flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-colors flex items-center justify-center gap-1.5 ${
-              mode === 'reset'
-                ? 'bg-clay-500 text-white shadow-sm'
-                : 'bg-stone-50 text-stone-600 border border-stone-200 hover:bg-stone-100'
-            }`}
-          >
-            <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
-            ใช้รหัสพนักงาน
-          </button>
-        </div>
-
-        {/* ── Body ── */}
-        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4 overflow-y-auto">
-
-          {/* Info banner for current mode */}
-          {mode === 'reset' ? (
-            <div className="bg-clay-100/60 border border-clay-200 rounded-xl p-3.5 space-y-1.5">
-              <p className="text-[13px] font-medium text-clay-700">รีเซ็ตเป็นค่าเริ่มต้น</p>
-              <p className="text-xs text-clay-600/90 leading-relaxed">
-                รหัสผ่านจะถูกตั้งกลับเป็นรหัสพนักงาน: <code className="px-1.5 py-0.5 bg-white/80 rounded font-mono font-medium">{empId}</code>
-              </p>
-            </div>
-          ) : (
-            <div className="bg-stone-50/40 border border-stone-200 rounded-xl p-3.5">
-              <p className="text-xs text-stone-900/85 leading-relaxed">
-                <Lightbulb className="inline h-3.5 w-3.5 -mt-0.5" strokeWidth={2} /> ตั้งรหัสผ่านส่วนตัวเพื่อความปลอดภัยเพิ่มเติม — ระบบจะใช้รหัสที่ตั้งนี้แทนรหัสพนักงานในการ login
-              </p>
-            </div>
-          )}
-
-          {/* error banner */}
-          {error && (
-            <div className="bg-rose-50 text-rose-700 px-3.5 py-3 rounded-xl text-[13px] font-medium border border-rose-200 flex items-start gap-2.5">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* current password */}
-          <Field label="รหัสผ่านปัจจุบัน" required>
-            <PasswordInput
-              value={currentPassword}
-              onChange={setCurrentPassword}
-              show={showCurrent}
-              onToggle={() => setShowCurrent(v => !v)}
-              placeholder={`ใส่รหัสผ่านปัจจุบัน${mode === 'reset' ? ' (เช่น รหัสพนักงานหากยังไม่เคยตั้ง)' : ''}`}
-              autoFocus
-            />
-          </Field>
-
-          {/* new password (only in 'set' mode) */}
-          {mode === 'set' && (
-            <>
-              <Field label="รหัสผ่านใหม่" required>
-                <PasswordInput
-                  value={newPassword}
-                  onChange={setNewPassword}
-                  show={showNew}
-                  onToggle={() => setShowNew(v => !v)}
-                  placeholder="อย่างน้อย 6 ตัวอักษร"
-                />
-              </Field>
-
-              {newPassword.length > 0 && (
-                <div className="bg-stone-50 border border-stone-100 rounded-xl px-3.5 py-2.5 space-y-1">
-                  {rules.map((r, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs">
-                      <CheckCircle2
-                        className={`h-3.5 w-3.5 shrink-0 ${r.ok ? 'text-olive-500' : 'text-stone-300'}`}
-                        strokeWidth={2}
-                      />
-                      <span className={r.ok ? 'text-stone-700 font-medium' : 'text-stone-400'}>{r.label}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <Field label="ยืนยันรหัสผ่านใหม่" required>
-                <PasswordInput
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  show={showNew}
-                  onToggle={() => setShowNew(v => !v)}
-                  placeholder="ใส่รหัสผ่านใหม่อีกครั้ง"
-                  error={confirmPassword.length > 0 && !matchOk}
-                />
-                {confirmPassword.length > 0 && !matchOk && (
-                  <p className="text-xs text-rose-600 mt-1.5 font-medium">รหัสผ่านไม่ตรงกัน</p>
-                )}
-                {confirmPassword.length > 0 && matchOk && (
-                  <p className="text-xs text-olive-600 mt-1.5 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" strokeWidth={2} /> ตรงกันแล้ว
-                  </p>
-                )}
-              </Field>
-            </>
-          )}
         </form>
-
-        {/* ── Footer ── */}
-        <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/50 flex gap-2.5">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 transition-colors"
-          >
-            ยกเลิก
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting || !currentPassword || (mode === 'set' && (!passedAll || !matchOk))}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              background: mode === 'reset' ? '#A87A2C' : BRAND.primary,
-            }}
-          >
-            {submitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                กำลังบันทึก...
-              </span>
-            ) : mode === 'reset' ? 'รีเซ็ตรหัสผ่าน' : 'ตั้งรหัสผ่านใหม่'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── sub-components ───────────────────────────────── */
-function Field({ label, required, children }) {
-  return (
-    <div>
-      <label className="block text-[13px] font-medium text-stone-600 mb-1.5">
-        {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function PasswordInput({ value, onChange, show, onToggle, placeholder, autoFocus, error }) {
-  return (
-    <div className="relative">
-      <input
-        type={show ? 'text' : 'password'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoFocus={autoFocus}
-        required
-        className={`w-full bg-stone-50/70 border pl-3.5 pr-10 py-2.5 rounded-xl focus:bg-white focus:ring-2 outline-none transition-colors text-sm text-stone-800 placeholder:text-stone-400 ${
-          error
-            ? 'border-rose-300 focus:ring-rose-200 focus:border-rose-400'
-            : 'border-stone-200 focus:ring-clay-600/15 focus:border-clay-600'
-        }`}
-      />
-      <button
-        type="button"
-        onClick={onToggle}
-        tabIndex={-1}
-        className="absolute right-0 top-0 h-full px-3 flex items-center text-stone-400 hover:text-stone-600 transition-colors"
-      >
-        {show ? <EyeOff className="h-4 w-4" strokeWidth={2} /> : <Eye className="h-4 w-4" strokeWidth={2} />}
-      </button>
+      </section>
     </div>
   );
 }

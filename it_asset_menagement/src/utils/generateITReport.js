@@ -1,4 +1,3 @@
-import PptxGenJS from 'pptxgenjs';
 import { formatDateShort } from './formatDate.js';
 import { EXPIRY_WINDOW_DAYS, expiryStatus, getExpirySummary } from './licenseExpiry.js';
 
@@ -906,6 +905,7 @@ export async function generateITReport({
   // 🆕 ค่าที่ผู้ใช้แก้ใน preview (override การคำนวณอัตโนมัติ) — ไม่ส่งมา = ใช้ค่าจากระบบ
   supportStats = null, hardwareSummary = null, softwareSummary = null, expirySummary = null,
 }) {
+  const { default: PptxGenJS } = await import('pptxgenjs');
   const pptx = new PptxGenJS();
   pptx.layout  = 'LAYOUT_WIDE';
   pptx.title   = `IT Performance – ${TH_MONTHS[month]} ${year + 543}`;

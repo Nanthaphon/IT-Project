@@ -20,7 +20,8 @@ const problems = releaseProblems({
   rpcNames: Object.keys(schema.paths || {}).filter(path => path.startsWith('/rpc/')).map(path => path.slice(5)),
   buckets, disableSignup: auth.disable_signup,
   recoverablePasswords: passwords.filter(row => Object.hasOwn(row.data || {}, 'plaintext')).length,
-  unknownPasswordFlags: passwords.filter(row => typeof row.data?.isDefault !== 'boolean' || typeof row.data?.mustChangePassword !== 'boolean').length,
+  // isDefault ที่ไม่มี = API ถือว่า "ต้องเปลี่ยนรหัส" (fail closed) · ผิดเฉพาะค่าที่ไม่ใช่ boolean
+  unknownPasswordFlags: passwords.filter(row => (row.data?.isDefault !== undefined && typeof row.data.isDefault !== 'boolean') || typeof row.data?.mustChangePassword !== 'boolean').length,
 });
 if (problems.length) { console.log('RELEASE BLOCKED\n' + problems.join('\n')); process.exitCode = 1; }
 else console.log('Database, Storage privacy and staff credential migration checks passed. Data parity and user acceptance remain separate release requirements.');

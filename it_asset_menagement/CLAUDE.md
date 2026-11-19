@@ -4,7 +4,7 @@ React 19 + Vite + Tailwind v4 · branch `supabase-migration` = Supabase · `main
 
 ## ข้อกำหนดสำคัญ
 - **ห้าม deploy / push จนกว่าผู้ใช้จะสั่ง**
-- **อย่าแก้ข้อมูลจริงบน `it-assets-management.gbos.app` ก่อนวันสลับ** (ข้อมูล Supabase ยังเป็นสำเนาซ้อม)
+- **สลับไป Supabase แล้ว (19 พ.ย. 2026)** — `it-assets-management.gbos.app` = ระบบจริง · Firestore อ่านอย่างเดียว · งานค้างดู `docs/SUPABASE-MIGRATION.md` "ยังค้าง"
 - เทสต์: `npm test` (node --test · `src/**/*.test.mjs`) · ตรวจ JSX เร็ว ๆ:
   `npx esbuild --loader:.jsx=jsx src/components/ไฟล์.jsx --outdir="$TEMP/check" --log-level=error`
 

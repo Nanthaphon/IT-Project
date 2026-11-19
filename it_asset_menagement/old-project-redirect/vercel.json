@@ -1,4 +1,8 @@
 {
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": ".",
   "redirects": [
     { "source": "/:path*", "destination": "https://it-assets-management.gbos.app/:path*", "permanent": false }
   ]

@@ -13,6 +13,20 @@ export const stable = (v) => JSON.stringify(v, (_, x) => (x && typeof x === 'obj
   ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a.localeCompare(b))) : x));
 const same = (a, b) => stable(a) === stable(b);
 
+/* ไฟล์ที่ migrate-private-storage ย้ายแล้ว: ฐานเป็น base64 (data:…) · Supabase เป็น private-storage:… ตำแหน่งเดียวกัน
+   = ไม่ใช่การแก้ของคน → ถือว่าเท่าฐาน (ค่าที่เก็บยังเป็น reference ของ Supabase) */
+const REF = /^private-storage:/;
+const DATA = /^data:/;
+function sameModuloStorage(sb, base) {
+  if (typeof sb === 'string' && typeof base === 'string') return sb === base || (REF.test(sb) && DATA.test(base));
+  if (Array.isArray(sb) && Array.isArray(base)) return sb.length === base.length && sb.every((v, i) => sameModuloStorage(v, base[i]));
+  if (sb && base && typeof sb === 'object' && typeof base === 'object') {
+    const keys = new Set([...Object.keys(sb), ...Object.keys(base)]);
+    return [...keys].every((k) => sameModuloStorage(sb[k], base[k]));
+  }
+  return same(sb, base);
+}
+
 // admin_users ใช้ uid คนละชุด (Firebase ↔ Supabase Auth) — จัดการด้วย import-to-supabase เท่านั้น
 export const SKIP_TABLES = new Set(['admin_users']);
 export const chunkKey = (r) => [r.parent_collection, r.parent_id, r.sub, r.id].join('/');
@@ -23,7 +37,7 @@ export function mergeRow(base, fb, sb) {
   if (fb && !base && sb) return same(fb, sb) ? { kind: 'keep' } : { kind: 'conflict', fields: diffKeys(fb, sb) };
   if (base && !fb) {
     if (!sb) return { kind: 'keep' };
-    return same(sb, base) ? { kind: 'delete' } : { kind: 'conflict', fields: ['(ลบใน Firebase แต่แก้ใน Supabase)'] };
+    return sameModuloStorage(sb, base) ? { kind: 'delete' } : { kind: 'conflict', fields: ['(ลบใน Firebase แต่แก้ใน Supabase)'] };
   }
   if (!sb) return { kind: 'keep' };                                          // ลบใน Supabase แล้ว
   const out = { ...sb };
@@ -31,7 +45,7 @@ export function mergeRow(base, fb, sb) {
   let changed = false;
   for (const k of new Set([...Object.keys(base), ...Object.keys(fb), ...Object.keys(sb)])) {
     if (same(fb[k], base[k]) || same(fb[k], sb[k])) continue;
-    if (same(sb[k], base[k])) {
+    if (sameModuloStorage(sb[k], base[k])) {
       if (fb[k] === undefined) delete out[k]; else out[k] = fb[k];
       changed = true;
     } else conflicts.push(k);

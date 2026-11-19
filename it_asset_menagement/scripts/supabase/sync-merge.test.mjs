@@ -31,6 +31,14 @@ test('row level: insert new, keep Supabase-only, delete only untouched rows', ()
   assert.equal(mergeRow({ a: 1 }, { a: 1 }, { a: 1 }).kind, 'keep');
 });
 
+test('storage migration (base64 → private ref) is not a human edit', () => {
+  const ref = 'private-storage:it-private/catalog/a.jpg';
+  assert.equal(mergeRow({ a: 1, image: 'data:image/jpeg;base64,xx' }, undefined, { a: 1, image: ref }).kind, 'delete');
+  assert.equal(mergeRow({ image: 'data:x' }, { image: 'data:new' }, { image: ref }).data.image, 'data:new');
+  assert.equal(mergeRow({ a: 1, image: 'data:x' }, { a: 2, image: 'data:x' }, { a: 1, image: ref }).data.image, ref);
+  assert.equal(mergeRow({ a: 1 }, undefined, { a: 1, image: ref }).kind, 'conflict');
+});
+
 test('plan skips admin_users and handles chunks insert/delete', () => {
   const dump = (rows, chunks = []) => ({ tables: { assets: rows, admin_users: [{ id: 'x', data: { email: 'a' } }] }, chunks });
   const c = (id, d) => ({ parent_collection: 'assets', parent_id: 'p', sub: 's', id, data: d });

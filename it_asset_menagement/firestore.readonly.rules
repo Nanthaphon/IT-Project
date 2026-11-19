@@ -1,0 +1,217 @@
+// สร้างจาก scripts/make-readonly-rules.mjs — ช่วงสลับระบบ: อ่านได้ตามเดิม เขียนไม่ได้
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ══════════════════════════════════════════════════════════
+       Helper functions
+       ══════════════════════════════════════════════════════════ */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin = ผู้ใช้ที่ login ด้วย email/password และมี doc ใน admin_users
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+
+    // SuperAdmin = admin ที่ตั้ง isSuperAdmin = true
+    function isSuperAdmin() {
+      return isAdmin() &&
+        get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.isSuperAdmin == true;
+    }
+
+    // Staff = login ผ่าน custom token จาก api/staff-login (มี claim role/empId/empDocId)
+    function isStaff() {
+      return isSignedIn() && request.auth.token.role == 'staff';
+    }
+
+    // คำขอต้องเป็นชื่อตัวเอง — กัน staff ส่งคำขอในนามคนอื่น (admin สร้างแทนได้)
+    function isOwnRequest() {
+      return isAdmin() ||
+        (isStaff() && request.resource.data.empId == request.auth.token.empId);
+    }
+
+    // ฟิลด์ที่ staff อนุญาตให้แก้ profile ตัวเองได้เท่านั้น
+    // ❌ ไม่รวม manager — เฉพาะ admin จัดการ
+    // ❌ ไม่รวม m365Password — ย้ายไป employee_secrets แล้ว (employees อ่านได้ทุกคนที่ login)
+    function staffEditableFields() {
+      return ['fullName','fullNameEng','nickname','position','department','company','phone','m365Email','links','updatedAt'];
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       employees — ต้อง login (admin หรือ staff via custom token),
+                   staff login ไม่ต้องอ่าน collection นี้ (CF ค้นเอง)
+       ══════════════════════════════════════════════════════════ */
+    match /employees/{empId} {
+      allow read: if isSignedIn();
+      // เอกสารใหม่ห้ามมี m365Password — ต้องเขียนลง employee_secrets แทน
+      allow create: if false;
+      allow delete: if false;
+      // Update: admin แก้อะไรก็ได้  |  staff แก้เฉพาะฟิลด์ profile ของ "เอกสารตัวเอง"
+      //   (เดิมเช็คแค่ isSignedIn — staff คนหนึ่งแก้ M365 Email/รหัสผ่านของคนอื่นได้)
+      allow update: if false;
+    }
+
+    /* employee_secrets — รหัสผ่าน M365 (doc id = id ของเอกสาร employees)
+       อ่าน/เขียนได้เฉพาะ admin กับเจ้าของ · staff เขียนได้แค่ m365Password */
+    match /employee_secrets/{empDocId} {
+      allow read: if isAdmin() ||
+        (isStaff() && empDocId == request.auth.token.empDocId);
+      allow create, update: if false;
+      allow delete: if false;
+    }
+
+    match /deleted_employees/{id} {
+      allow read: if isAdmin(); allow write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       settings (dropdown options, app config) — read public, write admin
+       ══════════════════════════════════════════════════════════ */
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       it_report — ร่าง IT Monthly Report (shared) + ค่าที่กรอกในใบคลุมต่ออายุโปรแกรม (license_cover)
+       admin เท่านั้น · ไม่ใส่ไว้ใน settings/ เพราะ settings อ่านได้สาธารณะ
+       ══════════════════════════════════════════════════════════ */
+    match /it_report/{id} {
+      allow read: if isAdmin(); allow write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       assets / accessories / licenses / office_supplies
+       — ต้อง login (admin, hr, staff); write admin เท่านั้น
+       ══════════════════════════════════════════════════════════ */
+    match /assets/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    match /accessories/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    match /licenses/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    match /office_supplies/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    match /bundled_items/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       Requests — ต้อง login ก่อน create (staff via custom token),
+                  admin เท่านั้นที่ update/delete
+       ══════════════════════════════════════════════════════════ */
+    match /repair_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if false;
+      // 🆕 Staff อนุญาตอัปเดตเฉพาะ evaluation ของคำขอที่เป็นของตัวเอง
+      allow update: if false;
+      // 🆕 Staff ยกเลิก (ลบ) เคสของตัวเองได้ เฉพาะที่ยัง "รอดำเนินการ" (IT ยังไม่รับเรื่อง)
+      allow delete: if false;
+    }
+    match /supply_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if false;
+      allow update: if false;
+      // 🆕 Staff ยกเลิก (ลบ) คำขอของตัวเองได้ เฉพาะที่ยัง "รอดำเนินการ"
+      //    (ยังไม่อนุมัติ = สต็อกยังไม่ถูกตัด จึงลบได้ปลอดภัย)
+      allow delete: if false;
+    }
+    match /replacement_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if false;
+      allow update, delete: if false;
+    }
+    // คำขออุปกรณ์เสริม (เบิกใหม่ / เปลี่ยน / เพิ่ม / ยืม)
+    match /accessory_requests/{id} {
+      allow read: if isSignedIn();
+      allow create: if false;
+      allow update, delete: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       Transactions & ไฟล์แนบ — admin เท่านั้น
+       (ประวัติเบิก-คืน, ภาพประกอบ, เอกสารใบกำกับ ฯลฯ)
+       ══════════════════════════════════════════════════════════ */
+    match /assets_transactions/{id} {
+      allow read: if isAdmin(); allow write: if false;
+    }
+    match /accessories_transactions/{id} {
+      allow read: if isAdmin(); allow write: if false;
+    }
+    match /licenses_transactions/{id} {
+      allow read: if isAdmin(); allow write: if false;
+    }
+    match /transaction_attachments/{id} {
+      allow read: if isAdmin(); allow write: if false;
+      // ไฟล์ใหญ่แบ่งเป็นชิ้น — กฎของเอกสารแม่ไม่ครอบ subcollection (เดิมตกกฎปฏิเสธ ไฟล์ใหญ่บันทึกไม่ได้)
+      match /chunks/{chunkId} {
+        allow read: if isAdmin(); allow write: if false;
+      }
+    }
+    match /asset_purchase_docs/{id} {
+      allow read: if isAdmin(); allow write: if false;
+      match /chunks/{chunkId} {
+        allow read: if isAdmin(); allow write: if false;
+      }
+    }
+    match /printed_documents/{docId} {
+      allow read: if isAdmin(); allow write: if false;
+      match /chunks/{chunkId} {
+        allow read: if isAdmin(); allow write: if false;
+      }
+      match /signed_chunks/{chunkId} {
+        allow read: if isAdmin(); allow write: if false;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       staff_passwords — admin อ่านได้ (เพื่อ visibility),
+                         เขียนได้เฉพาะ Vercel API (admin SDK bypass)
+       ══════════════════════════════════════════════════════════ */
+    match /staff_passwords/{empDocId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       line_users — เก็บโดย Cloud webhook (admin SDK)
+       admin อ่านได้เพื่อหยิบ userId ไปตั้งใน "ตั้งค่าระบบ"
+       admin ลบรายการที่ไม่ต้องการได้ (clean up junk จากกลุ่ม)
+       ══════════════════════════════════════════════════════════ */
+    match /line_users/{userId} {
+      allow read: if isAdmin();
+      allow delete: if false;   // admin ลบรายการได้
+      allow create, update: if false; // เฉพาะ webhook สร้าง/แก้
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       admin_users — เฉพาะ admin อ่าน, SuperAdmin จัดการ
+       ══════════════════════════════════════════════════════════ */
+    match /admin_users/{uid} {
+      allow read: if isAdmin();
+      allow create: if false;
+      // Admin คนนั้นแก้ doc ตัวเองได้ (เช่นเปลี่ยน displayName)
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       Default — ปฏิเสธทั้งหมด (กัน collection ที่ลืม whitelist)
+       ══════════════════════════════════════════════════════════ */
+    match /{document=**} {
+      allow read: if false; allow write: if false;
+    }
+  }
+}

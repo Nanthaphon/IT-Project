@@ -46,13 +46,13 @@ import { EMPLOYEE_HEADERS } from './utils/employeeTemplate.js';
 import EmployeeImportConfirm from './components/employees/EmployeeImportConfirm.jsx';
 
 // ═══════════════════════════════════════════════════════════════
-// 📱 LINE Notification ผ่าน serverless endpoint /api/staff-notify
+// 📧 แจ้งเตือนทางอีเมล ผ่าน serverless endpoint /api/staff-notify
 // (รองรับทั้ง staff submit และ admin event เช่น license expiry)
 // ═══════════════════════════════════════════════════════════════
-async function sendLineNotification({ kind, facts, groups, summary }) {
+async function sendNotifyEmail({ kind, facts, groups, summary }) {
   const user = auth.currentUser;
   if (!user) {
-    console.warn('sendLineNotification: ไม่มี user login — ข้ามการแจ้งเตือน');
+    console.warn('sendNotifyEmail: ไม่มี user login — ข้ามการแจ้งเตือน');
     return;
   }
   const idToken = await user.getIdToken();
@@ -67,7 +67,7 @@ async function sendLineNotification({ kind, facts, groups, summary }) {
   });
   if (!resp.ok) {
     const errText = await resp.text().catch(() => '');
-    throw new Error(`LINE notify failed (${resp.status}): ${errText}`);
+    throw new Error(`ส่งอีเมลแจ้งเตือนไม่สำเร็จ (${resp.status}): ${errText}`);
   }
 }
 
@@ -644,7 +644,7 @@ function App() {
     groups.sort((a, b) => a.items[0].days - b.items[0].days);
 
     localStorage.setItem(storageKey, 'sent');
-    sendLineNotification({
+    sendNotifyEmail({
       kind: 'license',
       summary: { programs: groups.length, seats: totalSeats },
       groups,
@@ -753,7 +753,7 @@ function App() {
     await withLoading(async () => {
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      // ── ส่ง Teams + email แจ้ง IT (ผ่าน Vercel API) ──
+      // ── ส่งอีเมลแจ้ง IT (ผ่าน Vercel API) ──
       let notifyOk = false; let notifyErrMsg = '';
       try {
         const idToken = await auth.currentUser?.getIdToken();
@@ -782,9 +782,9 @@ function App() {
 
       setStaffRepairForm({ assetName: '', issue: '' });
       if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งฝ่าย IT ทาง Teams แล้ว', type: 'success' });
+        setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งฝ่าย IT ทางอีเมลแล้ว', type: 'success' });
       } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง Teams ไม่สำเร็จ', message: `ระบบบันทึกเรื่องแจ้งซ่อมเรียบร้อย แต่ไม่สามารถส่ง Teams แจ้ง IT ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า Teams webhook`, type: 'warning' });
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่งอีเมลแจ้งเตือนไม่สำเร็จ', message: `ระบบบันทึกเรื่องแจ้งซ่อมเรียบร้อย แต่ส่งอีเมลแจ้ง IT ไม่ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่าอีเมลแจ้งเตือน`, type: 'warning' });
       }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
@@ -824,9 +824,9 @@ function App() {
       } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); console.error('staff-notify failed:', notifyErr); }
 
       if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งฝ่าย HR ทาง Teams เรียบร้อยแล้ว', type: 'success' });
+        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งฝ่าย HR ทางอีเมลเรียบร้อยแล้ว', type: 'success' });
       } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง Teams ไม่สำเร็จ', message: `ระบบบันทึกคำขอเบิกอุปกรณ์เรียบร้อย แต่ไม่สามารถส่ง Teams แจ้ง HR ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่า Teams webhook`, type: 'warning' });
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่งอีเมลแจ้งเตือนไม่สำเร็จ', message: `ระบบบันทึกคำขอเบิกอุปกรณ์เรียบร้อย แต่ส่งอีเมลแจ้ง HR ไม่ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่าอีเมลแจ้งเตือน`, type: 'warning' });
       }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
@@ -871,7 +871,7 @@ function App() {
         }
       } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
 
-      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และแจ้งฝ่าย IT ทาง Teams เรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
+      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และแจ้งฝ่าย IT ทางอีเมลเรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
@@ -924,7 +924,7 @@ function App() {
       };
       await addDoc(collection(db, 'accessory_requests'), doc);
 
-      // LINE notify IT
+      // อีเมลแจ้ง IT
       let notifyOk = false; let notifyErrMsg = '';
       try {
         const idToken = await auth.currentUser?.getIdToken();
@@ -960,7 +960,7 @@ function App() {
       if (notifyOk) {
         setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: `ส่งคำขอ ${requestTypeLabel}: ${payload.accessoryName} เรียบร้อย — IT จะดำเนินการให้เร็วที่สุด`, type: 'success' });
       } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่ง Teams ไม่สำเร็จ', message: `ระบบบันทึกคำขอเรียบร้อย แต่ส่ง Teams ไม่ได้\n\nสาเหตุ: ${notifyErrMsg}`, type: 'warning' });
+        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่งอีเมลแจ้งเตือนไม่สำเร็จ', message: `ระบบบันทึกคำขอเรียบร้อย แต่ส่งอีเมลแจ้ง IT ไม่ได้\n\nสาเหตุ: ${notifyErrMsg}`, type: 'warning' });
       }
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');

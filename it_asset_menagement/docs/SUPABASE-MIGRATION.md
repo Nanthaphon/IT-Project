@@ -113,7 +113,7 @@ node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.l
 | อุปกรณ์เสริมที่แก้ทั้งสองระบบ: **W227** ใช้ `assignees`/`availableItems` จาก Firebase (6→8 คน · เพิ่ม Au, Faii ที่เบิกบนเว็บเดิม 18–19 พ.ย. · ประวัติเบิกมีอยู่แล้ว) สำรองเดิม `w227-backup-*.json` · **M171** ตรงกันแล้ว | ✅ |
 
 **ยังค้าง**
-- `TEAMS_IT_WEBHOOK_URL` · `TEAMS_HR_WEBHOOK_URL` ในโปรเจคใหม่ (ไม่ใส่ = ไม่มีแจ้งเตือน Teams)
+- อีเมลแจ้งเตือน (แทน Teams) — ตั้ง app registration M365 + env 6 ตัว ตาม `docs/EMAIL-NOTIFY.md`
 - ผู้ดูแลคนอื่นตั้งรหัสผ่านใหม่ (หน้า "จัดการผู้ใช้") · พนักงาน 49 คนต้องเปลี่ยนรหัสตอนล็อกอินครั้งแรก
 - merge `supabase-migration` → main + push (รอเจ้าของสั่ง)
 
@@ -201,7 +201,7 @@ node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.l
    firebase deploy --only hosting --config firebase.redirect.json
    ```
 7. ☐ ผู้ดูแลทุกคนตั้งรหัสผ่านใหม่ (รหัสผ่านผู้ดูแลจาก Firebase ย้ายไม่ได้) — SuperAdmin ตั้งให้จากหน้า "จัดการผู้ใช้" · พนักงานใช้รหัสเดิมได้เลย
-8. ☐ ทดสอบ: ผู้ดูแลเข้าได้ทุกเมนู · พนักงาน 1 คนเข้าได้ แจ้งซ่อมได้ · แจ้งเตือน Teams เข้า
+8. ☐ ทดสอบ: ผู้ดูแลเข้าได้ทุกเมนู · พนักงาน 1 คนเข้าได้ แจ้งซ่อมได้ · อีเมลแจ้งเตือนเข้า
 9. ☐ Firebase เก็บไว้อ่านอย่างเดียว 30 วันเผื่อย้อนกลับ
    ย้อนกลับ = ผ่าน Firebase Hosting (หัวข้อ "ย้อนกลับ" ด้านบน) · โปรเจค Vercel เดิมเลิกใช้แล้ว
 
@@ -215,7 +215,7 @@ node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.l
 | `SUPABASE_URL` · `VITE_SUPABASE_URL` | Project URL (`https://xxxx.supabase.co`) | สคริปต์ใส่ให้ |
 | `VITE_SUPABASE_ANON_KEY` | anon key — เปิดเผยได้ (ติดไปกับหน้าเว็บอยู่แล้ว) · ไม่ใส่ = หน้าเว็บขาว | สคริปต์ใส่ให้ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Secret key — **ห้ามส่งในแชท** · ไม่ใส่ = ล็อกอินพนักงาน/จัดการผู้ใช้พัง | สคริปต์ใส่ให้ |
-| `TEAMS_IT_WEBHOOK_URL` · `TEAMS_HR_WEBHOOK_URL` | **ไม่มีในเครื่อง** — คัดลอกจากโปรเจคเดิม (Vercel บัญชีส่วนตัว → Settings → Environment Variables) · ไม่ใส่ = ไม่มีแจ้งเตือนเข้า Teams | ⬜ ต้องใส่เอง |
+| `MS_TENANT_ID` · `MS_CLIENT_ID` · `MS_CLIENT_SECRET` · `MAIL_FROM` · `IT_NOTIFY_EMAILS` · `HR_NOTIFY_EMAILS` | อีเมลแจ้งเตือน (แทน `TEAMS_*` ที่เลิกใช้) — วิธีตั้งดู `docs/EMAIL-NOTIFY.md` · ไม่ใส่ = ไม่มีแจ้งเตือน | ⬜ ต้องใส่เอง |
 | `STAFF_EMAIL_DOMAIN` | ไม่ต้องใส่ (ค่าเริ่มต้น `staff.itasset.invalid`) — ห้ามเปลี่ยนหลังใช้งานจริง | ไม่บังคับ |
 | `ALLOWED_ORIGINS` · `VITE_VERCEL_API_URL` | ไม่จำเป็นแล้ว (หน้าเว็บกับ api อยู่ host เดียวกัน) | เลิกใช้ |
 | `FIREBASE_SERVICE_ACCOUNT` | ไม่ต้องใส่ (อยู่ที่โปรเจคเดิมเผื่อย้อนกลับ) | เลิกใช้ |

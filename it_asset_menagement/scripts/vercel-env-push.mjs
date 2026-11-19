@@ -16,8 +16,13 @@ const WANTED = [
   ['SUPABASE_URL', 'VITE_SUPABASE_URL'],      // api/ ใช้ชื่อไม่มี VITE_
   ['VITE_SUPABASE_ANON_KEY'],
   ['SUPABASE_SERVICE_ROLE_KEY'],
-  ['TEAMS_IT_WEBHOOK_URL'],                   // ไม่มีในเครื่องก็ข้าม (แจ้งเตือน Teams จะเงียบไว้ก่อน)
-  ['TEAMS_HR_WEBHOOK_URL'],
+  // อีเมลแจ้งเตือน (docs/EMAIL-NOTIFY.md) — ไม่มีในเครื่องก็ข้าม (แจ้งเตือนจะเงียบไว้ก่อน)
+  ['MS_TENANT_ID'],
+  ['MS_CLIENT_ID'],
+  ['MS_CLIENT_SECRET'],
+  ['MAIL_FROM'],
+  ['IT_NOTIFY_EMAILS'],
+  ['HR_NOTIFY_EMAILS'],
 ];
 
 const env = {};

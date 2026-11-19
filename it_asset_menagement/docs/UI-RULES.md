@@ -117,7 +117,7 @@ import { Trash2, SquarePen, Search } from 'lucide-react';
 emoji เรนเดอร์ต่างกันทุกระบบปฏิบัติการ ปรับสี/ขนาดไม่ได้ และเข้าไม่ได้กับธีม
 
 **emoji ที่เก็บไว้ตั้งใจ** (เป็นข้อมูล ไม่ใช่ UI — แก้แล้วกระทบของจริง):
-`App.jsx` label ของการ์ดแจ้งเตือน Teams (`api/staff-notify`) ·
+`App.jsx` label ของอีเมลแจ้งเตือน (`api/staff-notify` — ฝั่งอีเมลตัด emoji หน้า label ออกเอง) ·
 `STATUS_OPTIONS` ของ IT Report ที่ถูกเก็บลง Firestore และพิมพ์ลง .pptx
 
 **ข้อยกเว้นที่ไม่ใช่ไอคอน** (ยังเป็น `<svg>` ได้):

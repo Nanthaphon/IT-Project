@@ -33,7 +33,7 @@ src/components/EditAssetModal.jsx, AddModal.jsx   ใช้ร่วม assets/a
 src/ui/earth.js, earthUI.jsx   token + component กลาง · ui/theme.js, primitives.jsx = modal
 src/hooks/firebaseNeeds.js     เมนูไหน subscribe collection ไหน — เพิ่ม collection ต้องเพิ่มที่นี่ + `npm run check:needs`
 src/utils/formatDate.js        วันที่ DD/MM/YYYY
-api/                           Vercel Functions (staff auth, Teams notify, cascade-delete)
+api/                           Vercel Functions (staff auth, อีเมลแจ้งเตือน → docs/EMAIL-NOTIFY.md, cascade-delete)
 ```
 - ย้ายสิทธิ์ License ต้องผ่าน `utils/licenseSeats.js` · `api/cascade-delete.js` มีสำเนา `SEAT_FIELDS` แก้คู่กัน
 - รหัส M365 อยู่ `employee_secrets/` ผ่าน `utils/employeeSecrets.js` เท่านั้น

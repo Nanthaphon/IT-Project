@@ -99,7 +99,31 @@ node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.l
 QR บนสติกเกอร์ที่พิมพ์ไปแล้วชี้ `itassetmenagement.vercel.app` → วันสลับต้องย้ายโดเมนนั้นมาที่โปรเจคนี้ (ดูเช็กลิสต์ด้านล่าง)
 หลังย้ายแล้วโดเมนนี้ยังต้องเปิดอยู่ตลอดไป ห้ามปลด
 
-## ⚠️ ข้อมูลสองระบบเริ่มแยกกัน (ตรวจ 19 พ.ย. 2026)
+## ✅ สลับระบบแล้ว 19 พ.ย. 2026 (~17:45)
+
+| ขั้น | ผล |
+|---|---|
+| SQL `upgrade-20261119.sql` (เจ้าของรันใน SQL Editor) | ✅ `check-release` ผ่าน |
+| `vercel --prod` → `it-assets-management.gbos.app` | ✅ |
+| ย้ายไฟล์เข้า `it-private` | ✅ 352 เอกสาร · 702 ไฟล์ ตรวจ hash ครบ · conflict 0 |
+| Firebase Hosting (`*.web.app`) → หน้าพาไป gbos.app (302 + path/query เดิม) | ✅ |
+| Firestore → **อ่านอย่างเดียว** (`firestore.readonly.rules` สร้างด้วย `scripts/make-readonly-rules.mjs` — สิทธิ์อ่านเดิม · เขียน = false) | ✅ |
+| ส่งออก Firebase ครั้งสุดท้ายหลังปิดเขียน → `sync-from-firebase.mjs --apply` | ✅ เพิ่ม 33 · แก้ 49 · ลบ 4 · ล้มเหลว 0 |
+| ย้ายไฟล์ของแถวที่ซิงก์มา · smoke test · ซิงก์ซ้ำ (ต้องว่าง) | ✅ |
+
+**ยังค้าง**
+- `itassetmenagement.vercel.app` (โปรเจคเดิม บัญชี Vercel ส่วนตัว) ยังเปิดหน้าเว็บเก่า — อ่านได้ แต่บันทึกไม่ได้ (Firestore ปิดเขียน)
+  ต้อง deploy `old-project-redirect/` ขึ้นโปรเจคนั้น (ต้องใช้บัญชี Vercel ส่วนตัว) → QR สติกเกอร์พาไป gbos.app พร้อม `?asset=` เดิม
+  ⚠️ ฟังก์ชัน `api/` ของโปรเจคเดิมใช้ firebase-admin ซึ่งข้ามกฎได้ — ปิดหน้าเก่าเร็วที่สุด
+- อุปกรณ์เสริมที่แก้ทั้งสองระบบ (ใช้ค่า Supabase อยู่ · ค่า Firebase อยู่ใน export `firestore-2026-11-19T10-41-22-653Z.json`): **Anitech W227 Wireless** (Firebase ผู้ถือ 8 / Supabase 6) · **Logitech Mouse M171** (จำนวนเท่ากัน รายชื่อต่าง) — ตรวจกับของจริงแล้วแก้ในหน้าอุปกรณ์เสริม
+- `TEAMS_IT_WEBHOOK_URL` · `TEAMS_HR_WEBHOOK_URL` ในโปรเจคใหม่ (ไม่ใส่ = ไม่มีแจ้งเตือน Teams)
+- ผู้ดูแลคนอื่นตั้งรหัสผ่านใหม่ (หน้า "จัดการผู้ใช้") · พนักงาน 49 คนต้องเปลี่ยนรหัสตอนล็อกอินครั้งแรก
+- merge `supabase-migration` → main + push (รอเจ้าของสั่ง)
+
+**ย้อนกลับ** (ภายใน 30 วัน): `firebase deploy --only firestore:rules` (กฎเดิม) → checkout main แล้ว `npm run build` + `firebase deploy --only hosting`
+ข้อมูลที่เกิดบน Supabase หลังสลับต้องนำกลับเอง · backup ทุกขั้นอยู่ใน `.supabase-export/` (`storage-backup-*` · `sync-backup-*`)
+
+## ข้อมูลสองระบบเคยแยกกัน (ตรวจ 19 พ.ย. 2026 ก่อนสลับ — แก้แล้วด้วยการซิงก์)
 
 `compare-cutover.mjs` เทียบ export Firebase 10 พ.ย. (ฐาน) · Firebase 19 พ.ย. · Supabase 19 พ.ย. (อ่านอย่างเดียว ไม่พิมพ์ข้อมูลส่วนตัว)
 

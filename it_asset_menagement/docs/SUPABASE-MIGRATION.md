@@ -26,7 +26,8 @@ Firebase Hosting (`*.web.app`) เหลือเป็นหน้าพาไ�
 | 2 | ชั้นเชื่อม `src/db/compat.js` (หน้าตาเหมือน `firebase/firestore`) + realtime แทน onSnapshot | ✅ |
 | 2b | 14 ไฟล์ import จาก `src/db/compat.js` แล้ว · `src/firebase.js` = จุดเชื่อม Supabase (ชื่อไฟล์เดิม) | ✅ |
 | 3 | ผู้ดูแล → Supabase Auth · พนักงาน → `api/staff-login` ออก session ของ Supabase · `api/` 9 ไฟล์ใช้ service role | ✅ เทสต์ผ่าน · ✅ เจ้าของล็อกอินผู้ดูแลยืนยัน (10 พ.ย. 2026 — แดชบอร์ด/ทรัพย์สิน/พนักงาน/License โหลดครบ) · ⬜ ล็อกอินพนักงานกับระบบจริง |
-| 4 | รูป/ไฟล์แนบ → Supabase Storage (ตอนนี้ยังเก็บ base64 ในเอกสารเหมือนเดิม) | ⬜ |
+| 3b | ความปลอดภัยพนักงาน: เลิกเก็บรหัสอ่านออก · รหัสเริ่มต้น/รีเซ็ตต้องเปลี่ยนก่อนใช้ · จำกัดลองรหัสผิด · "จดจำฉัน" จำแค่รหัสพนักงาน | ✅ โค้ด+เทสต์ (19 พ.ย.) · ⬜ รัน SQL บนโปรเจคจริง |
+| 4 | รูป/ไฟล์แนบ → bucket `it-private` (private + signed URL) · หน้าเว็บอ่านไฟล์ base64 เดิมได้ต่อ | ✅ โค้ด+เทสต์ (19 พ.ย.) · ⬜ รัน SQL + ย้ายไฟล์จริง |
 | 5 | วันสลับระบบ — เช็กลิสต์ด้านล่าง | ⬜ |
 
 ## ระบบเข้าสู่ระบบ (ระยะที่ 3)
@@ -97,6 +98,39 @@ node scripts/vercel-env-push.mjs   # ส่งค่าลับจาก .env.l
 
 QR บนสติกเกอร์ที่พิมพ์ไปแล้วชี้ `itassetmenagement.vercel.app` → วันสลับต้องย้ายโดเมนนั้นมาที่โปรเจคนี้ (ดูเช็กลิสต์ด้านล่าง)
 หลังย้ายแล้วโดเมนนี้ยังต้องเปิดอยู่ตลอดไป ห้ามปลด
+
+## ⚠️ ข้อมูลสองระบบเริ่มแยกกัน (ตรวจ 19 พ.ย. 2026)
+
+`compare-cutover.mjs` เทียบ export Firebase 10 พ.ย. (ฐาน) · Firebase 19 พ.ย. · Supabase 19 พ.ย. (อ่านอย่างเดียว ไม่พิมพ์ข้อมูลส่วนตัว)
+
+| | จำนวน |
+|---|---|
+| มีใหม่ใน Firebase เท่านั้น (เว็บเดิมยังใช้งาน) | supply_requests 29 · office_supplies 19 · employee_secrets 14 · employees 6 · อื่น ๆ ~10 |
+| มีใหม่ใน **Supabase เท่านั้น** (มีคนแก้บน `it-assets-management.gbos.app`) | licenses 3 · accessories_transactions 3 |
+| แก้ทั้งสองฝั่งไม่ตรงกัน | accessories 1 แถว (ฟิลด์ `assignees`, `availableItems`) |
+
+**ผลต่อวันสลับ:** ขั้น "ล้าง + นำเข้า" แบบเดิมจะ**ทับรายการที่แก้บน Supabase หาย** (3+3+1 แถว)
+- ก่อนวันสลับ **อย่าใช้ `it-assets-management.gbos.app` แก้ข้อมูลจริง** — ใช้เว็บเดิมที่เดียว
+- รายการที่ทำบน Supabase ไปแล้ว: วันสลับให้คนที่แก้ทำซ้ำบนเว็บเดิมก่อนส่งออก หรือจดไว้ทำซ้ำหลังนำเข้า
+  (ดูว่าแถวไหนใน `.supabase-export/cutover-comparison.json` — ไฟล์ส่วนตัว ไม่ขึ้น git)
+
+## ขั้นที่เหลือ — ขึ้นความปลอดภัย + Storage บนโปรเจคจริง (เจ้าของสั่งเอง)
+
+ตรวจล่าสุด `node scripts/supabase/check-release.mjs` → **RELEASE BLOCKED**: ยังไม่มี RPC 4 ตัว · ไม่มี bucket `it-private` · รหัสพนักงานแบบอ่านออกยังอยู่
+(การสมัครบัญชีเองปิดแล้ว ✅)
+
+**ห้าม `vercel --prod` โค้ดตั้งแต่ commit `3cef837` ก่อนทำข้อ 2** — หน้าเว็บใหม่เรียก RPC ที่ยังไม่มี → พนักงานล็อกอินไม่ได้
+
+1. snapshot ก่อน: `node scripts/supabase/production-status.mjs` (เก็บใน `.supabase-export/`)
+2. Supabase → SQL Editor → วางทั้งไฟล์ `supabase/upgrade-20261119.sql` → Run (ทั้งก้อนอยู่ใน transaction เดียว พังกลางทาง = ไม่เปลี่ยนอะไร)
+   ⚠️ ลบรหัสพนักงานแบบอ่านออกถาวร — admin "ดูรหัส" ไม่ได้อีก ใช้ "รีเซ็ต" แทน · พนักงานที่ใช้รหัสเริ่มต้นจะถูกบังคับเปลี่ยนรหัสตอนล็อกอินครั้งถัดไป
+3. `node scripts/supabase/check-release.mjs` ต้องขึ้น "checks passed"
+4. `vercel --prod` ทันทีหลังข้อ 3
+5. ย้ายไฟล์แนบ: `node scripts/supabase/migrate-private-storage.mjs` (ดูก่อน · dry-run 19 พ.ย.: 352 เอกสาร 702 ไฟล์ ~60 MB)
+   → `... --apply` (เขียน backup ลง `.supabase-export/` ก่อนแตะอะไร · รันซ้ำได้) · ย้อนกลับ: `... --rollback <ไฟล์ backup> --apply`
+6. เปิดเว็บ ดูรูปทรัพย์สิน/เอกสารแนบ 2–3 รายการ · ล็อกอินพนักงาน 1 คน
+
+**วันสลับ:** ทำข้อ 2–5 ซ้ำหลังนำเข้าข้อมูลใหม่ (import ดึงรหัส plaintext + รูป base64 มาจาก Firebase อีกรอบ — trigger ตัด plaintext ให้อัตโนมัติ แต่ไฟล์ต้องรันข้อ 5 ใหม่)
 
 ## สิ่งที่เจ้าของต้องทำ — ตอนนี้ (ก่อนวันสลับ)
 

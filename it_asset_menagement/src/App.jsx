@@ -48,28 +48,52 @@ import EmployeeImportConfirm from './components/employees/EmployeeImportConfirm.
 // ═══════════════════════════════════════════════════════════════
 // 📧 แจ้งเตือนทางอีเมล ผ่าน serverless endpoint /api/staff-notify
 // (รองรับทั้ง staff submit และ admin event เช่น license expiry)
+//
+// ⚠️ ตัวนี้ "ไม่เคย throw" และมี timeout เสมอ — คำขอถูกบันทึกลงฐานข้อมูลไปแล้ว
+//    ก่อนเรียกทุกครั้ง การแจ้งเตือนล้มเหลวจึงห้ามทำให้การเบิก/แจ้งซ่อมพัง
+//    (เดิม fetch ไม่มี timeout → endpoint ไม่ตอบ = overlay "กำลังส่งคำขอ..." ค้างถาวร)
 // ═══════════════════════════════════════════════════════════════
-async function sendNotifyEmail({ kind, facts, groups, summary }) {
-  const user = auth.currentUser;
-  if (!user) {
-    console.warn('sendNotifyEmail: ไม่มี user login — ข้ามการแจ้งเตือน');
-    return;
-  }
-  const idToken = await user.getIdToken();
+const NOTIFY_TIMEOUT_MS = 10000;
 
-  const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({ kind, facts, groups, summary }),
-  });
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => '');
-    throw new Error(`ส่งอีเมลแจ้งเตือนไม่สำเร็จ (${resp.status}): ${errText}`);
+async function postNotify({ kind, facts, groups, summary }) {
+  try {
+    const user = auth.currentUser;
+    if (!user) return { ok: false, error: 'ยังไม่ได้เข้าสู่ระบบ' };
+    const idToken = await user.getIdToken();
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), NOTIFY_TIMEOUT_MS);
+    try {
+      const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ kind, facts, groups, summary }),
+        signal: ctrl.signal,
+      });
+      if (resp.ok) return { ok: true, error: '' };
+      const errText = await resp.text().catch(() => '');
+      return { ok: false, error: `HTTP ${resp.status}: ${errText}`.trim() };
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') {
+      return { ok: false, error: `หมดเวลารอการแจ้งเตือน (${NOTIFY_TIMEOUT_MS / 1000} วินาที)` };
+    }
+    return { ok: false, error: err?.message || String(err) };
   }
 }
+
+/* ข้อความตอบพนักงานเมื่ออีเมลไม่ออก — คำขอบันทึกแล้วและ IT เห็นเลขค้างบนเมนูอยู่แล้ว
+   จึงต้องไม่ทำให้พนักงานคิดว่าเบิกไม่สำเร็จแล้วส่งซ้ำ */
+const savedButNoMail = (what, team) => ({
+  title: 'ส่งคำขอสำเร็จ!',
+  message: `ระบบบันทึก${what}เรียบร้อยแล้ว ฝ่าย${team}เห็นคำขอในระบบได้ทันที\n\n(ระบบอีเมลแจ้งเตือนยังตั้งค่าไม่ครบ จึงไม่มีอีเมลเด้ง — ไม่กระทบคำขอของคุณ ไม่ต้องส่งซ้ำ)`,
+  type: 'success',
+});
 
 import useFirebaseData from './hooks/useFirebaseData.jsx';
 import useAdminPermissions from './hooks/useAdminPermissions.jsx';
@@ -644,11 +668,11 @@ function App() {
     groups.sort((a, b) => a.items[0].days - b.items[0].days);
 
     localStorage.setItem(storageKey, 'sent');
-    sendNotifyEmail({
+    postNotify({
       kind: 'license',
       summary: { programs: groups.length, seats: totalSeats },
       groups,
-    }).catch(err => console.error('License expiry notify failed:', err));
+    }).then(r => { if (!r.ok) console.error('License expiry notify failed:', r.error); });
   }, [authRole, licenses, isSuperAdmin, adminPermissions, isActiveTab]);
 
   useEffect(() => {
@@ -753,39 +777,25 @@ function App() {
     await withLoading(async () => {
     try {
       await addDoc(collection(db, 'repair_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, assetName: staffRepairForm.assetName, issue: staffRepairForm.issue, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      // ── ส่งอีเมลแจ้ง IT (ผ่าน Vercel API) ──
-      let notifyOk = false; let notifyErrMsg = '';
-      try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) { notifyErrMsg = 'ไม่มี idToken — auth.currentUser เป็น null'; }
-        else {
-          const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({
-              kind: 'repair',
-              facts: [
-                { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
-                ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
-                { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
-                { label: '🏢 แผนก', value: currentStaff.department || '-' },
-                { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
-                { label: '💻 อุปกรณ์', value: staffRepairForm.assetName },
-                { label: '⚠️ อาการที่พบ', value: staffRepairForm.issue },
-              ],
-            }),
-          });
-          if (resp.ok) notifyOk = true;
-          else notifyErrMsg = `HTTP ${resp.status}: ${await resp.text().catch(() => '')}`;
-        }
-      } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); console.error('staff-notify failed:', notifyErr); }
+      // ── ส่งอีเมลแจ้ง IT · ล้มเหลวก็ไม่กระทบเรื่องที่บันทึกไปแล้ว ──
+      const notify = await postNotify({
+        kind: 'repair',
+        facts: [
+          { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+          ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+          { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+          { label: '🏢 แผนก', value: currentStaff.department || '-' },
+          { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
+          { label: '💻 อุปกรณ์', value: staffRepairForm.assetName },
+          { label: '⚠️ อาการที่พบ', value: staffRepairForm.issue },
+        ],
+      });
+      if (!notify.ok) console.error('staff-notify failed:', notify.error);
 
       setStaffRepairForm({ assetName: '', issue: '' });
-      if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งฝ่าย IT ทางอีเมลแล้ว', type: 'success' });
-      } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่งอีเมลแจ้งเตือนไม่สำเร็จ', message: `ระบบบันทึกเรื่องแจ้งซ่อมเรียบร้อย แต่ส่งอีเมลแจ้ง IT ไม่ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่าอีเมลแจ้งเตือน`, type: 'warning' });
-      }
+      setCustomAlert(notify.ok
+        ? { isOpen: true, title: 'ส่งเรื่องสำเร็จ!', message: 'ระบบได้รับเรื่องแจ้งปัญหา และแจ้งฝ่าย IT ทางอีเมลแล้ว', type: 'success' }
+        : { isOpen: true, ...savedButNoMail('เรื่องแจ้งซ่อม', 'IT') });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
   };
@@ -795,39 +805,26 @@ function App() {
     await withLoading(async () => {
     try {
       await addDoc(collection(db, 'supply_requests'), { empId: currentStaff.empId, empName: currentStaff.fullName, department: currentStaff.department, supplyId: supplyId, supplyName: supplyName, supplyCompany: supplyCompany || '', requestedQty: Number(reqQty), note: note, status: 'รอดำเนินการ', timestamp: Date.now(), createdAt: serverTimestamp() });
-      let notifyOk = false; let notifyErrMsg = '';
-      try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) { notifyErrMsg = 'ไม่มี idToken — auth.currentUser เป็น null'; }
-        else {
-          const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({
-              kind: 'supply',
-              facts: [
-                { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
-                ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
-                { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
-                { label: '🏢 แผนก', value: currentStaff.department || '-' },
-                { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
-                { label: '📦 อุปกรณ์ที่ขอเบิก', value: supplyName },
-                ...(supplyCompany ? [{ label: '🏢 บริษัทที่จัดหา', value: supplyCompany }] : []),
-                { label: '🔢 จำนวน', value: `${reqQty} ชิ้น` },
-                { label: '📝 หมายเหตุ', value: note || '-' },
-              ],
-            }),
-          });
-          if (resp.ok) notifyOk = true;
-          else notifyErrMsg = `HTTP ${resp.status}: ${await resp.text().catch(() => '')}`;
-        }
-      } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); console.error('staff-notify failed:', notifyErr); }
+      // ── อีเมลแจ้ง HR · ล้มเหลวก็ไม่กระทบคำขอที่บันทึกไปแล้ว ──
+      const notify = await postNotify({
+        kind: 'supply',
+        facts: [
+          { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+          ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+          { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+          { label: '🏢 แผนก', value: currentStaff.department || '-' },
+          { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
+          { label: '📦 อุปกรณ์ที่ขอเบิก', value: supplyName },
+          ...(supplyCompany ? [{ label: '🏢 บริษัทที่จัดหา', value: supplyCompany }] : []),
+          { label: '🔢 จำนวน', value: `${reqQty} ชิ้น` },
+          { label: '📝 หมายเหตุ', value: note || '-' },
+        ],
+      });
+      if (!notify.ok) console.error('staff-notify failed:', notify.error);
 
-      if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งฝ่าย HR ทางอีเมลเรียบร้อยแล้ว', type: 'success' });
-      } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่งอีเมลแจ้งเตือนไม่สำเร็จ', message: `ระบบบันทึกคำขอเบิกอุปกรณ์เรียบร้อย แต่ส่งอีเมลแจ้ง HR ไม่ได้\n\nสาเหตุ: ${notifyErrMsg || 'ไม่ทราบ'}\n\nกรุณาแจ้ง IT ตรวจสอบการตั้งค่าอีเมลแจ้งเตือน`, type: 'warning' });
-      }
+      setCustomAlert(notify.ok
+        ? { isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: 'ส่งคำขอเบิกอุปกรณ์ และแจ้งฝ่าย HR ทางอีเมลเรียบร้อยแล้ว', type: 'success' }
+        : { isOpen: true, ...savedButNoMail('คำขอเบิกอุปกรณ์', 'HR') });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
   };
@@ -849,29 +846,23 @@ function App() {
         timestamp: Date.now(),
         createdAt: serverTimestamp()
       });
-      try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (idToken) {
-          await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({
-              kind: 'replacement',
-              facts: [
-                { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
-                ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
-                { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
-                { label: '🏢 แผนก', value: currentStaff.department || '-' },
-                { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
-                { label: '💻 สถานะเครื่องปัจจุบัน', value: currentStatus || '-' },
-                { label: '📝 เหตุผลขอเปลี่ยน', value: reason || '-' },
-              ],
-            }),
-          });
-        }
-      } catch (notifyErr) { console.error('staff-notify failed:', notifyErr); }
+      const notify = await postNotify({
+        kind: 'replacement',
+        facts: [
+          { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+          ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+          { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+          { label: '🏢 แผนก', value: currentStaff.department || '-' },
+          { label: '👔 หัวหน้างาน', value: currentStaff.manager || '-' },
+          { label: '💻 สถานะเครื่องปัจจุบัน', value: currentStatus || '-' },
+          { label: '📝 เหตุผลขอเปลี่ยน', value: reason || '-' },
+        ],
+      });
+      if (!notify.ok) console.error('staff-notify failed:', notify.error);
 
-      setCustomAlert({ isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และแจ้งฝ่าย IT ทางอีเมลเรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' });
+      setCustomAlert(notify.ok
+        ? { isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่อง และแจ้งฝ่าย IT ทางอีเมลเรียบร้อยแล้ว กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ', type: 'success' }
+        : { isOpen: true, title: 'บันทึกคำขอสำเร็จ!', message: 'บันทึกคำขอเปลี่ยนเครื่องเรียบร้อยแล้ว ฝ่าย IT เห็นคำขอในระบบได้ทันที กรุณาพิมพ์ฟอร์มและนำไปให้หัวหน้าแผนกเซ็นต์อนุมัติ\n\n(ระบบอีเมลแจ้งเตือนยังตั้งค่าไม่ครบ จึงไม่มีอีเมลเด้ง — ไม่กระทบคำขอของคุณ)', type: 'success' });
     } catch (error) {
       setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' });
     }
@@ -924,44 +915,32 @@ function App() {
       };
       await addDoc(collection(db, 'accessory_requests'), doc);
 
-      // อีเมลแจ้ง IT
-      let notifyOk = false; let notifyErrMsg = '';
-      try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) { notifyErrMsg = 'ไม่มี idToken'; }
-        else {
-          const facts = [
-            { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
-            ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
-            { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
-            { label: '🏢 แผนก', value: currentStaff.department || '-' },
-            { label: '📋 ประเภทคำขอ', value: requestTypeLabel },
-            { label: '📦 อุปกรณ์', value: payload.accessoryName },
-            { label: '🔢 จำนวน', value: `${payload.quantity || 1} ชิ้น` },
-            // 🆕 ของเก่า (เฉพาะ replace)
-            ...(payload.oldAccessoryName ? [
-              { label: '🔧 ของเก่า', value: `${payload.oldAccessoryName}${payload.oldAccessoryModel ? ` (${payload.oldAccessoryModel})` : ''}` },
-              ...(payload.oldAge ? [{ label: '⏱ อายุของเก่า', value: payload.oldAge }] : []),
-              ...(payload.oldWarranty ? [{ label: '🛡 สถานะประกัน', value: payload.oldWarranty }] : []),
-            ] : []),
-            { label: '📝 เหตุผล', value: payload.reason || '-' },
-            ...(payload.returnDate ? [{ label: '📅 กำหนดคืน', value: formatDateShort(payload.returnDate) }] : []),
-          ];
-          const resp = await fetch(`${VERCEL_API_BASE}/api/staff-notify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-            body: JSON.stringify({ kind: 'accessory_request', facts }),
-          });
-          if (resp.ok) notifyOk = true;
-          else notifyErrMsg = `HTTP ${resp.status}`;
-        }
-      } catch (notifyErr) { notifyErrMsg = notifyErr?.message || String(notifyErr); }
+      // อีเมลแจ้ง IT · ล้มเหลวก็ไม่กระทบคำขอที่บันทึกไปแล้ว
+      const notify = await postNotify({
+        kind: 'accessory_request',
+        facts: [
+          { label: '👤 ชื่อ-นามสกุล', value: currentStaff.fullName || '-' },
+          ...(currentStaff.nickname ? [{ label: '🏷 ชื่อเล่น', value: currentStaff.nickname }] : []),
+          { label: '🆔 รหัสพนักงาน', value: currentStaff.empId || '-' },
+          { label: '🏢 แผนก', value: currentStaff.department || '-' },
+          { label: '📋 ประเภทคำขอ', value: requestTypeLabel },
+          { label: '📦 อุปกรณ์', value: payload.accessoryName },
+          { label: '🔢 จำนวน', value: `${payload.quantity || 1} ชิ้น` },
+          // 🆕 ของเก่า (เฉพาะ replace)
+          ...(payload.oldAccessoryName ? [
+            { label: '🔧 ของเก่า', value: `${payload.oldAccessoryName}${payload.oldAccessoryModel ? ` (${payload.oldAccessoryModel})` : ''}` },
+            ...(payload.oldAge ? [{ label: '⏱ อายุของเก่า', value: payload.oldAge }] : []),
+            ...(payload.oldWarranty ? [{ label: '🛡 สถานะประกัน', value: payload.oldWarranty }] : []),
+          ] : []),
+          { label: '📝 เหตุผล', value: payload.reason || '-' },
+          ...(payload.returnDate ? [{ label: '📅 กำหนดคืน', value: formatDateShort(payload.returnDate) }] : []),
+        ],
+      });
+      if (!notify.ok) console.error('staff-notify failed:', notify.error);
 
-      if (notifyOk) {
-        setCustomAlert({ isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: `ส่งคำขอ ${requestTypeLabel}: ${payload.accessoryName} เรียบร้อย — IT จะดำเนินการให้เร็วที่สุด`, type: 'success' });
-      } else {
-        setCustomAlert({ isOpen: true, title: 'บันทึกแล้ว แต่ส่งอีเมลแจ้งเตือนไม่สำเร็จ', message: `ระบบบันทึกคำขอเรียบร้อย แต่ส่งอีเมลแจ้ง IT ไม่ได้\n\nสาเหตุ: ${notifyErrMsg}`, type: 'warning' });
-      }
+      setCustomAlert(notify.ok
+        ? { isOpen: true, title: 'ส่งคำขอสำเร็จ!', message: `ส่งคำขอ ${requestTypeLabel}: ${payload.accessoryName} เรียบร้อย — IT จะดำเนินการให้เร็วที่สุด`, type: 'success' }
+        : { isOpen: true, ...savedButNoMail(`คำขอ ${requestTypeLabel}: ${payload.accessoryName}`, 'IT') });
     } catch (error) { setCustomAlert({ isOpen: true, title: 'เกิดข้อผิดพลาด!', message: error.message, type: 'error' }); }
     }, 'กำลังส่งคำขอ...');
   };
